@@ -9,6 +9,11 @@ import ScoreLegend from "../components/ScoreLegend";
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
 function processResults(data) {
+  // Guard against non-array data
+  if (!Array.isArray(data) || data.length === 0) {
+    return [];
+  }
+  
   // Group by business_id
   const businesses = {};
   data.forEach((row) => {
@@ -76,25 +81,39 @@ export default function Home() {
     setSearchQuery(query);
     setSelectedBusiness(null);
     
-    const encodedQuery = encodeURIComponent(query.toUpperCase());
-    const url = `${API_BASE}?$where=upper(name) like '%25${encodedQuery}%25' OR upper(address) like '%25${encodedQuery}%25' OR upper(inspection_business_name) like '%25${encodedQuery}%25'&$limit=500&$order=inspection_date DESC`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    const processed = processResults(data);
-    setResults(processed);
-    setIsLoading(false);
+    try {
+      const encodedQuery = encodeURIComponent(query.toUpperCase());
+      const url = `${API_BASE}?$where=upper(name) like '%25${encodedQuery}%25' OR upper(address) like '%25${encodedQuery}%25' OR upper(inspection_business_name) like '%25${encodedQuery}%25'&$limit=500&$order=inspection_date DESC`;
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      const processed = processResults(data);
+      setResults(processed);
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setIsDetailLoading(true);
     setSelectedBusiness(biz);
     
-    const url = `${API_BASE}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
-    const response = await fetch(url);
-    const data = await response.json();
-    setDetailRows(data);
-    setIsDetailLoading(false);
+    try {
+      const url = `${API_BASE}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch details');
+      const data = await response.json();
+      setDetailRows(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Detail fetch error:', error);
+      setDetailRows([]);
+    } finally {
+      setIsDetailLoading(false);
+    }
   }, []);
 
   return (
