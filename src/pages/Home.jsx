@@ -6,6 +6,7 @@ import RestaurantCard from "../components/RestaurantCard";
 import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
+import FilterSortControls from "../components/FilterSortControls";
 
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
@@ -81,6 +82,8 @@ export default function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("list"); // "list" or "map"
+  const [filterResult, setFilterResult] = useState("all");
+  const [sortBy, setSortBy] = useState("score-high");
 
   const handleSearch = useCallback(async (query) => {
     setIsLoading(true);
@@ -122,6 +125,39 @@ export default function Home() {
       setIsDetailLoading(false);
     }
   }, []);
+
+  // Apply filters and sorting
+  const filteredAndSortedResults = useMemo(() => {
+    let filtered = [...results];
+    
+    // Apply filter
+    if (filterResult !== "all") {
+      filtered = filtered.filter(r => r.latestResult === filterResult);
+    }
+    
+    // Apply sort
+    switch (sortBy) {
+      case "score-high":
+        filtered.sort((a, b) => b.safetyScore - a.safetyScore);
+        break;
+      case "score-low":
+        filtered.sort((a, b) => a.safetyScore - b.safetyScore);
+        break;
+      case "inspections":
+        filtered.sort((a, b) => b.totalInspections - a.totalInspections);
+        break;
+      case "date-recent":
+        filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate));
+        break;
+      case "date-oldest":
+        filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate));
+        break;
+      default:
+        filtered.sort((a, b) => b.safetyScore - a.safetyScore);
+    }
+    
+    return filtered;
+  }, [results, filterResult, sortBy]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
@@ -189,7 +225,7 @@ export default function Home() {
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <p className="text-sm text-slate-500">
-                            <span className="font-semibold text-slate-700">{results.length}</span> establishment{results.length !== 1 ? "s" : ""} found for "{searchQuery}"
+                            <span className="font-semibold text-slate-700">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
                           </p>
                           <div className="flex gap-2">
                             <button
@@ -214,14 +250,24 @@ export default function Home() {
                             </button>
                           </div>
                         </div>
+                        
+                        <div className="mb-4">
+                          <FilterSortControls
+                            filterResult={filterResult}
+                            onFilterChange={setFilterResult}
+                            sortBy={sortBy}
+                            onSortChange={setSortBy}
+                          />
+                        </div>
+                        
                         {viewMode === "map" ? (
                           <MapView
-                            restaurants={results}
+                            restaurants={filteredAndSortedResults}
                             onSelectRestaurant={handleSelectBusiness}
                           />
                         ) : (
                           <div className="space-y-3">
-                            {results.map((r) => (
+                            {filteredAndSortedResults.map((r) => (
                               <motion.div
                                 key={r.business_id}
                                 initial={{ opacity: 0, y: 10 }}
