@@ -1,0 +1,53 @@
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, X, MapPin } from "lucide-react";
+
+export default function SearchBar({ onSearch, isLoading }) {
+  const [query, setQuery] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) onSearch(query.trim());
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+      <div className="relative flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search restaurant name or address..."
+            className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-emerald-300"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => { setQuery(""); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <Button
+          type="submit"
+          disabled={isLoading || !query.trim()}
+          className="h-14 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm"
+        >
+          {isLoading ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            "Search"
+          )}
+        </Button>
+      </div>
+      <div className="flex items-center gap-1 mt-2 ml-1 text-xs text-slate-400">
+        <MapPin className="w-3 h-3" />
+        <span>King County, Washington food establishment inspections</span>
+      </div>
+    </form>
+  );
+}
