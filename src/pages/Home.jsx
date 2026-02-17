@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, TrendingDown, Utensils } from "lucide-react";
 import SearchBar from "../components/SearchBar";
