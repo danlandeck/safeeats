@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
 import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
+import MapView from "../components/MapView";
 
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
@@ -56,12 +57,17 @@ function processResults(data) {
     const latestPenalty = latest ? latest.score : 0;
     const safetyScore = Math.max(0, Math.min(100, 100 - latestPenalty));
 
+    // Get first row with valid coordinates
+    const rowWithCoords = biz.allRows.find(r => r.latitude && r.longitude);
+
     return {
       ...biz,
       safetyScore,
       totalInspections: biz.inspections.length,
       latestDate: latest?.date,
       latestResult: latest?.result,
+      latitude: rowWithCoords?.latitude,
+      longitude: rowWithCoords?.longitude,
     };
   }).sort((a, b) => b.totalInspections - a.totalInspections);
 }
@@ -74,6 +80,7 @@ export default function Home() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // "list" or "map"
 
   const handleSearch = useCallback(async (query) => {
     setIsLoading(true);
@@ -184,22 +191,51 @@ export default function Home() {
                           <p className="text-sm text-slate-500">
                             <span className="font-semibold text-slate-700">{results.length}</span> establishment{results.length !== 1 ? "s" : ""} found for "{searchQuery}"
                           </p>
-                        </div>
-                        <div className="space-y-3">
-                          {results.map((r) => (
-                            <motion.div
-                              key={r.business_id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.2 }}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setViewMode("list")}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                viewMode === "list"
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
                             >
-                              <RestaurantCard
-                                restaurant={r}
-                                onClick={() => handleSelectBusiness(r)}
-                              />
-                            </motion.div>
-                          ))}
+                              List
+                            </button>
+                            <button
+                              onClick={() => setViewMode("map")}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                viewMode === "map"
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              Map
+                            </button>
+                          </div>
                         </div>
+                        {viewMode === "map" ? (
+                          <MapView
+                            restaurants={results}
+                            onSelectRestaurant={handleSelectBusiness}
+                          />
+                        ) : (
+                          <div className="space-y-3">
+                            {results.map((r) => (
+                              <motion.div
+                                key={r.business_id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <RestaurantCard
+                                  restaurant={r}
+                                  onClick={() => handleSelectBusiness(r)}
+                                />
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-center py-20">
