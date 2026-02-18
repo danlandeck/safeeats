@@ -7,7 +7,6 @@ import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
-import AdPlacement from "../components/AdPlacement";
 
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
@@ -217,11 +216,6 @@ export default function Home() {
               {hasSearched && (
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
-                    {/* Ad Placement - Top */}
-                    <div className="mb-6">
-                      <AdPlacement slot="1111111111" format="horizontal" />
-                    </div>
-
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -300,13 +294,9 @@ export default function Home() {
                     )}
                   </div>
                   <div className="lg:col-span-1">
-                    <div className="sticky top-6 space-y-4">
+                    <div className="sticky top-6">
                       <ScoreLegend />
-                      
-                      {/* Ad Placement - Sidebar */}
-                      <AdPlacement slot="2222222222" style={{ minHeight: "250px" }} />
-                      
-                      <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                      <div className="mt-4 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                           How Scoring Works
                         </h3>

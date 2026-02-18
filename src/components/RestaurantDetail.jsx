@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, Building2, ClipboardList } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import InspectionDetail from "./InspectionDetail";
-import AdPlacement from "./AdPlacement";
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   // Group inspections by serial number, collect violations per inspection
@@ -77,9 +76,6 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           </div>
         </div>
       </div>
-
-      {/* Ad Placement */}
-      <AdPlacement slot="1234567890" format="horizontal" />
 
       {/* Inspection History */}
       <div>
