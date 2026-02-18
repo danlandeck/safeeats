@@ -2,7 +2,7 @@ import React from "react";
 
 function getScoreColor(score) {
   // score is 0-100 where 100 = best (green), 0 = worst (red)
-  if (score >= 90) return { bg: "bg-emerald-500", text: "text-emerald-700", ring: "ring-emerald-200", hex: "#10b981" };
+  if (score >= 90) return { bg: "bg-green-600", text: "text-green-700", ring: "ring-green-200", hex: "#16a34a" };
   if (score >= 80) return { bg: "bg-green-500", text: "text-green-700", ring: "ring-green-200", hex: "#22c55e" };
   if (score >= 70) return { bg: "bg-lime-500", text: "text-lime-700", ring: "ring-lime-200", hex: "#84cc16" };
   if (score >= 60) return { bg: "bg-yellow-500", text: "text-yellow-700", ring: "ring-yellow-200", hex: "#eab308" };
