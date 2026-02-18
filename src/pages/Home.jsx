@@ -7,6 +7,7 @@ import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
+import AdPlacement from "../components/AdPlacement";
 
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 

@@ -1,11 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, Building2, ClipboardList } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import InspectionDetail from "./InspectionDetail";
+import YelpInfo from "./YelpInfo";
+import AdPlacement from "./AdPlacement";
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
+  const [yelpData, setYelpData] = useState(null);
+  const [loadingYelp, setLoadingYelp] = useState(false);
+
+  // Fetch Yelp data when component mounts
+  useEffect(() => {
+    // This will work once backend functions are enabled
+    // For now, it shows the UI structure
+    setYelpData(null);
+  }, [restaurant]);
+
   // Group inspections by serial number, collect violations per inspection
   const inspectionMap = {};
   inspections.forEach((row) => {
@@ -77,10 +89,21 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         </div>
       </div>
 
+      {/* Ad Placement */}
+      <AdPlacement slot="1234567890" format="horizontal" />
+
+      {/* Yelp Information */}
+      <div>
+        <YelpInfo yelpData={yelpData} restaurantName={restaurant.name} />
+      </div>
+
+      {/* Ad Placement */}
+      <AdPlacement slot="0987654321" />
+
       {/* Inspection History */}
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-4 tracking-tight">
-          Inspection History
+          Food Safety Inspection History
         </h2>
         <div className="space-y-4">
           {uniqueInspections.map((insp) => (
