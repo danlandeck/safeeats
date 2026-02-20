@@ -168,7 +168,7 @@ export default function Home() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100/80 rounded-full text-emerald-700 text-xs font-semibold mb-4 tracking-wide uppercase">
               <ShieldCheck className="w-3.5 h-3.5" />
-              King County Food Safety
+              Seattle Metro Area · Free Public Service
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Is your restaurant <br className="hidden sm:block" />
@@ -176,6 +176,9 @@ export default function Home() {
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
               Search real King County health inspection data. See safety scores, violations, and full inspection history.
+            </p>
+            <p className="mt-2 text-sm text-slate-400">
+              A free public service for the Seattle Metro area
             </p>
           </div>
           <SearchBar onSearch={handleSearch} isLoading={isLoading} />

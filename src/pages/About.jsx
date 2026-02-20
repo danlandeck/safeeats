@@ -102,6 +102,25 @@ export default function About() {
             </p>
           </Card>
 
+          {/* Creator Info */}
+          <Card className="p-6 border-emerald-200 bg-emerald-50/50">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">About the Creator</h3>
+            <div className="space-y-2 text-sm text-slate-600">
+              <p>
+                <strong className="text-slate-900">Created by Danny Landeck</strong>
+              </p>
+              <p>Seattle Metro Area · University of Washington Graduate</p>
+              <a 
+                href="https://www.linkedin.com/in/danlandeck/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 font-medium transition-colors"
+              >
+                Connect on LinkedIn →
+              </a>
+            </div>
+          </Card>
+
           {/* Footer */}
           <div className="text-center pt-6 border-t border-slate-200">
             <p className="text-sm text-slate-500">
