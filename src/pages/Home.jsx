@@ -172,6 +172,10 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-transparent to-cyan-50/40" />
         <div className="relative max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
           <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-100/80 rounded-full text-emerald-700 text-xs font-semibold mb-4">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Seattle Metro / King County Area
+            </div>
             <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Is your restaurant <br className="hidden sm:block" />
               <span className="text-emerald-600">safe to eat at?</span>
