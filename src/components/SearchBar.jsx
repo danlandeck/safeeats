@@ -20,7 +20,7 @@ export default function SearchBar({ onSearch, isLoading }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search restaurant name or address..."
-            className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-emerald-300"
+            className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-emerald-300 whitespace-nowrap overflow-x-auto"
           />
           {query && (
             <button
