@@ -172,19 +172,12 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-transparent to-cyan-50/40" />
         <div className="relative max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100/80 rounded-full text-emerald-700 text-xs font-semibold mb-4 tracking-wide uppercase">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Seattle Metro Area · Free Public Service
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Is your restaurant <br className="hidden sm:block" />
               <span className="text-emerald-600">safe to eat at?</span>
             </h1>
-            <p className="mt-3 text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              Search real King County health inspection data. See safety scores, violations, and full inspection history.
-            </p>
-            <p className="mt-2 text-sm text-slate-400">
-              A free public service for the Seattle Metro area
+            <p className="mt-4 text-lg sm:text-xl text-slate-500">
+              Search health inspection scores
             </p>
           </div>
           <SearchBar onSearch={handleSearch} isLoading={isLoading} />
@@ -305,46 +298,12 @@ export default function Home() {
                   <div className="lg:col-span-1">
                     <div className="sticky top-6">
                       <ScoreLegend />
-                      <div className="mt-4 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                          How Scoring Works
-                        </h3>
-                        <div className="space-y-2 text-[11px] text-slate-500 leading-relaxed">
-                          <div className="flex gap-2">
-                            <TrendingDown className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
-                            <span><strong className="text-red-600">RED</strong> violations are critical food safety risks (e.g. temperature, contamination)</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <TrendingDown className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
-                            <span><strong className="text-blue-600">BLUE</strong> violations are non-critical operational issues</span>
-                          </div>
-                          <p>Each violation adds penalty points. Higher penalties = lower safety score.</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {!hasSearched && (
-                <div className="text-center py-12">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
-                    {[
-                      { icon: ShieldCheck, title: "Real-time Data", desc: "Direct from King County Public Health" },
-                      { icon: Utensils, title: "Safety Scores", desc: "Color-coded 0-100 safety rating" },
-                      { icon: TrendingDown, title: "Violation Details", desc: "Full writeups with severity levels" },
-                    ].map(({ icon: Icon, title, desc }) => (
-                      <div key={title} className="text-center p-6 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-                          <Icon className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <h3 className="font-semibold text-sm text-slate-900">{title}</h3>
-                        <p className="text-xs text-slate-400 mt-1">{desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {!hasSearched && null}
             </motion.div>
           )}
         </AnimatePresence>

@@ -44,10 +44,7 @@ export default function SearchBar({ onSearch, isLoading }) {
           )}
         </Button>
       </div>
-      <div className="flex items-center gap-1 mt-2 ml-1 text-xs text-slate-400">
-        <MapPin className="w-3 h-3" />
-        <span>King County, Washington food establishment inspections</span>
-      </div>
+
     </form>
   );
 }
