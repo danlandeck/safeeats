@@ -20,7 +20,7 @@ export default function ScoreLegend() {
         Safety Score Legend
       </h3>
       <div className="flex gap-0.5 h-4 rounded-full overflow-hidden mb-3">
-        {levels.map((l) => (
+        {levels.slice().reverse().map((l) => (
           <div key={l.range} className={`flex-1 ${l.color}`} />
         ))}
       </div>
@@ -29,7 +29,7 @@ export default function ScoreLegend() {
         <span className="text-green-700">Green = Good</span>
       </div>
       <div className="space-y-1.5 text-[11px]">
-        {levels.slice().reverse().map((level) => (
+        {levels.map((level) => (
           <div key={level.range} className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded ${level.color} flex-shrink-0`} />

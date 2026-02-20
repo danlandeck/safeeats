@@ -49,12 +49,14 @@
  */
 import About from './pages/About';
 import Home from './pages/Home';
+import Feedback from './pages/Feedback';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "About": About,
     "Home": Home,
+    "Feedback": Feedback,
 }
 
 export const pagesConfig = {

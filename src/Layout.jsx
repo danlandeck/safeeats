@@ -14,12 +14,19 @@ export default function Layout({ children, currentPageName }) {
               <ShieldCheck className="w-6 h-6 text-emerald-600" />
               <span className="font-bold text-lg text-slate-900">SafeEats</span>
             </Link>
-            <Link to={createPageUrl("About")}>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
-                <Info className="w-4 h-4" />
-                About
-              </button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl("About")}>
+                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                  <Info className="w-4 h-4" />
+                  About
+                </button>
+              </Link>
+              <Link to={createPageUrl("Feedback")}>
+                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                  Feedback
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>

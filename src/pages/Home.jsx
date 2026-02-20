@@ -92,8 +92,14 @@ export default function Home() {
     setSelectedBusiness(null);
     
     try {
-      const encodedQuery = encodeURIComponent(query.toUpperCase());
-      const url = `${API_BASE}?$where=upper(name) like '%25${encodedQuery}%25' OR upper(address) like '%25${encodedQuery}%25' OR upper(inspection_business_name) like '%25${encodedQuery}%25'&$limit=500&$order=inspection_date DESC`;
+      // Remove apostrophes and dashes for more flexible searching
+      const cleanedQuery = query.replace(/['-]/g, '');
+      const encodedQuery = encodeURIComponent(cleanedQuery.toUpperCase());
+      
+      // Also search with original query for exact matches
+      const encodedOriginal = encodeURIComponent(query.toUpperCase());
+      
+      const url = `${API_BASE}?$where=upper(replace(replace(name, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(replace(replace(address, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(replace(replace(inspection_business_name, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(name) like '%25${encodedOriginal}%25' OR upper(address) like '%25${encodedOriginal}%25' OR upper(inspection_business_name) like '%25${encodedOriginal}%25'&$limit=500&$order=inspection_date DESC`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch data');
