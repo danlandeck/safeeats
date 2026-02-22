@@ -74,6 +74,7 @@ function processResults(data) {
 }
 
 export default function Home() {
+  const [county, setCounty] = useState("king");
   const [results, setResults] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [detailRows, setDetailRows] = useState([]);
@@ -171,11 +172,7 @@ export default function Home() {
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-transparent to-cyan-50/40" />
         <div className="relative max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-100/80 rounded-full text-emerald-700 text-xs font-semibold mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Seattle Metro / King County Area
-            </div>
+          <div className="text-center mb-6">
             <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Is your restaurant <br className="hidden sm:block" />
               <span className="text-emerald-600">safe to eat at?</span>
@@ -184,12 +181,55 @@ export default function Home() {
               Search health inspection scores
             </p>
           </div>
-          <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+          
+          <div className="flex justify-center gap-2 mb-6">
+            <button
+              onClick={() => setCounty("king")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                county === "king"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+              }`}
+            >
+              King County
+            </button>
+            <button
+              onClick={() => setCounty("snohomish")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                county === "snohomish"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+              }`}
+            >
+              Snohomish County
+            </button>
+          </div>
+
+          {county === "king" ? (
+            <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+          ) : (
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Snohomish County Inspections</h3>
+              <p className="text-slate-600 mb-6">
+                Search Snohomish County restaurant inspections on their official website
+              </p>
+              <a
+                href="https://snohomishonline.envisionconnect.com/#/pa1/search"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                Visit Snohomish County Search
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20">
+        {county === "king" && (
         <AnimatePresence mode="wait">
           {selectedBusiness ? (
             <motion.div
@@ -311,6 +351,7 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+        )}
       </div>
     </div>
   );
