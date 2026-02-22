@@ -182,32 +182,62 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex justify-center gap-2 mb-6">
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
             <button
               onClick={() => setCounty("king")}
-              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 county === "king"
                   ? "bg-emerald-600 text-white shadow-md"
                   : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
               }`}
             >
-              King County
+              King
             </button>
             <button
               onClick={() => setCounty("snohomish")}
-              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 county === "snohomish"
                   ? "bg-emerald-600 text-white shadow-md"
                   : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
               }`}
             >
-              Snohomish County
+              Snohomish
+            </button>
+            <button
+              onClick={() => setCounty("pierce")}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                county === "pierce"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+              }`}
+            >
+              Pierce
+            </button>
+            <button
+              onClick={() => setCounty("thurston")}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                county === "thurston"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+              }`}
+            >
+              Thurston
+            </button>
+            <button
+              onClick={() => setCounty("kitsap")}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                county === "kitsap"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+              }`}
+            >
+              Kitsap
             </button>
           </div>
 
           {county === "king" ? (
             <SearchBar onSearch={handleSearch} isLoading={isLoading} />
-          ) : (
+          ) : county === "snohomish" ? (
             <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
               <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-2">Snohomish County Inspections</h3>
@@ -223,7 +253,55 @@ export default function Home() {
                 Visit Snohomish County Search
               </a>
             </div>
-          )}
+          ) : county === "pierce" ? (
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Pierce County Inspections</h3>
+              <p className="text-slate-600 mb-6">
+                Search Pierce County (Tacoma) restaurant inspections and ratings on their official website
+              </p>
+              <a
+                href="https://aca-prod.accela.com/TPCHD/GeneralProperty/PropertyLookUp.aspx?isFoodFacility=Y&TabName=APO"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                Visit Pierce County Search
+              </a>
+            </div>
+          ) : county === "thurston" ? (
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Thurston County Inspections</h3>
+              <p className="text-slate-600 mb-6">
+                Search Thurston County restaurant inspections on their official website
+              </p>
+              <a
+                href="https://www.co.thurston.wa.us/apps/eh-food-inspections/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                Visit Thurston County Search
+              </a>
+            </div>
+          ) : county === "kitsap" ? (
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Kitsap County Inspections</h3>
+              <p className="text-slate-600 mb-6">
+                Search Kitsap County restaurant inspections on their official website
+              </p>
+              <a
+                href="https://www.kitsappublichealth.org/fle/foodscores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                Visit Kitsap County Search
+              </a>
+            </div>
+          ) : null}
         </div>
       </div>
 
