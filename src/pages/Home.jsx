@@ -7,6 +7,7 @@ import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
+import DataVisualizations from "../components/DataVisualizations";
 
 const API_BASE = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
@@ -385,8 +386,16 @@ export default function Home() {
               exit={{ opacity: 0 }}
             >
               {hasSearched && (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  <div className="lg:col-span-3">
+                <>
+                  {/* Data Visualizations */}
+                  {results.length > 0 && (
+                    <div className="mb-8">
+                      <DataVisualizations restaurants={filteredAndSortedResults} />
+                    </div>
+                  )}
+                
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div className="lg:col-span-3">
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -468,8 +477,9 @@ export default function Home() {
                     <div className="sticky top-6">
                       <ScoreLegend />
                     </div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {!hasSearched && null}

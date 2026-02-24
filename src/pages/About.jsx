@@ -48,9 +48,9 @@ export default function About() {
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
                 <Database className="w-6 h-6 text-emerald-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Real-Time Data</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Multi-Jurisdiction Data</h3>
               <p className="text-sm text-slate-600">
-                Direct integration with King County Public Health inspection records, updated regularly.
+                Direct integration with multiple health districts across Washington State and Nevada, pulling the most recent inspection records available.
               </p>
             </Card>
 
@@ -80,16 +80,19 @@ export default function About() {
             <h2 className="text-2xl font-bold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
             <div className="space-y-3 text-slate-600">
               <p className="leading-relaxed">
-                <strong className="text-slate-900">1. Data Source:</strong> We pull official inspection records from King County Public Health's open data portal.
+                <strong className="text-slate-900">1. Data Source:</strong> We pull the most recent official inspection records directly from each city and county's open data portals, including King County (WA), Snohomish County (WA), Pierce County (WA), Thurston County (WA), Kitsap County (WA), and Clark County / Las Vegas Metro (NV).
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">2. Penalty Points:</strong> Inspectors assign penalty points for violations. Critical violations (RED) receive more points than non-critical (BLUE) issues.
+                <strong className="text-slate-900">2. Different Grading Criteria:</strong> Each health district uses its own inspection criteria and scoring methods. Scores may fluctuate across jurisdictions as they are graded on different standards and violation categories. Our platform standardizes the display where possible.
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">3. Safety Score:</strong> We convert penalty points to a 0-100 safety score. Lower penalties = higher safety score. A perfect score of 100 means zero violations.
+                <strong className="text-slate-900">3. Penalty Points:</strong> Inspectors assign penalty points for violations. Critical violations (RED) receive more points than non-critical (BLUE) issues.
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">4. Color Coding:</strong> Scores are color-coded from red (0-29, critical concerns) through yellow/orange to green (90-100, excellent safety).
+                <strong className="text-slate-900">4. Safety Score:</strong> For jurisdictions with programmatic access, we convert penalty points to a 0-100 safety score. Lower penalties = higher safety score. A perfect score of 100 means zero violations.
+              </p>
+              <p className="leading-relaxed">
+                <strong className="text-slate-900">5. Color Coding:</strong> Scores are color-coded from red (0-29, critical concerns) through yellow/orange to green (90-100, excellent safety).
               </p>
             </div>
           </Card>
@@ -98,7 +101,7 @@ export default function About() {
           <Card className="p-6 border-amber-200 bg-amber-50">
             <h3 className="text-lg font-semibold text-amber-900 mb-2">Data Disclaimer</h3>
             <p className="text-sm text-amber-800 leading-relaxed">
-              All inspection data is sourced from official King County Public Health records. While we strive for accuracy, inspection results can change over time. Always verify current health ratings and use this tool as one of many factors in your dining decisions.
+              All inspection data is sourced from official public health records from multiple jurisdictions. Each city and county grades restaurants on different criteria, so scores may vary between jurisdictions. While we strive for accuracy, inspection results can change over time. Always verify current health ratings and use this tool as one of many factors in your dining decisions.
             </p>
           </Card>
 
