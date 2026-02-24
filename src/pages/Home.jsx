@@ -74,6 +74,7 @@ function processResults(data) {
 }
 
 export default function Home() {
+  const [state, setState] = useState("washington");
   const [county, setCounty] = useState("king");
   const [results, setResults] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -181,63 +182,90 @@ export default function Home() {
               Search health inspection scores
             </p>
           </div>
-          
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
+
+          {/* State Selection */}
+          <div className="flex justify-center gap-3 mb-6">
             <button
-              onClick={() => setCounty("king")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                county === "king"
+              onClick={() => { setState("washington"); setCounty("king"); }}
+              className={`px-6 py-3 rounded-xl text-base font-semibold transition-all ${
+                state === "washington"
                   ? "bg-emerald-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                  : "bg-white text-slate-600 border-2 border-slate-200 hover:border-emerald-300"
               }`}
             >
-              King
+              🏔️ Washington State
             </button>
             <button
-              onClick={() => setCounty("snohomish")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                county === "snohomish"
+              onClick={() => { setState("nevada"); setCounty("clark"); }}
+              className={`px-6 py-3 rounded-xl text-base font-semibold transition-all ${
+                state === "nevada"
                   ? "bg-emerald-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                  : "bg-white text-slate-600 border-2 border-slate-200 hover:border-emerald-300"
               }`}
             >
-              Snohomish
-            </button>
-            <button
-              onClick={() => setCounty("pierce")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                county === "pierce"
-                  ? "bg-emerald-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
-              }`}
-            >
-              Pierce
-            </button>
-            <button
-              onClick={() => setCounty("thurston")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                county === "thurston"
-                  ? "bg-emerald-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
-              }`}
-            >
-              Thurston
-            </button>
-            <button
-              onClick={() => setCounty("kitsap")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                county === "kitsap"
-                  ? "bg-emerald-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
-              }`}
-            >
-              Kitsap
+              🎰 Nevada
             </button>
           </div>
+          
+          {/* County/Area Selection */}
+          {state === "washington" && (
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <button
+                onClick={() => setCounty("king")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  county === "king"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                }`}
+              >
+                King
+              </button>
+              <button
+                onClick={() => setCounty("snohomish")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  county === "snohomish"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                }`}
+              >
+                Snohomish
+              </button>
+              <button
+                onClick={() => setCounty("pierce")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  county === "pierce"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                }`}
+              >
+                Pierce
+              </button>
+              <button
+                onClick={() => setCounty("thurston")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  county === "thurston"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                }`}
+              >
+                Thurston
+              </button>
+              <button
+                onClick={() => setCounty("kitsap")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  county === "kitsap"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                }`}
+              >
+                Kitsap
+              </button>
+            </div>
+          )}
 
-          {county === "king" ? (
+          {state === "washington" && county === "king" ? (
             <SearchBar onSearch={handleSearch} isLoading={isLoading} />
-          ) : county === "snohomish" ? (
+          ) : state === "washington" && county === "snohomish" ? (
             <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
               <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-2">Snohomish County Inspections</h3>
@@ -253,7 +281,7 @@ export default function Home() {
                 Visit Snohomish County Search
               </a>
             </div>
-          ) : county === "pierce" ? (
+          ) : state === "washington" && county === "pierce" ? (
             <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
               <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-2">Pierce County Inspections</h3>
@@ -269,7 +297,7 @@ export default function Home() {
                 Visit Pierce County Search
               </a>
             </div>
-          ) : county === "thurston" ? (
+          ) : state === "washington" && county === "thurston" ? (
             <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
               <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-2">Thurston County Inspections</h3>
@@ -285,7 +313,7 @@ export default function Home() {
                 Visit Thurston County Search
               </a>
             </div>
-          ) : county === "kitsap" ? (
+          ) : state === "washington" && county === "kitsap" ? (
             <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
               <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-slate-900 mb-2">Kitsap County Inspections</h3>
@@ -301,13 +329,32 @@ export default function Home() {
                 Visit Kitsap County Search
               </a>
             </div>
+          ) : state === "nevada" ? (
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Clark County / Las Vegas Metro Inspections</h3>
+              <p className="text-slate-600 mb-4">
+                Includes Las Vegas, North Las Vegas, Henderson, Enterprise, and all of Clark County
+              </p>
+              <p className="text-sm text-slate-500 mb-6">
+                Search restaurant inspections on the Southern Nevada Health District website
+              </p>
+              <a
+                href="https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/restaurant-inspection-search/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                Visit SNHD Inspection Search
+              </a>
+            </div>
           ) : null}
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20">
-        {county === "king" && (
+        {state === "washington" && county === "king" && (
         <AnimatePresence mode="wait">
           {selectedBusiness ? (
             <motion.div
