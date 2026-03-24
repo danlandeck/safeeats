@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
-import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart } from "lucide-react";
+import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -19,105 +19,156 @@ export default function About() {
         <div className="space-y-8">
           {/* Header */}
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full text-emerald-700 font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full text-white font-semibold mb-4">
               <ShieldCheck className="w-5 h-5" />
               About SafeEats
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
               Your Food Safety Companion
             </h1>
-            <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-              Making public health inspection data accessible and understandable for everyone.
+            <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
+              One platform. All counties. Real inspection data — no third-party redirects.
             </p>
           </div>
 
           {/* Mission */}
           <Card className="p-8 border-slate-200 bg-white">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Our Mission</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-4">Our Mission</h2>
             <p className="text-slate-600 leading-relaxed mb-4">
-              SafeEats was created to empower consumers with transparent, easy-to-understand information about restaurant food safety. We believe everyone deserves to know the health inspection history of the establishments where they eat.
+              SafeEats was built because food safety data should be accessible, legible, and consolidated. No more bouncing between county portals or decoding government inspection PDFs. We pull the most current data from each jurisdiction's official health department records and present it uniformly — so you can compare a restaurant in King County, WA the same way you'd compare one in Clark County, NV.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              By transforming complex inspection data into visual safety scores and clear violation reports, we help you make informed dining decisions that prioritize your health and safety.
+              Our universal A–F grading system and 0–100 safety scores give you a consistent lens across all regions, even though each jurisdiction grades on its own criteria.
             </p>
+          </Card>
+
+          {/* Data Sources */}
+          <Card className="p-8 border-slate-200 bg-white">
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
+            <p className="text-slate-500 text-sm mb-6">We source the most recent publicly available data from each jurisdiction's official health department.</p>
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Washington State</h3>
+                <div className="space-y-3">
+                  {[
+                    { county: "King County", source: "King County Public Health Open Data Portal", url: "https://data.kingcounty.gov", note: "Live API — real-time records updated with every new inspection." },
+                    { county: "Snohomish County", source: "Snohomish County Health Services", url: "https://snohomishonline.envisionconnect.com", note: "AI-assisted lookup sourced from official public health records." },
+                    { county: "Pierce County", source: "Tacoma-Pierce County Health Dept (TPCHD)", url: "https://aca-prod.accela.com/TPCHD", note: "AI-assisted lookup sourced from official public health records." },
+                    { county: "Thurston County", source: "Thurston County Environmental Health", url: "https://www.co.thurston.wa.us", note: "AI-assisted lookup sourced from official public health records." },
+                    { county: "Kitsap County", source: "Kitsap Public Health District", url: "https://www.kitsappublichealth.org", note: "AI-assisted lookup sourced from official public health records." },
+                  ].map((row) => (
+                    <div key={row.county} className="bg-slate-50 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div>
+                          <p className="font-semibold text-slate-800">{row.county}</p>
+                          <p className="text-sm text-slate-500">{row.source}</p>
+                          <p className="text-xs text-slate-400 mt-1">{row.note}</p>
+                        </div>
+                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline underline-offset-2">
+                          Official Site →
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Nevada</h3>
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                      <p className="font-semibold text-slate-800">Clark County (Las Vegas Metro)</p>
+                      <p className="text-sm text-slate-500">Southern Nevada Health District (SNHD)</p>
+                      <p className="text-xs text-slate-400 mt-1">AI-assisted lookup sourced from official SNHD public health records. Covers Las Vegas, Henderson, North Las Vegas, Enterprise, and all incorporated Clark County municipalities.</p>
+                    </div>
+                    <a href="https://www.southernnevadahealthdistrict.org" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline underline-offset-2">
+                      Official Site →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </Card>
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-                <Database className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
+                <Database className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Multi-Jurisdiction Data</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Live + AI-Assisted Data</h3>
               <p className="text-sm text-slate-600">
-                Direct integration with multiple health districts across Washington State and Nevada, pulling the most recent inspection records available.
+                King County uses a live API. All other regions use AI-assisted lookups pulling from official health department records — same UI, no third-party redirects.
               </p>
             </Card>
 
             <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Clear Scoring</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Universal A–F Grading</h3>
               <p className="text-sm text-slate-600">
-                Color-coded 0-100 safety scores make it easy to compare establishments at a glance.
+                Because each county uses different criteria, we normalize all scores to a universal 0–100 scale and A–F letter grade, so comparisons are always apples-to-apples.
               </p>
             </Card>
 
             <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
+                <ShieldCheck className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Full Transparency</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Full History</h3>
               <p className="text-sm text-slate-600">
-                Complete inspection history with detailed violation descriptions and severity levels.
+                We display the complete inspection history for each establishment — not just the latest result — with violation breakdowns, trends, and charts.
               </p>
             </Card>
           </div>
 
+          {/* Score caveat */}
+          <Card className="p-6 border-amber-200 bg-amber-50">
+            <div className="flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="text-lg font-semibold text-amber-900 mb-2">A Note on Score Fluctuation</h3>
+                <p className="text-sm text-amber-800 leading-relaxed">
+                  Every jurisdiction grades restaurants on different criteria — point systems, letter grades, pass/fail — and inspectors evaluate different risk factors. SafeEats normalizes these into a universal score, but because the underlying grading philosophies differ, scores may fluctuate between counties and over time. A score of 85 in King County may reflect different standards than an 85 in Clark County. Always consider the full inspection history and violation details when making dining decisions.
+                </p>
+              </div>
+            </div>
+          </Card>
+
           {/* How It Works */}
-          <Card className="p-8 border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
+          <Card className="p-8 border-slate-200 bg-slate-50">
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
             <div className="space-y-3 text-slate-600">
               <p className="leading-relaxed">
-                <strong className="text-slate-900">1. Data Source:</strong> We pull the most recent official inspection records directly from each city and county's open data portals, including King County (WA), Snohomish County (WA), Pierce County (WA), Thurston County (WA), Kitsap County (WA), and Clark County / Las Vegas Metro (NV).
+                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live API for King County, AI-assisted lookup from official public records for all other jurisdictions.
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">2. Different Grading Criteria:</strong> Each health district uses its own inspection criteria and scoring methods. Scores may fluctuate across jurisdictions as they are graded on different standards and violation categories. Our platform standardizes the display where possible.
+                <strong className="text-slate-900">2. Normalization:</strong> Each region's raw scores (penalty points, pass/fail, letter grades) are converted to a unified 0–100 scale.
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">3. Penalty Points:</strong> Inspectors assign penalty points for violations. Critical violations (RED) receive more points than non-critical (BLUE) issues.
+                <strong className="text-slate-900">3. Letter Grade:</strong> A (90–100), B (80–89), C (70–79), D (60–69), F (below 60) — giving you an instant at-a-glance verdict.
               </p>
               <p className="leading-relaxed">
-                <strong className="text-slate-900">4. Safety Score:</strong> For jurisdictions with programmatic access, we convert penalty points to a 0-100 safety score. Lower penalties = higher safety score. A perfect score of 100 means zero violations.
-              </p>
-              <p className="leading-relaxed">
-                <strong className="text-slate-900">5. Color Coding:</strong> Scores are color-coded from red (0-29, critical concerns) through yellow/orange to green (90-100, excellent safety).
+                <strong className="text-slate-900">4. Full History:</strong> We display every inspection on record — not just the most recent — with charts showing safety trends over time.
               </p>
             </div>
           </Card>
 
-          {/* Data Disclaimer */}
-          <Card className="p-6 border-amber-200 bg-amber-50">
-            <h3 className="text-lg font-semibold text-amber-900 mb-2">Data Disclaimer</h3>
-            <p className="text-sm text-amber-800 leading-relaxed">
-              All inspection data is sourced from official public health records from multiple jurisdictions. Each city and county grades restaurants on different criteria, so scores may vary between jurisdictions. While we strive for accuracy, inspection results can change over time. Always verify current health ratings and use this tool as one of many factors in your dining decisions.
-            </p>
-          </Card>
-
           {/* Creator Info */}
-          <Card className="p-6 border-emerald-200 bg-emerald-50/50">
+          <Card className="p-6 border-slate-200">
             <h3 className="text-lg font-semibold text-slate-900 mb-3">About the Creator</h3>
             <div className="space-y-2 text-sm text-slate-600">
               <p>
                 <strong className="text-slate-900">Created by Danny Landeck</strong>
               </p>
               <p>Seattle Metro Area · University of Washington Graduate</p>
-              <a 
-                href="https://www.linkedin.com/in/danlandeck/" 
-                target="_blank" 
+              <a
+                href="https://www.linkedin.com/in/danlandeck/"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-semibold transition-colors"
               >
                 Connect on LinkedIn →
               </a>
