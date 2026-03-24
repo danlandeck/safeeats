@@ -159,19 +159,43 @@ export default function About() {
           {/* Creator Info */}
           <Card className="p-6 border-slate-200">
             <h3 className="text-lg font-semibold text-slate-900 mb-3">About the Creator</h3>
-            <div className="space-y-2 text-sm text-slate-600">
-              <p>
-                <strong className="text-slate-900">Created by Danny Landeck</strong>
+            <div className="space-y-4 text-sm text-slate-600">
+              <div>
+                <p className="text-xl font-extrabold text-slate-900">Daniel Landeck</p>
+                <p className="text-slate-500 text-xs mt-0.5">Seattle Metro Area · University of Washington Graduate</p>
+              </div>
+              <p className="leading-relaxed">
+                Daniel Landeck is the rare kind of creative professional who operates at the intersection of storytelling, technology, and physical discipline. By day he's a veteran game developer and film producer with credits spanning two industries. By night — or, let's be honest, also by day — he's the guy who built SafeEats as a <span className="font-semibold text-slate-800">genuine public service</span>: transparent food safety data, free, for everyone, because the public deserves better than a wall of government PDFs.
               </p>
-              <p>Seattle Metro Area · University of Washington Graduate</p>
-              <a
-                href="https://www.linkedin.com/in/danlandeck/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-semibold transition-colors"
-              >
-                Connect on LinkedIn →
-              </a>
+              <p className="leading-relaxed">
+                A <span className="font-semibold text-slate-800">black belt in traditional Okinawan Karate (Shudokan)</span> and a <span className="font-semibold text-slate-800">blue belt in Brazilian Jiu-Jitsu</span>, Daniel approaches every project — whether it's a game, a film, or a civic tech platform — with the same philosophy: discipline, craft, and finishing what you start. He is actively seeking new collaborations in games, film, and technology.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-2">
+                <a
+                  href="https://www.linkedin.com/in/danlandeck/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors"
+                >
+                  LinkedIn →
+                </a>
+                <a
+                  href="https://www.mobygames.com/person/277275/daniel-landeck/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors"
+                >
+                  MobyGames (Game Dev) →
+                </a>
+                <a
+                  href="https://www.imdb.com/name/nm6015660/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors"
+                >
+                  IMDb (Film Producer) →
+                </a>
+              </div>
             </div>
           </Card>
 

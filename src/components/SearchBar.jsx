@@ -20,7 +20,7 @@ export default function SearchBar({ onSearch, isLoading }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search restaurant name or address..."
-            className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-emerald-300 whitespace-nowrap overflow-x-auto"
+            className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-300 whitespace-nowrap overflow-x-auto"
           />
           {query && (
             <button
@@ -35,7 +35,7 @@ export default function SearchBar({ onSearch, isLoading }) {
         <Button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="h-14 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm"
+          className="h-14 px-8 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white font-semibold shadow-sm"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
