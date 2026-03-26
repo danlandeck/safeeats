@@ -62,7 +62,7 @@ Submitted from SafeEats App
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full text-emerald-700 font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full text-white font-semibold mb-4">
               <MessageSquare className="w-5 h-5" />
               User Feedback
             </div>
@@ -76,12 +76,12 @@ Submitted from SafeEats App
 
           {/* Success Message */}
           {isSubmitted && (
-            <Card className="p-6 border-green-200 bg-green-50">
+            <Card className="p-6 border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                <CheckCircle2 className="w-6 h-6 text-slate-700 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-green-900">Thank you for your feedback!</h3>
-                  <p className="text-sm text-green-700 mt-1">
+                  <h3 className="font-semibold text-slate-900">Thank you for your feedback!</h3>
+                  <p className="text-sm text-slate-600 mt-1">
                     We've received your message and will review it carefully.
                   </p>
                 </div>
@@ -140,7 +140,7 @@ Submitted from SafeEats App
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="w-full bg-slate-900 hover:bg-slate-700 text-white"
               >
                 {isSubmitting ? (
                   <>

@@ -14,8 +14,7 @@ const KING_API = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 
 const REGIONS = {
   washington: {
-    name: "Washington",
-    abbr: "WA",
+    name: "Washington", abbr: "WA",
     counties: [
       { id: "king", name: "King County", city: "Seattle", hasPublicApi: true },
       { id: "snohomish", name: "Snohomish County", city: "Everett", hasPublicApi: false },
@@ -24,11 +23,214 @@ const REGIONS = {
       { id: "kitsap", name: "Kitsap County", city: "Bremerton", hasPublicApi: false },
     ],
   },
-  nevada: {
-    name: "Nevada",
-    abbr: "NV",
+  oregon: {
+    name: "Oregon", abbr: "OR",
     counties: [
-      { id: "clark", name: "Clark County (Las Vegas Metro)", city: "Las Vegas", hasPublicApi: false },
+      { id: "multnomah", name: "Multnomah County (Portland)", city: "Portland", hasPublicApi: false },
+      { id: "lane", name: "Lane County (Eugene)", city: "Eugene", hasPublicApi: false },
+      { id: "marion", name: "Marion County (Salem)", city: "Salem", hasPublicApi: false },
+    ],
+  },
+  california: {
+    name: "California", abbr: "CA",
+    counties: [
+      { id: "la", name: "Los Angeles County", city: "Los Angeles", hasPublicApi: false },
+      { id: "sf", name: "San Francisco County", city: "San Francisco", hasPublicApi: false },
+      { id: "sandiego", name: "San Diego County", city: "San Diego", hasPublicApi: false },
+      { id: "sacramento", name: "Sacramento County", city: "Sacramento", hasPublicApi: false },
+      { id: "alameda", name: "Alameda County (Oakland)", city: "Oakland", hasPublicApi: false },
+    ],
+  },
+  nevada: {
+    name: "Nevada", abbr: "NV",
+    counties: [
+      { id: "clark", name: "Clark County (Las Vegas)", city: "Las Vegas", hasPublicApi: false },
+      { id: "washoe", name: "Washoe County (Reno)", city: "Reno", hasPublicApi: false },
+    ],
+  },
+  arizona: {
+    name: "Arizona", abbr: "AZ",
+    counties: [
+      { id: "maricopa", name: "Maricopa County (Phoenix)", city: "Phoenix", hasPublicApi: false },
+      { id: "pima", name: "Pima County (Tucson)", city: "Tucson", hasPublicApi: false },
+    ],
+  },
+  colorado: {
+    name: "Colorado", abbr: "CO",
+    counties: [
+      { id: "denver", name: "Denver County", city: "Denver", hasPublicApi: false },
+      { id: "el_paso", name: "El Paso County (Colorado Springs)", city: "Colorado Springs", hasPublicApi: false },
+      { id: "boulder", name: "Boulder County", city: "Boulder", hasPublicApi: false },
+    ],
+  },
+  texas: {
+    name: "Texas", abbr: "TX",
+    counties: [
+      { id: "harris", name: "Harris County (Houston)", city: "Houston", hasPublicApi: false },
+      { id: "dallas", name: "Dallas County", city: "Dallas", hasPublicApi: false },
+      { id: "travis", name: "Travis County (Austin)", city: "Austin", hasPublicApi: false },
+      { id: "bexar", name: "Bexar County (San Antonio)", city: "San Antonio", hasPublicApi: false },
+    ],
+  },
+  florida: {
+    name: "Florida", abbr: "FL",
+    counties: [
+      { id: "miami_dade", name: "Miami-Dade County", city: "Miami", hasPublicApi: false },
+      { id: "broward", name: "Broward County (Fort Lauderdale)", city: "Fort Lauderdale", hasPublicApi: false },
+      { id: "orange", name: "Orange County (Orlando)", city: "Orlando", hasPublicApi: false },
+      { id: "hillsborough", name: "Hillsborough County (Tampa)", city: "Tampa", hasPublicApi: false },
+    ],
+  },
+  georgia: {
+    name: "Georgia", abbr: "GA",
+    counties: [
+      { id: "fulton", name: "Fulton County (Atlanta)", city: "Atlanta", hasPublicApi: false },
+      { id: "dekalb", name: "DeKalb County", city: "Decatur", hasPublicApi: false },
+    ],
+  },
+  illinois: {
+    name: "Illinois", abbr: "IL",
+    counties: [
+      { id: "cook", name: "Cook County (Chicago)", city: "Chicago", hasPublicApi: false },
+      { id: "dupage", name: "DuPage County", city: "Wheaton", hasPublicApi: false },
+    ],
+  },
+  ohio: {
+    name: "Ohio", abbr: "OH",
+    counties: [
+      { id: "cuyahoga", name: "Cuyahoga County (Cleveland)", city: "Cleveland", hasPublicApi: false },
+      { id: "franklin", name: "Franklin County (Columbus)", city: "Columbus", hasPublicApi: false },
+      { id: "hamilton", name: "Hamilton County (Cincinnati)", city: "Cincinnati", hasPublicApi: false },
+    ],
+  },
+  michigan: {
+    name: "Michigan", abbr: "MI",
+    counties: [
+      { id: "wayne", name: "Wayne County (Detroit)", city: "Detroit", hasPublicApi: false },
+      { id: "kent", name: "Kent County (Grand Rapids)", city: "Grand Rapids", hasPublicApi: false },
+    ],
+  },
+  minnesota: {
+    name: "Minnesota", abbr: "MN",
+    counties: [
+      { id: "hennepin", name: "Hennepin County (Minneapolis)", city: "Minneapolis", hasPublicApi: false },
+      { id: "ramsey", name: "Ramsey County (St. Paul)", city: "St. Paul", hasPublicApi: false },
+    ],
+  },
+  new_york: {
+    name: "New York", abbr: "NY",
+    counties: [
+      { id: "nyc", name: "New York City (5 Boroughs)", city: "New York City", hasPublicApi: false },
+      { id: "erie", name: "Erie County (Buffalo)", city: "Buffalo", hasPublicApi: false },
+      { id: "monroe", name: "Monroe County (Rochester)", city: "Rochester", hasPublicApi: false },
+    ],
+  },
+  new_jersey: {
+    name: "New Jersey", abbr: "NJ",
+    counties: [
+      { id: "essex", name: "Essex County (Newark)", city: "Newark", hasPublicApi: false },
+      { id: "bergen", name: "Bergen County", city: "Hackensack", hasPublicApi: false },
+      { id: "hudson", name: "Hudson County (Jersey City)", city: "Jersey City", hasPublicApi: false },
+    ],
+  },
+  pennsylvania: {
+    name: "Pennsylvania", abbr: "PA",
+    counties: [
+      { id: "philadelphia", name: "Philadelphia County", city: "Philadelphia", hasPublicApi: false },
+      { id: "allegheny", name: "Allegheny County (Pittsburgh)", city: "Pittsburgh", hasPublicApi: false },
+    ],
+  },
+  massachusetts: {
+    name: "Massachusetts", abbr: "MA",
+    counties: [
+      { id: "suffolk", name: "Suffolk County (Boston)", city: "Boston", hasPublicApi: false },
+      { id: "middlesex", name: "Middlesex County (Cambridge)", city: "Cambridge", hasPublicApi: false },
+    ],
+  },
+  maryland: {
+    name: "Maryland", abbr: "MD",
+    counties: [
+      { id: "baltimore_city", name: "Baltimore City", city: "Baltimore", hasPublicApi: false },
+      { id: "montgomery", name: "Montgomery County", city: "Rockville", hasPublicApi: false },
+      { id: "prince_georges", name: "Prince George's County", city: "Upper Marlboro", hasPublicApi: false },
+    ],
+  },
+  virginia: {
+    name: "Virginia", abbr: "VA",
+    counties: [
+      { id: "fairfax", name: "Fairfax County", city: "Fairfax", hasPublicApi: false },
+      { id: "virginia_beach", name: "Virginia Beach City", city: "Virginia Beach", hasPublicApi: false },
+      { id: "richmond", name: "Richmond City", city: "Richmond", hasPublicApi: false },
+    ],
+  },
+  dc: {
+    name: "Washington D.C.", abbr: "DC",
+    counties: [
+      { id: "dc", name: "District of Columbia", city: "Washington D.C.", hasPublicApi: false },
+    ],
+  },
+  north_carolina: {
+    name: "North Carolina", abbr: "NC",
+    counties: [
+      { id: "mecklenburg", name: "Mecklenburg County (Charlotte)", city: "Charlotte", hasPublicApi: false },
+      { id: "wake", name: "Wake County (Raleigh)", city: "Raleigh", hasPublicApi: false },
+      { id: "guilford", name: "Guilford County (Greensboro)", city: "Greensboro", hasPublicApi: false },
+    ],
+  },
+  tennessee: {
+    name: "Tennessee", abbr: "TN",
+    counties: [
+      { id: "shelby", name: "Shelby County (Memphis)", city: "Memphis", hasPublicApi: false },
+      { id: "davidson", name: "Davidson County (Nashville)", city: "Nashville", hasPublicApi: false },
+    ],
+  },
+  louisiana: {
+    name: "Louisiana", abbr: "LA",
+    counties: [
+      { id: "orleans", name: "Orleans Parish (New Orleans)", city: "New Orleans", hasPublicApi: false },
+      { id: "east_baton_rouge", name: "East Baton Rouge Parish", city: "Baton Rouge", hasPublicApi: false },
+    ],
+  },
+  missouri: {
+    name: "Missouri", abbr: "MO",
+    counties: [
+      { id: "st_louis", name: "St. Louis City", city: "St. Louis", hasPublicApi: false },
+      { id: "jackson", name: "Jackson County (Kansas City)", city: "Kansas City", hasPublicApi: false },
+    ],
+  },
+  indiana: {
+    name: "Indiana", abbr: "IN",
+    counties: [
+      { id: "marion", name: "Marion County (Indianapolis)", city: "Indianapolis", hasPublicApi: false },
+      { id: "lake", name: "Lake County (Gary)", city: "Gary", hasPublicApi: false },
+    ],
+  },
+  wisconsin: {
+    name: "Wisconsin", abbr: "WI",
+    counties: [
+      { id: "milwaukee", name: "Milwaukee County", city: "Milwaukee", hasPublicApi: false },
+      { id: "dane", name: "Dane County (Madison)", city: "Madison", hasPublicApi: false },
+    ],
+  },
+  utah: {
+    name: "Utah", abbr: "UT",
+    counties: [
+      { id: "salt_lake", name: "Salt Lake County", city: "Salt Lake City", hasPublicApi: false },
+      { id: "utah_county", name: "Utah County (Provo)", city: "Provo", hasPublicApi: false },
+    ],
+  },
+  hawaii: {
+    name: "Hawaii", abbr: "HI",
+    counties: [
+      { id: "honolulu", name: "City & County of Honolulu", city: "Honolulu", hasPublicApi: false },
+      { id: "maui", name: "Maui County", city: "Wailuku", hasPublicApi: false },
+    ],
+  },
+  alaska: {
+    name: "Alaska", abbr: "AK",
+    counties: [
+      { id: "anchorage", name: "Municipality of Anchorage", city: "Anchorage", hasPublicApi: false },
+      { id: "fairbanks", name: "Fairbanks North Star Borough", city: "Fairbanks", hasPublicApi: false },
     ],
   },
 };
@@ -337,20 +539,16 @@ export default function Home() {
           </div>
 
           {/* State selector */}
-          <div className="flex justify-center gap-3 mb-4">
-            {Object.entries(REGIONS).map(([key, reg]) => (
-              <button
-                key={key}
-                onClick={() => handleRegionChange(key)}
-                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
-                  region === key
-                    ? "bg-white text-slate-900"
-                    : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
-                }`}
-              >
-                {reg.name}
-              </button>
-            ))}
+          <div className="flex justify-center mb-4">
+            <select
+              value={region}
+              onChange={(e) => handleRegionChange(e.target.value)}
+              className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[220px]"
+            >
+              {Object.entries(REGIONS).map(([key, reg]) => (
+                <option key={key} value={key}>{reg.name} ({reg.abbr})</option>
+              ))}
+            </select>
           </div>
 
           {/* County selector */}
