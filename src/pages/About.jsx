@@ -45,49 +45,90 @@ export default function About() {
           {/* Data Sources */}
           <Card className="p-8 border-slate-200 bg-white">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
-            <p className="text-slate-500 text-sm mb-6">We source the most recent publicly available data from each jurisdiction's official health department.</p>
-            <div className="space-y-5">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Washington State</h3>
-                <div className="space-y-3">
-                  {[
-                    { county: "King County", source: "King County Public Health Open Data Portal", url: "https://data.kingcounty.gov", note: "Live API — real-time records updated with every new inspection." },
-                    { county: "Snohomish County", source: "Snohomish County Health Services", url: "https://snohomishonline.envisionconnect.com", note: "AI-assisted lookup sourced from official public health records." },
-                    { county: "Pierce County", source: "Tacoma-Pierce County Health Dept (TPCHD)", url: "https://aca-prod.accela.com/TPCHD", note: "AI-assisted lookup sourced from official public health records." },
-                    { county: "Thurston County", source: "Thurston County Environmental Health", url: "https://www.co.thurston.wa.us", note: "AI-assisted lookup sourced from official public health records." },
-                    { county: "Kitsap County", source: "Kitsap Public Health District", url: "https://www.kitsappublichealth.org", note: "AI-assisted lookup sourced from official public health records." },
-                  ].map((row) => (
-                    <div key={row.county} className="bg-slate-50 rounded-xl p-4">
-                      <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div>
-                          <p className="font-semibold text-slate-800">{row.county}</p>
-                          <p className="text-sm text-slate-500">{row.source}</p>
-                          <p className="text-xs text-slate-400 mt-1">{row.note}</p>
-                        </div>
-                        <a href={row.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline underline-offset-2">
-                          Official Site →
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. King County, WA uses a live real-time API. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
 
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Nevada</h3>
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <p className="font-semibold text-slate-800">Clark County (Las Vegas Metro)</p>
-                      <p className="text-sm text-slate-500">Southern Nevada Health District (SNHD)</p>
-                      <p className="text-xs text-slate-400 mt-1">AI-assisted lookup sourced from official SNHD public health records. Covers Las Vegas, Henderson, North Las Vegas, Enterprise, and all incorporated Clark County municipalities.</p>
-                    </div>
-                    <a href="https://www.southernnevadahealthdistrict.org" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline underline-offset-2">
-                      Official Site →
-                    </a>
+            {/* King County callout */}
+            <div className="mb-6">
+              <div className="bg-slate-900 rounded-xl p-5 text-white">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="font-extrabold text-base">King County, WA — Live API</p>
+                    <p className="text-slate-300 text-sm mt-1">King County Public Health Open Data Portal</p>
+                    <p className="text-slate-400 text-xs mt-1">The only jurisdiction with a real-time public API — records updated with every new inspection as they happen.</p>
                   </div>
+                  <a href="https://data.kingcounty.gov" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
+                    data.kingcounty.gov →
+                  </a>
                 </div>
               </div>
+            </div>
+
+            {/* All other states */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                { state: "Alabama (AL)", counties: "Jefferson, Mobile, Madison, Montgomery" },
+                { state: "Alaska (AK)", counties: "Anchorage, Fairbanks, Juneau" },
+                { state: "Arizona (AZ)", counties: "Maricopa, Pima, Pinal, Yavapai, Coconino" },
+                { state: "Arkansas (AR)", counties: "Pulaski, Benton, Washington" },
+                { state: "California (CA)", counties: "Los Angeles, San Francisco, San Diego, Sacramento, Alameda, Orange, Riverside, San Bernardino, Santa Clara, Fresno, Kern, Ventura" },
+                { state: "Colorado (CO)", counties: "Denver, El Paso, Boulder, Arapahoe, Adams, Larimer, Jefferson" },
+                { state: "Connecticut (CT)", counties: "Hartford, New Haven, Fairfield" },
+                { state: "Delaware (DE)", counties: "New Castle, Kent, Sussex" },
+                { state: "Washington D.C.", counties: "District of Columbia" },
+                { state: "Florida (FL)", counties: "Miami-Dade, Broward, Orange, Hillsborough, Palm Beach, Pinellas, Duval, Polk, Lee" },
+                { state: "Georgia (GA)", counties: "Fulton, DeKalb, Gwinnett, Cobb, Chatham, Bibb" },
+                { state: "Hawaii (HI)", counties: "Honolulu, Maui, Hawaii (Big Island), Kauai" },
+                { state: "Idaho (ID)", counties: "Ada, Canyon, Kootenai" },
+                { state: "Illinois (IL)", counties: "Cook, DuPage, Lake, Will, Kane, Sangamon" },
+                { state: "Indiana (IN)", counties: "Marion, Lake, Allen, Hamilton" },
+                { state: "Iowa (IA)", counties: "Polk, Linn, Scott, Johnson" },
+                { state: "Kansas (KS)", counties: "Johnson, Sedgwick, Wyandotte, Shawnee" },
+                { state: "Kentucky (KY)", counties: "Jefferson, Fayette, Boone" },
+                { state: "Louisiana (LA)", counties: "Orleans, East Baton Rouge, Jefferson, Caddo" },
+                { state: "Maine (ME)", counties: "Cumberland, Penobscot, York" },
+                { state: "Maryland (MD)", counties: "Baltimore City, Baltimore County, Montgomery, Prince George's, Anne Arundel, Howard" },
+                { state: "Massachusetts (MA)", counties: "Suffolk, Middlesex, Worcester, Hampden, Norfolk, Essex" },
+                { state: "Michigan (MI)", counties: "Wayne, Kent, Oakland, Macomb, Ingham, Washtenaw" },
+                { state: "Minnesota (MN)", counties: "Hennepin, Ramsey, Dakota, Anoka, St. Louis" },
+                { state: "Mississippi (MS)", counties: "Hinds, Harrison, DeSoto" },
+                { state: "Missouri (MO)", counties: "St. Louis City, St. Louis County, Jackson, Greene, Boone" },
+                { state: "Montana (MT)", counties: "Yellowstone, Cascade, Missoula, Gallatin" },
+                { state: "Nebraska (NE)", counties: "Douglas, Lancaster, Sarpy" },
+                { state: "Nevada (NV)", counties: "Clark, Washoe, Carson City" },
+                { state: "New Hampshire (NH)", counties: "Hillsborough, Rockingham, Merrimack" },
+                { state: "New Jersey (NJ)", counties: "Essex, Bergen, Hudson, Middlesex, Monmouth, Ocean, Union, Camden" },
+                { state: "New Mexico (NM)", counties: "Bernalillo, Doña Ana, Santa Fe" },
+                { state: "New York (NY)", counties: "NYC (5 Boroughs), Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga" },
+                { state: "North Carolina (NC)", counties: "Mecklenburg, Wake, Guilford, Forsyth, Durham, Cumberland, Buncombe" },
+                { state: "North Dakota (ND)", counties: "Cass, Burleigh, Grand Forks" },
+                { state: "Ohio (OH)", counties: "Cuyahoga, Franklin, Hamilton, Summit, Montgomery, Lucas, Stark" },
+                { state: "Oklahoma (OK)", counties: "Oklahoma, Tulsa, Cleveland" },
+                { state: "Oregon (OR)", counties: "Multnomah, Lane, Marion, Washington, Clackamas, Jackson, Deschutes" },
+                { state: "Pennsylvania (PA)", counties: "Philadelphia, Allegheny, Montgomery, Bucks, Chester, Lancaster, York, Berks" },
+                { state: "Rhode Island (RI)", counties: "Providence, Kent, Washington" },
+                { state: "South Carolina (SC)", counties: "Greenville, Richland, Charleston, Spartanburg" },
+                { state: "South Dakota (SD)", counties: "Minnehaha, Pennington" },
+                { state: "Tennessee (TN)", counties: "Shelby, Davidson, Knox, Hamilton, Rutherford" },
+                { state: "Texas (TX)", counties: "Harris, Dallas, Travis, Bexar, Tarrant, Collin, Hidalgo, Denton, El Paso, Nueces, Williamson, Lubbock" },
+                { state: "Utah (UT)", counties: "Salt Lake, Utah, Davis, Weber, Washington" },
+                { state: "Vermont (VT)", counties: "Chittenden, Rutland, Washington" },
+                { state: "Virginia (VA)", counties: "Fairfax, Virginia Beach, Richmond, Arlington, Chesapeake, Norfolk, Chesterfield, Loudoun" },
+                { state: "Washington (WA)", counties: "King (live API), Snohomish, Pierce, Clark, Spokane, Thurston, Kitsap, Whatcom, Benton, Yakima" },
+                { state: "West Virginia (WV)", counties: "Kanawha, Cabell, Monongalia" },
+                { state: "Wisconsin (WI)", counties: "Milwaukee, Dane, Waukesha, Brown, Racine" },
+                { state: "Wyoming (WY)", counties: "Laramie, Natrona, Teton" },
+              ].map((row) => (
+                <div key={row.state} className="bg-slate-50 rounded-lg p-3">
+                  <p className="font-bold text-slate-800 text-sm">{row.state}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{row.counties}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>Data method:</strong> All jurisdictions except King County, WA use AI-assisted lookup sourced from official public health department records. Results reflect the most recently available publicly published inspection data for each municipality.
+              </p>
             </div>
           </Card>
 
