@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Building2, ClipboardList } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Building2, ClipboardList, Globe } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import InspectionDetail from "./InspectionDetail";
 import InspectionTrendChart from "./InspectionTrendChart";
@@ -57,6 +57,17 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" />{restaurant.address}, {restaurant.city} {restaurant.zip_code}</span>
                 {restaurant.phone && (
                   <span className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-slate-400" />{restaurant.phone}</span>
+                )}
+                {restaurant.website && (
+                  <a
+                    href={restaurant.website.startsWith('http') ? restaurant.website : `https://${restaurant.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-slate-700 font-semibold hover:text-slate-900 underline underline-offset-2 transition-colors"
+                  >
+                    <Globe className="w-4 h-4 text-slate-400" />
+                    {restaurant.website.replace(/^https?:\/\//, '').replace(/\/+$/, '')}
+                  </a>
                 )}
               </div>
               <div className="flex items-center gap-3 mt-4">

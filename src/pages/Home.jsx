@@ -545,6 +545,7 @@ export default function Home() {
                     city: { type: "string" },
                     zip_code: { type: "string" },
                     phone: { type: "string" },
+                    website: { type: "string" },
                     inspections: {
                       type: "array",
                       items: {
@@ -679,9 +680,11 @@ export default function Home() {
               onChange={(e) => handleRegionChange(e.target.value)}
               className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[220px]"
             >
-              {Object.entries(REGIONS).map(([key, reg]) => (
-                <option key={key} value={key}>{reg.name} ({reg.abbr})</option>
-              ))}
+              {Object.entries(REGIONS)
+                .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+                .map(([key, reg]) => (
+                  <option key={key} value={key}>{reg.name} ({reg.abbr})</option>
+                ))}
             </select>
           </div>
 
