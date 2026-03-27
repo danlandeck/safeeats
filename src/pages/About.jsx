@@ -45,19 +45,37 @@ export default function About() {
           {/* Data Sources */}
           <Card className="p-8 border-slate-200 bg-white">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
-            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. King County, WA uses a live real-time API. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
+            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. <strong className="text-slate-700">King County, WA and New York City, NY</strong> use live real-time public APIs — data updates with every new inspection. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
 
-            {/* King County callout */}
-            <div className="mb-6">
+            {/* Live API callouts */}
+            <div className="mb-6 space-y-3">
               <div className="bg-slate-900 rounded-xl p-5 text-white">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="font-extrabold text-base">King County, WA — Live API</p>
-                    <p className="text-slate-300 text-sm mt-1">King County Public Health Open Data Portal</p>
-                    <p className="text-slate-400 text-xs mt-1">The only jurisdiction with a real-time public API — records updated with every new inspection as they happen.</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+                    </div>
+                    <p className="font-extrabold text-base">King County, WA</p>
+                    <p className="text-slate-300 text-sm mt-0.5">King County Public Health Open Data Portal</p>
+                    <p className="text-slate-400 text-xs mt-1">Real-time records updated with every new inspection.</p>
                   </div>
                   <a href="https://data.kingcounty.gov" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
                     data.kingcounty.gov →
+                  </a>
+                </div>
+              </div>
+              <div className="bg-slate-900 rounded-xl p-5 text-white">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+                    </div>
+                    <p className="font-extrabold text-base">New York City (5 Boroughs), NY</p>
+                    <p className="text-slate-300 text-sm mt-0.5">NYC Open Data — DOHMH Restaurant Inspection Results</p>
+                    <p className="text-slate-400 text-xs mt-1">Real-time records from all five boroughs, updated continuously by the NYC Dept. of Health.</p>
+                  </div>
+                  <a href="https://data.cityofnewyork.us/resource/43nn-pn8j" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
+                    data.cityofnewyork.us →
                   </a>
                 </div>
               </div>
@@ -98,7 +116,7 @@ export default function About() {
                 { state: "New Hampshire (NH)", counties: "Hillsborough, Rockingham, Merrimack" },
                 { state: "New Jersey (NJ)", counties: "Essex, Bergen, Hudson, Middlesex, Monmouth, Ocean, Union, Camden" },
                 { state: "New Mexico (NM)", counties: "Bernalillo, Doña Ana, Santa Fe" },
-                { state: "New York (NY)", counties: "NYC (5 Boroughs), Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga" },
+                { state: "New York (NY)", counties: "NYC (5 Boroughs) — LIVE API, Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga" },
                 { state: "North Carolina (NC)", counties: "Mecklenburg, Wake, Guilford, Forsyth, Durham, Cumberland, Buncombe" },
                 { state: "North Dakota (ND)", counties: "Cass, Burleigh, Grand Forks" },
                 { state: "Ohio (OH)", counties: "Cuyahoga, Franklin, Hamilton, Summit, Montgomery, Lucas, Stark" },
@@ -113,7 +131,7 @@ export default function About() {
                 { state: "Utah (UT)", counties: "Salt Lake, Utah, Davis, Weber, Washington" },
                 { state: "Vermont (VT)", counties: "Chittenden, Rutland, Washington" },
                 { state: "Virginia (VA)", counties: "Fairfax, Virginia Beach, Richmond, Arlington, Chesapeake, Norfolk, Chesterfield, Loudoun" },
-                { state: "Washington (WA)", counties: "King (live API), Snohomish, Pierce, Clark, Spokane, Thurston, Kitsap, Whatcom, Benton, Yakima" },
+                { state: "Washington (WA)", counties: "King County — LIVE API, Snohomish, Pierce, Clark, Spokane, Thurston, Kitsap, Whatcom, Benton, Yakima" },
                 { state: "West Virginia (WV)", counties: "Kanawha, Cabell, Monongalia" },
                 { state: "Wisconsin (WI)", counties: "Milwaukee, Dane, Waukesha, Brown, Racine" },
                 { state: "Wyoming (WY)", counties: "Laramie, Natrona, Teton" },
@@ -127,7 +145,7 @@ export default function About() {
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> All jurisdictions except King County, WA use AI-assisted lookup sourced from official public health department records. Results reflect the most recently available publicly published inspection data for each municipality.
+                <strong>Data method:</strong> King County, WA and New York City, NY use live real-time public APIs — data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
               </p>
             </div>
           </Card>
@@ -140,7 +158,7 @@ export default function About() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Live + AI-Assisted Data</h3>
               <p className="text-sm text-slate-600">
-                King County uses a live API. All other regions use AI-assisted lookups pulling from official health department records — same UI, no third-party redirects.
+                King County, WA and New York City, NY use live real-time APIs. All other regions use AI-assisted lookups from official health department records — same UI, no third-party redirects.
               </p>
             </Card>
 

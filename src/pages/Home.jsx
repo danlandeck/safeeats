@@ -11,6 +11,7 @@ import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
 
 const KING_API = "https://data.kingcounty.gov/resource/f29f-zza5.json";
+const NYC_API = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 
 const REGIONS = {
   alabama: { name: "Alabama", abbr: "AL", counties: [
@@ -224,7 +225,7 @@ const REGIONS = {
     { id: "santa_fe_nm", name: "Santa Fe County", city: "Santa Fe", hasPublicApi: false },
   ]},
   new_york: { name: "New York", abbr: "NY", counties: [
-    { id: "nyc", name: "New York City (5 Boroughs)", city: "New York City", hasPublicApi: false },
+    { id: "nyc", name: "New York City (5 Boroughs)", city: "New York City", hasPublicApi: true },
     { id: "nassau", name: "Nassau County (Long Island)", city: "Mineola", hasPublicApi: false },
     { id: "suffolk_ny", name: "Suffolk County (Long Island)", city: "Riverhead", hasPublicApi: false },
     { id: "westchester", name: "Westchester County (White Plains)", city: "White Plains", hasPublicApi: false },
@@ -434,8 +435,72 @@ function processKingCountyResults(data) {
       latitude: rowWithCoords?.latitude,
       longitude: rowWithCoords?.longitude,
       isLLMData: false,
+      source: 'king',
     };
   });
+}
+
+function processNYCResults(data) {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const businesses = {};
+  data.forEach((row) => {
+    const id = row.camis;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: id,
+        name: row.dba || row.aka_name,
+        address: `${row.building || ''} ${row.street || ''}`.trim(),
+        city: row.boro ? row.boro.charAt(0) + row.boro.slice(1).toLowerCase() : 'New York City',
+        zip_code: row.zipcode,
+        phone: row.phone,
+        description: row.cuisine_description || '',
+        inspections: [],
+        allRows: [],
+      };
+    }
+    businesses[id].allRows.push(row);
+    const inspKey = `${row.inspection_date}-${row.inspection_type}`;
+    if (!businesses[id].inspections.find((i) => i.serial === inspKey)) {
+      businesses[id].inspections.push({
+        serial: inspKey,
+        date: row.inspection_date,
+        score: parseInt(row.score) || 0,
+        result: row.action || '',
+      });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
+    const rowWithCoords = biz.allRows.find((r) => r.latitude && r.longitude);
+    return {
+      ...biz,
+      safetyScore,
+      grade: getGrade(safetyScore),
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date,
+      latestResult: latest?.result,
+      latitude: rowWithCoords?.latitude,
+      longitude: rowWithCoords?.longitude,
+      isLLMData: false,
+      source: 'nyc',
+    };
+  });
+}
+
+function nycToDetailRows(data) {
+  return data.map((row) => ({
+    inspection_serial_num: `${row.inspection_date}-${row.inspection_type}-${row.violation_code || Math.random()}`,
+    inspection_date: row.inspection_date,
+    inspection_score: String(row.score || 0),
+    inspection_result: row.action || '',
+    inspection_type: row.inspection_type || '',
+    violation_description: row.violation_description || '',
+    violation_type: row.critical_flag === 'Critical' ? 'RED' : 'BLUE',
+    violation_points: String(row.score || 0),
+  }));
 }
 
 function llmToDetailRows(restaurant) {
@@ -519,18 +584,29 @@ export default function Home() {
       setSelectedBusiness(null);
       setViewMode("list");
 
-      if (currentCounty.hasPublicApi) {
-        const cleanedQuery = query.replace(/['-]/g, "");
+      if (countyId === "nyc") {
+        // NYC Open Data API (real-time)
+        const normalized = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
+        const orig = encodeURIComponent(query.toUpperCase());
+        const norm = encodeURIComponent(normalized);
+        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${norm}%25' OR upper(dba) like '%25${orig}%25' OR upper(replace(replace(aka_name,chr(39),''),'-','')) like '%25${norm}%25' OR upper(building || ' ' || street) like '%25${orig}%25'&$limit=500&$order=inspection_date DESC`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch NYC data");
+        const data = await response.json();
+        setResults(processNYCResults(data));
+      } else if (currentCounty.hasPublicApi) {
+        // King County API (real-time)
+        const cleanedQuery = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim();
         const encodedQuery = encodeURIComponent(cleanedQuery.toUpperCase());
         const encodedOriginal = encodeURIComponent(query.toUpperCase());
-        const url = `${KING_API}?$where=upper(replace(replace(name, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(replace(replace(address, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(replace(replace(inspection_business_name, '''', ''), '-', '')) like '%25${encodedQuery}%25' OR upper(name) like '%25${encodedOriginal}%25' OR upper(address) like '%25${encodedOriginal}%25' OR upper(inspection_business_name) like '%25${encodedOriginal}%25'&$limit=500&$order=inspection_date DESC`;
+        const url = `${KING_API}?$where=upper(replace(replace(replace(name,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(replace(replace(replace(address,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(replace(replace(replace(inspection_business_name,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(name) like '%25${encodedOriginal}%25' OR upper(address) like '%25${encodedOriginal}%25'&$limit=500&$order=inspection_date DESC`;
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
         setResults(processKingCountyResults(data));
       } else {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Find health inspection records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Search the official health department records. Return ALL matching establishments. Include COMPLETE inspection history with all dates going back as far as available. For each inspection, provide: date, result (Satisfactory/Unsatisfactory/Pass/Fail etc), a 0-100 safety score where 100=no violations, total violation points, and ALL violations found. Be thorough and accurate with real data only.`,
+          prompt: `Find health inspection records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Be apostrophe-agnostic, dash-agnostic, and case-insensitive (e.g. "Pepes" should match "Pepe's", "mc donalds" matches "McDonald's", "Red-Robin" matches "Red Robin"). Search the official health department records. Return ALL matching establishments. Include COMPLETE inspection history with ALL dates going back as far as available. For each inspection: date, result, a 0-100 safety score (100=no violations), total violation points, and ALL violations. Also find the official website URL for each restaurant — for chains/franchises with no location-specific page, use the corporate homepage. Be thorough and accurate with real data only.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -592,6 +668,7 @@ export default function Home() {
             city: r.city || currentCounty.city,
             zip_code: r.zip_code || "",
             phone: r.phone || "",
+            website: r.website || "",
             description: "",
             safetyScore,
             grade: getGrade(safetyScore),
@@ -601,11 +678,48 @@ export default function Home() {
             latitude: null,
             longitude: null,
             isLLMData: true,
+            source: 'llm',
             allInspections: inspections,
             allRows: [],
           };
         });
         setResults(restaurants);
+
+        // Enrich missing websites in background
+        const missingWebsites = restaurants.filter((r) => !r.website);
+        if (missingWebsites.length > 0) {
+          base44.integrations.Core.InvokeLLM({
+            prompt: `Find the official website URL for each of these restaurants. For chains/franchises with no location-specific page, use the corporate homepage. Only return real, verified URLs:\n${missingWebsites.map((r) => `- "${r.name}" at ${r.address}, ${r.city}, ${currentRegion.abbr}`).join('\n')}`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                websites: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      website: { type: "string" },
+                    },
+                  },
+                },
+              },
+            },
+          }).then((websiteResult) => {
+            const map = {};
+            (websiteResult?.websites || []).forEach((w) => {
+              if (w.website) map[w.name.toLowerCase().trim()] = w.website;
+            });
+            setResults((prev) =>
+              prev.map((r) =>
+                !r.website && map[r.name.toLowerCase().trim()]
+                  ? { ...r, website: map[r.name.toLowerCase().trim()] }
+                  : r
+              )
+            );
+          });
+        }
       }
       setIsLoading(false);
     },
@@ -615,7 +729,13 @@ export default function Home() {
   const handleSelectBusiness = useCallback(async (biz) => {
     setIsDetailLoading(true);
     setSelectedBusiness(biz);
-    if (!biz.isLLMData) {
+    if (biz.source === 'nyc') {
+      const url = `${NYC_API}?camis=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch NYC details");
+      const data = await response.json();
+      setDetailRows(nycToDetailRows(Array.isArray(data) ? data : []));
+    } else if (!biz.isLLMData) {
       const url = `${KING_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch details");
@@ -689,20 +809,16 @@ export default function Home() {
           </div>
 
           {/* County selector */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {currentRegion.counties.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => { setCountyId(c.id); resetSearch(); }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  countyId === c.id
-                    ? "bg-white text-slate-900 shadow"
-                    : "bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200"
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
+          <div className="flex justify-center mb-6">
+            <select
+              value={countyId}
+              onChange={(e) => { setCountyId(e.target.value); resetSearch(); }}
+              className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[260px]"
+            >
+              {currentRegion.counties.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
 
           <SearchBar onSearch={handleSearch} isLoading={isLoading} />

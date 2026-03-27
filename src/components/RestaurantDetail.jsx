@@ -33,6 +33,18 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
   const grade = restaurant.grade || getGrade(restaurant.safetyScore);
 
+  // Legacy (average) grade across all inspections
+  const legacyScores = uniqueInspections
+    .map((insp) => {
+      const raw = insp.inspection_score !== undefined ? insp.inspection_score : insp.score;
+      return raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : 0;
+    })
+    .filter((s) => s > 0);
+  const avgScore = legacyScores.length > 0
+    ? Math.round(legacyScores.reduce((a, b) => a + b, 0) / legacyScores.length)
+    : restaurant.safetyScore;
+  const legacyGrade = getGrade(avgScore);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -47,6 +59,14 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex flex-col items-center gap-2">
               <ScoreGauge score={restaurant.safetyScore} size="lg" />
               <span className={`text-sm font-extrabold px-3 py-1 rounded-lg ${getGradeColor(grade)}`}>Grade {grade}</span>
+              {uniqueInspections.length > 1 && (
+                <div className="text-center">
+                  <span className={`text-xs font-extrabold px-2.5 py-1 rounded-lg ${getGradeColor(legacyGrade)} opacity-70`}>
+                    Legacy {legacyGrade}
+                  </span>
+                  <p className="text-[10px] text-slate-400 mt-1">avg over {uniqueInspections.length} inspections</p>
+                </div>
+              )}
             </div>
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
