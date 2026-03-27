@@ -58,15 +58,19 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           <div className="flex flex-col md:flex-row items-start gap-6">
             <div className="flex flex-col items-center gap-2">
               <ScoreGauge score={restaurant.safetyScore} size="lg" />
-              <span className={`text-sm font-extrabold px-3 py-1 rounded-lg ${getGradeColor(grade)}`}>Grade {grade}</span>
-              {uniqueInspections.length > 1 && (
-                <div className="text-center">
-                  <span className={`text-xs font-extrabold px-2.5 py-1 rounded-lg ${getGradeColor(legacyGrade)} opacity-70`}>
-                    Legacy {legacyGrade}
+              <div className="flex flex-col items-center gap-1">
+                <span className={`text-sm font-extrabold px-3 py-1 rounded-lg ${getGradeColor(grade)}`}>
+                  Current: Grade {grade}
+                </span>
+                {uniqueInspections.length > 1 && (
+                  <span className={`text-xs font-bold px-3 py-1 rounded-lg border-2 ${getGradeColor(legacyGrade)} opacity-80`}>
+                    Legacy: Grade {legacyGrade} ({avgScore})
                   </span>
-                  <p className="text-[10px] text-slate-400 mt-1">avg over {uniqueInspections.length} inspections</p>
-                </div>
-              )}
+                )}
+                {uniqueInspections.length > 1 && (
+                  <p className="text-[10px] text-slate-400">avg · {uniqueInspections.length} inspections</p>
+                )}
+              </div>
             </div>
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">

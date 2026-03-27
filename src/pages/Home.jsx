@@ -605,8 +605,26 @@ export default function Home() {
         const data = await response.json();
         setResults(processKingCountyResults(data));
       } else {
+        // Fire inspection data and website lookup in parallel — show results as soon as inspection data arrives
+        const websitePromise = base44.integrations.Core.InvokeLLM({
+          prompt: `Find the official website URL for restaurants matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. For chains/franchises use the corporate homepage. Return only real, verified URLs.`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              websites: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: { name: { type: "string" }, website: { type: "string" } },
+                },
+              },
+            },
+          },
+        });
+
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Find health inspection records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Be apostrophe-agnostic, dash-agnostic, and case-insensitive (e.g. "Pepes" should match "Pepe's", "mc donalds" matches "McDonald's", "Red-Robin" matches "Red Robin"). Search the official health department records. Return ALL matching establishments. Include COMPLETE inspection history with ALL dates going back as far as available. For each inspection: date, result, a 0-100 safety score (100=no violations), total violation points, and ALL violations. Also find the official website URL for each restaurant — for chains/franchises with no location-specific page, use the corporate homepage. Be thorough and accurate with real data only.`,
+          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic (Pepes = Pepe's, mc donalds = McDonald's). Return ALL matching establishments with COMPLETE inspection history. For each inspection include: date, result, safety score 0-100 (100=no violations), violation_points, and violations list.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -621,7 +639,6 @@ export default function Home() {
                     city: { type: "string" },
                     zip_code: { type: "string" },
                     phone: { type: "string" },
-                    website: { type: "string" },
                     inspections: {
                       type: "array",
                       items: {
@@ -660,7 +677,6 @@ export default function Home() {
             latest?.score !== undefined
               ? Math.max(0, Math.min(100, latest.score))
               : Math.max(0, Math.min(100, 100 - (latest?.violation_points || 0)));
-
           return {
             business_id: `${countyId}-${index}-${r.name}`,
             name: r.name,
@@ -668,7 +684,7 @@ export default function Home() {
             city: r.city || currentCounty.city,
             zip_code: r.zip_code || "",
             phone: r.phone || "",
-            website: r.website || "",
+            website: "",
             description: "",
             safetyScore,
             grade: getGrade(safetyScore),
@@ -683,43 +699,26 @@ export default function Home() {
             allRows: [],
           };
         });
+        // Show results immediately
         setResults(restaurants);
+        setIsLoading(false);
 
-        // Enrich missing websites in background
-        const missingWebsites = restaurants.filter((r) => !r.website);
-        if (missingWebsites.length > 0) {
-          base44.integrations.Core.InvokeLLM({
-            prompt: `Find the official website URL for each of these restaurants. For chains/franchises with no location-specific page, use the corporate homepage. Only return real, verified URLs:\n${missingWebsites.map((r) => `- "${r.name}" at ${r.address}, ${r.city}, ${currentRegion.abbr}`).join('\n')}`,
-            add_context_from_internet: true,
-            response_json_schema: {
-              type: "object",
-              properties: {
-                websites: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string" },
-                      website: { type: "string" },
-                    },
-                  },
-                },
-              },
-            },
-          }).then((websiteResult) => {
-            const map = {};
-            (websiteResult?.websites || []).forEach((w) => {
-              if (w.website) map[w.name.toLowerCase().trim()] = w.website;
-            });
-            setResults((prev) =>
-              prev.map((r) =>
-                !r.website && map[r.name.toLowerCase().trim()]
-                  ? { ...r, website: map[r.name.toLowerCase().trim()] }
-                  : r
-              )
-            );
+        // Enrich websites in background once the parallel call resolves
+        websitePromise.then((websiteResult) => {
+          const map = {};
+          (websiteResult?.websites || []).forEach((w) => {
+            if (w.website) map[w.name.toLowerCase().trim()] = w.website;
           });
-        }
+          if (Object.keys(map).length > 0) {
+            setResults((prev) =>
+              prev.map((r) => {
+                const key = r.name.toLowerCase().trim();
+                return map[key] ? { ...r, website: map[key] } : r;
+              })
+            );
+          }
+        });
+        return; // already called setIsLoading(false) above
       }
       setIsLoading(false);
     },
@@ -908,14 +907,9 @@ export default function Home() {
                         ) : (
                           <div className="space-y-3">
                             {filteredAndSortedResults.map((r) => (
-                              <motion.div
-                                key={r.business_id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.2 }}
-                              >
+                              <div key={r.business_id}>
                                 <RestaurantCard restaurant={r} onClick={() => handleSelectBusiness(r)} />
-                              </motion.div>
+                              </div>
                             ))}
                           </div>
                         )}
