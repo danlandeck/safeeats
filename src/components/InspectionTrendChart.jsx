@@ -53,7 +53,7 @@ export default function InspectionTrendChart({ inspections }) {
             dataKey="score"
             stroke="#1e293b"
             strokeWidth={2.5}
-            dot={<CustomDot />}
+            dot={{ r: 4, fill: "#1e293b", strokeWidth: 0 }}
             activeDot={{ r: 7 }}
           />
         </LineChart>
