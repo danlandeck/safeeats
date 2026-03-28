@@ -596,10 +596,10 @@ export default function Home() {
         setResults(processNYCResults(data));
       } else if (currentCounty.hasPublicApi) {
         // King County API (real-time)
-        const cleanedQuery = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim();
-        const encodedQuery = encodeURIComponent(cleanedQuery.toUpperCase());
         const encodedOriginal = encodeURIComponent(query.toUpperCase());
-        const url = `${KING_API}?$where=upper(replace(replace(replace(name,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(replace(replace(replace(address,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(replace(replace(replace(inspection_business_name,chr(39),''),char(8217),''),'-','')) like '%25${encodedQuery}%25' OR upper(name) like '%25${encodedOriginal}%25' OR upper(address) like '%25${encodedOriginal}%25'&$limit=500&$order=inspection_date DESC`;
+        const cleanedQuery = query.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+        const encodedClean = encodeURIComponent(cleanedQuery.toUpperCase());
+        const url = `${KING_API}?$where=upper(name) like '%25${encodedOriginal}%25' OR upper(address) like '%25${encodedOriginal}%25' OR upper(replace(name,chr(39),'')) like '%25${encodedClean}%25' OR upper(replace(name,'-','')) like '%25${encodedClean}%25'&$limit=500&$order=inspection_date DESC`;
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
