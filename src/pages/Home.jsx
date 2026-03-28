@@ -605,24 +605,6 @@ export default function Home() {
         const data = await response.json();
         setResults(processKingCountyResults(data));
       } else {
-        // Fire inspection data and website lookup in parallel — show results as soon as inspection data arrives
-        const websitePromise = base44.integrations.Core.InvokeLLM({
-          prompt: `Find the official website URL for restaurants matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. For chains/franchises use the corporate homepage. Return only real, verified URLs.`,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              websites: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: { name: { type: "string" }, website: { type: "string" } },
-                },
-              },
-            },
-          },
-        });
-
         const result = await base44.integrations.Core.InvokeLLM({
           prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic (Pepes = Pepe's, mc donalds = McDonald's). Return ALL matching establishments with COMPLETE inspection history. For each inspection include: date, result, safety score 0-100 (100=no violations), violation_points, and violations list.`,
           add_context_from_internet: true,
@@ -699,26 +681,7 @@ export default function Home() {
             allRows: [],
           };
         });
-        // Show results immediately
         setResults(restaurants);
-        setIsLoading(false);
-
-        // Enrich websites in background once the parallel call resolves
-        websitePromise.then((websiteResult) => {
-          const map = {};
-          (websiteResult?.websites || []).forEach((w) => {
-            if (w.website) map[w.name.toLowerCase().trim()] = w.website;
-          });
-          if (Object.keys(map).length > 0) {
-            setResults((prev) =>
-              prev.map((r) => {
-                const key = r.name.toLowerCase().trim();
-                return map[key] ? { ...r, website: map[key] } : r;
-              })
-            );
-          }
-        });
-        return; // already called setIsLoading(false) above
       }
       setIsLoading(false);
     },
