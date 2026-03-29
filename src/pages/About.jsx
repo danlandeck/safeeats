@@ -45,7 +45,7 @@ export default function About() {
           {/* Data Sources */}
           <Card className="p-8 border-slate-200 bg-white">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
-            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. <strong className="text-slate-700">King County, WA and New York City, NY</strong> use live real-time public APIs — data updates with every new inspection. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
+            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. <strong className="text-slate-700">12 jurisdictions</strong> use live real-time public APIs — data updates with every new inspection. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
 
             {/* Live API callouts - alphabetical */}
             <div className="mb-6 space-y-3">
