@@ -215,9 +215,12 @@ export default function About() {
               ))}
             </div>
 
-            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
               <p className="text-xs text-amber-800 leading-relaxed">
                 <strong>Data method:</strong> <strong>12 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC. Data is current as of the moment you search. All other jurisdictions use <strong>AI-assisted lookup</strong> that searches publicly available official health department records — results depend entirely on whether that jurisdiction publishes inspection data online. Many smaller counties do not digitize or publicly post their records, in which case results may be incomplete, outdated, or unavailable. SafeEats lists all 50 states and hundreds of counties in the selector, but that reflects <em>potential</em> coverage, not a guaranteed direct database connection for every jurisdiction.
+              </p>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>Geographic precision:</strong> Live API routing is matched on <strong>both state abbreviation and county name together</strong> — never on county name alone. This prevents counties that share names across states from being routed to the wrong data source. For example, <em>King County, WA</em> correctly hits the King County Public Health API, while <em>King County, TX</em> falls back to AI-assisted lookup. The same logic applies to <em>Montgomery County</em> (MD has a live API; OH, PA, and others do not), <em>Cook County</em> (IL has a live API; others do not), and all five New York City boroughs (NY). Only the four specifically integrated county/city combinations receive live API data — all same-named counties in other states use AI-assisted lookup.
               </p>
             </div>
           </Card>
