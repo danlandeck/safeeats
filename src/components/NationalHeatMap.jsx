@@ -48,7 +48,7 @@ const RISK_LEVELS = [
   { minScore: 0,  color: "#d7191c", label: "High Risk",      grade: "F" },
 ];
 
-const LIVE_API_STATES = new Set(["WA", "NY", "IL", "MD"]);
+const LIVE_API_STATES = new Set(["WA", "NY", "IL", "MD", "CA", "TX", "LA", "MA"]);
 
 function getRiskLevel(score) {
   return RISK_LEVELS.find((r) => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length - 1];
@@ -311,7 +311,7 @@ export default function NationalHeatMap() {
           ESRI-standard diverging risk scale · Green = low risk · Red = elevated risk · {selectedState ? "Click a county for restaurant data" : "Click any state to see county breakdown"}
         </p>
         <p className="text-[11px] text-slate-400 flex-shrink-0">
-          <span className="font-semibold text-green-600">LIVE API</span>: WA · NY · IL · MD
+          <span className="font-semibold text-green-600">LIVE API</span>: Austin TX · Baton Rouge LA · Boston MA · Chicago IL · King County WA · Los Angeles CA · Montgomery County MD · NYC · San Francisco CA
         </p>
       </div>
     </div>

@@ -47,68 +47,89 @@ export default function About() {
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
             <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. <strong className="text-slate-700">King County, WA and New York City, NY</strong> use live real-time public APIs — data updates with every new inspection. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
 
-            {/* Live API callouts */}
+            {/* Live API callouts - alphabetical */}
             <div className="mb-6 space-y-3">
-              <div className="bg-slate-900 rounded-xl p-5 text-white">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+              {[
+                {
+                  name: "Austin (Travis County), TX",
+                  desc: "City of Austin Open Data Portal — Food Establishment Inspection Scores",
+                  detail: "Real-time inspection scores for food establishments inspected within the last 3 years by Austin Public Health.",
+                  url: "https://data.austintexas.gov/Health-and-Community-Services/Food-Establishment-Inspection-Scores/ecmv-9xxi",
+                  urlLabel: "data.austintexas.gov →",
+                },
+                {
+                  name: "Baton Rouge (East Baton Rouge Parish), LA",
+                  desc: "City of Baton Rouge Open Data — Retail Food Inspections",
+                  detail: "Real-time inspection records for all East Baton Rouge Parish food establishments from the Louisiana Dept. of Health.",
+                  url: "https://data.brla.gov/Health-and-Human-Services/Retail-Food-Inspections/ux2t-b9wr",
+                  urlLabel: "data.brla.gov →",
+                },
+                {
+                  name: "Boston (Suffolk County), MA",
+                  desc: "Analyze Boston Open Data — Food Establishment Inspections",
+                  detail: "Real-time inspection records from the Boston Inspectional Services Department, updated continuously.",
+                  url: "https://data.boston.gov/dataset/food-establishment-inspections",
+                  urlLabel: "data.boston.gov →",
+                },
+                {
+                  name: "Chicago (Cook County), IL",
+                  desc: "City of Chicago Data Portal — Food Inspections",
+                  detail: "Real-time inspection records from the Chicago Dept. of Public Health's Food Protection Program.",
+                  url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5",
+                  urlLabel: "data.cityofchicago.org →",
+                },
+                {
+                  name: "King County (Seattle), WA",
+                  desc: "King County Public Health Open Data Portal",
+                  detail: "Real-time records updated with every new inspection across all King County food establishments.",
+                  url: "https://data.kingcounty.gov",
+                  urlLabel: "data.kingcounty.gov →",
+                },
+                {
+                  name: "Los Angeles, CA",
+                  desc: "Los Angeles Open Data — Restaurant and Market Health Inspections",
+                  detail: "Real-time inspection results for restaurants and markets in the City of Los Angeles, provided by LA County Environmental Health.",
+                  url: "https://data.lacity.org/Health/Restaurant-and-Market-Health-Inspections/29fd-3paw",
+                  urlLabel: "data.lacity.org →",
+                },
+                {
+                  name: "Montgomery County, MD",
+                  desc: "dataMontgomery — Food Inspection Open Data Portal",
+                  detail: "Real-time food inspection records from Montgomery County's Licensure & Regulatory Services Program.",
+                  url: "https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspection/5pue-gfbe",
+                  urlLabel: "data.montgomerycountymd.gov →",
+                },
+                {
+                  name: "New York City (5 Boroughs), NY",
+                  desc: "NYC Open Data — DOHMH Restaurant Inspection Results",
+                  detail: "Real-time records from all five boroughs, updated continuously by the NYC Dept. of Health.",
+                  url: "https://data.cityofnewyork.us/resource/43nn-pn8j",
+                  urlLabel: "data.cityofnewyork.us →",
+                },
+                {
+                  name: "San Francisco, CA",
+                  desc: "San Francisco Open Data — Restaurant Scores (LIVES Standard)",
+                  detail: "Real-time health inspection scores for SF restaurants published by the SF Dept. of Public Health using the LIVES open standard.",
+                  url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i",
+                  urlLabel: "data.sfgov.org →",
+                },
+              ].map((api) => (
+                <div key={api.name} className="bg-slate-900 rounded-xl p-5 text-white">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+                      </div>
+                      <p className="font-extrabold text-base">{api.name}</p>
+                      <p className="text-slate-300 text-sm mt-0.5">{api.desc}</p>
+                      <p className="text-slate-400 text-xs mt-1">{api.detail}</p>
                     </div>
-                    <p className="font-extrabold text-base">King County, WA</p>
-                    <p className="text-slate-300 text-sm mt-0.5">King County Public Health Open Data Portal</p>
-                    <p className="text-slate-400 text-xs mt-1">Real-time records updated with every new inspection.</p>
+                    <a href={api.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2 flex-shrink-0">
+                      {api.urlLabel}
+                    </a>
                   </div>
-                  <a href="https://data.kingcounty.gov" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
-                    data.kingcounty.gov →
-                  </a>
                 </div>
-              </div>
-              <div className="bg-slate-900 rounded-xl p-5 text-white">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
-                    </div>
-                    <p className="font-extrabold text-base">New York City (5 Boroughs), NY</p>
-                    <p className="text-slate-300 text-sm mt-0.5">NYC Open Data — DOHMH Restaurant Inspection Results</p>
-                    <p className="text-slate-400 text-xs mt-1">Real-time records from all five boroughs, updated continuously by the NYC Dept. of Health.</p>
-                  </div>
-                  <a href="https://data.cityofnewyork.us/resource/43nn-pn8j" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
-                    data.cityofnewyork.us →
-                  </a>
-                </div>
-              </div>
-              <div className="bg-slate-900 rounded-xl p-5 text-white">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
-                    </div>
-                    <p className="font-extrabold text-base">Cook County (Chicago), IL</p>
-                    <p className="text-slate-300 text-sm mt-0.5">City of Chicago Data Portal — Food Inspections</p>
-                    <p className="text-slate-400 text-xs mt-1">Real-time inspection records from the Chicago Dept. of Public Health's Food Protection Program.</p>
-                  </div>
-                  <a href="https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
-                    data.cityofchicago.org →
-                  </a>
-                </div>
-              </div>
-              <div className="bg-slate-900 rounded-xl p-5 text-white">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
-                    </div>
-                    <p className="font-extrabold text-base">Montgomery County, MD</p>
-                    <p className="text-slate-300 text-sm mt-0.5">dataMontgomery — Food Inspection Open Data Portal</p>
-                    <p className="text-slate-400 text-xs mt-1">Real-time food inspection records from Montgomery County's Licensure & Regulatory Services Program.</p>
-                  </div>
-                  <a href="https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspection/5pue-gfbe" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
-                    data.montgomerycountymd.gov →
-                  </a>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* All other states */}
@@ -175,7 +196,7 @@ export default function About() {
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> King County, WA · New York City, NY · Cook County (Chicago), IL · and Montgomery County, MD use live real-time public APIs — data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
+                <strong>Data method:</strong> <strong>9 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, King County WA, Los Angeles CA, Montgomery County MD, New York City NY, and San Francisco CA. Data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
               </p>
             </div>
           </Card>
