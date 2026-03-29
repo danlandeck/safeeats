@@ -12,6 +12,8 @@ import DataVisualizations from "../components/DataVisualizations";
 
 const KING_API = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 const NYC_API = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
+const CHICAGO_API = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
+const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
 
 const REGIONS = {
   alabama: { name: "Alabama", abbr: "AL", counties: [
@@ -104,7 +106,7 @@ const REGIONS = {
     { id: "kootenai", name: "Kootenai County (Coeur d'Alene)", city: "Coeur d'Alene", hasPublicApi: false },
   ]},
   illinois: { name: "Illinois", abbr: "IL", counties: [
-    { id: "cook", name: "Cook County (Chicago)", city: "Chicago", hasPublicApi: false },
+    { id: "cook", name: "Cook County (Chicago)", city: "Chicago", hasPublicApi: true },
     { id: "dupage", name: "DuPage County", city: "Wheaton", hasPublicApi: false },
     { id: "lake_il", name: "Lake County", city: "Waukegan", hasPublicApi: false },
     { id: "will", name: "Will County (Joliet)", city: "Joliet", hasPublicApi: false },
@@ -148,7 +150,7 @@ const REGIONS = {
   maryland: { name: "Maryland", abbr: "MD", counties: [
     { id: "baltimore_city", name: "Baltimore City", city: "Baltimore", hasPublicApi: false },
     { id: "baltimore_county", name: "Baltimore County", city: "Towson", hasPublicApi: false },
-    { id: "montgomery", name: "Montgomery County", city: "Rockville", hasPublicApi: false },
+    { id: "montgomery_md", name: "Montgomery County", city: "Rockville", hasPublicApi: true },
     { id: "prince_georges", name: "Prince George's County", city: "Upper Marlboro", hasPublicApi: false },
     { id: "anne_arundel", name: "Anne Arundel County (Annapolis)", city: "Annapolis", hasPublicApi: false },
     { id: "howard", name: "Howard County (Columbia)", city: "Ellicott City", hasPublicApi: false },
@@ -503,6 +505,43 @@ function nycToDetailRows(data) {
   }));
 }
 
+function chicagoToDetailRows(data) {
+  const rows = [];
+  data.forEach((row) => {
+    const result = row.results || '';
+    const pts = result === 'Pass' ? 8 : result === 'Pass w/ Conditions' ? 24 : 55;
+    const violationsStr = row.violations || '';
+    const violationList = violationsStr.split('|').map((v) => v.trim()).filter(Boolean);
+    const inspKey = row.inspection_id;
+    if (violationList.length === 0) {
+      rows.push({ inspection_serial_num: inspKey, inspection_date: row.inspection_date, inspection_score: String(pts), inspection_result: result, inspection_type: row.inspection_type || '', violation_description: '', violation_type: '', violation_points: '0' });
+    } else {
+      violationList.forEach((v) => {
+        rows.push({ inspection_serial_num: inspKey, inspection_date: row.inspection_date, inspection_score: String(pts), inspection_result: result, inspection_type: row.inspection_type || '', violation_description: v, violation_type: 'BLUE', violation_points: '0' });
+      });
+    }
+  });
+  return rows;
+}
+
+function montgomeryToDetailRows(data) {
+  const VKEYS = ['violation1','violation2','violation3','violation4','violation5','violation6a','violation6b','violation7a','violation7b','violation8','violation9'];
+  const rows = [];
+  data.forEach((row) => {
+    const outViolations = VKEYS.filter((k) => row[k] === 'Out of Compliance');
+    const pts = outViolations.length === 0 ? 5 : outViolations.length === 1 ? 18 : outViolations.length === 2 ? 30 : 45;
+    const inspKey = `${row.inspectiondate}-${row.inspectiontype || 'inspection'}`;
+    if (outViolations.length === 0) {
+      rows.push({ inspection_serial_num: inspKey, inspection_date: row.inspectiondate, inspection_score: String(pts), inspection_result: row.inspectionresults || '', inspection_type: row.inspectiontype || '', violation_description: '', violation_type: '', violation_points: '0' });
+    } else {
+      outViolations.forEach((key) => {
+        rows.push({ inspection_serial_num: inspKey, inspection_date: row.inspectiondate, inspection_score: String(pts), inspection_result: row.inspectionresults || '', inspection_type: row.inspectiontype || '', violation_description: `${key.replace('violation', 'Violation ').toUpperCase()}: Out of Compliance`, violation_type: 'RED', violation_points: '0' });
+      });
+    }
+  });
+  return rows;
+}
+
 function llmToDetailRows(restaurant) {
   const rows = [];
   (restaurant.allInspections || []).forEach((insp, inspIndex) => {
@@ -594,6 +633,22 @@ export default function Home() {
         if (!response.ok) throw new Error("Failed to fetch NYC data");
         const data = await response.json();
         setResults(processNYCResults(data));
+      } else if (countyId === "cook") {
+        // Chicago Open Data API (real-time)
+        const encoded = encodeURIComponent(query.toUpperCase());
+        const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encoded}%25' OR upper(aka_name) like '%25${encoded}%25' OR upper(address) like '%25${encoded}%25'&$limit=500&$order=inspection_date DESC`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch Chicago data");
+        const data = await response.json();
+        setResults(processChicagoResults(data));
+      } else if (countyId === "montgomery_md") {
+        // Montgomery County MD Open Data API (real-time)
+        const encoded = encodeURIComponent(query.toUpperCase());
+        const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encoded}%25' OR upper(address1) like '%25${encoded}%25'&$limit=500&$order=inspectiondate DESC`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch Montgomery County data");
+        const data = await response.json();
+        setResults(processMontgomeryResults(data));
       } else if (currentCounty.hasPublicApi) {
         // King County API (real-time)
         const encodedOriginal = encodeURIComponent(query.toUpperCase());
@@ -697,6 +752,18 @@ export default function Home() {
       if (!response.ok) throw new Error("Failed to fetch NYC details");
       const data = await response.json();
       setDetailRows(nycToDetailRows(Array.isArray(data) ? data : []));
+    } else if (biz.source === 'chicago') {
+      const url = `${CHICAGO_API}?license_=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch Chicago details");
+      const data = await response.json();
+      setDetailRows(chicagoToDetailRows(Array.isArray(data) ? data : []));
+    } else if (biz.source === 'montgomery') {
+      const url = `${MONTGOMERY_API}?establishment_id=${biz.business_id}&$limit=1000&$order=inspectiondate DESC`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch Montgomery County details");
+      const data = await response.json();
+      setDetailRows(montgomeryToDetailRows(Array.isArray(data) ? data : []));
     } else if (!biz.isLLMData) {
       const url = `${KING_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`;
       const response = await fetch(url);

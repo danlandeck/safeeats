@@ -79,6 +79,36 @@ export default function About() {
                   </a>
                 </div>
               </div>
+              <div className="bg-slate-900 rounded-xl p-5 text-white">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+                    </div>
+                    <p className="font-extrabold text-base">Cook County (Chicago), IL</p>
+                    <p className="text-slate-300 text-sm mt-0.5">City of Chicago Data Portal — Food Inspections</p>
+                    <p className="text-slate-400 text-xs mt-1">Real-time inspection records from the Chicago Dept. of Public Health's Food Protection Program.</p>
+                  </div>
+                  <a href="https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
+                    data.cityofchicago.org →
+                  </a>
+                </div>
+              </div>
+              <div className="bg-slate-900 rounded-xl p-5 text-white">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
+                    </div>
+                    <p className="font-extrabold text-base">Montgomery County, MD</p>
+                    <p className="text-slate-300 text-sm mt-0.5">dataMontgomery — Food Inspection Open Data Portal</p>
+                    <p className="text-slate-400 text-xs mt-1">Real-time food inspection records from Montgomery County's Licensure & Regulatory Services Program.</p>
+                  </div>
+                  <a href="https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspection/5pue-gfbe" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2">
+                    data.montgomerycountymd.gov →
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* All other states */}
@@ -97,14 +127,14 @@ export default function About() {
                 { state: "Georgia (GA)", counties: "Fulton, DeKalb, Gwinnett, Cobb, Chatham, Bibb" },
                 { state: "Hawaii (HI)", counties: "Honolulu, Maui, Hawaii (Big Island), Kauai" },
                 { state: "Idaho (ID)", counties: "Ada, Canyon, Kootenai" },
-                { state: "Illinois (IL)", counties: "Cook, DuPage, Lake, Will, Kane, Sangamon" },
+                { state: "Illinois (IL)", counties: "Cook County (Chicago) — LIVE API, DuPage, Lake, Will, Kane, Sangamon" },
                 { state: "Indiana (IN)", counties: "Marion, Lake, Allen, Hamilton" },
                 { state: "Iowa (IA)", counties: "Polk, Linn, Scott, Johnson" },
                 { state: "Kansas (KS)", counties: "Johnson, Sedgwick, Wyandotte, Shawnee" },
                 { state: "Kentucky (KY)", counties: "Jefferson, Fayette, Boone" },
                 { state: "Louisiana (LA)", counties: "Orleans, East Baton Rouge, Jefferson, Caddo" },
                 { state: "Maine (ME)", counties: "Cumberland, Penobscot, York" },
-                { state: "Maryland (MD)", counties: "Baltimore City, Baltimore County, Montgomery, Prince George's, Anne Arundel, Howard" },
+                { state: "Maryland (MD)", counties: "Baltimore City, Baltimore County, Montgomery County — LIVE API, Prince George's, Anne Arundel, Howard" },
                 { state: "Massachusetts (MA)", counties: "Suffolk, Middlesex, Worcester, Hampden, Norfolk, Essex" },
                 { state: "Michigan (MI)", counties: "Wayne, Kent, Oakland, Macomb, Ingham, Washtenaw" },
                 { state: "Minnesota (MN)", counties: "Hennepin, Ramsey, Dakota, Anoka, St. Louis" },
@@ -145,7 +175,7 @@ export default function About() {
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> King County, WA and New York City, NY use live real-time public APIs — data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
+                <strong>Data method:</strong> King County, WA · New York City, NY · Cook County (Chicago), IL · and Montgomery County, MD use live real-time public APIs — data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
               </p>
             </div>
           </Card>
@@ -158,7 +188,7 @@ export default function About() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Live + AI-Assisted Data</h3>
               <p className="text-sm text-slate-600">
-                King County, WA and New York City, NY use live real-time APIs. All other regions use AI-assisted lookups from official health department records — same UI, no third-party redirects.
+                King County, WA · New York City, NY · Cook County (Chicago), IL · and Montgomery County, MD use live real-time APIs. All other regions use AI-assisted lookups from official health department records — same UI, no third-party redirects.
               </p>
             </Card>
 
@@ -201,7 +231,7 @@ export default function About() {
             <h2 className="text-2xl font-extrabold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
             <div className="space-y-3 text-slate-600">
               <p className="leading-relaxed">
-                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live API for King County, AI-assisted lookup from official public records for all other jurisdictions.
+                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live API for King County, NYC, Chicago, and Montgomery County MD; AI-assisted lookup from official public records for all other jurisdictions.
               </p>
               <p className="leading-relaxed">
                 <strong className="text-slate-900">2. Normalization:</strong> Each region's raw scores (penalty points, pass/fail, letter grades) are converted to a unified 0–100 scale.
