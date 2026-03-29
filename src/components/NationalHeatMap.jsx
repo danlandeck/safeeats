@@ -27,6 +27,10 @@ function getRiskLevel(score) {
   return RISK_LEVELS.find((r) => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length - 1];
 }
 
+function getGrade(score) {
+  return getRiskLevel(score).grade;
+}
+
 // Live API states get a slightly different treatment
 const LIVE_API_STATES = new Set(["WA", "NY", "IL", "MD"]);
 
