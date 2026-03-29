@@ -123,9 +123,15 @@ async function fetchMontgomery() {
 }
 
 async function fetchLLM(stateName, stateAbbr, countyName) {
-  const location = countyName ? `${countyName}, ${stateName} (${stateAbbr})` : `${stateName} (${stateAbbr})`;
+  const countyLabel = countyName
+    ? (countyName.toLowerCase().includes("county") ? countyName : `${countyName} County`)
+    : null;
+  const location = countyLabel
+    ? `${countyLabel}, ${stateName}, ${stateAbbr}`
+    : `${stateName}, ${stateAbbr}`;
+
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Search official public health department records for ${location}. Return two separate lists: (1) top_rated: the 10 restaurants with the HIGHEST safety scores (90-100), establishments with clean inspection records. (2) worst_rated: the 10 restaurants with the LOWEST safety scores (0-55), establishments with documented health violations, closures, or failed inspections. These must be REAL establishments. Safety score is 0-100 where 100 = no violations and 0 = critical violations/closure. The two lists must contain DIFFERENT restaurants.`,
+    prompt: `You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every single result MUST be located in ${location} — do NOT include restaurants from any other county, city, or state.\n\nReturn two separate lists:\n1. top_rated: 10 restaurants with the HIGHEST safety scores (85-100), clean inspection records, in ${location}.\n2. worst_rated: 10 restaurants with the LOWEST safety scores (0-55), documented violations or failed inspections, in ${location}.\n\nThe two lists must be completely DIFFERENT restaurants. All must be real establishments with real addresses in ${location}. Safety score: 100 = zero violations, 0 = critical closure.`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",
