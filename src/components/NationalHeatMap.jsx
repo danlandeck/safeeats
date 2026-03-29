@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, GeoJSON, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -41,6 +42,7 @@ function getScoreOpacity(score) {
 }
 
 export default function NationalHeatMap() {
+  const navigate = useNavigate();
   const [geoData, setGeoData] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +82,9 @@ export default function NationalHeatMap() {
         e.target.setStyle(styleFeature(feature));
         setHoveredState(null);
       },
+      click: () => {
+        navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(name)}`);
+      },
     });
   };
 
@@ -89,7 +94,7 @@ export default function NationalHeatMap() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">National Safety Heat Map</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Average restaurant inspection scores by state — hover to explore</p>
+            <p className="text-sm text-slate-500 mt-0.5">Average restaurant inspection scores by state — hover &amp; click to explore</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {[
