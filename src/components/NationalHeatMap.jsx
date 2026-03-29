@@ -44,14 +44,21 @@ function getScoreOpacity(score) {
 export default function NationalHeatMap() {
   const navigate = useNavigate();
   const [geoData, setGeoData] = useState(null);
+  const [countyData, setCountyData] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json")
-      .then((r) => r.json())
-      .then((data) => { setGeoData(data); setLoading(false); })
+    Promise.all([
+      fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json").then((r) => r.json()),
+      fetch("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_county.geojson").then((r) => r.json()),
+    ])
+      .then(([states, counties]) => {
+        setGeoData(states);
+        setCountyData(counties);
+        setLoading(false);
+      })
       .catch(() => { setError(true); setLoading(false); });
   }, []);
 
@@ -147,6 +154,19 @@ export default function NationalHeatMap() {
               style={styleFeature}
               onEachFeature={onEachFeature}
             />
+            {countyData && (
+              <GeoJSON
+                key="us-counties"
+                data={countyData}
+                style={{
+                  fillColor: "transparent",
+                  fillOpacity: 0,
+                  color: "rgba(255,255,255,0.35)",
+                  weight: 0.6,
+                  interactive: false,
+                }}
+              />
+            )}
             <ZoomControl position="bottomright" />
           </MapContainer>
         )}
