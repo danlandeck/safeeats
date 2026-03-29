@@ -124,7 +124,8 @@ async function fetchMontgomery() {
 
 async function fetchLLM(stateName, stateAbbr) {
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `List the top 10 highest-rated AND top 10 lowest-rated restaurants based on official health inspection records in ${stateName} (${stateAbbr}). Use the most recent publicly available data. Include restaurant name, city, address, and safety score (0-100 where 100 = perfect).`,
+    prompt: `Search official public health department records for ${stateName} (${stateAbbr}) and return: (1) the 10 restaurants with the HIGHEST safety scores — establishments with perfect or near-perfect inspection records, and (2) the 10 restaurants with the LOWEST safety scores — establishments that have received health violations, closures, or failed inspections. These must be real establishments with documented inspection histories. Safety score is 0-100 where 100 = no violations ever and 0 = multiple critical violations/closure. Do NOT cluster scores — top restaurants should score 90-100, worst restaurants should genuinely score 0-50 if violations exist.`,
+    add_context_from_internet: true,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",
@@ -155,10 +156,13 @@ async function fetchLLM(stateName, stateAbbr) {
   }));
 }
 
-function RestaurantRow({ restaurant, rank, isTop }) {
+function RestaurantRow({ restaurant, rank, isTop, onClick }) {
   const grade = restaurant.grade || getGrade(restaurant.safetyScore);
   return (
-    <div className="flex items-center gap-4 p-3 bg-white rounded-xl border border-slate-100 hover:border-slate-300 transition-all">
+    <div
+      className="flex items-center gap-4 p-3 bg-white rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer"
+      onClick={onClick}
+    >
       <div className="text-slate-400 font-bold text-sm w-5 text-center flex-shrink-0">#{rank}</div>
       <ScoreGauge score={restaurant.safetyScore} size="sm" />
       <div className="flex-1 min-w-0">
@@ -179,10 +183,23 @@ function RestaurantRow({ restaurant, rank, isTop }) {
 }
 
 const LIVE_API_STATES = {
-  WA: { label: "King County (Seattle), WA", fetch: fetchKingCounty },
-  NY: { label: "New York City (5 Boroughs), NY", fetch: fetchNYC },
-  IL: { label: "Cook County (Chicago), IL", fetch: fetchChicago },
-  MD: { label: "Montgomery County, MD", fetch: fetchMontgomery },
+  WA: { label: "King County (Seattle), WA", fetch: fetchKingCounty, region: "washington", county: "king" },
+  NY: { label: "New York City (5 Boroughs), NY", fetch: fetchNYC, region: "new_york", county: "nyc" },
+  IL: { label: "Cook County (Chicago), IL", fetch: fetchChicago, region: "illinois", county: "cook" },
+  MD: { label: "Montgomery County, MD", fetch: fetchMontgomery, region: "maryland", county: "montgomery_md" },
+};
+
+// Map state abbr → REGIONS key for LLM states
+const ABBR_TO_REGION_KEY = {
+  AL:"alabama",AK:"alaska",AZ:"arizona",AR:"arkansas",CA:"california",CO:"colorado",
+  CT:"connecticut",DE:"delaware",DC:"dc",FL:"florida",GA:"georgia",HI:"hawaii",
+  ID:"idaho",IN:"indiana",IA:"iowa",KS:"kansas",KY:"kentucky",LA:"louisiana",
+  ME:"maine",MA:"massachusetts",MI:"michigan",MN:"minnesota",MS:"mississippi",
+  MO:"missouri",MT:"montana",NE:"nebraska",NV:"nevada",NH:"new_hampshire",
+  NJ:"new_jersey",NM:"new_mexico",NY:"new_york",NC:"north_carolina",ND:"north_dakota",
+  OH:"ohio",OK:"oklahoma",OR:"oregon",PA:"pennsylvania",RI:"rhode_island",
+  SC:"south_carolina",SD:"south_dakota",TN:"tennessee",TX:"texas",UT:"utah",
+  VT:"vermont",VA:"virginia",WA:"washington",WV:"west_virginia",WI:"wisconsin",WY:"wyoming",
 };
 
 export default function CountyDrillDown() {
@@ -190,6 +207,13 @@ export default function CountyDrillDown() {
   const urlParams = new URLSearchParams(window.location.search);
   const stateAbbr = urlParams.get("state") || "WA";
   const stateName = urlParams.get("name") || "Washington";
+
+  const handleRestaurantClick = (restaurant) => {
+    const liveConfig = LIVE_API_STATES[stateAbbr];
+    const region = liveConfig ? liveConfig.region : (ABBR_TO_REGION_KEY[stateAbbr] || "washington");
+    const county = liveConfig ? liveConfig.county : "";
+    navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`);
+  };
 
   const [allRestaurants, setAllRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -283,7 +307,7 @@ export default function CountyDrillDown() {
               </div>
               <div className="space-y-2">
                 {topRated.map((r, i) => (
-                  <RestaurantRow key={r.id} restaurant={r} rank={i + 1} isTop />
+                  <RestaurantRow key={r.id} restaurant={r} rank={i + 1} isTop onClick={() => handleRestaurantClick(r)} />
                 ))}
               </div>
             </div>
@@ -301,7 +325,7 @@ export default function CountyDrillDown() {
               </div>
               <div className="space-y-2">
                 {worstRated.map((r, i) => (
-                  <RestaurantRow key={r.id} restaurant={r} rank={i + 1} />
+                  <RestaurantRow key={r.id} restaurant={r} rank={i + 1} onClick={() => handleRestaurantClick(r)} />
                 ))}
               </div>
             </div>

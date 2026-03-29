@@ -121,7 +121,8 @@ export default function NationalHeatMap() {
       const filtered = {
         type: "FeatureCollection",
         features: data.features.filter((f) => {
-          const id = String(f.id || f.properties?.GEOID || f.properties?.FIPS || "");
+          // Pad to 5 digits to handle numeric IDs without leading zeros (e.g. 6001 → 06001)
+          const id = String(f.id || f.properties?.GEOID || f.properties?.FIPS || "").padStart(5, "0");
           return id.startsWith(fips);
         }),
       };
@@ -217,7 +218,10 @@ export default function NationalHeatMap() {
       <div className="px-6 pt-6 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">National Safety Heat Map</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">National Safety Heat Map</h2>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">ESTIMATED SCORES</span>
+            </div>
             <p className="text-sm text-slate-500 mt-0.5">
               {selectedState
                 ? `${selectedState.name} — county breakdown · Click any county to explore or click state to go back`

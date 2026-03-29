@@ -588,6 +588,7 @@ async function geocodeAddress(address, city, stateAbbr) {
 export default function Home() {
   const [region, setRegion] = useState("washington");
   const [countyId, setCountyId] = useState("king");
+  const [pendingSearch, setPendingSearch] = useState(null);
   const [results, setResults] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [detailRows, setDetailRows] = useState([]);
@@ -602,6 +603,27 @@ export default function Home() {
 
   const currentRegion = REGIONS[region];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
+
+  // Auto-search when navigated here from CountyDrillDown with ?q=&region=&county= params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    const r = params.get("region");
+    const c = params.get("county");
+    if (q) {
+      if (r && REGIONS[r]) setRegion(r);
+      if (c) setCountyId(c);
+      setPendingSearch(q);
+    }
+  }, []);
+
+  // Fire the search once region/county have settled
+  useEffect(() => {
+    if (pendingSearch) {
+      setPendingSearch(null);
+      handleSearch(pendingSearch);
+    }
+  }, [countyId, pendingSearch]);
 
   const resetSearch = () => {
     setResults([]);
