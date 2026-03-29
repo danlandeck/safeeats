@@ -855,7 +855,7 @@ export default function Home() {
 
           {!currentCounty.hasPublicApi && (
             <p className="text-center text-xs text-slate-500 mt-3">
-              AI-assisted lookup for {currentCounty.name} · results sourced from official health department records
+              AI-assisted lookup for {currentCounty.name} · searches publicly available official health department records · results may be incomplete if this jurisdiction does not publish data online
             </p>
           )}
         </div>

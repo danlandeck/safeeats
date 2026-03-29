@@ -217,7 +217,7 @@ export default function About() {
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> <strong>12 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC. Data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
+                <strong>Data method:</strong> <strong>12 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC. Data is current as of the moment you search. All other jurisdictions use <strong>AI-assisted lookup</strong> that searches publicly available official health department records — results depend entirely on whether that jurisdiction publishes inspection data online. Many smaller counties do not digitize or publicly post their records, in which case results may be incomplete, outdated, or unavailable. SafeEats lists all 50 states and hundreds of counties in the selector, but that reflects <em>potential</em> coverage, not a guaranteed direct database connection for every jurisdiction.
               </p>
             </div>
           </Card>
