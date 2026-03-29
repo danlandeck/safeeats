@@ -208,7 +208,7 @@ export default function NationalHeatMap() {
         setHoveredState(null);
       },
       click: () => {
-        navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(selectedState?.name || abbr)}`);
+        navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(selectedState?.name || abbr)}&county=${encodeURIComponent(name)}`);
       },
     });
   };

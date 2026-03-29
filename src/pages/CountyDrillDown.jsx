@@ -122,15 +122,27 @@ async function fetchMontgomery() {
     });
 }
 
-async function fetchLLM(stateName, stateAbbr) {
+async function fetchLLM(stateName, stateAbbr, countyName) {
+  const location = countyName ? `${countyName}, ${stateName} (${stateAbbr})` : `${stateName} (${stateAbbr})`;
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Search official public health department records for ${stateName} (${stateAbbr}) and return: (1) the 10 restaurants with the HIGHEST safety scores — establishments with perfect or near-perfect inspection records, and (2) the 10 restaurants with the LOWEST safety scores — establishments that have received health violations, closures, or failed inspections. These must be real establishments with documented inspection histories. Safety score is 0-100 where 100 = no violations ever and 0 = multiple critical violations/closure. Do NOT cluster scores — top restaurants should score 90-100, worst restaurants should genuinely score 0-50 if violations exist.`,
-    add_context_from_internet: true,
+    prompt: `Search official public health department records for ${location}. Return two separate lists: (1) top_rated: the 10 restaurants with the HIGHEST safety scores (90-100), establishments with clean inspection records. (2) worst_rated: the 10 restaurants with the LOWEST safety scores (0-55), establishments with documented health violations, closures, or failed inspections. These must be REAL establishments. Safety score is 0-100 where 100 = no violations and 0 = critical violations/closure. The two lists must contain DIFFERENT restaurants.`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",
       properties: {
-        restaurants: {
+        top_rated: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              address: { type: "string" },
+              city: { type: "string" },
+              safetyScore: { type: "number" },
+            },
+          },
+        },
+        worst_rated: {
           type: "array",
           items: {
             type: "object",
@@ -145,18 +157,16 @@ async function fetchLLM(stateName, stateAbbr) {
       },
     },
   });
-  return (result?.restaurants || []).map((r, i) => {
-    const score = Math.max(0, Math.min(100, Number(r.safetyScore) || 75));
-    return {
-      id: `llm-${i}`,
-      name: r.name,
-      address: r.address || "",
-      city: r.city || stateName,
-      safetyScore: score,
-      grade: getGrade(score),
-      inspections: null,
-    };
-  });
+
+  const mapItem = (r, prefix, i) => {
+    const score = Math.max(0, Math.min(100, Number(r.safetyScore) || 0));
+    return { id: `${prefix}-${i}`, name: r.name, address: r.address || "", city: r.city || stateName, safetyScore: score, grade: getGrade(score), inspections: null };
+  };
+
+  return {
+    topRated: (result?.top_rated || []).map((r, i) => mapItem(r, "top", i)).sort((a, b) => b.safetyScore - a.safetyScore),
+    worstRated: (result?.worst_rated || []).map((r, i) => mapItem(r, "worst", i)).sort((a, b) => a.safetyScore - b.safetyScore),
+  };
 }
 
 function RestaurantRow({ restaurant, rank, isTop, onClick }) {
@@ -210,6 +220,7 @@ export default function CountyDrillDown() {
   const urlParams = new URLSearchParams(window.location.search);
   const stateAbbr = urlParams.get("state") || "WA";
   const stateName = urlParams.get("name") || "Washington";
+  const countyName = urlParams.get("county") || "";
 
   const handleRestaurantClick = (restaurant) => {
     const liveConfig = LIVE_API_STATES[stateAbbr];
@@ -218,6 +229,8 @@ export default function CountyDrillDown() {
     navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`);
   };
 
+  const [topRated, setTopRated] = useState([]);
+  const [worstRated, setWorstRated] = useState([]);
   const [allRestaurants, setAllRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
@@ -233,23 +246,27 @@ export default function CountyDrillDown() {
       setRegionLabel(liveConfig.label);
       liveConfig.fetch().then((data) => {
         setAllRestaurants(data);
+        const sorted = [...data].sort((a, b) => Number(b.safetyScore) - Number(a.safetyScore));
+        setTopRated(sorted.slice(0, 10));
+        setWorstRated([...data].sort((a, b) => Number(a.safetyScore) - Number(b.safetyScore)).slice(0, 10));
         setLoading(false);
       });
     } else {
       setIsLive(false);
-      setRegionLabel(`${stateName}`);
-      fetchLLM(stateName, stateAbbr).then((data) => {
-        setAllRestaurants(data);
+      setRegionLabel(countyName ? `${countyName}, ${stateName}` : stateName);
+      fetchLLM(stateName, stateAbbr, countyName).then(({ topRated: t, worstRated: w }) => {
+        setTopRated(t);
+        setWorstRated(w);
+        setAllRestaurants([...t, ...w]);
         setLoading(false);
       });
     }
-  }, [stateAbbr, stateName]);
+  }, [stateAbbr, stateName, countyName]);
 
-  const sorted = [...allRestaurants].sort((a, b) => Number(b.safetyScore) - Number(a.safetyScore));
-  const topRated = sorted.slice(0, 10);
-  const worstRated = [...allRestaurants].sort((a, b) => Number(a.safetyScore) - Number(b.safetyScore)).slice(0, 10);
-  const avgScore = allRestaurants.length > 0
-    ? Math.round(allRestaurants.reduce((s, r) => s + r.safetyScore, 0) / allRestaurants.length)
+  // topRated and worstRated are set directly in useEffect
+  const uniqueAll = allRestaurants.length > 0 ? allRestaurants : [...topRated, ...worstRated];
+  const avgScore = uniqueAll.length > 0
+    ? Math.round(uniqueAll.reduce((s, r) => s + Number(r.safetyScore), 0) / uniqueAll.length)
     : null;
 
   return (
