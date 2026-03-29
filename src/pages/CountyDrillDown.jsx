@@ -247,7 +247,7 @@ export default function CountyDrillDown() {
 
   const sorted = [...allRestaurants].sort((a, b) => Number(b.safetyScore) - Number(a.safetyScore));
   const topRated = sorted.slice(0, 10);
-  const worstRated = [...allRestaurants].sort((a, b) => a.safetyScore - b.safetyScore).slice(0, 10);
+  const worstRated = [...allRestaurants].sort((a, b) => Number(a.safetyScore) - Number(b.safetyScore)).slice(0, 10);
   const avgScore = allRestaurants.length > 0
     ? Math.round(allRestaurants.reduce((s, r) => s + r.safetyScore, 0) / allRestaurants.length)
     : null;
