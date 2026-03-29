@@ -9,6 +9,7 @@ import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
+import NationalHeatMap from "../components/NationalHeatMap";
 
 const KING_API = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 const NYC_API = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
@@ -862,6 +863,11 @@ export default function Home() {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
+        {!hasSearched && (
+          <div className="mb-10">
+            <NationalHeatMap />
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {selectedBusiness ? (
             <motion.div
