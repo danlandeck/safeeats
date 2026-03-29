@@ -79,6 +79,13 @@ export default function About() {
                   urlLabel: "data.cityofchicago.org →",
                 },
                 {
+                  name: "Iowa (Statewide), IA",
+                  desc: "State of Iowa Open Data — Food Establishment Inspections",
+                  detail: "Statewide real-time inspection records from the Iowa Dept. of Inspections and Appeals, covering all licensed food establishments.",
+                  url: "https://data.iowa.gov/Regulatory/Food-Establishment-Inspections/xqcp-6ys7",
+                  urlLabel: "data.iowa.gov →",
+                },
+                {
                   name: "King County (Seattle), WA",
                   desc: "King County Public Health Open Data Portal",
                   detail: "Real-time records updated with every new inspection across all King County food establishments.",
@@ -107,11 +114,25 @@ export default function About() {
                   urlLabel: "data.cityofnewyork.us →",
                 },
                 {
+                  name: "New York State (Statewide), NY",
+                  desc: "NY Open Data — Food Safety Inspections: Current Ratings",
+                  detail: "Statewide real-time inspection data covering all food safety inspections conducted in the last 24 months across New York State.",
+                  url: "https://data.ny.gov/Health/Food-Safety-Inspections-Current-Ratings/d6dy-3h7r",
+                  urlLabel: "data.ny.gov →",
+                },
+                {
                   name: "San Francisco, CA",
                   desc: "San Francisco Open Data — Restaurant Scores (LIVES Standard)",
                   detail: "Real-time health inspection scores for SF restaurants published by the SF Dept. of Public Health using the LIVES open standard.",
                   url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i",
                   urlLabel: "data.sfgov.org →",
+                },
+                {
+                  name: "Wake County (Raleigh), NC",
+                  desc: "Wake County Open Data — Food Inspections",
+                  detail: "Real-time food inspection records from the Wake County Health Dept., covering all permitted food service facilities across the county.",
+                  url: "https://data-wake.opendata.arcgis.com/datasets/Wake::food-inspections",
+                  urlLabel: "data-wake.opendata.arcgis.com →",
                 },
               ].map((api) => (
                 <div key={api.name} className="bg-slate-900 rounded-xl p-5 text-white">
@@ -196,7 +217,7 @@ export default function About() {
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> <strong>9 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, King County WA, Los Angeles CA, Montgomery County MD, New York City NY, and San Francisco CA. Data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
+                <strong>Data method:</strong> <strong>12 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC. Data is current as of the moment you search. All other jurisdictions use AI-assisted lookup sourced from official public health department records, reflecting the most recently published inspection data for each municipality.
               </p>
             </div>
           </Card>

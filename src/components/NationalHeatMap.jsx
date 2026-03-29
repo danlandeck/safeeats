@@ -311,7 +311,7 @@ export default function NationalHeatMap() {
           ESRI-standard diverging risk scale · Green = low risk · Red = elevated risk · {selectedState ? "Click a county for restaurant data" : "Click any state to see county breakdown"}
         </p>
         <p className="text-[11px] text-slate-400 flex-shrink-0">
-          <span className="font-semibold text-green-600">LIVE API</span>: Austin TX · Baton Rouge LA · Boston MA · Chicago IL · King County WA · Los Angeles CA · Montgomery County MD · NYC · San Francisco CA
+          <span className="font-semibold text-green-600">LIVE API</span>: Austin TX · Baton Rouge LA · Boston MA · Chicago IL · Iowa (state) · King County WA · Los Angeles CA · Montgomery County MD · NYC · NY State · San Francisco CA · Wake County NC
         </p>
       </div>
     </div>
