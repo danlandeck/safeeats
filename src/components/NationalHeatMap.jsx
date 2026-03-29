@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, GeoJSON, ZoomControl } from "react-leaflet";
+import { MapContainer, GeoJSON, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Average safety scores by state (0–100 scale, based on publicly reported inspection pass rates)
@@ -41,23 +41,15 @@ function getScoreOpacity() {
 export default function NationalHeatMap() {
   const navigate = useNavigate();
   const [geoData, setGeoData] = useState(null);
-  const [countyData, setCountyData] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Load states (required) — independent from counties so one failure doesn't break the other
     fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json")
       .then((r) => r.json())
       .then((data) => { setGeoData(data); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
-
-    // Load counties (optional overlay) — failure is silent, map still works
-    fetch("https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json")
-      .then((r) => r.json())
-      .then((data) => setCountyData(data))
-      .catch(() => { /* county lines optional — fail silently */ });
   }, []);
 
   const styleFeature = (feature) => {
@@ -131,35 +123,17 @@ export default function NationalHeatMap() {
           <MapContainer
             center={[38, -96]}
             zoom={4}
-            style={{ height: "100%", width: "100%", background: "#f8fafc" }}
+            style={{ height: "100%", width: "100%", background: "#e2e8f0" }}
             zoomControl={false}
             scrollWheelZoom={false}
             attributionControl={false}
           >
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ"
-              maxZoom={16}
-            />
             <GeoJSON
               key="us-states"
               data={geoData}
               style={styleFeature}
               onEachFeature={onEachFeature}
             />
-            {countyData && (
-              <GeoJSON
-                key="us-counties"
-                data={countyData}
-                style={{
-                  fillColor: "transparent",
-                  fillOpacity: 0,
-                  color: "rgba(255,255,255,0.35)",
-                  weight: 0.6,
-                  interactive: false,
-                }}
-              />
-            )}
             <ZoomControl position="bottomright" />
           </MapContainer>
         )}
