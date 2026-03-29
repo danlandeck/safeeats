@@ -213,6 +213,43 @@ export default function About() {
             </Card>
           </div>
 
+          {/* ESRI Credit */}
+          <Card className="p-8 border-slate-200 bg-white">
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center">
+                  <Globe className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <h2 className="text-2xl font-extrabold text-slate-900">Powered by Esri Technology</h2>
+                  <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Map Data Partner</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed mb-4">
+                  SafeEats uses <strong className="text-slate-900">Esri's industry-leading GIS color ramp standards</strong> — specifically the ESRI-standard diverging health-risk color scale (green-to-red) — to communicate food safety risk in a way that's immediately intuitive to anyone familiar with professional geospatial analysis. This is the same visual language used by public health agencies, emergency management teams, and environmental scientists worldwide.
+                </p>
+                <p className="text-slate-600 leading-relaxed mb-4">
+                  What makes Esri's approach so powerful — and why SafeEats adopted it — is that their color science isn't arbitrary. The diverging ramp is perceptually calibrated so that severity differences are immediately legible at a glance, even for users with color vision deficiencies. Applying that cartographic rigor to restaurant safety data transforms what could be a dry table of numbers into a genuinely actionable risk map.
+                </p>
+                <p className="text-slate-600 leading-relaxed mb-4">
+                  SafeEats also draws on Esri's publicly available GeoJSON boundary datasets for state-level mapping, enabling smooth, high-fidelity geographic visualizations without requiring proprietary software. This is a testament to Esri's commitment to making professional-grade geospatial infrastructure accessible to developers building civic technology.
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  Esri has been the gold standard in GIS for over five decades. Their innovation in spatial analysis, data visualization, and open geospatial standards directly enables platforms like SafeEats to deliver meaningful, data-driven public health tools. We're proud to build on that foundation.
+                </p>
+                <a
+                  href="https://www.esri.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-colors"
+                >
+                  Learn more about Esri →
+                </a>
+              </div>
+            </div>
+          </Card>
+
           {/* Score caveat */}
           <Card className="p-6 border-amber-200 bg-amber-50">
             <div className="flex gap-3">
