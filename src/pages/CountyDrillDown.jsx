@@ -145,15 +145,18 @@ async function fetchLLM(stateName, stateAbbr) {
       },
     },
   });
-  return (result?.restaurants || []).map((r, i) => ({
-    id: `llm-${i}`,
-    name: r.name,
-    address: r.address || "",
-    city: r.city || stateName,
-    safetyScore: Math.max(0, Math.min(100, r.safetyScore || 75)),
-    grade: getGrade(r.safetyScore || 75),
-    inspections: null,
-  }));
+  return (result?.restaurants || []).map((r, i) => {
+    const score = Math.max(0, Math.min(100, Number(r.safetyScore) || 75));
+    return {
+      id: `llm-${i}`,
+      name: r.name,
+      address: r.address || "",
+      city: r.city || stateName,
+      safetyScore: score,
+      grade: getGrade(score),
+      inspections: null,
+    };
+  });
 }
 
 function RestaurantRow({ restaurant, rank, isTop, onClick }) {
@@ -242,7 +245,7 @@ export default function CountyDrillDown() {
     }
   }, [stateAbbr, stateName]);
 
-  const sorted = [...allRestaurants].sort((a, b) => b.safetyScore - a.safetyScore);
+  const sorted = [...allRestaurants].sort((a, b) => Number(b.safetyScore) - Number(a.safetyScore));
   const topRated = sorted.slice(0, 10);
   const worstRated = [...allRestaurants].sort((a, b) => a.safetyScore - b.safetyScore).slice(0, 10);
   const avgScore = allRestaurants.length > 0
