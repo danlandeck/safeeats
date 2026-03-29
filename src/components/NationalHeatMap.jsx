@@ -14,31 +14,28 @@ const STATE_SCORES = {
   WV: 67, WI: 85, WY: 83,
 };
 
+// ESRI-standard diverging health-risk color ramp (green=safe → red=risk)
+const RISK_LEVELS = [
+  { minScore: 90, color: "#1a9641", label: "Very Low Risk",   grade: "A" },
+  { minScore: 80, color: "#a6d96a", label: "Low Risk",        grade: "B" },
+  { minScore: 70, color: "#ffffbf", label: "Moderate Risk",   grade: "C" },
+  { minScore: 60, color: "#fdae61", label: "Elevated Risk",   grade: "D" },
+  { minScore: 0,  color: "#d7191c", label: "High Risk",       grade: "F" },
+];
+
+function getRiskLevel(score) {
+  return RISK_LEVELS.find((r) => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length - 1];
+}
+
 // Live API states get a slightly different treatment
 const LIVE_API_STATES = new Set(["WA", "NY", "IL", "MD"]);
 
 function getScoreColor(score) {
-  if (score >= 90) return "#1e293b"; // A - slate-900
-  if (score >= 80) return "#475569"; // B - slate-600
-  if (score >= 70) return "#94a3b8"; // C - slate-400
-  if (score >= 60) return "#f59e0b"; // D - amber-500
-  return "#dc2626";                  // F - red-600
+  return getRiskLevel(score).color;
 }
 
-function getGrade(score) {
-  if (score >= 90) return "A";
-  if (score >= 80) return "B";
-  if (score >= 70) return "C";
-  if (score >= 60) return "D";
-  return "F";
-}
-
-function getScoreOpacity(score) {
-  if (score >= 90) return 0.9;
-  if (score >= 80) return 0.75;
-  if (score >= 70) return 0.6;
-  if (score >= 60) return 0.75;
-  return 0.85;
+function getScoreOpacity() {
+  return 0.78;
 }
 
 export default function NationalHeatMap() {
@@ -50,16 +47,17 @@ export default function NationalHeatMap() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json").then((r) => r.json()),
-      fetch("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_county.geojson").then((r) => r.json()),
-    ])
-      .then(([states, counties]) => {
-        setGeoData(states);
-        setCountyData(counties);
-        setLoading(false);
-      })
+    // Load states (required) — independent from counties so one failure doesn't break the other
+    fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json")
+      .then((r) => r.json())
+      .then((data) => { setGeoData(data); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
+
+    // Load counties (optional overlay) — failure is silent, map still works
+    fetch("https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json")
+      .then((r) => r.json())
+      .then((data) => setCountyData(data))
+      .catch(() => { /* county lines optional — fail silently */ });
   }, []);
 
   const styleFeature = (feature) => {
@@ -67,9 +65,9 @@ export default function NationalHeatMap() {
     const score = STATE_SCORES[abbr] ?? 75;
     return {
       fillColor: getScoreColor(score),
-      fillOpacity: getScoreOpacity(score),
-      color: "#fff",
-      weight: 1.5,
+      fillOpacity: getScoreOpacity(),
+      color: "#ffffff",
+      weight: 2,
     };
   };
 
@@ -82,8 +80,9 @@ export default function NationalHeatMap() {
 
     layer.on({
       mouseover: (e) => {
-        e.target.setStyle({ weight: 3, color: "#fff", fillOpacity: 1 });
-        setHoveredState({ name, abbr, score, grade, isLive });
+        e.target.setStyle({ weight: 3.5, color: "#222", fillOpacity: 1 });
+        const risk = getRiskLevel(score);
+        setHoveredState({ name, abbr, score, grade, isLive, risk });
       },
       mouseout: (e) => {
         e.target.setStyle(styleFeature(feature));
@@ -104,16 +103,10 @@ export default function NationalHeatMap() {
             <p className="text-sm text-slate-500 mt-0.5">Average restaurant inspection scores by state — hover &amp; click to explore</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            {[
-              { label: "A  90+", color: "bg-slate-900" },
-              { label: "B  80–89", color: "bg-slate-500" },
-              { label: "C  70–79", color: "bg-slate-300" },
-              { label: "D  60–69", color: "bg-amber-400" },
-              { label: "F  <60", color: "bg-red-600" },
-            ].map((l) => (
-              <div key={l.label} className="flex items-center gap-1.5">
-                <div className={`w-3 h-3 rounded-sm ${l.color}`} />
-                <span className="text-xs font-semibold text-slate-600">{l.label}</span>
+            {RISK_LEVELS.map((l) => (
+              <div key={l.grade} className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm border border-black/10" style={{ background: l.color }} />
+                <span className="text-xs font-semibold text-slate-600">{l.grade} · {l.label}</span>
               </div>
             ))}
           </div>
@@ -171,31 +164,38 @@ export default function NationalHeatMap() {
           </MapContainer>
         )}
 
-        {/* Hover tooltip */}
+        {/* Hover tooltip — ESRI-style info panel */}
         {hoveredState && (
-          <div className="absolute top-4 left-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-3 pointer-events-none min-w-[160px]">
-            <p className="font-extrabold text-slate-900 text-sm">{hoveredState.name}</p>
-            <div className="flex items-center gap-2 mt-1">
+          <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[200px]">
+            <p className="font-extrabold text-slate-900 text-base leading-tight">{hoveredState.name}</p>
+            <p className="text-xs text-slate-500 mb-2">{hoveredState.abbr} · Click to explore</p>
+            <div className="flex items-center gap-2 mb-1.5">
               <span
-                className="text-white font-extrabold text-xs px-2 py-0.5 rounded-md"
-                style={{ background: getScoreColor(hoveredState.score) }}
+                className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
+                style={{ background: hoveredState.risk.color === "#ffffbf" ? "#b45309" : hoveredState.risk.color }}
               >
                 Grade {hoveredState.grade}
               </span>
-              <span className="text-slate-700 font-semibold text-sm">{hoveredState.score}/100</span>
+              <span className="text-slate-700 font-bold text-sm">{hoveredState.score}/100</span>
             </div>
+            <p className="text-xs font-semibold" style={{ color: hoveredState.risk.color === "#ffffbf" ? "#b45309" : hoveredState.risk.color }}>
+              {hoveredState.risk.label}
+            </p>
             {hoveredState.isLive && (
               <span className="mt-1.5 inline-block text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
-                ● LIVE API
+                ● LIVE API DATA
               </span>
             )}
           </div>
         )}
       </div>
 
-      <div className="px-6 py-3 border-t border-slate-100 bg-slate-50">
+      <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row gap-1 justify-between">
         <p className="text-[11px] text-slate-400 leading-relaxed">
-          Scores are aggregated averages based on official state health inspection records. States with a <span className="font-semibold text-green-600">LIVE API</span> badge (WA, NY, IL, MD) include real-time data from public health portals.
+          ESRI-standard diverging risk scale · Green = low foodborne illness risk · Red = elevated risk · Click any state for county-level restaurant data.
+        </p>
+        <p className="text-[11px] text-slate-400 flex-shrink-0">
+          <span className="font-semibold text-green-600">LIVE API</span>: WA · NY · IL · MD
         </p>
       </div>
     </div>
