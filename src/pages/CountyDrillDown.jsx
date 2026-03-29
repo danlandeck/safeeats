@@ -201,12 +201,21 @@ function RestaurantRow({ restaurant, rank, isTop, onClick }) {
   );
 }
 
-const LIVE_API_STATES = {
-  WA: { label: "King County (Seattle), WA", fetch: fetchKingCounty, region: "washington", county: "king" },
-  NY: { label: "New York City (5 Boroughs), NY", fetch: fetchNYC, region: "new_york", county: "nyc" },
-  IL: { label: "Cook County (Chicago), IL", fetch: fetchChicago, region: "illinois", county: "cook" },
-  MD: { label: "Montgomery County, MD", fetch: fetchMontgomery, region: "maryland", county: "montgomery_md" },
+// Keyed by "STATE:CountyGeoJSONName" for precise matching
+const LIVE_API_COUNTIES = {
+  "WA:King":         { label: "King County (Seattle), WA",      fetch: fetchKingCounty, region: "washington", county: "king" },
+  "NY:New York":     { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
+  "NY:Kings":        { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
+  "NY:Queens":       { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
+  "NY:Bronx":        { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
+  "NY:Richmond":     { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
+  "IL:Cook":         { label: "Cook County (Chicago), IL",      fetch: fetchChicago,    region: "illinois",   county: "cook" },
+  "MD:Montgomery":   { label: "Montgomery County, MD",          fetch: fetchMontgomery, region: "maryland",   county: "montgomery_md" },
 };
+
+function getLiveConfig(stateAbbr, countyName) {
+  return LIVE_API_COUNTIES[`${stateAbbr}:${countyName}`] || null;
+}
 
 // Map state abbr → REGIONS key for LLM states
 const ABBR_TO_REGION_KEY = {
@@ -229,7 +238,7 @@ export default function CountyDrillDown() {
   const countyName = urlParams.get("county") || "";
 
   const handleRestaurantClick = (restaurant) => {
-    const liveConfig = LIVE_API_STATES[stateAbbr];
+    const liveConfig = getLiveConfig(stateAbbr, countyName);
     const region = liveConfig ? liveConfig.region : (ABBR_TO_REGION_KEY[stateAbbr] || "washington");
     const county = liveConfig ? liveConfig.county : "";
     navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`);
@@ -245,8 +254,10 @@ export default function CountyDrillDown() {
   useEffect(() => {
     setLoading(true);
     setAllRestaurants([]);
+    setTopRated([]);
+    setWorstRated([]);
 
-    const liveConfig = LIVE_API_STATES[stateAbbr];
+    const liveConfig = getLiveConfig(stateAbbr, countyName);
     if (liveConfig) {
       setIsLive(true);
       setRegionLabel(liveConfig.label);
