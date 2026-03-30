@@ -684,7 +684,7 @@ export default function Home() {
         setResults(processKingCountyResults(data));
       } else {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic. Return ALL matching establishments with their most recent inspection info only (date, score 0-100, result, and up to 3 violations). Keep each violation description under 80 characters.`,
+          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic. Return ALL matching establishments with their most recent inspection info only. IMPORTANT: latest_score must be a SAFETY score from 0 to 100, where 100 = perfect (no violations, passed cleanly) and 0 = critical failure. Do NOT return raw penalty points — convert them: if a place passed with 0 violations, return 100. If it had minor issues, return 70-90. If it failed, return below 60. Also return up to 3 violations. Keep each violation description under 80 characters.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -715,7 +715,11 @@ export default function Home() {
         });
 
         const rawRestaurants = (result?.restaurants || []).map((r, index) => {
-          const safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
+          let safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
+          // If score is 0 but result indicates a pass, the LLM returned penalty points (0 = perfect)
+          if (safetyScore === 0 && r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result)) {
+            safetyScore = 95;
+          }
           return {
             business_id: `${countyId}-${index}-${r.name}`,
             name: r.name,
