@@ -143,7 +143,8 @@ Scoring rules:
 - total_violation_points = sum of penalty points from the most recent inspection (0 = perfect).
 - safetyScore = 100 minus total_violation_points, clamped 0–100.
 - If a place passed with 0 penalty points, total_violation_points must be 0 and safetyScore must be 100.
-- If result says Pass/Satisfactory/Compliant, safetyScore must be 75 or higher.`,
+- If result says Pass/Satisfactory/Compliant, safetyScore must be 75 or higher.
+- inspection_history: return the COMPLETE lifetime inspection history — every inspection ever recorded, most recent first. Do not truncate or limit the list.`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",

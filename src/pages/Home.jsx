@@ -693,7 +693,7 @@ Rules:
 2. total_violation_points = sum of penalty points from the most recent inspection (0 = perfect). Compute latest_score = 100 - total_violation_points, clamped 0–100.
 3. If result says Pass/Satisfactory/Compliant and violations are 0 pts, total_violation_points must be 0 and latest_score must be 100.
 4. Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection.
-5. inspection_history: return ALL available past inspections (up to 10), each with date, total_violation_points, and result. Most recent first.`,
+5. inspection_history: return the COMPLETE lifetime inspection history — every inspection on record, each with date, total_violation_points, and result. Most recent first. Do not truncate or limit the list.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
