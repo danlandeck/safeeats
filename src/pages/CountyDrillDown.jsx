@@ -131,7 +131,19 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
     : `${stateName}, ${stateAbbr}`;
 
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every single result MUST be located in ${location} — do NOT include restaurants from any other county, city, or state.\n\nReturn two separate lists:\n1. top_rated: 10 restaurants with the HIGHEST safety scores (85-100), clean inspection records, in ${location}.\n2. worst_rated: 10 restaurants with the LOWEST safety scores (0-55), documented violations or failed inspections, in ${location}.\n\nThe two lists must be completely DIFFERENT restaurants. All must be real establishments with real addresses in ${location}. Safety score: 100 = zero violations, 0 = critical closure.`,
+    prompt: `You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every single result MUST be located in ${location} — do NOT include restaurants from any other county, city, or state.
+
+Return two separate lists:
+1. top_rated: 10 restaurants with the BEST inspection records (few or no violations) in ${location}.
+2. worst_rated: 10 restaurants with the WORST inspection records (many or serious violations) in ${location}.
+
+The two lists must be completely DIFFERENT restaurants. All must be real establishments with real addresses in ${location}.
+
+Scoring rules:
+- total_violation_points = sum of penalty points from the most recent inspection (0 = perfect).
+- safetyScore = 100 minus total_violation_points, clamped 0–100.
+- If a place passed with 0 penalty points, total_violation_points must be 0 and safetyScore must be 100.
+- If result says Pass/Satisfactory/Compliant, safetyScore must be 75 or higher.`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",
@@ -145,6 +157,7 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
               address: { type: "string" },
               city: { type: "string" },
               safetyScore: { type: "number" },
+              total_violation_points: { type: "number" },
             },
           },
         },
@@ -157,6 +170,7 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
               address: { type: "string" },
               city: { type: "string" },
               safetyScore: { type: "number" },
+              total_violation_points: { type: "number" },
             },
           },
         },
@@ -165,7 +179,14 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
   });
 
   const mapItem = (r, prefix, i) => {
-    const score = Math.max(0, Math.min(100, Number(r.safetyScore) || 0));
+    let score;
+    if (r.total_violation_points !== undefined && r.total_violation_points !== null) {
+      score = Math.max(0, Math.min(100, 100 - Number(r.total_violation_points)));
+    } else {
+      score = Math.max(0, Math.min(100, Number(r.safetyScore) || 0));
+      const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
+      if (isPassing && score < 75) score = 85;
+    }
     return { id: `${prefix}-${i}`, name: r.name, address: r.address || "", city: r.city || stateName, safetyScore: score, grade: getGrade(score), inspections: null };
   };
 
