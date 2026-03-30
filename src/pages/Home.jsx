@@ -805,12 +805,12 @@ export default function Home() {
     let filtered = [...results];
     if (filterResult !== "all") filtered = filtered.filter((r) => r.latestResult === filterResult);
     switch (sortBy) {
-      case "score-high": filtered.sort((a, b) => b.safetyScore - a.safetyScore); break;
-      case "score-low": filtered.sort((a, b) => a.safetyScore - b.safetyScore); break;
-      case "inspections": filtered.sort((a, b) => b.totalInspections - a.totalInspections); break;
-      case "date-recent": filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate)); break;
-      case "date-oldest": filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate)); break;
-      default: filtered.sort((a, b) => b.safetyScore - a.safetyScore);
+      case "score-high": filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections); break;
+      case "score-low": filtered.sort((a, b) => a.safetyScore - b.safetyScore || b.totalInspections - a.totalInspections); break;
+      case "inspections": filtered.sort((a, b) => b.totalInspections - a.totalInspections || b.safetyScore - a.safetyScore); break;
+      case "date-recent": filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate) || b.totalInspections - a.totalInspections); break;
+      case "date-oldest": filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate) || b.totalInspections - a.totalInspections); break;
+      default: filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections);
     }
     return filtered;
   }, [results, filterResult, sortBy]);
