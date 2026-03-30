@@ -6,7 +6,7 @@ import { Calendar, FileText, Hash } from "lucide-react";
 import ViolationItem from "./ViolationItem";
 import ScoreGauge from "./ScoreGauge";
 
-export default function InspectionDetail({ inspection, violations }) {
+export default function InspectionDetail({ inspection, violations, isLatest }) {
   const inspScore = parseInt(inspection.inspection_score) || 0;
   // King County: lower score = better. 0 is perfect. Convert to 0-100 safety score.
   const safetyScore = Math.max(0, Math.min(100, 100 - inspScore));
@@ -20,6 +20,12 @@ export default function InspectionDetail({ inspection, violations }) {
 
   return (
     <Card className="border border-slate-100 overflow-hidden">
+      {isLatest && (
+        <div className="bg-slate-900 text-white text-xs font-bold px-4 py-1.5 flex items-center gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400"></span>
+          Most Recent Inspection
+        </div>
+      )}
       <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">

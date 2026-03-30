@@ -119,11 +119,12 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           Food Safety Inspection History
         </h2>
         <div className="space-y-4">
-          {uniqueInspections.map((insp) => (
+          {uniqueInspections.map((insp, idx) => (
             <InspectionDetail
               key={insp.inspection_serial_num}
               inspection={insp}
               violations={insp.violations}
+              isLatest={idx === 0}
             />
           ))}
         </div>
