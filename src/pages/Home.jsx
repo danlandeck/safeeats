@@ -686,7 +686,7 @@ export default function Home() {
         setResults(processKingCountyResults(data));
       } else {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}.
+          prompt: `Today's date is ${new Date().toISOString().slice(0, 10)}. Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}.
 
 Rules:
 1. Return each establishment ONCE only — no duplicates.

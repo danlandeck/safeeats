@@ -131,7 +131,7 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
     : `${stateName}, ${stateAbbr}`;
 
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every single result MUST be located in ${location} — do NOT include restaurants from any other county, city, or state.
+    prompt: `Today's date is ${new Date().toISOString().slice(0, 10)}. You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every single result MUST be located in ${location} — do NOT include restaurants from any other county, city, or state.
 
 Return two separate lists:
 1. top_rated: 10 restaurants with the BEST inspection records (few or no violations) in ${location}.
