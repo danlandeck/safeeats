@@ -396,6 +396,12 @@ export default function CountyDrillDown() {
         ) : allRestaurants.length === 0 ? (
           <div className="text-center py-20 text-slate-400">No data found for this region.</div>
         ) : (
+          <>
+          <div className="mb-6 px-4 py-3 bg-slate-100 rounded-xl border border-slate-200">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              <span className="font-semibold text-slate-700">Ranking note:</span> Ties in safety score are broken by number of inspections on record — establishments with a longer, more consistent history rank higher (or lower), regardless of cuisine type, price point, or establishment prestige. A fine dining restaurant with the same score as a food truck earns no advantage.
+            </p>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Top Rated */}
             <div>
@@ -433,7 +439,7 @@ export default function CountyDrillDown() {
               </div>
             </div>
           </div>
-        )}
+          </>
 
         {!loading && !isLive && (
           <div className="mt-8 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
