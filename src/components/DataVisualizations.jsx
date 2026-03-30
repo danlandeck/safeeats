@@ -37,8 +37,9 @@ export default function DataVisualizations({ restaurants }) {
 
   if (!stats) return null;
 
-  const BAR_COLORS = ["#16a34a", "#65a30d", "#f59e0b", "#f97316", "#dc2626"];
-  const RESULT_COLORS = ["#16a34a", "#3b82f6", "#f59e0b", "#f97316", "#dc2626", "#8b5cf6", "#94a3b8"];
+  // ESRI diverging color ramp (green→yellow→red) matching the map heatmap
+  const BAR_COLORS = ["#1a9641", "#a6d96a", "#ffffbf", "#fdae61", "#d7191c"];
+  const RESULT_COLORS = ["#1a9641", "#a6d96a", "#fdae61", "#d7191c", "#2c7bb6", "#abd9e9", "#94a3b8"];
 
   return (
     <div className="space-y-4">

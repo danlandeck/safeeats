@@ -16,33 +16,47 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Create custom colored markers based on safety score
+// ESRI diverging color ramp (matches NationalHeatMap)
+function getEsriColor(score) {
+  if (score >= 90) return "#1a9641";
+  if (score >= 80) return "#a6d96a";
+  if (score >= 70) return "#ffffbf";
+  if (score >= 60) return "#fdae61";
+  return "#d7191c";
+}
+
+function getTextColor(score) {
+  return score >= 70 && score < 80 ? "#555" : "#fff";
+}
+
 function createColoredIcon(score) {
-  const colors = getScoreColor(score);
+  const bg = getEsriColor(score);
+  const text = getTextColor(score);
   return L.divIcon({
     className: "custom-marker",
     html: `<div style="
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50% 50% 50% 0;
-      background: ${colors.hex};
+      background: ${bg};
       transform: rotate(-45deg);
       border: 3px solid white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
     ">
       <div style="
         transform: rotate(45deg);
-        color: white;
-        font-weight: bold;
-        font-size: 12px;
+        color: ${text};
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: -0.5px;
       ">${score}</div>
     </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36],
   });
 }
 
@@ -69,8 +83,8 @@ export default function MapView({ restaurants, onSelectRestaurant }) {
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin, FAO, NOAA, USGS'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
         />
         {validRestaurants.map((restaurant) => (
           <Marker

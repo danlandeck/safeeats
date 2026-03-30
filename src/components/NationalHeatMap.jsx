@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, GeoJSON, ZoomControl, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Average safety scores by state (0–100 scale)
@@ -271,11 +271,15 @@ export default function NationalHeatMap() {
           <MapContainer
             center={[38, -96]}
             zoom={4}
-            style={{ height: "100%", width: "100%", background: "#e2e8f0", cursor: "pointer" }}
+            style={{ height: "100%", width: "100%", cursor: "pointer" }}
             zoomControl={false}
             scrollWheelZoom={false}
             attributionControl={false}
           >
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              attribution="Powered by Esri"
+            />
             <MapController bounds={stateBounds} onReady={(m) => { mapRef.current = m; }} />
             <GeoJSON key={`states-${selectedState?.abbr || "all"}`} data={geoData} style={styleState} onEachFeature={onEachState} />
             {countyData && countyData.features.length > 0 && (
