@@ -81,21 +81,11 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
   const today = new Date().toISOString().slice(0, 10);
   const result = await base44.integrations.Core.InvokeLLM({
     model: "gemini_3_flash",
-    prompt: `Today's date is ${today}. Search official health department records for restaurants in ${location}.
+    prompt: `Today is ${today}. From official health department records in ${location}, return:
+1. top_rated: 8 restaurants with the best safety scores
+2. worst_rated: 8 restaurants with the worst safety scores
 
-Return two lists of 10 restaurants each:
-1. top_rated: best inspection records (fewest violations)
-2. worst_rated: worst inspection records (most violations)
-
-All must be real establishments in ${location}. Do NOT overlap the two lists.
-
-For each restaurant:
-- name, address, city, zip_code
-- safetyScore: 0-100 (100 = perfect, 0 = critical)
-- latest_date: most recent inspection date (YYYY-MM-DD)
-- latest_result: e.g. Pass, Fail, Conditional Pass
-- total_inspections: number of inspections on record
-- violations: array of up to 3 short violation strings from the latest inspection`,
+No overlap. Real establishments only. For each: name, address, city, safetyScore (0-100), latest_date (YYYY-MM-DD), latest_result, total_inspections, violations (up to 2 short strings).`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",

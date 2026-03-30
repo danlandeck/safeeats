@@ -39,23 +39,17 @@ const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.j
 const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today's date is ${today}. You are a food safety data expert. Search the official health department website and public records for food establishments matching "${query}" in ${countyName}, ${regionAbbr}.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find food establishments matching "${query}" in ${countyName}, ${regionAbbr} from official health department records.
 
-Search these sources in order:
-1. The official county/city health department inspection portal
-2. State health department public database
-3. Any open data portals (data.gov, Socrata, etc.) for that jurisdiction
+Return up to 5 real matches. For each:
+- name, address, city, zip_code, phone
+- latest_score (0-100, 100=perfect), total_violation_points, latest_date (YYYY-MM-DD), latest_result
+- total_inspections (count)
+- violations: up to 2 short strings from the latest inspection
 
-Rules:
-- Return each establishment ONCE only — no duplicates
-- safetyScore = 0-100 (100 = perfect). Derive from: 100 - total_violation_points, clamped 0-100
-- If result says Pass/Satisfactory/Compliant/Approved with 0 violation points, safetyScore must be ≥90
-- Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection
-- inspection_history: return the COMPLETE lifetime inspection history — every inspection on record, most recent first
-- Use real establishment names and real addresses from actual records`;
+No duplicates. Use real names and addresses only.`;
 
 const LLM_SCHEMA = {
-
   type: "object",
   properties: {
     restaurants: {
@@ -74,18 +68,6 @@ const LLM_SCHEMA = {
           latest_result: { type: "string" },
           total_inspections: { type: "number" },
           violations: { type: "array", items: { type: "string" } },
-          inspection_history: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                date: { type: "string" },
-                total_violation_points: { type: "number" },
-                result: { type: "string" },
-                violations: { type: "array", items: { type: "string" } },
-              },
-            },
-          },
         },
       },
     },
