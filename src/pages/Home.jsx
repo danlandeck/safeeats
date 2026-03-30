@@ -37,12 +37,13 @@ const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today's date is ${
 
 Rules:
 1. Return each establishment ONCE only — no duplicates.
-2. total_violation_points = sum of penalty points from the most recent inspection (0 = perfect). Compute latest_score = 100 - total_violation_points, clamped 0–100.
-3. If result says Pass/Satisfactory/Compliant and violations are 0 pts, total_violation_points must be 0 and latest_score must be 100.
+2. safetyScore = 0-100 (100 = perfect). Compute from violation points: 100 - total_violation_points, clamped 0-100.
+3. If result says Pass/Satisfactory/Compliant and violations are 0 pts, safetyScore must be ≥90.
 4. Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection.
-5. inspection_history: return the COMPLETE lifetime inspection history — every inspection on record, each with date, total_violation_points, and result. Most recent first. Do not truncate or limit the list.`;
+5. inspection_history: return the COMPLETE lifetime inspection history — every inspection on record. Most recent first.`;
 
 const LLM_SCHEMA = {
+
   type: "object",
   properties: {
     restaurants: {
@@ -50,10 +51,15 @@ const LLM_SCHEMA = {
       items: {
         type: "object",
         properties: {
-          name: { type: "string" }, address: { type: "string" }, city: { type: "string" },
-          zip_code: { type: "string" }, phone: { type: "string" },
-          latest_score: { type: "number" }, total_violation_points: { type: "number" },
-          latest_date: { type: "string" }, latest_result: { type: "string" },
+          name: { type: "string" },
+          address: { type: "string" },
+          city: { type: "string" },
+          zip_code: { type: "string" },
+          phone: { type: "string" },
+          latest_score: { type: "number" },
+          total_violation_points: { type: "number" },
+          latest_date: { type: "string" },
+          latest_result: { type: "string" },
           total_inspections: { type: "number" },
           violations: { type: "array", items: { type: "string" } },
           inspection_history: {
@@ -61,7 +67,8 @@ const LLM_SCHEMA = {
             items: {
               type: "object",
               properties: {
-                date: { type: "string" }, total_violation_points: { type: "number" },
+                date: { type: "string" },
+                total_violation_points: { type: "number" },
                 result: { type: "string" },
                 violations: { type: "array", items: { type: "string" } },
               },
@@ -155,6 +162,7 @@ export default function Home() {
     } else {
       const today = new Date().toISOString().slice(0, 10);
       const result = await base44.integrations.Core.InvokeLLM({
+        model: "claude_sonnet_4_6",
         prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
         add_context_from_internet: true,
         response_json_schema: LLM_SCHEMA,

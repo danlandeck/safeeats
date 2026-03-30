@@ -67,32 +67,82 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
 
   const today = new Date().toISOString().slice(0, 10);
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Today's date is ${today}. You are a food safety data assistant. Search official health department records ONLY for restaurants physically located in ${location}. CRITICAL: Every result MUST be in ${location}.
+    model: "claude_sonnet_4_6",
+    prompt: `Today's date is ${today}. Search official health department records for restaurants in ${location}.
 
-Return two lists:
-1. top_rated: 10 restaurants with the BEST inspection records (few/no violations).
-2. worst_rated: 10 restaurants with the WORST inspection records (many/serious violations).
+Return two lists of 10 restaurants each:
+1. top_rated: best inspection records (fewest violations)
+2. worst_rated: worst inspection records (most violations)
 
-The lists must contain DIFFERENT restaurants. All must be real establishments with real addresses in ${location}.
+All must be real establishments in ${location}. Do NOT overlap the two lists.
 
-Scoring: total_violation_points = sum of penalty points from the most recent inspection. safetyScore = 100 - total_violation_points, clamped 0–100. If result says Pass/Satisfactory/Compliant, safetyScore must be ≥75. inspection_history: return COMPLETE lifetime history, most recent first.`,
+For each restaurant:
+- name, address, city, zip_code
+- safetyScore: 0-100 (100 = perfect, 0 = critical)
+- latest_date: most recent inspection date (YYYY-MM-DD)
+- latest_result: e.g. Pass, Fail, Conditional Pass
+- total_inspections: number of inspections on record
+- violations: array of up to 3 short violation strings from the latest inspection`,
     add_context_from_internet: true,
     response_json_schema: {
       type: "object",
       properties: {
-        top_rated: { type: "array", items: LLM_ITEM_SCHEMA },
-        worst_rated: { type: "array", items: LLM_ITEM_SCHEMA },
+        top_rated: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              address: { type: "string" },
+              city: { type: "string" },
+              zip_code: { type: "string" },
+              safetyScore: { type: "number" },
+              latest_date: { type: "string" },
+              latest_result: { type: "string" },
+              total_inspections: { type: "number" },
+              violations: { type: "array", items: { type: "string" } },
+            },
+          },
+        },
+        worst_rated: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              address: { type: "string" },
+              city: { type: "string" },
+              zip_code: { type: "string" },
+              safetyScore: { type: "number" },
+              latest_date: { type: "string" },
+              latest_result: { type: "string" },
+              total_inspections: { type: "number" },
+              violations: { type: "array", items: { type: "string" } },
+            },
+          },
+        },
       },
     },
   });
 
   const mapItem = (r, prefix, i) => {
-    const biz = buildLLMRestaurant(r, i, prefix, r.city || stateName);
-    return { ...biz, id: biz.business_id, inspections: biz.totalInspections };
+    const safetyScore = Math.max(0, Math.min(100, Number(r.safetyScore) || 75));
+    return {
+      id: `${prefix}-${i}-${r.name}`,
+      business_id: `${prefix}-${i}-${r.name}`,
+      name: r.name, address: r.address || "", city: r.city || stateName,
+      zip_code: r.zip_code || "", safetyScore,
+      grade: getGrade(safetyScore),
+      totalInspections: r.total_inspections || 1,
+      latestDate: r.latest_date || "",
+      latestResult: r.latest_result || "",
+      violations: r.violations || [],
+      isLLMData: true, source: "llm",
+    };
   };
 
   return {
-    topRated:   (result?.top_rated   || []).map((r, i) => mapItem(r, "top", i)).sort((a, b) => b.safetyScore - a.safetyScore),
+    topRated:   (result?.top_rated   || []).map((r, i) => mapItem(r, "top",   i)).sort((a, b) => b.safetyScore - a.safetyScore),
     worstRated: (result?.worst_rated || []).map((r, i) => mapItem(r, "worst", i)).sort((a, b) => a.safetyScore - b.safetyScore),
   };
 }
