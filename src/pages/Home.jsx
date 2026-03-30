@@ -684,7 +684,13 @@ export default function Home() {
         setResults(processKingCountyResults(data));
       } else {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic. Return ALL matching establishments with their most recent inspection info only. IMPORTANT: latest_score must be a SAFETY score from 0 to 100, where 100 = perfect (no violations, passed cleanly) and 0 = critical failure. Do NOT return raw penalty points — convert them: if a place passed with 0 violations, return 100. If it had minor issues, return 70-90. If it failed, return below 60. Also return up to 3 violations. Keep each violation description under 80 characters.`,
+          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}.
+
+Rules:
+1. Return each establishment ONCE only — no duplicates.
+2. latest_score is a SAFETY score 0–100. 100 = zero violations / passed perfectly. 0 = critical failure / closed. Convert raw penalty points: 0 penalty pts → score 100, minor issues → 70-90, serious issues → 40-69, failed/closed → below 40.
+3. If the inspection result says Pass, Satisfactory, Compliant, or similar, the score MUST be 75 or higher.
+4. Return up to 3 short violation descriptions (under 80 chars each).`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -703,10 +709,7 @@ export default function Home() {
                     latest_date: { type: "string" },
                     latest_result: { type: "string" },
                     total_inspections: { type: "number" },
-                    violations: {
-                      type: "array",
-                      items: { type: "string" },
-                    },
+                    violations: { type: "array", items: { type: "string" } },
                   },
                 },
               },
@@ -716,10 +719,9 @@ export default function Home() {
 
         const rawRestaurants = (result?.restaurants || []).map((r, index) => {
           let safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
-          // If score is 0 but result indicates a pass, the LLM returned penalty points (0 = perfect)
-          if (safetyScore === 0 && r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result)) {
-            safetyScore = 95;
-          }
+          // Guard: if result says pass but score is suspiciously low, correct it
+          const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
+          if (isPassing && safetyScore < 75) safetyScore = 85;
           return {
             business_id: `${countyId}-${index}-${r.name}`,
             name: r.name,
@@ -750,17 +752,18 @@ export default function Home() {
           };
         });
 
-        // Deduplicate by normalized name+address — keep the entry with more inspections
+        // Deduplicate: by normalized name (primary) + address (secondary)
         const seen = new Map();
         rawRestaurants.forEach((r) => {
-          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-          if (!seen.has(key) || r.totalInspections > seen.get(key).totalInspections) {
+          const normName = r.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const normAddr = r.address.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const key = normAddr ? `${normName}|${normAddr}` : normName;
+          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) {
             seen.set(key, r);
           }
         });
-        const restaurants = Array.from(seen.values());
 
-        setResults(restaurants);
+        setResults(Array.from(seen.values()));
       }
       setIsLoading(false);
     },
