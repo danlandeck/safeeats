@@ -313,7 +313,7 @@ export default function About() {
             <h2 className="text-2xl font-extrabold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
             <div className="space-y-3 text-slate-600">
               <p className="leading-relaxed">
-                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live API for King County, NYC, Chicago, and Montgomery County MD; AI-assisted lookup from official public records for all other jurisdictions.
+                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live real-time APIs for Austin TX, Baton Rouge LA, Boston MA, Chicago (Cook County) IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC; AI-assisted lookup from official public records for all other jurisdictions.
               </p>
               <p className="leading-relaxed">
                 <strong className="text-slate-900">2. Normalization:</strong> Each region's raw scores (penalty points, pass/fail, letter grades) are converted to a unified 0–100 scale.
