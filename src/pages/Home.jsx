@@ -714,7 +714,7 @@ export default function Home() {
           },
         });
 
-        const restaurants = (result?.restaurants || []).map((r, index) => {
+        const rawRestaurants = (result?.restaurants || []).map((r, index) => {
           const safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
           return {
             business_id: `${countyId}-${index}-${r.name}`,
@@ -745,6 +745,17 @@ export default function Home() {
             allRows: [],
           };
         });
+
+        // Deduplicate by normalized name+address — keep the entry with more inspections
+        const seen = new Map();
+        rawRestaurants.forEach((r) => {
+          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+          if (!seen.has(key) || r.totalInspections > seen.get(key).totalInspections) {
+            seen.set(key, r);
+          }
+        });
+        const restaurants = Array.from(seen.values());
+
         setResults(restaurants);
       }
       setIsLoading(false);
