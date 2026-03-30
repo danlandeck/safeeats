@@ -310,7 +310,7 @@ export default function CountyDrillDown() {
           <>
             <div className="mb-6 px-4 py-3 bg-slate-100 rounded-xl border border-slate-200">
               <p className="text-xs text-slate-500 leading-relaxed">
-                <span className="font-semibold text-slate-700">Ranking note:</span> Ties in safety score are broken by number of inspections on record — establishments with a longer, more consistent history rank higher, regardless of type or prestige.
+                <span className="font-semibold text-slate-700">Ranking note:</span> Ranked by safety score. Inspection count is used only to break ties between establishments with identical scores.
               </p>
             </div>
 

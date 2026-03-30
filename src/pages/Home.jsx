@@ -351,7 +351,7 @@ export default function Home() {
                               <span className="font-semibold text-slate-800">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
                             </p>
                             <p className="text-xs text-slate-400 mt-0.5">
-                              Ties broken by inspection count — consistency over time ranks higher.
+                              Sorted by safety score · inspection count breaks ties only between equal scores.
                             </p>
                           </div>
                           <div className="flex gap-2">
