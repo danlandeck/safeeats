@@ -684,7 +684,7 @@ export default function Home() {
         setResults(processKingCountyResults(data));
       } else {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic (Pepes = Pepe's, mc donalds = McDonald's). Return ALL matching establishments with COMPLETE inspection history. For each inspection include: date, result, safety score 0-100 (100=no violations), violation_points, and violations list.`,
+          prompt: `Search official health department records for food establishments matching "${query}" in ${currentCounty.name}, ${currentRegion.abbr}. Case-insensitive, apostrophe-agnostic, dash-agnostic. Return ALL matching establishments with their most recent inspection info only (date, score 0-100, result, and up to 3 violations). Keep each violation description under 80 characters.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -699,29 +699,13 @@ export default function Home() {
                     city: { type: "string" },
                     zip_code: { type: "string" },
                     phone: { type: "string" },
-                    inspections: {
+                    latest_score: { type: "number" },
+                    latest_date: { type: "string" },
+                    latest_result: { type: "string" },
+                    total_inspections: { type: "number" },
+                    violations: {
                       type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          date: { type: "string" },
-                          score: { type: "number" },
-                          result: { type: "string" },
-                          type: { type: "string" },
-                          violation_points: { type: "number" },
-                          violations: {
-                            type: "array",
-                            items: {
-                              type: "object",
-                              properties: {
-                                description: { type: "string" },
-                                severity: { type: "string" },
-                                points: { type: "number" },
-                              },
-                            },
-                          },
-                        },
-                      },
+                      items: { type: "string" },
                     },
                   },
                 },
@@ -731,12 +715,7 @@ export default function Home() {
         });
 
         const restaurants = (result?.restaurants || []).map((r, index) => {
-          const inspections = (r.inspections || []).sort((a, b) => new Date(b.date) - new Date(a.date));
-          const latest = inspections[0];
-          const safetyScore =
-            latest?.score !== undefined
-              ? Math.max(0, Math.min(100, latest.score))
-              : Math.max(0, Math.min(100, 100 - (latest?.violation_points || 0)));
+          const safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
           return {
             business_id: `${countyId}-${index}-${r.name}`,
             name: r.name,
@@ -748,14 +727,21 @@ export default function Home() {
             description: "",
             safetyScore,
             grade: getGrade(safetyScore),
-            totalInspections: inspections.length,
-            latestDate: latest?.date,
-            latestResult: latest?.result,
+            totalInspections: r.total_inspections || 1,
+            latestDate: r.latest_date || "",
+            latestResult: r.latest_result || "",
             latitude: null,
             longitude: null,
             isLLMData: true,
             source: 'llm',
-            allInspections: inspections,
+            allInspections: [{
+              date: r.latest_date || "",
+              score: safetyScore,
+              result: r.latest_result || "",
+              type: "Routine",
+              violation_points: Math.max(0, 100 - safetyScore),
+              violations: (r.violations || []).map((v) => ({ description: v, severity: "minor", points: 0 })),
+            }],
             allRows: [],
           };
         });
