@@ -439,15 +439,15 @@ export default function CountyDrillDown() {
               </div>
             </div>
           </div>
+          {!isLive && (
+            <div className="mt-8 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>AI-Assisted Data:</strong> {stateName} does not have a real-time public API. Results are sourced from official health department records via AI lookup and may not reflect the very latest inspections.
+              </p>
+            </div>
+          )}
           </>
-
-        {!loading && !isLive && (
-          <div className="mt-8 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-800 leading-relaxed">
-              <strong>AI-Assisted Data:</strong> {stateName} does not have a real-time public API. Results are sourced from official health department records via AI lookup and may not reflect the very latest inspections.
-            </p>
-          </div>
         )}
       </div>
     </div>
