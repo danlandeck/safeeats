@@ -911,9 +911,14 @@ export default function Home() {
                     ) : results.length > 0 ? (
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <p className="text-sm text-slate-500">
-                            <span className="font-semibold text-slate-800">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
-                          </p>
+                          <div>
+                            <p className="text-sm text-slate-500">
+                              <span className="font-semibold text-slate-800">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
+                            </p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              Ties broken by inspection count — consistency over time ranks higher, regardless of establishment type.
+                            </p>
+                          </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => setViewMode("list")}
