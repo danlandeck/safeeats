@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, ClipboardList, ChevronRight } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import { format } from "date-fns";
-import { getGrade, getGradeColor } from "../pages/Home";
+import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function RestaurantCard({ restaurant, onClick }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult } = restaurant;
