@@ -9,7 +9,8 @@ import {
   processNYCResults,
   processChicagoResults,
   processMontgomeryResults,
-  buildLLMRestaurant,
+  processAustinResults,
+  processSFResults,
 } from "../utils/inspectionProcessors";
 import ScoreGauge from "../components/ScoreGauge";
 
@@ -17,6 +18,8 @@ const KING_API       = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
+const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
+const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
@@ -37,6 +40,16 @@ async function fetchChicago() {
 async function fetchMontgomery() {
   const data = await fetch(`${MONTGOMERY_API}?$limit=2000&$order=inspectiondate DESC`).then((r) => r.json());
   return processMontgomeryResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
+}
+
+async function fetchAustin() {
+  const data = await fetch(`${AUSTIN_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  return processAustinResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
+}
+
+async function fetchSF() {
+  const data = await fetch(`${SF_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  return processSFResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 // ── LLM fetcher ───────────────────────────────────────────────────────────────
@@ -157,6 +170,8 @@ const LIVE_API_COUNTIES = {
   "NY:Richmond":   { label: "New York City (5 Boroughs), NY", fetch: fetchNYC,         region: "new_york",   county: "nyc" },
   "IL:Cook":       { label: "Cook County (Chicago), IL",      fetch: fetchChicago,    region: "illinois",   county: "cook" },
   "MD:Montgomery": { label: "Montgomery County, MD",          fetch: fetchMontgomery, region: "maryland",   county: "montgomery_md" },
+  "TX:Travis":     { label: "Travis County (Austin), TX",      fetch: fetchAustin,     region: "texas",      county: "travis" },
+  "CA:San Francisco": { label: "San Francisco County, CA",    fetch: fetchSF,         region: "california", county: "sf" },
 };
 
 const ABBR_TO_REGION_KEY = {

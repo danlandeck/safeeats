@@ -9,9 +9,13 @@ import {
   processNYCResults,
   processChicagoResults,
   processMontgomeryResults,
+  processAustinResults,
+  processSFResults,
   nycToDetailRows,
   chicagoToDetailRows,
   montgomeryToDetailRows,
+  austinToDetailRows,
+  sfToDetailRows,
   llmToDetailRows,
   buildLLMRestaurant,
   geocodeAddress,
@@ -32,15 +36,23 @@ const KING_API       = "https://data.kingcounty.gov/resource/f29f-zza5.json";
 const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
+const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
+const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today's date is ${today}. Search official health department records for food establishments matching "${query}" in ${countyName}, ${regionAbbr}.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today's date is ${today}. You are a food safety data expert. Search the official health department website and public records for food establishments matching "${query}" in ${countyName}, ${regionAbbr}.
+
+Search these sources in order:
+1. The official county/city health department inspection portal
+2. State health department public database
+3. Any open data portals (data.gov, Socrata, etc.) for that jurisdiction
 
 Rules:
-1. Return each establishment ONCE only — no duplicates.
-2. safetyScore = 0-100 (100 = perfect). Compute from violation points: 100 - total_violation_points, clamped 0-100.
-3. If result says Pass/Satisfactory/Compliant and violations are 0 pts, safetyScore must be ≥90.
-4. Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection.
-5. inspection_history: return the COMPLETE lifetime inspection history — every inspection on record. Most recent first.`;
+- Return each establishment ONCE only — no duplicates
+- safetyScore = 0-100 (100 = perfect). Derive from: 100 - total_violation_points, clamped 0-100
+- If result says Pass/Satisfactory/Compliant/Approved with 0 violation points, safetyScore must be ≥90
+- Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection
+- inspection_history: return the COMPLETE lifetime inspection history — every inspection on record, most recent first
+- Use real establishment names and real addresses from actual records`;
 
 const LLM_SCHEMA = {
 
@@ -154,6 +166,14 @@ export default function Home() {
       const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=500&$order=inspectiondate DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processMontgomeryResults(data));
+    } else if (countyId === "travis") {
+      const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const data = await fetch(url).then((r) => r.json());
+      setResults(processAustinResults(data));
+    } else if (countyId === "sf") {
+      const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const data = await fetch(url).then((r) => r.json());
+      setResults(processSFResults(data));
     } else if (currentCounty.hasPublicApi) {
       const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
       const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=500&$order=inspection_date DESC`;
@@ -197,6 +217,12 @@ export default function Home() {
     } else if (biz.source === "montgomery") {
       const data = await fetch(`${MONTGOMERY_API}?establishment_id=${biz.business_id}&$limit=1000&$order=inspectiondate DESC`).then((r) => r.json());
       setDetailRows(montgomeryToDetailRows(Array.isArray(data) ? data : []));
+    } else if (biz.source === "austin") {
+      const data = await fetch(`${AUSTIN_API}?facility_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
+      setDetailRows(austinToDetailRows(Array.isArray(data) ? data : []));
+    } else if (biz.source === "sf") {
+      const data = await fetch(`${SF_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
+      setDetailRows(sfToDetailRows(Array.isArray(data) ? data : []));
     } else if (!biz.isLLMData) {
       const data = await fetch(`${KING_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
       setDetailRows(Array.isArray(data) ? data : []);

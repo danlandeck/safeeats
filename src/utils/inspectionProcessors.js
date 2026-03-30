@@ -267,6 +267,110 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
   };
 }
 
+// ── Austin TX ────────────────────────────────────────────────────────────────
+export function processAustinResults(data) {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const businesses = {};
+  data.forEach((row) => {
+    const id = row.facility_id;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = { business_id: id, name: row.restaurant_name, address: row.address || "", city: row.city || "Austin", zip_code: row.zip_code || row.zip || "", phone: "", description: row.process_description || "", inspections: [], allRows: [] };
+    }
+    businesses[id].allRows.push(row);
+    const key = `${row.inspection_date}-${row.inspection_type}`;
+    if (!businesses[id].inspections.find((i) => i.serial === key)) {
+      const pts = parseInt(row.score) || 0;
+      const result = pts === 0 ? "Pass" : pts <= 15 ? "Pass" : pts <= 30 ? "Pass w/ Conditions" : "Fail";
+      businesses[id].inspections.push({ serial: key, date: row.inspection_date, score: pts, result });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
+    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: null, longitude: null, isLLMData: false, source: "austin" };
+  });
+}
+
+export function austinToDetailRows(data) {
+  return data.map((row) => {
+    const pts = parseInt(row.score) || 0;
+    const result = pts === 0 ? "Pass" : pts <= 15 ? "Pass" : pts <= 30 ? "Pass w/ Conditions" : "Fail";
+    return {
+      inspection_serial_num: `${row.inspection_date}-${row.inspection_type}-${row.facility_id}`,
+      inspection_date: row.inspection_date,
+      inspection_score: String(pts),
+      inspection_result: result,
+      inspection_type: row.inspection_type || "",
+      violation_description: row.violation_description || "",
+      violation_type: "BLUE",
+      violation_points: String(pts),
+    };
+  });
+}
+
+// ── San Francisco CA ──────────────────────────────────────────────────────────
+export function processSFResults(data) {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const businesses = {};
+  data.forEach((row) => {
+    const id = row.business_id;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = { business_id: id, name: row.business_name, address: row.business_address || "", city: row.business_city || "San Francisco", zip_code: row.business_zip || "", phone: "", description: "", inspections: [], allRows: [] };
+    }
+    businesses[id].allRows.push(row);
+    const key = `${row.inspection_date}-${row.inspection_type || "routine"}`;
+    if (!businesses[id].inspections.find((i) => i.serial === key)) {
+      const score = parseInt(row.inspection_score) || 100;
+      const pts = 100 - score;
+      businesses[id].inspections.push({ serial: key, date: row.inspection_date, score: pts, result: score >= 90 ? "Pass" : score >= 70 ? "Conditional Pass" : "Fail" });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
+    const rowWithCoords = biz.allRows.find((r) => r.business_latitude && r.business_longitude);
+    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: rowWithCoords?.business_latitude, longitude: rowWithCoords?.business_longitude, isLLMData: false, source: "sf" };
+  });
+}
+
+export function sfToDetailRows(data) {
+  const inspMap = {};
+  data.forEach((row) => {
+    const key = `${row.inspection_date}-${row.inspection_type || "routine"}-${row.business_id}`;
+    if (!inspMap[key]) {
+      const score = parseInt(row.inspection_score) || 100;
+      inspMap[key] = {
+        inspection_serial_num: key,
+        inspection_date: row.inspection_date,
+        inspection_score: String(100 - score),
+        inspection_result: score >= 90 ? "Pass" : score >= 70 ? "Conditional Pass" : "Fail",
+        inspection_type: row.inspection_type || "",
+        violations: [],
+      };
+    }
+    if (row.violation_description) {
+      inspMap[key].violations.push({
+        violation_description: row.violation_description,
+        violation_type: row.risk_category === "High Risk" ? "RED" : "BLUE",
+        violation_points: row.risk_category === "High Risk" ? "5" : "2",
+      });
+    }
+  });
+  const rows = [];
+  Object.values(inspMap).forEach((insp) => {
+    if (insp.violations.length === 0) {
+      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+    } else {
+      insp.violations.forEach((v) => rows.push({ ...insp, ...v }));
+    }
+  });
+  return rows;
+}
+
 // ── Geocoding ─────────────────────────────────────────────────────────────────
 export async function geocodeAddress(address, city, stateAbbr) {
   const query = `${address}, ${city}, ${stateAbbr}`;

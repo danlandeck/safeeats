@@ -24,7 +24,7 @@ export const REGIONS = {
   ]},
   california: { name: "California", abbr: "CA", counties: [
     { id: "la", name: "Los Angeles County", city: "Los Angeles", hasPublicApi: false },
-    { id: "sf", name: "San Francisco County", city: "San Francisco", hasPublicApi: false },
+    { id: "sf", name: "San Francisco County", city: "San Francisco", hasPublicApi: true },
     { id: "sandiego", name: "San Diego County", city: "San Diego", hasPublicApi: false },
     { id: "sacramento", name: "Sacramento County", city: "Sacramento", hasPublicApi: false },
     { id: "alameda", name: "Alameda County (Oakland)", city: "Oakland", hasPublicApi: false },
@@ -291,7 +291,7 @@ export const REGIONS = {
   texas: { name: "Texas", abbr: "TX", counties: [
     { id: "harris", name: "Harris County (Houston)", city: "Houston", hasPublicApi: false },
     { id: "dallas", name: "Dallas County", city: "Dallas", hasPublicApi: false },
-    { id: "travis", name: "Travis County (Austin)", city: "Austin", hasPublicApi: false },
+    { id: "travis", name: "Travis County (Austin)", city: "Austin", hasPublicApi: true },
     { id: "bexar", name: "Bexar County (San Antonio)", city: "San Antonio", hasPublicApi: false },
     { id: "tarrant", name: "Tarrant County (Fort Worth)", city: "Fort Worth", hasPublicApi: false },
     { id: "collin", name: "Collin County (Plano/Frisco)", city: "McKinney", hasPublicApi: false },
