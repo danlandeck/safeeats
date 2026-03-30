@@ -310,12 +310,13 @@ export default function NationalHeatMap() {
         )}
       </div>
 
-      <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row gap-1 justify-between">
+      <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 space-y-2">
         <p className="text-[11px] text-slate-400 leading-relaxed">
           ESRI-standard diverging risk scale · Green = low risk · Red = elevated risk · {selectedState ? "Click a county for restaurant data" : "Click any state to see county breakdown"}
         </p>
-        <p className="text-[11px] text-slate-400 flex-shrink-0">
-          <span className="font-semibold text-green-600">LIVE API</span>: Austin TX · Baton Rouge LA · Boston MA · Chicago IL · Iowa (state) · King County WA · Los Angeles CA · Montgomery County MD · NYC · NY State · San Francisco CA · Wake County NC
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          <span className="font-semibold text-green-600">LIVE API jurisdictions:</span>{" "}
+          Austin TX · Baton Rouge LA · Boston MA · Chicago (Cook Co.) IL · Iowa (statewide) · King County WA · Los Angeles CA · Montgomery County MD · New York City NY · New York State · San Francisco CA · Wake County (Raleigh) NC
         </p>
       </div>
     </div>
