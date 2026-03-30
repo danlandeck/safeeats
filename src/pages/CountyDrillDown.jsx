@@ -67,7 +67,7 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
 
   const today = new Date().toISOString().slice(0, 10);
   const result = await base44.integrations.Core.InvokeLLM({
-    model: "gemini_3_pro",
+    model: "gemini_3_flash",
     prompt: `Today's date is ${today}. Search official health department records for restaurants in ${location}.
 
 Return two lists of 10 restaurants each:
