@@ -37,8 +37,8 @@ export default function DataVisualizations({ restaurants }) {
 
   if (!stats) return null;
 
-  const BAR_COLORS = ["#1e293b", "#334155", "#f59e0b", "#f97316", "#dc2626"];
-  const RESULT_COLORS = ["#1e293b", "#475569", "#94a3b8", "#f59e0b", "#dc2626"];
+  const BAR_COLORS = ["#16a34a", "#65a30d", "#f59e0b", "#f97316", "#dc2626"];
+  const RESULT_COLORS = ["#16a34a", "#3b82f6", "#f59e0b", "#f97316", "#dc2626", "#8b5cf6", "#94a3b8"];
 
   return (
     <div className="space-y-4">
@@ -97,18 +97,28 @@ export default function DataVisualizations({ restaurants }) {
         </Card>
 
         <Card className="p-5 border-slate-200">
-          <h3 className="text-sm font-bold text-slate-900 mb-4">Inspection Results Breakdown</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={stats.resultsData} cx="50%" cy="50%" outerRadius={85} dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {stats.resultsData.map((entry, i) => <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <h3 className="text-sm font-bold text-slate-900 mb-3">Inspection Results Breakdown</h3>
+          <div className="flex gap-4">
+            <div className="flex-1" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie data={stats.resultsData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={false} labelLine={false}>
+                    {stats.resultsData.map((entry, i) => <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }} formatter={(value, name) => [value, name]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-col justify-center gap-2 flex-shrink-0 pr-1">
+              {stats.resultsData.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: RESULT_COLORS[i % RESULT_COLORS.length] }} />
+                  <span className="text-xs text-slate-600 font-medium truncate max-w-[110px]" title={entry.name}>{entry.name}</span>
+                  <span className="text-xs text-slate-400 ml-auto pl-1">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </Card>
       </div>
     </div>
