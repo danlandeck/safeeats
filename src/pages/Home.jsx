@@ -688,9 +688,10 @@ export default function Home() {
 
 Rules:
 1. Return each establishment ONCE only — no duplicates.
-2. latest_score is a SAFETY score 0–100. 100 = zero violations / passed perfectly. 0 = critical failure / closed. Convert raw penalty points: 0 penalty pts → score 100, minor issues → 70-90, serious issues → 40-69, failed/closed → below 40.
-3. If the inspection result says Pass, Satisfactory, Compliant, or similar, the score MUST be 75 or higher.
-4. Return up to 3 short violation descriptions (under 80 chars each).`,
+2. total_violation_points = the sum of all penalty points from the most recent inspection (0 = perfect, higher = worse). This is the primary field used to calculate the safety score.
+3. latest_score should equal 100 minus total_violation_points, clamped 0–100.
+4. If the result says Pass/Satisfactory/Compliant and violations have 0 penalty points, total_violation_points must be 0 and latest_score must be 100.
+5. Return up to 3 short violation descriptions (under 80 chars each).`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -706,6 +707,7 @@ Rules:
                     zip_code: { type: "string" },
                     phone: { type: "string" },
                     latest_score: { type: "number" },
+                    total_violation_points: { type: "number" },
                     latest_date: { type: "string" },
                     latest_result: { type: "string" },
                     total_inspections: { type: "number" },
@@ -718,10 +720,17 @@ Rules:
         });
 
         const rawRestaurants = (result?.restaurants || []).map((r, index) => {
-          let safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
-          // Guard: if result says pass but score is suspiciously low, correct it
-          const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
-          if (isPassing && safetyScore < 75) safetyScore = 85;
+          // Derive score from total_violation_points if provided (most accurate)
+          // Fall back to latest_score only if total_violation_points is missing
+          let safetyScore;
+          if (r.total_violation_points !== undefined && r.total_violation_points !== null) {
+            safetyScore = Math.max(0, Math.min(100, 100 - Number(r.total_violation_points)));
+          } else {
+            safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || 0));
+            // Guard: if result says pass but score is suspiciously low, correct it
+            const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
+            if (isPassing && safetyScore < 75) safetyScore = 85;
+          }
           return {
             business_id: `${countyId}-${index}-${r.name}`,
             name: r.name,
