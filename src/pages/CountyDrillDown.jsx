@@ -230,6 +230,72 @@ const ABBR_TO_REGION_KEY = {
   VT:"vermont",VA:"virginia",WA:"washington",WV:"west_virginia",WI:"wisconsin",WY:"wyoming",
 };
 
+// Inline REGIONS county list (id + name only) for lookup — mirrors Home.jsx REGIONS
+const REGION_COUNTIES = {
+  alabama: [{id:"jefferson",name:"Jefferson County (Birmingham)"},{id:"mobile",name:"Mobile County"},{id:"madison",name:"Madison County (Huntsville)"},{id:"montgomery",name:"Montgomery County"}],
+  alaska: [{id:"anchorage",name:"Municipality of Anchorage"},{id:"fairbanks",name:"Fairbanks North Star Borough"},{id:"juneau",name:"City & Borough of Juneau"}],
+  arizona: [{id:"maricopa",name:"Maricopa County (Phoenix)"},{id:"pima",name:"Pima County (Tucson)"},{id:"pinal",name:"Pinal County (Mesa/Gilbert)"},{id:"yavapai",name:"Yavapai County (Prescott)"},{id:"coconino",name:"Coconino County (Flagstaff)"}],
+  arkansas: [{id:"pulaski",name:"Pulaski County (Little Rock)"},{id:"benton",name:"Benton County (Bentonville)"},{id:"washington_ar",name:"Washington County (Fayetteville)"}],
+  california: [{id:"la",name:"Los Angeles County"},{id:"sf",name:"San Francisco County"},{id:"sandiego",name:"San Diego County"},{id:"sacramento",name:"Sacramento County"},{id:"alameda",name:"Alameda County (Oakland)"},{id:"orange_ca",name:"Orange County (Anaheim)"},{id:"riverside",name:"Riverside County"},{id:"sanbernardino",name:"San Bernardino County"},{id:"santaclara",name:"Santa Clara County (San Jose)"},{id:"fresno",name:"Fresno County"},{id:"kern",name:"Kern County (Bakersfield)"},{id:"ventura",name:"Ventura County"}],
+  colorado: [{id:"denver",name:"Denver County"},{id:"el_paso",name:"El Paso County (Colorado Springs)"},{id:"boulder",name:"Boulder County"},{id:"arapahoe",name:"Arapahoe County (Aurora)"},{id:"adams",name:"Adams County"},{id:"larimer",name:"Larimer County (Fort Collins)"},{id:"jefferson_co",name:"Jefferson County (Lakewood)"}],
+  connecticut: [{id:"hartford",name:"Hartford County"},{id:"new_haven",name:"New Haven County"},{id:"fairfield",name:"Fairfield County (Bridgeport)"}],
+  delaware: [{id:"new_castle",name:"New Castle County (Wilmington)"},{id:"kent",name:"Kent County (Dover)"},{id:"sussex",name:"Sussex County"}],
+  dc: [{id:"dc",name:"District of Columbia"}],
+  florida: [{id:"miami_dade",name:"Miami-Dade County"},{id:"broward",name:"Broward County (Fort Lauderdale)"},{id:"orange_fl",name:"Orange County (Orlando)"},{id:"hillsborough",name:"Hillsborough County (Tampa)"},{id:"palm_beach",name:"Palm Beach County"},{id:"pinellas",name:"Pinellas County (St. Petersburg)"},{id:"duval",name:"Duval County (Jacksonville)"},{id:"polk",name:"Polk County (Lakeland)"},{id:"lee",name:"Lee County (Fort Myers)"}],
+  georgia: [{id:"fulton",name:"Fulton County (Atlanta)"},{id:"dekalb",name:"DeKalb County"},{id:"gwinnett",name:"Gwinnett County"},{id:"cobb",name:"Cobb County (Marietta)"},{id:"chatham",name:"Chatham County (Savannah)"},{id:"bibb",name:"Bibb County (Macon)"}],
+  hawaii: [{id:"honolulu",name:"City & County of Honolulu"},{id:"maui",name:"Maui County"},{id:"hawaii_county",name:"Hawaii County (Big Island)"},{id:"kauai",name:"Kauai County"}],
+  idaho: [{id:"ada",name:"Ada County (Boise)"},{id:"canyon",name:"Canyon County (Nampa)"},{id:"kootenai",name:"Kootenai County (Coeur d'Alene)"}],
+  illinois: [{id:"cook",name:"Cook County (Chicago)"},{id:"dupage",name:"DuPage County"},{id:"lake_il",name:"Lake County"},{id:"will",name:"Will County (Joliet)"},{id:"kane",name:"Kane County"},{id:"sangamon",name:"Sangamon County (Springfield)"}],
+  indiana: [{id:"marion",name:"Marion County (Indianapolis)"},{id:"lake_in",name:"Lake County (Gary)"},{id:"allen",name:"Allen County (Fort Wayne)"},{id:"hamilton_in",name:"Hamilton County (Carmel)"}],
+  iowa: [{id:"polk_ia",name:"Polk County (Des Moines)"},{id:"linn",name:"Linn County (Cedar Rapids)"},{id:"scott",name:"Scott County (Davenport)"},{id:"johnson",name:"Johnson County (Iowa City)"}],
+  kansas: [{id:"johnson_ks",name:"Johnson County (Overland Park)"},{id:"sedgwick",name:"Sedgwick County (Wichita)"},{id:"wyandotte",name:"Wyandotte County (Kansas City KS)"},{id:"shawnee",name:"Shawnee County (Topeka)"}],
+  kentucky: [{id:"jefferson_ky",name:"Jefferson County (Louisville)"},{id:"fayette",name:"Fayette County (Lexington)"},{id:"boone",name:"Boone County"}],
+  louisiana: [{id:"orleans",name:"Orleans Parish (New Orleans)"},{id:"east_baton_rouge",name:"East Baton Rouge Parish"},{id:"jefferson_la",name:"Jefferson Parish (Metairie)"},{id:"caddo",name:"Caddo Parish (Shreveport)"}],
+  maine: [{id:"cumberland",name:"Cumberland County (Portland)"},{id:"penobscot",name:"Penobscot County (Bangor)"},{id:"york",name:"York County"}],
+  maryland: [{id:"baltimore_city",name:"Baltimore City"},{id:"baltimore_county",name:"Baltimore County"},{id:"montgomery_md",name:"Montgomery County"},{id:"prince_georges",name:"Prince George's County"},{id:"anne_arundel",name:"Anne Arundel County (Annapolis)"},{id:"howard",name:"Howard County (Columbia)"}],
+  massachusetts: [{id:"suffolk",name:"Suffolk County (Boston)"},{id:"middlesex",name:"Middlesex County (Cambridge)"},{id:"worcester",name:"Worcester County"},{id:"hampden",name:"Hampden County (Springfield)"},{id:"norfolk",name:"Norfolk County (Quincy)"},{id:"essex_ma",name:"Essex County (Salem/Lawrence)"}],
+  michigan: [{id:"wayne",name:"Wayne County (Detroit)"},{id:"kent",name:"Kent County (Grand Rapids)"},{id:"oakland",name:"Oakland County"},{id:"macomb",name:"Macomb County"},{id:"ingham",name:"Ingham County (Lansing)"},{id:"washtenaw",name:"Washtenaw County (Ann Arbor)"}],
+  minnesota: [{id:"hennepin",name:"Hennepin County (Minneapolis)"},{id:"ramsey",name:"Ramsey County (St. Paul)"},{id:"dakota",name:"Dakota County"},{id:"anoka",name:"Anoka County"},{id:"st_louis_mn",name:"St. Louis County (Duluth)"}],
+  mississippi: [{id:"hinds",name:"Hinds County (Jackson)"},{id:"harrison",name:"Harrison County (Biloxi)"},{id:"desoto",name:"DeSoto County (Southaven)"}],
+  missouri: [{id:"st_louis_city",name:"St. Louis City"},{id:"st_louis_county",name:"St. Louis County"},{id:"jackson",name:"Jackson County (Kansas City)"},{id:"greene",name:"Greene County (Springfield)"},{id:"boone_mo",name:"Boone County (Columbia)"}],
+  montana: [{id:"yellowstone",name:"Yellowstone County (Billings)"},{id:"cascade",name:"Cascade County (Great Falls)"},{id:"missoula",name:"Missoula County"},{id:"gallatin",name:"Gallatin County (Bozeman)"}],
+  nebraska: [{id:"douglas",name:"Douglas County (Omaha)"},{id:"lancaster",name:"Lancaster County (Lincoln)"},{id:"sarpy",name:"Sarpy County (Bellevue)"}],
+  nevada: [{id:"clark",name:"Clark County (Las Vegas)"},{id:"washoe",name:"Washoe County (Reno)"},{id:"carson",name:"Carson City"}],
+  new_hampshire: [{id:"hillsborough_nh",name:"Hillsborough County (Manchester)"},{id:"rockingham",name:"Rockingham County (Nashua)"},{id:"merrimack",name:"Merrimack County (Concord)"}],
+  new_jersey: [{id:"essex",name:"Essex County (Newark)"},{id:"bergen",name:"Bergen County (Hackensack)"},{id:"hudson",name:"Hudson County (Jersey City)"},{id:"middlesex_nj",name:"Middlesex County (New Brunswick)"},{id:"monmouth",name:"Monmouth County"},{id:"ocean",name:"Ocean County (Toms River)"},{id:"union_nj",name:"Union County (Elizabeth)"},{id:"camden",name:"Camden County"}],
+  new_mexico: [{id:"bernalillo",name:"Bernalillo County (Albuquerque)"},{id:"dona_ana",name:"Doña Ana County (Las Cruces)"},{id:"santa_fe_nm",name:"Santa Fe County"}],
+  new_york: [{id:"nyc",name:"New York City (5 Boroughs)"},{id:"nassau",name:"Nassau County (Long Island)"},{id:"suffolk_ny",name:"Suffolk County (Long Island)"},{id:"westchester",name:"Westchester County (White Plains)"},{id:"erie",name:"Erie County (Buffalo)"},{id:"monroe_ny",name:"Monroe County (Rochester)"},{id:"albany",name:"Albany County"},{id:"onondaga",name:"Onondaga County (Syracuse)"}],
+  north_carolina: [{id:"mecklenburg",name:"Mecklenburg County (Charlotte)"},{id:"wake",name:"Wake County (Raleigh)"},{id:"guilford",name:"Guilford County (Greensboro)"},{id:"forsyth",name:"Forsyth County (Winston-Salem)"},{id:"durham",name:"Durham County"},{id:"cumberland_nc",name:"Cumberland County (Fayetteville)"},{id:"buncombe",name:"Buncombe County (Asheville)"}],
+  north_dakota: [{id:"cass",name:"Cass County (Fargo)"},{id:"burleigh",name:"Burleigh County (Bismarck)"},{id:"grand_forks",name:"Grand Forks County"}],
+  ohio: [{id:"cuyahoga",name:"Cuyahoga County (Cleveland)"},{id:"franklin",name:"Franklin County (Columbus)"},{id:"hamilton_oh",name:"Hamilton County (Cincinnati)"},{id:"summit",name:"Summit County (Akron)"},{id:"montgomery_oh",name:"Montgomery County (Dayton)"},{id:"lucas",name:"Lucas County (Toledo)"},{id:"stark",name:"Stark County (Canton)"}],
+  oklahoma: [{id:"oklahoma_county",name:"Oklahoma County (Oklahoma City)"},{id:"tulsa",name:"Tulsa County"},{id:"cleveland_ok",name:"Cleveland County (Norman)"}],
+  oregon: [{id:"multnomah",name:"Multnomah County (Portland)"},{id:"lane",name:"Lane County (Eugene)"},{id:"marion_or",name:"Marion County (Salem)"},{id:"washington_or",name:"Washington County (Beaverton/Hillsboro)"},{id:"clackamas",name:"Clackamas County"},{id:"jackson_or",name:"Jackson County (Medford)"},{id:"deschutes",name:"Deschutes County (Bend)"}],
+  pennsylvania: [{id:"philadelphia",name:"Philadelphia County"},{id:"allegheny",name:"Allegheny County (Pittsburgh)"},{id:"montgomery_pa",name:"Montgomery County"},{id:"bucks",name:"Bucks County"},{id:"chester_pa",name:"Chester County"},{id:"lancaster_pa",name:"Lancaster County"},{id:"york_pa",name:"York County"},{id:"berks",name:"Berks County (Reading)"}],
+  rhode_island: [{id:"providence",name:"Providence County"},{id:"kent_ri",name:"Kent County (Warwick)"},{id:"washington_ri",name:"Washington County"}],
+  south_carolina: [{id:"greenville",name:"Greenville County"},{id:"richland",name:"Richland County (Columbia)"},{id:"charleston_sc",name:"Charleston County"},{id:"spartanburg",name:"Spartanburg County"}],
+  south_dakota: [{id:"minnehaha",name:"Minnehaha County (Sioux Falls)"},{id:"pennington",name:"Pennington County (Rapid City)"}],
+  tennessee: [{id:"shelby",name:"Shelby County (Memphis)"},{id:"davidson",name:"Davidson County (Nashville)"},{id:"knox",name:"Knox County (Knoxville)"},{id:"hamilton_tn",name:"Hamilton County (Chattanooga)"},{id:"rutherford",name:"Rutherford County (Murfreesboro)"}],
+  texas: [{id:"harris",name:"Harris County (Houston)"},{id:"dallas",name:"Dallas County"},{id:"travis",name:"Travis County (Austin)"},{id:"bexar",name:"Bexar County (San Antonio)"},{id:"tarrant",name:"Tarrant County (Fort Worth)"},{id:"collin",name:"Collin County (Plano/Frisco)"},{id:"hidalgo",name:"Hidalgo County (McAllen)"},{id:"denton",name:"Denton County"},{id:"el_paso_tx",name:"El Paso County"},{id:"nueces",name:"Nueces County (Corpus Christi)"},{id:"williamson",name:"Williamson County (Round Rock)"},{id:"lubbock",name:"Lubbock County"}],
+  utah: [{id:"salt_lake",name:"Salt Lake County"},{id:"utah_county",name:"Utah County (Provo/Orem)"},{id:"davis",name:"Davis County (Layton)"},{id:"weber",name:"Weber County (Ogden)"},{id:"washington_ut",name:"Washington County (St. George)"}],
+  vermont: [{id:"chittenden",name:"Chittenden County (Burlington)"},{id:"rutland",name:"Rutland County"},{id:"washington_vt",name:"Washington County (Montpelier)"}],
+  virginia: [{id:"fairfax",name:"Fairfax County"},{id:"virginia_beach",name:"Virginia Beach City"},{id:"richmond",name:"Richmond City"},{id:"arlington",name:"Arlington County"},{id:"chesapeake",name:"Chesapeake City"},{id:"norfolk",name:"Norfolk City"},{id:"chesterfield",name:"Chesterfield County"},{id:"loudoun",name:"Loudoun County"}],
+  washington: [{id:"king",name:"King County (Seattle)"},{id:"snohomish",name:"Snohomish County (Everett)"},{id:"pierce",name:"Pierce County (Tacoma)"},{id:"clark_wa",name:"Clark County (Vancouver)"},{id:"spokane",name:"Spokane County"},{id:"thurston",name:"Thurston County (Olympia)"},{id:"kitsap",name:"Kitsap County (Bremerton)"},{id:"whatcom",name:"Whatcom County (Bellingham)"},{id:"benton_wa",name:"Benton County (Kennewick/Richland)"},{id:"yakima",name:"Yakima County"}],
+  west_virginia: [{id:"kanawha",name:"Kanawha County (Charleston)"},{id:"cabell",name:"Cabell County (Huntington)"},{id:"monongalia",name:"Monongalia County (Morgantown)"}],
+  wisconsin: [{id:"milwaukee",name:"Milwaukee County"},{id:"dane",name:"Dane County (Madison)"},{id:"waukesha",name:"Waukesha County"},{id:"brown",name:"Brown County (Green Bay)"},{id:"racine",name:"Racine County"}],
+  wyoming: [{id:"laramie",name:"Laramie County (Cheyenne)"},{id:"natrona",name:"Natrona County (Casper)"},{id:"teton",name:"Teton County (Jackson)"}],
+};
+
+// Find the county ID by matching the GeoJSON county name within a state's county list
+function findCountyId(stateAbbr, geoCountyName) {
+  const regionKey = ABBR_TO_REGION_KEY[stateAbbr];
+  if (!regionKey) return "";
+  const counties = REGION_COUNTIES[regionKey] || [];
+  const lower = geoCountyName.toLowerCase();
+  // Try exact word match first (e.g. "Clark" matches "Clark County (Vancouver)")
+  const match = counties.find((c) => c.name.toLowerCase().startsWith(lower));
+  return match ? match.id : (counties[0]?.id || "");
+}
+
 export default function CountyDrillDown() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
@@ -240,7 +306,7 @@ export default function CountyDrillDown() {
   const handleRestaurantClick = (restaurant) => {
     const liveConfig = getLiveConfig(stateAbbr, countyName);
     const region = liveConfig ? liveConfig.region : (ABBR_TO_REGION_KEY[stateAbbr] || "washington");
-    const county = liveConfig ? liveConfig.county : "";
+    const county = liveConfig ? liveConfig.county : findCountyId(stateAbbr, countyName);
     navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`);
   };
 
