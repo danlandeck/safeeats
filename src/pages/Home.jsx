@@ -547,11 +547,13 @@ function llmToDetailRows(restaurant) {
   const rows = [];
   (restaurant.allInspections || []).forEach((insp, inspIndex) => {
     const violations = insp.violations || [];
+    // inspection_score here represents penalty points (lower = better), used by InspectionDetail to compute safety score via 100 - pts
+    const penaltyPts = String(insp.violation_points ?? Math.max(0, 100 - (insp.score || 0)));
     if (violations.length === 0) {
       rows.push({
         inspection_serial_num: `llm-${inspIndex}`,
         inspection_date: insp.date,
-        inspection_score: String(insp.violation_points || 0),
+        inspection_score: penaltyPts,
         inspection_result: insp.result || "Unknown",
         inspection_type: insp.type || "Routine",
         violation_description: "",
@@ -563,7 +565,7 @@ function llmToDetailRows(restaurant) {
         rows.push({
           inspection_serial_num: `llm-${inspIndex}`,
           inspection_date: insp.date,
-          inspection_score: String(insp.violation_points || 0),
+          inspection_score: penaltyPts,
           inspection_result: insp.result || "Unknown",
           inspection_type: insp.type || "Routine",
           violation_description: typeof v === "string" ? v : v.description || "",
@@ -688,10 +690,10 @@ export default function Home() {
 
 Rules:
 1. Return each establishment ONCE only — no duplicates.
-2. total_violation_points = the sum of all penalty points from the most recent inspection (0 = perfect, higher = worse). This is the primary field used to calculate the safety score.
-3. latest_score should equal 100 minus total_violation_points, clamped 0–100.
-4. If the result says Pass/Satisfactory/Compliant and violations have 0 penalty points, total_violation_points must be 0 and latest_score must be 100.
-5. Return up to 3 short violation descriptions (under 80 chars each).`,
+2. total_violation_points = sum of penalty points from the most recent inspection (0 = perfect). Compute latest_score = 100 - total_violation_points, clamped 0–100.
+3. If result says Pass/Satisfactory/Compliant and violations are 0 pts, total_violation_points must be 0 and latest_score must be 100.
+4. Return up to 3 short violation descriptions (under 80 chars each) for the latest inspection.
+5. inspection_history: return ALL available past inspections (up to 10), each with date, total_violation_points, and result. Most recent first.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -712,6 +714,18 @@ Rules:
                     latest_result: { type: "string" },
                     total_inspections: { type: "number" },
                     violations: { type: "array", items: { type: "string" } },
+                    inspection_history: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          date: { type: "string" },
+                          total_violation_points: { type: "number" },
+                          result: { type: "string" },
+                          violations: { type: "array", items: { type: "string" } },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -742,21 +756,31 @@ Rules:
             description: "",
             safetyScore,
             grade: getGrade(safetyScore),
-            totalInspections: r.total_inspections || 1,
+            totalInspections: Math.max(r.total_inspections || 1, (r.inspection_history || []).length || 1),
             latestDate: r.latest_date || "",
             latestResult: r.latest_result || "",
             latitude: null,
             longitude: null,
             isLLMData: true,
             source: 'llm',
-            allInspections: [{
-              date: r.latest_date || "",
-              score: safetyScore,
-              result: r.latest_result || "",
-              type: "Routine",
-              violation_points: Math.max(0, 100 - safetyScore),
-              violations: (r.violations || []).map((v) => ({ description: v, severity: "minor", points: 0 })),
-            }],
+            allInspections: (() => {
+              // Build full history from inspection_history if provided, else just latest
+              const history = r.inspection_history && r.inspection_history.length > 0
+                ? r.inspection_history
+                : [{ date: r.latest_date, total_violation_points: r.total_violation_points, result: r.latest_result, violations: r.violations }];
+              return history.map((h, hi) => {
+                const pts = h.total_violation_points !== undefined && h.total_violation_points !== null ? Number(h.total_violation_points) : Math.max(0, 100 - safetyScore);
+                const hScore = Math.max(0, Math.min(100, 100 - pts));
+                return {
+                  date: h.date || "",
+                  score: hScore,
+                  result: h.result || "",
+                  type: "Routine",
+                  violation_points: pts,
+                  violations: (h.violations || (hi === 0 ? r.violations : []) || []).map((v) => ({ description: v, severity: "minor", points: 0 })),
+                };
+              });
+            })(),
             allRows: [],
           };
         });

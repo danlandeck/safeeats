@@ -158,6 +158,21 @@ Scoring rules:
               city: { type: "string" },
               safetyScore: { type: "number" },
               total_violation_points: { type: "number" },
+              latest_date: { type: "string" },
+              latest_result: { type: "string" },
+              violations: { type: "array", items: { type: "string" } },
+              inspection_history: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    date: { type: "string" },
+                    total_violation_points: { type: "number" },
+                    result: { type: "string" },
+                    violations: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
             },
           },
         },
@@ -171,6 +186,21 @@ Scoring rules:
               city: { type: "string" },
               safetyScore: { type: "number" },
               total_violation_points: { type: "number" },
+              latest_date: { type: "string" },
+              latest_result: { type: "string" },
+              violations: { type: "array", items: { type: "string" } },
+              inspection_history: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    date: { type: "string" },
+                    total_violation_points: { type: "number" },
+                    result: { type: "string" },
+                    violations: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
             },
           },
         },
@@ -187,7 +217,36 @@ Scoring rules:
       const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
       if (isPassing && score < 75) score = 85;
     }
-    return { id: `${prefix}-${i}`, name: r.name, address: r.address || "", city: r.city || stateName, safetyScore: score, grade: getGrade(score), inspections: null };
+    const history = r.inspection_history && r.inspection_history.length > 0
+      ? r.inspection_history
+      : [{ date: r.latest_date, total_violation_points: r.total_violation_points, result: r.latest_result, violations: r.violations }];
+    const allInspections = history.map((h) => {
+      const pts = h.total_violation_points !== undefined && h.total_violation_points !== null ? Number(h.total_violation_points) : Math.max(0, 100 - score);
+      return {
+        date: h.date || "",
+        score: Math.max(0, Math.min(100, 100 - pts)),
+        result: h.result || "",
+        type: "Routine",
+        violation_points: pts,
+        violations: (h.violations || []).map((v) => ({ description: v, severity: "minor", points: 0 })),
+      };
+    });
+    return {
+      id: `${prefix}-${i}`,
+      name: r.name,
+      address: r.address || "",
+      city: r.city || stateName,
+      safetyScore: score,
+      grade: getGrade(score),
+      inspections: allInspections.length,
+      totalInspections: allInspections.length,
+      latestDate: r.latest_date || "",
+      latestResult: r.latest_result || "",
+      isLLMData: true,
+      source: "llm",
+      allInspections,
+      allRows: [],
+    };
   };
 
   return {
