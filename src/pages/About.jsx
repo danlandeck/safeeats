@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
-import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, MapPin } from "lucide-react";
+import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, MapPin, Search, Ban, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -40,6 +40,74 @@ export default function About() {
             <p className="text-slate-600 leading-relaxed">
               Our universal A–F grading system and 0–100 safety scores give you a consistent lens across all regions, even though each jurisdiction grades on its own criteria.
             </p>
+          </Card>
+
+          {/* Data Mining Methodology */}
+          <Card className="p-8 border-slate-200 bg-white">
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">How We Mine Data When No API Exists</h2>
+            <p className="text-slate-500 text-sm mb-6">For jurisdictions without a live public inspection API, SafeEats uses a structured AI-assisted research process to surface official government data. Here's exactly how it works — and what we deliberately avoid.</p>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Search className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-slate-900 mb-1">Step 1 — Official State & County Health Department Websites</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">We query official state and county health department portals first. Many jurisdictions publish inspection databases as searchable HTML tables, downloadable CSVs, or PDF report archives — even if they don't offer a formal API. Our AI agent navigates and extracts from these sources directly.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-slate-900 mb-1">Step 2 — Local News & Investigative Journalism</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">Reputable local newspapers and TV news stations often publish health inspection roundups, restaurant closure notices, and violation summaries sourced directly from the health department. These articles cite the official record and provide a secondary verification layer for scores and violations.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Globe className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-slate-900 mb-1">Step 3 — Publicly Posted Inspection Reports</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">Some health departments post inspection PDFs and summary reports on their own websites or via county document portals. When accessible, these are the most authoritative source available — inspector-signed, date-stamped official records. We extract scores, violation codes, and dates directly from these documents.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Yelp callout */}
+            <div className="bg-red-950 rounded-2xl p-6 text-white">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Ban className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <p className="text-xl font-extrabold">We Don't Use Yelp. Not Even a Little.</p>
+                    <span className="text-xs font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">BY DESIGN</span>
+                  </div>
+                  <p className="text-red-200 leading-relaxed text-sm mb-3">
+                    Yelp is a <em>consumer review platform</em> — not a health data source. It aggregates star ratings from anonymous users, which means your food safety intelligence is being sourced from the same pool that includes a one-star review because the parking lot was too small, a five-star review bought by the restaurant owner, and three paragraphs of all-caps rage from someone who had to wait 20 minutes on a Saturday night.
+                  </p>
+                  <p className="text-red-200 leading-relaxed text-sm mb-3">
+                    Yelp does surface health inspection grades in some markets — but only when directly scraped from the same government databases we already access natively. There's no value-add, just an extra layer of algorithmic noise, paid placement, and review manipulation sitting between you and the facts.
+                  </p>
+                  <p className="text-red-100 font-semibold text-sm">
+                    SafeEats is just the facts, ma'am. Inspector-issued scores. Violation codes. Official records. No angry Karens. No paid bots. No stars for ambiance. Just: did the health department pass this restaurant or not?
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>Transparency caveat:</strong> AI-assisted lookup depends entirely on what a jurisdiction publishes online. Many smaller counties do not digitize or publicly post their records — in those cases results may be incomplete or unavailable. We always clearly label AI-estimated scores as such, and the RestaurantDetail page explicitly states when no official inspection records were found. We never fabricate scores or present AI estimates as verified government data.
+              </p>
+            </div>
           </Card>
 
           {/* Data Sources */}
