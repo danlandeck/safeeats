@@ -300,7 +300,7 @@ export default function Home() {
     setIsDetailLoading(false);
   }, []);
 
-  const handleSwitchToMap = useCallback(async () => {
+  const handleSwitchToMap = useCallback(() => {
     setViewMode("map");
   }, []);
 
@@ -317,28 +317,19 @@ export default function Home() {
     return filtered;
   }, [results, filterResult, sortBy]);
 
-  const handleGeocodedMapSwitch = useCallback(async (sortedResults) => {
+  const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
     const topResults = sortedResults.slice(0, MAP_LIMIT);
     if (!topResults.some((r) => !r.latitude)) return;
-    setIsGeocodingMap(true);
     const abbr = REGIONS[region].abbr;
-    // Run all geocodes in parallel, hard-cap the entire batch at 3s
-    const batchTimeout = new Promise((resolve) => setTimeout(resolve, 3000));
-    const geocodeAll = Promise.all(
-      topResults.map(async (r) => {
-        if (r.latitude && r.longitude) return r;
-        const coords = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
-        return coords ? { ...r, ...coords } : r;
-      })
-    );
-    const geocoded = await Promise.race([
-      geocodeAll,
-      batchTimeout.then(() => topResults), // fall back to un-geocoded on timeout
-    ]);
-    const geocodedMap = new Map(geocoded.map((r) => [r.business_id, r]));
-    setResults((prev) => prev.map((r) => geocodedMap.get(r.business_id) || r));
-    setIsGeocodingMap(false);
+    // Geocode each in background — map shows immediately, markers pop in as resolved
+    topResults.forEach(async (r) => {
+      if (r.latitude && r.longitude) return;
+      const coords = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
+      if (coords) {
+        setResults((prev) => prev.map((p) => p.business_id === r.business_id ? { ...p, ...coords } : p));
+      }
+    });
   }, [region]);
 
   return (
@@ -454,14 +445,7 @@ export default function Home() {
                         </div>
 
                         {viewMode === "map" ? (
-                          isGeocodingMap ? (
-                            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-2xl border border-slate-200">
-                              <div className="w-8 h-8 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-3" />
-                              <p className="text-sm text-slate-500">Geocoding map locations…</p>
-                            </div>
-                          ) : (
-                            <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} />
-                          )
+                          <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} />
                         ) : (
                           <div className="space-y-3">
                             {filteredAndSortedResults.map((r) => (
