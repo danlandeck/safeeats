@@ -297,24 +297,7 @@ export default function Home() {
 
   const handleSwitchToMap = useCallback(async () => {
     setViewMode("map");
-    const MAP_LIMIT = 15;
-    const topResults = filteredAndSortedResults.slice(0, MAP_LIMIT);
-    if (!topResults.some((r) => !r.latitude)) return;
-    setIsGeocodingMap(true);
-    const abbr = REGIONS[region].abbr;
-    const withTimeout = (promise, ms) => Promise.race([promise, new Promise((r) => setTimeout(() => r(null), ms))]);
-    const geocoded = await Promise.all(
-      topResults.map(async (r) => {
-        if (r.latitude && r.longitude) return r;
-        const coords = await withTimeout(geocodeAddress(r.address, r.city, abbr), 2000);
-        return coords ? { ...r, ...coords } : r;
-      })
-    );
-    // Merge geocoded top results back into full results array
-    const geocodedMap = new Map(geocoded.map((r) => [r.business_id, r]));
-    setResults((prev) => prev.map((r) => geocodedMap.get(r.business_id) || r));
-    setIsGeocodingMap(false);
-  }, [filteredAndSortedResults, results, region]);
+  }, []);
 
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);
@@ -328,6 +311,25 @@ export default function Home() {
     }
     return filtered;
   }, [results, filterResult, sortBy]);
+
+  const handleGeocodedMapSwitch = useCallback(async (sortedResults) => {
+    const MAP_LIMIT = 15;
+    const topResults = sortedResults.slice(0, MAP_LIMIT);
+    if (!topResults.some((r) => !r.latitude)) return;
+    setIsGeocodingMap(true);
+    const abbr = REGIONS[region].abbr;
+    const withTimeout = (promise, ms) => Promise.race([promise, new Promise((r) => setTimeout(() => r(null), ms))]);
+    const geocoded = await Promise.all(
+      topResults.map(async (r) => {
+        if (r.latitude && r.longitude) return r;
+        const coords = await withTimeout(geocodeAddress(r.address, r.city, abbr), 2000);
+        return coords ? { ...r, ...coords } : r;
+      })
+    );
+    const geocodedMap = new Map(geocoded.map((r) => [r.business_id, r]));
+    setResults((prev) => prev.map((r) => geocodedMap.get(r.business_id) || r));
+    setIsGeocodingMap(false);
+  }, [region]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -424,7 +426,7 @@ export default function Home() {
                           </div>
                           <div className="flex gap-2">
                             <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>List</button>
-                            <button onClick={viewMode !== "map" ? handleSwitchToMap : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Map</button>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Map</button>
                           </div>
                         </div>
 
