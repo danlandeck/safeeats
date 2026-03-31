@@ -313,19 +313,24 @@ export default function Home() {
   }, [results, filterResult, sortBy]);
 
   const handleGeocodedMapSwitch = useCallback(async (sortedResults) => {
-    const MAP_LIMIT = 15;
+    const MAP_LIMIT = 10;
     const topResults = sortedResults.slice(0, MAP_LIMIT);
     if (!topResults.some((r) => !r.latitude)) return;
     setIsGeocodingMap(true);
     const abbr = REGIONS[region].abbr;
-    const withTimeout = (promise, ms) => Promise.race([promise, new Promise((r) => setTimeout(() => r(null), ms))]);
-    const geocoded = await Promise.all(
+    // Run all geocodes in parallel, hard-cap the entire batch at 3s
+    const batchTimeout = new Promise((resolve) => setTimeout(resolve, 3000));
+    const geocodeAll = Promise.all(
       topResults.map(async (r) => {
         if (r.latitude && r.longitude) return r;
-        const coords = await withTimeout(geocodeAddress(r.address, r.city, abbr), 2000);
+        const coords = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
         return coords ? { ...r, ...coords } : r;
       })
     );
+    const geocoded = await Promise.race([
+      geocodeAll,
+      batchTimeout.then(() => topResults), // fall back to un-geocoded on timeout
+    ]);
     const geocodedMap = new Map(geocoded.map((r) => [r.business_id, r]));
     setResults((prev) => prev.map((r) => geocodedMap.get(r.business_id) || r));
     setIsGeocodingMap(false);
