@@ -161,11 +161,6 @@ export default function NationalHeatMap() {
 
   const styleCounty = useCallback((feature) => {
     const abbr = selectedState?.abbr;
-    const name = feature.properties?.NAME || feature.properties?.name || "";
-    const countyKey = `${abbr}:${name}`;
-    if (!LIVE_COUNTY_KEYS.has(countyKey)) {
-      return { fillColor: "#1e293b", fillOpacity: 0.72, color: "#ffffff", weight: 0.8 };
-    }
     const stateScore = STATE_SCORES[abbr] ?? 75;
     const fips = String(feature.id || feature.properties?.GEOID || feature.properties?.FIPS || "00000");
     const score = countyScore(stateScore, fips);
@@ -216,20 +211,15 @@ export default function NationalHeatMap() {
 
     layer.on({
       mouseover: (e) => {
-        e.target.setStyle({ weight: isLive ? 2.5 : 1.5, color: isLive ? "#1e3a8a" : "#475569", fillOpacity: isLive ? 1 : 0.85 });
-        if (isLive) {
-          const risk = getRiskLevel(score);
-          setHoveredState({ name: `${name}, ${abbr}`, abbr, score, grade: getGrade(score), isLive: false, risk });
-        } else {
-          setHoveredState({ name: `${name}, ${abbr}`, abbr, noData: true });
-        }
+        e.target.setStyle({ weight: 2.5, color: "#1e3a8a", fillOpacity: 1 });
+        const risk = getRiskLevel(score);
+        setHoveredState({ name: `${name}, ${abbr}`, abbr, score, grade: getGrade(score), isLive, risk, isAI: !isLive });
       },
       mouseout: (e) => {
         e.target.setStyle(styleCounty(feature));
         setHoveredState(null);
       },
       click: () => {
-        if (!isLive) return;
         navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(selectedState?.name || abbr)}&county=${encodeURIComponent(name)}`);
       },
     });
@@ -314,36 +304,23 @@ export default function NationalHeatMap() {
         {hoveredState && (
           <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[200px]">
             <p className="font-extrabold text-slate-900 text-base leading-tight">{hoveredState.name}</p>
-            {hoveredState.noData ? (
-              <>
-                <p className="text-xs text-slate-400 mt-1 mb-1.5">{hoveredState.abbr}</p>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-2.5 h-2.5 rounded-sm bg-slate-700" />
-                  <span className="text-xs font-semibold text-slate-600">No public data available</span>
-                </div>
-                <p className="text-xs text-slate-400">This county does not publish inspection data online</p>
-              </>
+            <p className="text-xs text-slate-500 mb-2">{hoveredState.abbr} · Click to {selectedState ? "explore" : "zoom in"}</p>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span
+                className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
+                style={{ background: hoveredState.risk?.color === "#ffffbf" ? "#b45309" : hoveredState.risk?.color }}
+              >
+                Grade {hoveredState.grade}
+              </span>
+              <span className="text-slate-700 font-bold text-sm">{hoveredState.score}/100</span>
+            </div>
+            <p className="text-xs font-semibold" style={{ color: hoveredState.risk?.color === "#ffffbf" ? "#b45309" : hoveredState.risk?.color }}>
+              {hoveredState.risk?.label}
+            </p>
+            {hoveredState.isLive ? (
+              <span className="mt-1.5 inline-block text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">● LIVE API DATA</span>
             ) : (
-              <>
-                <p className="text-xs text-slate-500 mb-2">{hoveredState.abbr} · Click to {selectedState ? "explore" : "zoom in"}</p>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span
-                    className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
-                    style={{ background: hoveredState.risk.color === "#ffffbf" ? "#b45309" : hoveredState.risk.color }}
-                  >
-                    Grade {hoveredState.grade}
-                  </span>
-                  <span className="text-slate-700 font-bold text-sm">{hoveredState.score}/100</span>
-                </div>
-                <p className="text-xs font-semibold" style={{ color: hoveredState.risk.color === "#ffffbf" ? "#b45309" : hoveredState.risk.color }}>
-                  {hoveredState.risk.label}
-                </p>
-                {hoveredState.isLive && (
-                  <span className="mt-1.5 inline-block text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
-                    ● LIVE API DATA
-                  </span>
-                )}
-              </>
+              <span className="mt-1.5 inline-block text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">✦ AI-ASSISTED</span>
             )}
           </div>
         )}
