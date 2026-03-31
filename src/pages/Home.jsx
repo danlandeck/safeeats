@@ -46,7 +46,7 @@ const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find food establishments matching "${query}" in ${countyName}, ${regionAbbr} from official health department records.
 
-Return up to 5 real matches. For each:
+Return up to 3 real matches. For each:
 - name, address, city, zip_code, phone
 - latest_score (0-100, 100=perfect), total_violation_points, latest_date (YYYY-MM-DD), latest_result
 - total_inspections (count)
@@ -88,6 +88,8 @@ export default function Home() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [detailRows, setDetailRows]           = useState([]);
   const [isLoading, setIsLoading]             = useState(false);
+  const [loadingSeconds, setLoadingSeconds]   = useState(0);
+  const loadingTimerRef                       = useRef(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [hasSearched, setHasSearched]         = useState(false);
   const [searchQuery, setSearchQuery]         = useState("");
@@ -185,6 +187,8 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    setLoadingSeconds(0);
+    loadingTimerRef.current = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
     setHasSearched(true);
     setSearchQuery(rawQuery);
     setSelectedBusiness(null);
@@ -253,6 +257,7 @@ export default function Home() {
       setAndCache(Array.from(seen.values()));
     }
 
+    clearInterval(loadingTimerRef.current);
     setIsLoading(false);
   }, [region, countyId]);
 
@@ -416,7 +421,12 @@ export default function Home() {
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm text-slate-400">Searching {currentCounty.name} records…</p>
+                        <p className="text-sm text-slate-400">
+                          {currentCounty.hasPublicApi ? `Searching ${currentCounty.name} records…` : `Searching official health records via AI… (${loadingSeconds}s)`}
+                        </p>
+                        {!currentCounty.hasPublicApi && loadingSeconds >= 5 && (
+                          <p className="text-xs text-slate-400 mt-2">Almost there, fetching live data…</p>
+                        )}
                       </div>
                     ) : results.length > 0 ? (
                       <div>
