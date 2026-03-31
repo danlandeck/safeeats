@@ -97,6 +97,8 @@ export default function Home() {
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
+  const searchCacheRef                        = useRef(new Map());
+  const detailCacheRef                        = useRef(new Map());
 
   const handleToggleCompare = (restaurant) => {
     setCompareList((prev) => {
@@ -188,40 +190,48 @@ export default function Home() {
     setSelectedBusiness(null);
     setViewMode("list");
 
+    const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
+    if (searchCacheRef.current.has(cacheKey)) {
+      setResults(searchCacheRef.current.get(cacheKey));
+      setIsLoading(false);
+      return;
+    }
+
     const currentRegion = REGIONS[searchRegion];
     const currentCounty = currentRegion.counties.find((c) => c.id === searchCounty) || currentRegion.counties[0];
     const encode = (s) => encodeURIComponent(s.toUpperCase());
+    const setAndCache = (data) => { searchCacheRef.current.set(cacheKey, data); setResults(data); };
 
     if (searchCounty === "nyc") {
       const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
-      const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processNYCResults(data));
+      setAndCache(processNYCResults(data));
     } else if (searchCounty === "cook") {
-      const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processChicagoResults(data));
+      setAndCache(processChicagoResults(data));
     } else if (searchCounty === "montgomery_md") {
-      const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=500&$order=inspectiondate DESC`;
+      const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=200&$order=inspectiondate DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processMontgomeryResults(data));
+      setAndCache(processMontgomeryResults(data));
     } else if (searchCounty === "travis") {
-      const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processAustinResults(data));
+      setAndCache(processAustinResults(data));
     } else if (searchCounty === "sf") {
-      const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
+      const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processSFResults(data));
+      setAndCache(processSFResults(data));
     } else if (searchCounty === "la") {
-      const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=500&$order=activity_date DESC`;
+      const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=200&$order=activity_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processLAResults(data));
+      setAndCache(processLAResults(data));
     } else if (currentCounty.hasPublicApi) {
       const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-      const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=500&$order=inspection_date DESC`;
+      const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
-      setResults(processKingCountyResults(data));
+      setAndCache(processKingCountyResults(data));
     } else {
       const today = new Date().toISOString().slice(0, 10);
       const result = await base44.integrations.Core.InvokeLLM({
@@ -240,39 +250,46 @@ export default function Home() {
         const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
         if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
       });
-      setResults(Array.from(seen.values()));
+      setAndCache(Array.from(seen.values()));
     }
 
     setIsLoading(false);
   }, [region, countyId]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
-    setIsDetailLoading(true);
     setSelectedBusiness(biz);
 
+    if (detailCacheRef.current.has(biz.business_id)) {
+      setDetailRows(detailCacheRef.current.get(biz.business_id));
+      return;
+    }
+
+    setIsDetailLoading(true);
+    const cacheAndSet = (rows) => { detailCacheRef.current.set(biz.business_id, rows); setDetailRows(rows); };
+
     if (biz.source === "nyc") {
-      const data = await fetch(`${NYC_API}?camis=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
-      setDetailRows(nycToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${NYC_API}?camis=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
+      cacheAndSet(nycToDetailRows(Array.isArray(data) ? data : []));
     } else if (biz.source === "chicago") {
-      const data = await fetch(`${CHICAGO_API}?license_=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
-      setDetailRows(chicagoToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${CHICAGO_API}?license_=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
+      cacheAndSet(chicagoToDetailRows(Array.isArray(data) ? data : []));
     } else if (biz.source === "montgomery") {
-      const data = await fetch(`${MONTGOMERY_API}?establishment_id=${biz.business_id}&$limit=1000&$order=inspectiondate DESC`).then((r) => r.json());
-      setDetailRows(montgomeryToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${MONTGOMERY_API}?establishment_id=${biz.business_id}&$limit=500&$order=inspectiondate DESC`).then((r) => r.json());
+      cacheAndSet(montgomeryToDetailRows(Array.isArray(data) ? data : []));
     } else if (biz.source === "austin") {
-      const data = await fetch(`${AUSTIN_API}?facility_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
-      setDetailRows(austinToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${AUSTIN_API}?facility_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
+      cacheAndSet(austinToDetailRows(Array.isArray(data) ? data : []));
     } else if (biz.source === "sf") {
-      const data = await fetch(`${SF_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
-      setDetailRows(sfToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${SF_API}?business_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
+      cacheAndSet(sfToDetailRows(Array.isArray(data) ? data : []));
     } else if (biz.source === "la") {
-      const data = await fetch(`${LA_API}?facility_id=${biz.business_id}&$limit=1000&$order=activity_date DESC`).then((r) => r.json());
-      setDetailRows(laToDetailRows(Array.isArray(data) ? data : []));
+      const data = await fetch(`${LA_API}?facility_id=${biz.business_id}&$limit=500&$order=activity_date DESC`).then((r) => r.json());
+      cacheAndSet(laToDetailRows(Array.isArray(data) ? data : []));
     } else if (!biz.isLLMData) {
-      const data = await fetch(`${KING_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
-      setDetailRows(Array.isArray(data) ? data : []);
+      const data = await fetch(`${KING_API}?business_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
+      cacheAndSet(Array.isArray(data) ? data : []);
     } else {
-      setDetailRows(llmToDetailRows(biz));
+      cacheAndSet(llmToDetailRows(biz));
     }
 
     setIsDetailLoading(false);
