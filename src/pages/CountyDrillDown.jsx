@@ -25,37 +25,37 @@ const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
-  const data = await fetch(`${KING_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${KING_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
   return processKingCountyResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchNYC() {
-  const data = await fetch(`${NYC_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${NYC_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
   return processNYCResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchChicago() {
-  const data = await fetch(`${CHICAGO_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${CHICAGO_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
   return processChicagoResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchMontgomery() {
-  const data = await fetch(`${MONTGOMERY_API}?$limit=2000&$order=inspectiondate DESC`).then((r) => r.json());
+  const data = await fetch(`${MONTGOMERY_API}?$limit=200&$order=inspectiondate DESC`).then((r) => r.json());
   return processMontgomeryResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchAustin() {
-  const data = await fetch(`${AUSTIN_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${AUSTIN_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
   return processAustinResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchSF() {
-  const data = await fetch(`${SF_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${SF_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
   return processSFResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchLA() {
-  const data = await fetch(`${LA_API}?$limit=2000&$order=activity_date DESC`).then((r) => r.json());
+  const data = await fetch(`${LA_API}?$limit=200&$order=activity_date DESC`).then((r) => r.json());
   return processLAResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
@@ -89,8 +89,8 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
   const result = await base44.integrations.Core.InvokeLLM({
     model: "gemini_3_flash",
     prompt: `Today is ${today}. From official health department records in ${location}, return:
-1. top_rated: 8 restaurants with the best safety scores
-2. worst_rated: 8 restaurants with the worst safety scores
+1. top_rated: 3 restaurants with the best safety scores
+2. worst_rated: 3 restaurants with the worst safety scores
 
 No overlap. Real establishments only. For each: name, address, city, safetyScore (0-100), latest_date (YYYY-MM-DD), latest_result, total_inspections, violations (up to 2 short strings).`,
     add_context_from_internet: true,
@@ -230,6 +230,7 @@ export default function CountyDrillDown() {
   const [worstRated, setWorstRated]     = useState([]);
   const [allRestaurants, setAll]        = useState([]);
   const [loading, setLoading]           = useState(true);
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
   const [isLive, setIsLive]             = useState(false);
   const [regionLabel, setRegionLabel]   = useState("");
 
@@ -245,6 +246,8 @@ export default function CountyDrillDown() {
 
   useEffect(() => {
     setLoading(true);
+    setLoadingSeconds(0);
+    const timer = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
     setAll([]); setTopRated([]); setWorstRated([]);
 
     if (liveConfig) {
@@ -254,6 +257,7 @@ export default function CountyDrillDown() {
         setAll(data);
         setTopRated([...data].sort((a, b) => b.safetyScore - a.safetyScore).slice(0, 10));
         setWorstRated([...data].sort((a, b) => a.safetyScore - b.safetyScore).slice(0, 10));
+        clearInterval(timer);
         setLoading(false);
       });
     } else {
@@ -263,9 +267,11 @@ export default function CountyDrillDown() {
         setTopRated(t);
         setWorstRated(w);
         setAll([...t, ...w]);
+        clearInterval(timer);
         setLoading(false);
       });
     }
+    return () => clearInterval(timer);
   }, [stateAbbr, stateName, countyName]);
 
   const avgScore = allRestaurants.length > 0
@@ -301,8 +307,11 @@ export default function CountyDrillDown() {
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
             <p className="text-slate-400 text-sm">
-              {isLive ? "Fetching live inspection data…" : "Searching official health records via AI…"}
+              {isLive ? "Fetching live inspection data…" : `Searching official health records via AI… (${loadingSeconds}s)`}
             </p>
+            {!isLive && loadingSeconds >= 5 && (
+              <p className="text-xs text-slate-400">Almost there, fetching live data…</p>
+            )}
           </div>
         ) : allRestaurants.length === 0 ? (
           <div className="text-center py-20 text-slate-400">No data found for this region.</div>
