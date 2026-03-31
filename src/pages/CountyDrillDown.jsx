@@ -25,37 +25,37 @@ const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
-  const data = await fetch(`${KING_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${KING_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
   return processKingCountyResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchNYC() {
-  const data = await fetch(`${NYC_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${NYC_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
   return processNYCResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchChicago() {
-  const data = await fetch(`${CHICAGO_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${CHICAGO_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
   return processChicagoResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchMontgomery() {
-  const data = await fetch(`${MONTGOMERY_API}?$limit=200&$order=inspectiondate DESC`).then((r) => r.json());
+  const data = await fetch(`${MONTGOMERY_API}?$limit=50&$order=inspectiondate DESC`).then((r) => r.json());
   return processMontgomeryResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchAustin() {
-  const data = await fetch(`${AUSTIN_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${AUSTIN_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
   return processAustinResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchSF() {
-  const data = await fetch(`${SF_API}?$limit=200&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${SF_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
   return processSFResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 async function fetchLA() {
-  const data = await fetch(`${LA_API}?$limit=200&$order=activity_date DESC`).then((r) => r.json());
+  const data = await fetch(`${LA_API}?$limit=50&$order=activity_date DESC`).then((r) => r.json());
   return processLAResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
@@ -87,13 +87,11 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
 
   const today = new Date().toISOString().slice(0, 10);
   const result = await base44.integrations.Core.InvokeLLM({
-    model: "gemini_3_flash",
-    prompt: `Today is ${today}. From official health department records in ${location}, return:
-1. top_rated: 3 restaurants with the best safety scores
-2. worst_rated: 3 restaurants with the worst safety scores
+    prompt: `From your knowledge of food safety inspection records in ${location}, return:
+1. top_rated: 3 well-known restaurants with excellent safety records
+2. worst_rated: 3 restaurants known for health violations or poor inspection scores
 
 No overlap. Real establishments only. For each: name, address, city, safetyScore (0-100), latest_date (YYYY-MM-DD), latest_result, total_inspections, violations (up to 2 short strings).`,
-    add_context_from_internet: true,
     response_json_schema: {
       type: "object",
       properties: {
