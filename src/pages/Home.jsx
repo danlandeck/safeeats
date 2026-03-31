@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -77,7 +77,7 @@ const LLM_SCHEMA = {
 export default function Home() {
   const [region, setRegion]                   = useState("washington");
   const [countyId, setCountyId]               = useState("king");
-  const [pendingSearch, setPendingSearch]     = useState(null);
+  const pendingSearchRef                      = useRef(null);
   const [results, setResults]                 = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [detailRows, setDetailRows]           = useState([]);
@@ -102,16 +102,17 @@ export default function Home() {
     if (q) {
       if (r && REGIONS[r]) setRegion(r);
       if (c) setCountyId(c);
-      setPendingSearch(q);
+      pendingSearchRef.current = q;
     }
   }, []);
 
   useEffect(() => {
-    if (pendingSearch) {
-      setPendingSearch(null);
-      handleSearch(pendingSearch);
+    if (pendingSearchRef.current) {
+      const q = pendingSearchRef.current;
+      pendingSearchRef.current = null;
+      handleSearch(q);
     }
-  }, [countyId, pendingSearch]);
+  }, [countyId]);
 
   const resetSearch = () => {
     setResults([]);
@@ -133,6 +134,8 @@ export default function Home() {
     setSelectedBusiness(null);
     setViewMode("list");
 
+    const currentRegion = REGIONS[region];
+    const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
     const encode = (s) => encodeURIComponent(s.toUpperCase());
 
     if (countyId === "nyc") {
@@ -184,7 +187,7 @@ export default function Home() {
     }
 
     setIsLoading(false);
-  }, [currentCounty, currentRegion, countyId]);
+  }, [region, countyId]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setIsDetailLoading(true);
@@ -219,16 +222,17 @@ export default function Home() {
     setViewMode("map");
     if (!results.some((r) => !r.latitude)) return;
     setIsGeocodingMap(true);
+    const abbr = REGIONS[region].abbr;
     const geocoded = await Promise.all(
       results.map(async (r) => {
         if (r.latitude && r.longitude) return r;
-        const coords = await geocodeAddress(r.address, r.city, currentRegion.abbr);
+        const coords = await geocodeAddress(r.address, r.city, abbr);
         return coords ? { ...r, ...coords } : r;
       })
     );
     setResults(geocoded);
     setIsGeocodingMap(false);
-  }, [results, currentRegion.abbr]);
+  }, [results, region]);
 
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);

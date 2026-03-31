@@ -130,14 +130,14 @@ export default function NationalHeatMap() {
     }
   }, [loadCounties]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setSelectedState(null);
     setStateBounds(null);
     setCountyData(null);
     setHoveredState(null);
-  };
+  }, []);
 
-  const styleState = (feature) => {
+  const styleState = useCallback((feature) => {
     const abbr = feature.properties.postal || NAME_TO_ABBR[feature.properties.name];
     const score = STATE_SCORES[abbr] ?? 75;
     const isSelected = selectedState?.abbr === abbr;
@@ -147,9 +147,9 @@ export default function NationalHeatMap() {
       color: isSelected ? "#1e40af" : "#ffffff",
       weight: isSelected ? 3 : 2,
     };
-  };
+  }, [selectedState]);
 
-  const styleCounty = (feature) => {
+  const styleCounty = useCallback((feature) => {
     const abbr = selectedState?.abbr;
     const stateScore = STATE_SCORES[abbr] ?? 75;
     const fips = String(feature.id || feature.properties?.GEOID || feature.properties?.FIPS || "00000");
@@ -160,9 +160,9 @@ export default function NationalHeatMap() {
       color: "#ffffff",
       weight: 1.2,
     };
-  };
+  }, [selectedState]);
 
-  const onEachState = (feature, layer) => {
+  const onEachState = useCallback((feature, layer) => {
     const abbr = feature.properties.postal || NAME_TO_ABBR[feature.properties.name];
     const name = feature.properties.name;
     const score = STATE_SCORES[abbr] ?? 75;
@@ -188,9 +188,9 @@ export default function NationalHeatMap() {
         }
       },
     });
-  };
+  }, [selectedState, handleStateClick, handleReset]);
 
-  const onEachCounty = (feature, layer) => {
+  const onEachCounty = useCallback((feature, layer) => {
     const name = feature.properties?.NAME || feature.properties?.name || "County";
     const abbr = selectedState?.abbr;
     const stateScore = STATE_SCORES[abbr] ?? 75;
@@ -211,7 +211,7 @@ export default function NationalHeatMap() {
         navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(selectedState?.name || abbr)}&county=${encodeURIComponent(name)}`);
       },
     });
-  };
+  }, [selectedState, navigate]);
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
