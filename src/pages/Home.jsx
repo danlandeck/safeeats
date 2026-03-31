@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils } from "lucide-react";
+import { Utensils, X, GitCompareArrows } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
@@ -31,6 +31,7 @@ import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
 import NationalHeatMap from "../components/NationalHeatMap";
+import ComparePanel from "../components/ComparePanel";
 
 export { getGrade };
 export { getGradeColor } from "../utils/grading";
@@ -94,6 +95,17 @@ export default function Home() {
   const [filterResult, setFilterResult]       = useState("all");
   const [sortBy, setSortBy]                   = useState("score-high");
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
+  const [compareList, setCompareList]         = useState([]);
+  const [showCompare, setShowCompare]         = useState(false);
+
+  const handleToggleCompare = (restaurant) => {
+    setCompareList((prev) => {
+      const exists = prev.find((r) => r.business_id === restaurant.business_id);
+      if (exists) return prev.filter((r) => r.business_id !== restaurant.business_id);
+      if (prev.length >= 3) return prev;
+      return [...prev, restaurant];
+    });
+  };
 
   const currentRegion = REGIONS[region];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
@@ -134,6 +146,8 @@ export default function Home() {
     setHasSearched(false);
     setSelectedBusiness(null);
     setViewMode("list");
+    setCompareList([]);
+    setShowCompare(false);
   };
 
   const handleRegionChange = (newRegion) => {
@@ -412,7 +426,14 @@ export default function Home() {
                         ) : (
                           <div className="space-y-3">
                             {filteredAndSortedResults.map((r) => (
-                              <RestaurantCard key={r.business_id} restaurant={r} onClick={() => handleSelectBusiness(r)} />
+                              <RestaurantCard
+                                key={r.business_id}
+                                restaurant={r}
+                                onClick={() => handleSelectBusiness(r)}
+                                onToggleCompare={handleToggleCompare}
+                                isCompared={compareList.some((c) => c.business_id === r.business_id)}
+                                compareDisabled={compareList.length >= 3}
+                              />
                             ))}
                           </div>
                         )}
@@ -438,6 +459,38 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Compare floating bar */}
+      {compareList.length >= 2 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <GitCompareArrows className="w-4 h-4 text-blue-400" />
+            {compareList.length} selected
+          </div>
+          <div className="flex items-center gap-1">
+            {compareList.map((r) => (
+              <span key={r.business_id} className="text-xs bg-slate-700 px-2 py-1 rounded-lg truncate max-w-[120px]">{r.name}</span>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowCompare(true)}
+            className="bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-1.5 rounded-xl transition-colors"
+          >
+            Compare
+          </button>
+          <button onClick={() => setCompareList([])} className="text-slate-400 hover:text-white transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {showCompare && (
+        <ComparePanel
+          restaurants={compareList}
+          onClose={() => setShowCompare(false)}
+          onViewDetail={(r) => { setShowCompare(false); handleSelectBusiness(r); }}
+        />
+      )}
     </div>
   );
 }
