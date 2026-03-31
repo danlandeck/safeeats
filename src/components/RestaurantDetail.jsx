@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Phone, Building2, ClipboardList, Globe } from "lucid
 import ScoreGauge from "./ScoreGauge";
 import InspectionDetail from "./InspectionDetail";
 import InspectionTrendChart from "./InspectionTrendChart";
+import ViolationCategoryChart from "./ViolationCategoryChart";
 import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
@@ -113,6 +114,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       {uniqueInspections.length > 1 && (
         <InspectionTrendChart inspections={uniqueInspections} />
       )}
+
+      {/* Violation Category Radar */}
+      <ViolationCategoryChart inspections={uniqueInspections} />
 
       <div>
         <h2 className="text-lg font-bold text-slate-900 mb-4 tracking-tight">
