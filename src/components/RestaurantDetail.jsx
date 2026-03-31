@@ -6,6 +6,7 @@ import ScoreGauge from "./ScoreGauge";
 import InspectionDetail from "./InspectionDetail";
 import InspectionTrendChart from "./InspectionTrendChart";
 import ViolationCategoryChart from "./ViolationCategoryChart";
+import RiskScoreCard from "./RiskScoreCard";
 import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
@@ -117,6 +118,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
       {/* Violation Category Radar */}
       <ViolationCategoryChart inspections={uniqueInspections} />
+
+      {/* AI Risk Assessment */}
+      <RiskScoreCard restaurant={restaurant} inspections={uniqueInspections} />
 
       <div>
         <h2 className="text-lg font-bold text-slate-900 mb-4 tracking-tight">
