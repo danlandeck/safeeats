@@ -3,6 +3,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X, MapPin } from "lucide-react";
 
+// Detects if the query ends with ", City ST" or ", City, ST" or ", City ST ZIP"
+export function parseLocationQuery(raw) {
+  const trimmed = raw.trim();
+  // Match patterns like "Subway, Seattle WA", "Dairy Queen, Woodinville WA 98072", "McDonald's, Chicago, IL"
+  const match = trimmed.match(/^(.+?),\s*([^,]+?)\s+([A-Z]{2})\s*(\d{5})?$/i);
+  if (match) {
+    return {
+      name: match[1].trim(),
+      city: match[2].trim(),
+      state: match[3].toUpperCase(),
+      zip: match[4] || null,
+    };
+  }
+  return null;
+}
+
 export default function SearchBar({ onSearch, isLoading }) {
   const [query, setQuery] = useState("");
 
@@ -19,7 +35,7 @@ export default function SearchBar({ onSearch, isLoading }) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search restaurant name or address..."
+            placeholder="Restaurant name, or: Subway, Seattle WA"
             className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-300 whitespace-nowrap overflow-x-auto"
           />
           {query && (

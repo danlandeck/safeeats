@@ -20,7 +20,7 @@ import {
   buildLLMRestaurant,
   geocodeAddress,
 } from "../utils/inspectionProcessors";
-import SearchBar from "../components/SearchBar";
+import SearchBar, { parseLocationQuery } from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
 import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
@@ -127,35 +127,60 @@ export default function Home() {
     resetSearch();
   };
 
-  const handleSearch = useCallback(async (query) => {
+  const handleSearch = useCallback(async (rawQuery) => {
+    // Detect location-aware queries like "Subway, Seattle WA"
+    let query = rawQuery;
+    let searchRegion = region;
+    let searchCounty = countyId;
+
+    const parsed = parseLocationQuery(rawQuery);
+    if (parsed) {
+      query = parsed.name;
+      // Find matching region by state abbreviation
+      const matchedRegionEntry = Object.entries(REGIONS).find(([, r]) => r.abbr === parsed.state);
+      if (matchedRegionEntry) {
+        searchRegion = matchedRegionEntry[0];
+        const matchedRegion = matchedRegionEntry[1];
+        // Find best matching county by city name
+        const cityLower = parsed.city.toLowerCase();
+        const matchedCounty = matchedRegion.counties.find(
+          (c) => c.city.toLowerCase().includes(cityLower) || cityLower.includes(c.city.toLowerCase())
+        ) || matchedRegion.counties[0];
+        searchCounty = matchedCounty.id;
+        // Update dropdowns
+        setRegion(searchRegion);
+        setCountyId(searchCounty);
+      }
+    }
+
     setIsLoading(true);
     setHasSearched(true);
-    setSearchQuery(query);
+    setSearchQuery(rawQuery);
     setSelectedBusiness(null);
     setViewMode("list");
 
-    const currentRegion = REGIONS[region];
-    const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
+    const currentRegion = REGIONS[searchRegion];
+    const currentCounty = currentRegion.counties.find((c) => c.id === searchCounty) || currentRegion.counties[0];
     const encode = (s) => encodeURIComponent(s.toUpperCase());
 
-    if (countyId === "nyc") {
+    if (searchCounty === "nyc") {
       const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
       const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processNYCResults(data));
-    } else if (countyId === "cook") {
+    } else if (searchCounty === "cook") {
       const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processChicagoResults(data));
-    } else if (countyId === "montgomery_md") {
+    } else if (searchCounty === "montgomery_md") {
       const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=500&$order=inspectiondate DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processMontgomeryResults(data));
-    } else if (countyId === "travis") {
+    } else if (searchCounty === "travis") {
       const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processAustinResults(data));
-    } else if (countyId === "sf") {
+    } else if (searchCounty === "sf") {
       const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processSFResults(data));
@@ -174,10 +199,9 @@ export default function Home() {
       });
 
       const raw = (result?.restaurants || []).map((r, i) =>
-        buildLLMRestaurant(r, i, countyId, currentCounty.city)
+        buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
       );
 
-      // Deduplicate by name + address
       const seen = new Map();
       raw.forEach((r) => {
         const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
