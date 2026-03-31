@@ -297,19 +297,24 @@ export default function Home() {
 
   const handleSwitchToMap = useCallback(async () => {
     setViewMode("map");
-    if (!results.some((r) => !r.latitude)) return;
+    const MAP_LIMIT = 15;
+    const topResults = filteredAndSortedResults.slice(0, MAP_LIMIT);
+    if (!topResults.some((r) => !r.latitude)) return;
     setIsGeocodingMap(true);
     const abbr = REGIONS[region].abbr;
+    const withTimeout = (promise, ms) => Promise.race([promise, new Promise((r) => setTimeout(() => r(null), ms))]);
     const geocoded = await Promise.all(
-      results.map(async (r) => {
+      topResults.map(async (r) => {
         if (r.latitude && r.longitude) return r;
-        const coords = await geocodeAddress(r.address, r.city, abbr);
+        const coords = await withTimeout(geocodeAddress(r.address, r.city, abbr), 2000);
         return coords ? { ...r, ...coords } : r;
       })
     );
-    setResults(geocoded);
+    // Merge geocoded top results back into full results array
+    const geocodedMap = new Map(geocoded.map((r) => [r.business_id, r]));
+    setResults((prev) => prev.map((r) => geocodedMap.get(r.business_id) || r));
     setIsGeocodingMap(false);
-  }, [results, region]);
+  }, [filteredAndSortedResults, results, region]);
 
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);
