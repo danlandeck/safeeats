@@ -202,7 +202,8 @@ export function montgomeryToDetailRows(data) {
 // ── LLM (AI-assisted) ────────────────────────────────────────────────────────
 export function llmToDetailRows(restaurant) {
   const rows = [];
-  (restaurant.allInspections || []).forEach((insp, inspIndex) => {
+  // Only process inspections that have a real date
+  (restaurant.allInspections || []).filter((insp) => insp.date).forEach((insp, inspIndex) => {
     const violations = insp.violations || [];
     const penaltyPts = String(insp.violation_points ?? Math.max(0, 100 - (insp.score || 0)));
     if (violations.length === 0) {

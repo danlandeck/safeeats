@@ -118,16 +118,28 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         <h2 className="text-lg font-bold text-slate-900 mb-4 tracking-tight">
           Food Safety Inspection History
         </h2>
-        <div className="space-y-4">
-          {uniqueInspections.map((insp, idx) => (
-            <InspectionDetail
-              key={insp.inspection_serial_num}
-              inspection={insp}
-              violations={insp.violations}
-              isLatest={idx === 0}
-            />
-          ))}
-        </div>
+        {uniqueInspections.length === 0 ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
+            <span className="text-amber-500 text-lg mt-0.5">⚠</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">No inspection records available</p>
+              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                The safety score shown is an AI estimate based on publicly available information. This jurisdiction may not publish detailed inspection records online, or no recent inspections were found.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {uniqueInspections.map((insp, idx) => (
+              <InspectionDetail
+                key={insp.inspection_serial_num}
+                inspection={insp}
+                violations={insp.violations}
+                isLatest={idx === 0}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
