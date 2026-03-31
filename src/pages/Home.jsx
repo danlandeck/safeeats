@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
 import { getGrade } from "../utils/grading";
@@ -75,6 +76,7 @@ const LLM_SCHEMA = {
 };
 
 export default function Home() {
+  const location = useLocation();
   const [region, setRegion]                   = useState("washington");
   const [countyId, setCountyId]               = useState("king");
   const pendingSearchRef                      = useRef(null);
@@ -95,6 +97,16 @@ export default function Home() {
 
   // Auto-search from URL params (e.g. navigated here from CountyDrillDown)
   useEffect(() => {
+    // If navigated with a pre-loaded restaurant, show it directly
+    if (location.state?.restaurant) {
+      const { restaurant, region: r, county: c } = location.state;
+      if (r && REGIONS[r]) setRegion(r);
+      if (c) setCountyId(c);
+      setHasSearched(true);
+      setSelectedBusiness(restaurant);
+      setDetailRows(llmToDetailRows(restaurant));
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const r = params.get("region");

@@ -230,7 +230,9 @@ export default function CountyDrillDown() {
   const handleRestaurantClick = (restaurant) => {
     const region = liveConfig ? liveConfig.region : (ABBR_TO_REGION_KEY[stateAbbr] || "washington");
     const county = liveConfig ? liveConfig.county : findCountyId(stateAbbr, countyName);
-    navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`);
+    navigate(`/?q=${encodeURIComponent(restaurant.name)}&region=${region}&county=${county}`, {
+      state: { restaurant, region, county }
+    });
   };
 
   useEffect(() => {
