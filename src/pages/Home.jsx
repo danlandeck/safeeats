@@ -12,11 +12,13 @@ import {
   processMontgomeryResults,
   processAustinResults,
   processSFResults,
+  processLAResults,
   nycToDetailRows,
   chicagoToDetailRows,
   montgomeryToDetailRows,
   austinToDetailRows,
   sfToDetailRows,
+  laToDetailRows,
   llmToDetailRows,
   buildLLMRestaurant,
   geocodeAddress,
@@ -39,6 +41,7 @@ const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
 const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
+const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find food establishments matching "${query}" in ${countyName}, ${regionAbbr} from official health department records.
 
@@ -196,6 +199,10 @@ export default function Home() {
       const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=500&$order=inspection_date DESC`;
       const data = await fetch(url).then((r) => r.json());
       setResults(processSFResults(data));
+    } else if (searchCounty === "la") {
+      const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=500&$order=activity_date DESC`;
+      const data = await fetch(url).then((r) => r.json());
+      setResults(processLAResults(data));
     } else if (currentCounty.hasPublicApi) {
       const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
       const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=500&$order=inspection_date DESC`;
@@ -244,6 +251,9 @@ export default function Home() {
     } else if (biz.source === "sf") {
       const data = await fetch(`${SF_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
       setDetailRows(sfToDetailRows(Array.isArray(data) ? data : []));
+    } else if (biz.source === "la") {
+      const data = await fetch(`${LA_API}?facility_id=${biz.business_id}&$limit=1000&$order=activity_date DESC`).then((r) => r.json());
+      setDetailRows(laToDetailRows(Array.isArray(data) ? data : []));
     } else if (!biz.isLLMData) {
       const data = await fetch(`${KING_API}?business_id=${biz.business_id}&$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
       setDetailRows(Array.isArray(data) ? data : []);

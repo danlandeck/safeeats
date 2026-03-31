@@ -58,6 +58,7 @@ const LIVE_COUNTY_KEYS = new Set([
   "MD:Montgomery",
   "TX:Travis",
   "CA:San Francisco",
+  "CA:Los Angeles",
 ]);
 
 function getRiskLevel(score) {

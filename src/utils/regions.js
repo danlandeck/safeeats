@@ -23,7 +23,7 @@ export const REGIONS = {
     { id: "washington_ar", name: "Washington County (Fayetteville)", city: "Fayetteville", hasPublicApi: false },
   ]},
   california: { name: "California", abbr: "CA", counties: [
-    { id: "la", name: "Los Angeles County", city: "Los Angeles", hasPublicApi: false },
+    { id: "la", name: "Los Angeles County", city: "Los Angeles", hasPublicApi: true },
     { id: "sf", name: "San Francisco County", city: "San Francisco", hasPublicApi: true },
     { id: "sandiego", name: "San Diego County", city: "San Diego", hasPublicApi: false },
     { id: "sacramento", name: "Sacramento County", city: "Sacramento", hasPublicApi: false },

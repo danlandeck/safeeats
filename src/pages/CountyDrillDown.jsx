@@ -11,6 +11,7 @@ import {
   processMontgomeryResults,
   processAustinResults,
   processSFResults,
+  processLAResults,
 } from "../utils/inspectionProcessors";
 import ScoreGauge from "../components/ScoreGauge";
 
@@ -20,6 +21,7 @@ const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
 const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
+const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
@@ -50,6 +52,11 @@ async function fetchAustin() {
 async function fetchSF() {
   const data = await fetch(`${SF_API}?$limit=2000&$order=inspection_date DESC`).then((r) => r.json());
   return processSFResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
+}
+
+async function fetchLA() {
+  const data = await fetch(`${LA_API}?$limit=2000&$order=activity_date DESC`).then((r) => r.json());
+  return processLAResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
 // ── LLM fetcher ───────────────────────────────────────────────────────────────
@@ -162,6 +169,7 @@ const LIVE_API_COUNTIES = {
   "MD:Montgomery": { label: "Montgomery County, MD",          fetch: fetchMontgomery, region: "maryland",   county: "montgomery_md" },
   "TX:Travis":     { label: "Travis County (Austin), TX",      fetch: fetchAustin,     region: "texas",      county: "travis" },
   "CA:San Francisco": { label: "San Francisco County, CA",    fetch: fetchSF,         region: "california", county: "sf" },
+  "CA:Los Angeles":   { label: "Los Angeles County, CA",       fetch: fetchLA,         region: "california", county: "la" },
 };
 
 const ABBR_TO_REGION_KEY = {
