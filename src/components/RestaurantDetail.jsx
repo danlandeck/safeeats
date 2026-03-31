@@ -124,7 +124,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div>
               <p className="text-sm font-semibold text-amber-800">No inspection records available</p>
               <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                The safety score shown is an AI estimate based on publicly available information. This jurisdiction may not publish detailed inspection records online, or no recent inspections were found.
+                This jurisdiction does not publish a real-time public inspection API, so the safety score is an AI estimate synthesized from sources such as state health department websites, local news coverage, Yelp health inspection disclosures, and publicly posted PDF inspection reports. It is <strong>not</strong> sourced from a live government database and may not reflect the most recent inspection.
               </p>
             </div>
           </div>
