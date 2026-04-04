@@ -84,15 +84,25 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 {restaurant.phone && (
                   <span className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-slate-400" />{restaurant.phone}</span>
                 )}
-                {restaurant.website && (
+                {restaurant.website ? (
                   <a
                     href={restaurant.website.startsWith('http') ? restaurant.website : `https://${restaurant.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-slate-700 font-semibold hover:text-slate-900 underline underline-offset-2 transition-colors"
+                    className="flex items-center gap-1.5 text-blue-600 font-semibold hover:text-blue-800 underline underline-offset-2 transition-colors"
                   >
-                    <Globe className="w-4 h-4 text-slate-400" />
+                    <Globe className="w-4 h-4" />
                     {restaurant.website.replace(/^https?:\/\//, '').replace(/\/+$/, '')}
+                  </a>
+                ) : (
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' ' + (restaurant.city || '') + ' restaurant')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-blue-600 font-semibold hover:text-blue-800 underline underline-offset-2 transition-colors"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Find website
                   </a>
                 )}
               </div>
