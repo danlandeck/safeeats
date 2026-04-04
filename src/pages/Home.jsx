@@ -34,6 +34,7 @@ import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
 
 import ComparePanel from "../components/ComparePanel";
+import LocalAreaMap from "../components/LocalAreaMap";
 
 export { getGrade };
 export { getGradeColor } from "../utils/grading";
@@ -469,7 +470,11 @@ export default function Home() {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
-
+        {!hasSearched && (
+          <div className="mb-10">
+            <LocalAreaMap onSearch={(label) => { if (label) handleSearch(label); }} />
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {selectedBusiness ? (
