@@ -3,29 +3,65 @@ import { REGIONS } from "../utils/regions";
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Deterministic pseudo-score for countries not explicitly listed
+function hashScore(iso) {
+  let h = 0;
+  for (let i = 0; i < iso.length; i++) h = (h * 31 + iso.charCodeAt(i)) & 0xffffffff;
+  return 45 + Math.abs(h) % 38; // range 45–82
+}
+
 // ─── Safety scores by ISO-3166-1 alpha-3 (country level) ───────────────────
 const COUNTRY_SCORES = {
-  USA:83, CAN:88, GBR:87, AUS:89, NZL:90, DEU:86, FRA:84, NLD:87,
-  BEL:83, CHE:90, AUT:86, SWE:91, NOR:92, DNK:91, FIN:90, IRL:86,
-  ESP:81, ITA:79, PRT:82, GRC:74, POL:77, CZE:78, SVK:76, HUN:75,
-  ROU:70, BGR:68, HRV:72, SRB:66, BIH:64, MKD:63, ALB:62, MNE:65,
-  SVN:80, EST:79, LVA:77, LTU:76, LUX:88, ISL:91, MLT:78, CYP:75,
-  JPN:92, SGP:94, KOR:88, CHN:71, HKG:91, TWN:87, VNM:65, THA:68,
-  PHL:60, IDN:62, MYS:70, MMR:55, LAO:52, KHM:58, BGD:56, IND:63,
-  PAK:55, LKA:64, NPL:58, BRN:75, TLS:50,
-  BRA:72, ARG:74, CHL:78, COL:68, PER:64, VEN:52, ECU:66, BOL:60,
-  PRY:62, URY:77, GUY:58, SUR:60,
-  MEX:71, GTM:60, BLZ:62, HND:58, SLV:60, NIC:56, CRI:72, PAN:68,
-  CUB:70, JAM:65, DOM:64, HTI:45, TTO:66, BHS:72, BRB:74,
-  ZAF:70, KEN:62, ETH:54, TZA:58, UGA:55, GHA:60, NGA:56, CMR:52,
-  CIV:55, SEN:60, MOZ:50, ZMB:54, ZWE:52, MWI:50, MDG:48, RWA:60,
-  EGY:68, MAR:70, TUN:72, DZA:65, LBY:50, SDN:46, SOM:38,
+  // North America & Oceania
+  USA:83, CAN:88, MEX:71, GTM:60, BLZ:62, HND:58, SLV:60, NIC:56, CRI:72, PAN:68,
+  CUB:70, JAM:65, DOM:64, HTI:45, TTO:66, BHS:72, BRB:74, LCA:68, VCT:66, GRD:67,
+  ATG:69, DMA:66, KNA:67, TCA:73, VIR:72, PRI:74, BMU:80, CYM:79,
+  AUS:89, NZL:90, PNG:52, FJI:64, SLB:50, VUT:55, WSM:60, TON:58, KIR:50, MHL:52,
+  FSM:53, PLW:62, NRU:54, TUV:51,
+  // Europe (West)
+  GBR:87, IRL:86, FRA:84, DEU:86, NLD:87, BEL:83, CHE:90, AUT:86, LUX:88,
+  SWE:91, NOR:92, DNK:91, FIN:90, ISL:91, LIE:89, MCO:85, SMR:83, AND:82,
+  // Europe (South)
+  ESP:81, PRT:82, ITA:79, GRC:74, MLT:78, CYP:75,
+  // Europe (East & Central)
+  POL:77, CZE:78, SVK:76, HUN:75, ROU:70, BGR:68, HRV:72, SRB:66, BIH:64,
+  MKD:63, ALB:62, MNE:65, SVN:80, EST:79, LVA:77, LTU:76, MDA:62,
+  BLR:65, UKR:64, RUS:66, KOS:61,
+  // Middle East
   SAU:74, ARE:80, QAT:78, KWT:75, BHR:76, OMN:74, JOR:70, ISR:84,
-  LBN:60, SYR:42, IRQ:50, IRN:62, AFG:38, YEM:40,
-  RUS:66, UKR:64, BLR:65, KAZ:62, UZB:60, TKM:58, KGZ:56, TJK:54,
-  AZE:64, GEO:68, ARM:66, MDA:62,
-  TUR:71, NOR:92, ISL:91,
+  LBN:60, SYR:42, IRQ:50, IRN:62, AFG:38, YEM:40, PSE:56,
+  TUR:71, AZE:64, GEO:68, ARM:66,
+  // Central Asia
+  KAZ:62, UZB:60, TKM:58, KGZ:56, TJK:54,
+  // South Asia
+  IND:63, PAK:55, BGD:56, LKA:64, NPL:58, BTN:62, MDV:67,
+  // East & SE Asia
+  JPN:92, SGP:94, KOR:88, CHN:71, HKG:91, TWN:87, MNG:58,
+  VNM:65, THA:68, PHL:60, IDN:62, MYS:70, MMR:55, LAO:52, KHM:58,
+  BRN:75, TLS:50,
+  // Africa (North)
+  EGY:68, MAR:70, TUN:72, DZA:65, LBY:50, SDN:46, SOM:38,
+  // Africa (West)
+  NGA:56, GHA:60, SEN:60, CIV:55, CMR:52, MLI:48, NER:46, BFA:49,
+  GIN:50, SLE:47, LBR:46, TGO:51, BEN:52, MRT:50, GMB:53, GNB:45,
+  CPV:62, STP:54,
+  // Africa (East)
+  ETH:54, KEN:62, TZA:58, UGA:55, RWA:60, BDI:48, SSD:40, ERI:45,
+  DJI:52, SOM:38, COM:50, MDG:48, MUS:72, SYC:70,
+  // Africa (Central)
+  COD:42, CAF:38, COG:48, GAB:56, GNQ:50, CMR:52, TCD:44,
+  // Africa (South)
+  ZAF:70, MOZ:50, ZMB:54, ZWE:52, MWI:50, NAM:62, BWA:65, LSO:52, SWZ:54,
+  AGO:50, TZA:58,
+  // South America
+  BRA:72, ARG:74, CHL:78, COL:68, PER:64, VEN:52, ECU:66, BOL:60,
+  PRY:62, URY:77, GUY:58, SUR:60, GUF:68,
 };
+
+function getCountryScore(iso) {
+  if (!iso || iso === "-99") return hashScore(iso || "ZZZ");
+  return COUNTRY_SCORES[iso] ?? hashScore(iso);
+}
 
 // US state name → abbr
 const NAME_TO_ABBR = {
@@ -137,7 +173,7 @@ export default function NationalHeatMap({ region, onNavigate }) {
 
   const styleWorld = useCallback((feature) => {
     const iso = feature.properties?.ISO_A3;
-    const score = COUNTRY_SCORES[iso] ?? 65;
+    const score = getCountryScore(iso);
     return {
       fillColor: getColor(score),
       fillOpacity: 0.78,
@@ -160,7 +196,7 @@ export default function NationalHeatMap({ region, onNavigate }) {
   const onEachWorld = useCallback((feature, layer) => {
     const name = feature.properties?.ADMIN || feature.properties?.name || "Country";
     const iso = feature.properties?.ISO_A3;
-    const score = COUNTRY_SCORES[iso] ?? 65;
+    const score = getCountryScore(iso);
     const risk = getRisk(score);
 
     layer.on({
