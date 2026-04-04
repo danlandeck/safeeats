@@ -395,41 +395,54 @@ export default function Home() {
               <span className="text-slate-400"> safe to eat at?</span>
             </h1>
             <p className="mt-4 text-base sm:text-lg text-slate-400 font-medium">
-              Real health inspection data — every county, one platform
+              Real health inspection data — worldwide, one platform
             </p>
           </div>
 
-          <div className="flex justify-center mb-4">
-            <select
-              value={region}
-              onChange={(e) => handleRegionChange(e.target.value)}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[220px]"
-            >
-              {Object.entries(REGIONS)
-                .sort(([, a], [, b]) => a.name.localeCompare(b.name))
-                .map(([key, reg]) => (
-                  <option key={key} value={key}>{reg.name} ({reg.abbr})</option>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
+            <div className="flex flex-col items-center gap-1">
+              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">🌍 Country / State</label>
+              <select
+                value={region}
+                onChange={(e) => handleRegionChange(e.target.value)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[240px]"
+              >
+                {(() => {
+                  const intlKeys = new Set(["canada","uk","mexico","australia","france","germany","spain","italy","japan","brazil","india","south_korea","china","uae","singapore","netherlands","portugal","new_zealand","argentina","thailand","greece","turkey","south_africa"]);
+                  const usEntries = Object.entries(REGIONS).filter(([k]) => !intlKeys.has(k)).sort(([,a],[,b]) => a.name.localeCompare(b.name));
+                  const intlEntries = Object.entries(REGIONS).filter(([k]) => intlKeys.has(k)).sort(([,a],[,b]) => a.name.localeCompare(b.name));
+                  return (
+                    <>
+                      <optgroup label="🇺🇸 United States">
+                        {usEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
+                      </optgroup>
+                      <optgroup label="🌐 International">
+                        {intlEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
+                      </optgroup>
+                    </>
+                  );
+                })()}
+              </select>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">📍 City / Region</label>
+              <select
+                value={countyId}
+                onChange={(e) => { setCountyId(e.target.value); resetSearch(); }}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[260px]"
+              >
+                {currentRegion.counties.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
-            </select>
-          </div>
-
-          <div className="flex justify-center mb-6">
-            <select
-              value={countyId}
-              onChange={(e) => { setCountyId(e.target.value); resetSearch(); }}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[260px]"
-            >
-              {currentRegion.counties.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              </select>
+            </div>
           </div>
 
           <SearchBar onSearch={handleSearch} isLoading={isLoading} />
 
           {!currentCounty.hasPublicApi && (
             <p className="text-center text-xs text-slate-500 mt-3">
-              AI-assisted lookup for {currentCounty.name} · searches publicly available official health department records · results may be incomplete if this jurisdiction does not publish data online
+              ✦ AI-assisted lookup · searches publicly available official health records for {currentCounty.city} · results may vary by jurisdiction
             </p>
           )}
         </div>
