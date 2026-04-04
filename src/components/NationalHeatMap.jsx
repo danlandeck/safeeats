@@ -309,7 +309,7 @@ export default function NationalHeatMap({ region, onNavigate }) {
 
       <div className="px-6 py-3 border-t border-slate-100 bg-slate-50">
         <p className="text-[11px] text-slate-400">
-          ESRI diverging risk scale · scores are AI-estimated from publicly available health department data · not a substitute for official inspections
+          ESRI diverging risk scale · scores for highlighted countries are research-based estimates from public health department data · scores for all other countries are algorithmically derived from their ISO code and serve as relative placeholders only · not a substitute for official inspections
         </p>
       </div>
     </div>
