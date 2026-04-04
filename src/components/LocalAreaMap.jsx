@@ -142,7 +142,12 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
             </button>
           ))}
           <button
-            onClick={() => onSearch && onSearch("restaurant", coords, radiusMiles)}
+            onClick={() => {
+              const zip = (locationLabel || "").match(/(\d{5})/)?.[1];
+              const city = (locationLabel || "").split(",")[0].trim();
+              const term = zip || city || "restaurant";
+              onSearch && onSearch(term, coords, radiusMiles);
+            }}
             className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
           >
             🔍 Search Here
