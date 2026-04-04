@@ -35,6 +35,7 @@ import DataVisualizations from "../components/DataVisualizations";
 
 import ComparePanel from "../components/ComparePanel";
 import LocalAreaMap from "../components/LocalAreaMap";
+import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 
 export { getGrade };
 export { getGradeColor } from "../utils/grading";
@@ -84,6 +85,8 @@ const LLM_SCHEMA = {
 
 export default function Home() {
   const location = useLocation();
+  const { consent, accept, decline } = useConsent();
+  const consentGiven = consent?.location === true;
   const [region, setRegion]                   = useState("washington");
   const [countyId, setCountyId]               = useState("king");
   const pendingSearchRef                      = useRef(null);
@@ -476,7 +479,7 @@ export default function Home() {
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
         {!hasSearched && (
           <div className="mb-10">
-            <LocalAreaMap onSearch={(label) => { if (label) handleSearch(label); }} />
+            <LocalAreaMap onSearch={(label) => { if (label) handleSearch(label); }} consentGiven={consentGiven} />
           </div>
         )}
 
@@ -618,6 +621,8 @@ export default function Home() {
           onClose={() => setShowScanner(false)}
         />
       )}
+
+      <ConsentBanner onAccept={accept} onDecline={decline} />
 
       {showCompare && (
         <ComparePanel
