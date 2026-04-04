@@ -98,6 +98,7 @@ export default function Home() {
   const [sortBy, setSortBy]                   = useState("score-high");
   const [dateFrom, setDateFrom]               = useState("");
   const [dateTo, setDateTo]                   = useState("");
+  const [minScore, setMinScore]               = useState(0);
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
@@ -349,6 +350,7 @@ export default function Home() {
     });
     if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
     if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
+    if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore >= minScore);
     switch (sortBy) {
       case "score-high":   filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections); break;
       case "score-low":    filtered.sort((a, b) => a.safetyScore - b.safetyScore || b.totalInspections - a.totalInspections); break;
@@ -364,7 +366,7 @@ export default function Home() {
       });
     }
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -504,6 +506,7 @@ export default function Home() {
                             sortBy={sortBy} onSortChange={setSortBy}
                             dateFrom={dateFrom} onDateFromChange={setDateFrom}
                             dateTo={dateTo} onDateToChange={setDateTo}
+                            minScore={minScore} onMinScoreChange={setMinScore}
                           />
                         </div>
 

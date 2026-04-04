@@ -1,8 +1,9 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, ArrowUpDown, Calendar } from "lucide-react";
+import { Filter, ArrowUpDown, Calendar, ShieldCheck } from "lucide-react";
+import { getGrade } from "../utils/grading";
 
-export default function FilterSortControls({ filterResult, onFilterChange, sortBy, onSortChange, dateFrom, onDateFromChange, dateTo, onDateToChange }) {
+export default function FilterSortControls({ filterResult, onFilterChange, sortBy, onSortChange, dateFrom, onDateFromChange, dateTo, onDateToChange, minScore, onMinScoreChange }) {
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
       <div className="flex items-center gap-2">
@@ -50,6 +51,26 @@ export default function FilterSortControls({ filterResult, onFilterChange, sortB
             onClick={() => { onDateFromChange(""); onDateToChange(""); }}
             className="text-xs text-slate-400 hover:text-slate-700 font-semibold"
           >✕</button>
+        )}
+      </div>
+
+      <div className="h-4 w-px bg-slate-200" />
+
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="w-4 h-4 text-slate-400" />
+        <span className="text-xs font-medium text-slate-600">Min Score:</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={minScore}
+          onChange={(e) => onMinScoreChange(Number(e.target.value))}
+          className="w-24 accent-slate-700"
+        />
+        <span className="text-xs font-bold text-slate-700 w-16">{minScore}+ ({getGrade(minScore)})</span>
+        {minScore > 0 && (
+          <button onClick={() => onMinScoreChange(0)} className="text-xs text-slate-400 hover:text-slate-700 font-semibold">✕</button>
         )}
       </div>
 
