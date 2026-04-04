@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -109,7 +108,6 @@ function MapController({ view }) {
 }
 
 export default function NationalHeatMap({ region, onNavigate }) {
-  const navigate = useNavigate();
   const [worldGeo, setWorldGeo] = useState(null);
   const [usGeo, setUsGeo] = useState(null);
   const [hovered, setHovered] = useState(null);
