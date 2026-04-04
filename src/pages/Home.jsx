@@ -96,6 +96,8 @@ export default function Home() {
   const [viewMode, setViewMode]               = useState("list");
   const [filterResult, setFilterResult]       = useState("all");
   const [sortBy, setSortBy]                   = useState("score-high");
+  const [dateFrom, setDateFrom]               = useState("");
+  const [dateTo, setDateTo]                   = useState("");
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
@@ -340,7 +342,13 @@ export default function Home() {
   }, [nearMeActive, region, results]);
 
   const filteredAndSortedResults = useMemo(() => {
-    let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);
+    let filtered = filterResult === "all" ? [...results] : results.filter((r) => {
+      const rv = (r.latestResult || "").toLowerCase();
+      const fv = filterResult.toLowerCase();
+      return rv === fv || rv.includes(fv);
+    });
+    if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
+    if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
     switch (sortBy) {
       case "score-high":   filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections); break;
       case "score-low":    filtered.sort((a, b) => a.safetyScore - b.safetyScore || b.totalInspections - a.totalInspections); break;
@@ -356,7 +364,7 @@ export default function Home() {
       });
     }
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -491,7 +499,12 @@ export default function Home() {
                         </div>
 
                         <div className="mb-4">
-                          <FilterSortControls filterResult={filterResult} onFilterChange={setFilterResult} sortBy={sortBy} onSortChange={setSortBy} />
+                          <FilterSortControls
+                            filterResult={filterResult} onFilterChange={setFilterResult}
+                            sortBy={sortBy} onSortChange={setSortBy}
+                            dateFrom={dateFrom} onDateFromChange={setDateFrom}
+                            dateTo={dateTo} onDateToChange={setDateTo}
+                          />
                         </div>
 
                         <div className="mb-6">
