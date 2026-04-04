@@ -19,7 +19,7 @@ export function parseLocationQuery(raw) {
   return null;
 }
 
-export default function SearchBar({ onSearch, isLoading }) {
+export default function SearchBar({ onSearch, isLoading, placeholder, dir }) {
   const [query, setQuery] = useState("");
 
   const handleSubmit = (e) => {
@@ -35,7 +35,8 @@ export default function SearchBar({ onSearch, isLoading }) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Restaurant name, or: Subway, Seattle WA"
+            placeholder={placeholder || "Restaurant name, or: Subway, Seattle WA"}
+            dir={dir || "ltr"}
             className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-300 whitespace-nowrap overflow-x-auto"
           />
           {query && (

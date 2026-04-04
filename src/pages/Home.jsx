@@ -4,6 +4,7 @@ import { Utensils, X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-reac
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
+import { getTranslations } from "../utils/i18n";
 import { getGrade } from "../utils/grading";
 import {
   processKingCountyResults,
@@ -120,6 +121,8 @@ export default function Home() {
 
   const currentRegion = REGIONS[region];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
+  const t = getTranslations(region);
+  const isRTL = ["uae"].includes(region);
 
   // Auto-search from URL params (e.g. navigated here from CountyDrillDown)
   useEffect(() => {
@@ -389,19 +392,19 @@ export default function Home() {
       <div className="bg-slate-900 text-white">
         <div className="max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
-              Is your restaurant
-              <br className="hidden sm:block" />
-              <span className="text-slate-400"> safe to eat at?</span>
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
+            {t.headline1}
+            <br className="hidden sm:block" />
+            <span className="text-slate-400"> {t.headline2}</span>
             </h1>
             <p className="mt-4 text-base sm:text-lg text-slate-400 font-medium">
-              Real health inspection data — worldwide, one platform
+            {t.subheadline}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
             <div className="flex flex-col items-center gap-1">
-              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">🌍 Country / State</label>
+              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">{t.labelCountry}</label>
               <select
                 value={region}
                 onChange={(e) => handleRegionChange(e.target.value)}
@@ -413,10 +416,10 @@ export default function Home() {
                   const intlEntries = Object.entries(REGIONS).filter(([k]) => intlKeys.has(k)).sort(([,a],[,b]) => a.name.localeCompare(b.name));
                   return (
                     <>
-                      <optgroup label="🇺🇸 United States">
+                      <optgroup label={t.optgroupUS}>
                         {usEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
                       </optgroup>
-                      <optgroup label="🌐 International">
+                      <optgroup label={t.optgroupIntl}>
                         {intlEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
                       </optgroup>
                     </>
@@ -425,7 +428,7 @@ export default function Home() {
               </select>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">📍 City / Region</label>
+              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">{t.labelCity}</label>
               <select
                 value={countyId}
                 onChange={(e) => { setCountyId(e.target.value); resetSearch(); }}
@@ -438,11 +441,11 @@ export default function Home() {
             </div>
           </div>
 
-          <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+          <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder={t.searchPlaceholder} dir={isRTL ? "rtl" : "ltr"} />
 
           {!currentCounty.hasPublicApi && (
             <p className="text-center text-xs text-slate-500 mt-3">
-              ✦ AI-assisted lookup · searches publicly available official health records for {currentCounty.city} · results may vary by jurisdiction
+              {t.aiDisclaimer(currentCounty.city)}
             </p>
           )}
         </div>
@@ -462,7 +465,7 @@ export default function Home() {
               {isDetailLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                  <p className="text-sm text-slate-400">Loading inspection details...</p>
+                  <p className="text-sm text-slate-400">{t.loadingDetails}</p>
                 </div>
               ) : (
                 <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
@@ -477,10 +480,10 @@ export default function Home() {
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
                         <p className="text-sm text-slate-400">
-                          {currentCounty.hasPublicApi ? `Searching ${currentCounty.name} records…` : `Searching official health records via AI… (${loadingSeconds}s)`}
+                         {currentCounty.hasPublicApi ? t.loading(currentCounty.name) : t.loadingAI(loadingSeconds)}
                         </p>
                         {!currentCounty.hasPublicApi && loadingSeconds >= 5 && (
-                          <p className="text-xs text-slate-400 mt-2">Almost there, fetching live data…</p>
+                         <p className="text-xs text-slate-400 mt-2">{t.loadingAILong}</p>
                         )}
                       </div>
                     ) : results.length > 0 ? (
@@ -488,28 +491,26 @@ export default function Home() {
                         <div className="flex items-center justify-between mb-4">
                           <div>
                             <p className="text-sm text-slate-500">
-                              <span className="font-semibold text-slate-800">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
-                              {nearMeActive && <span className="ml-1 text-blue-600 font-semibold">· within 5 mi</span>}
+                              {t.resultsFor(filteredAndSortedResults.length, results.length, searchQuery)}
+                              {nearMeActive && <span className="ml-1 text-blue-600 font-semibold">{t.withinDist}</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              Sorted by safety score · inspection count breaks ties only between equal scores.
-                            </p>
+                            <p className="text-xs text-slate-400 mt-0.5">{t.sortedBy}</p>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={handleFindNearMe}
                               disabled={isGeolocating}
-                              title={nearMeActive ? "Clear location filter" : "Find restaurants near me"}
+                              title={nearMeActive ? t.nearMeActive : t.nearMe}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                                 nearMeActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                               }`}
                             >
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
-                              {nearMeActive ? "Near Me ✓" : "Near Me"}
+                              {nearMeActive ? t.nearMeActive : t.nearMe}
                             </button>
-                            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>List</button>
-                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Map</button>
+                            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t.listLabel}</button>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t.mapLabel}</button>
                           </div>
                         </div>
 
@@ -549,8 +550,8 @@ export default function Home() {
                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                           <Utensils className="w-7 h-7 text-slate-400" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-700">No results found</h3>
-                        <p className="text-sm text-slate-400 mt-1">Try a different restaurant name or address</p>
+                        <h3 className="text-lg font-semibold text-slate-700">{t.noResults}</h3>
+                        <p className="text-sm text-slate-400 mt-1">{t.noResultsSub}</p>
                       </div>
                     )}
                   </div>
@@ -571,7 +572,7 @@ export default function Home() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <GitCompareArrows className="w-4 h-4 text-blue-400" />
-            {compareList.length} selected
+            {compareList.length} {t.selected}
           </div>
           <div className="flex items-center gap-1">
             {compareList.map((r) => (
@@ -582,7 +583,7 @@ export default function Home() {
             onClick={() => setShowCompare(true)}
             className="bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-1.5 rounded-xl transition-colors"
           >
-            Compare
+            {t.compare}
           </button>
           <button onClick={() => setCompareList([])} className="text-slate-400 hover:text-white transition-colors">
             <X className="w-4 h-4" />
