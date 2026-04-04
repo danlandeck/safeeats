@@ -93,6 +93,7 @@ export default function Home() {
   const [isLoading, setIsLoading]             = useState(false);
   const [loadingSeconds, setLoadingSeconds]   = useState(0);
   const loadingTimerRef                       = useRef(null);
+  const abortRef                              = useRef(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [hasSearched, setHasSearched]         = useState(false);
   const [searchQuery, setSearchQuery]         = useState("");
@@ -199,6 +200,11 @@ export default function Home() {
       }
     }
 
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
+
     setIsLoading(true);
     setLoadingSeconds(0);
     loadingTimerRef.current = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
@@ -209,6 +215,7 @@ export default function Home() {
 
     const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
     if (searchCacheRef.current.has(cacheKey)) {
+      clearInterval(loadingTimerRef.current);
       setResults(searchCacheRef.current.get(cacheKey));
       setIsLoading(false);
       return;
@@ -217,57 +224,54 @@ export default function Home() {
     const currentRegion = REGIONS[searchRegion];
     const currentCounty = currentRegion.counties.find((c) => c.id === searchCounty) || currentRegion.counties[0];
     const encode = (s) => encodeURIComponent(s.toUpperCase());
+    const safeFetch = (url) => fetch(url, { signal }).then(r => r.json());
     const setAndCache = (data) => { searchCacheRef.current.set(cacheKey, data); setResults(data); };
 
-    if (searchCounty === "nyc") {
-      const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
-      const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processNYCResults(data));
-    } else if (searchCounty === "cook") {
-      const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processChicagoResults(data));
-    } else if (searchCounty === "montgomery_md") {
-      const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=200&$order=inspectiondate DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processMontgomeryResults(data));
-    } else if (searchCounty === "travis") {
-      const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processAustinResults(data));
-    } else if (searchCounty === "sf") {
-      const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processSFResults(data));
-    } else if (searchCounty === "la") {
-      const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=200&$order=activity_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processLAResults(data));
-    } else if (currentCounty.hasPublicApi) {
-      const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-      const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
-      const data = await fetch(url).then((r) => r.json());
-      setAndCache(processKingCountyResults(data));
-    } else {
-      const today = new Date().toISOString().slice(0, 10);
-      const result = await base44.integrations.Core.InvokeLLM({
-        model: "gemini_3_flash",
-        prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
-        add_context_from_internet: true,
-        response_json_schema: LLM_SCHEMA,
-      });
-
-      const raw = (result?.restaurants || []).map((r, i) =>
-        buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
-      );
-
-      const seen = new Map();
-      raw.forEach((r) => {
-        const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-        if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
-      });
-      setAndCache(Array.from(seen.values()));
+    try {
+      if (searchCounty === "nyc") {
+        const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
+        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        setAndCache(processNYCResults(await safeFetch(url)));
+      } else if (searchCounty === "cook") {
+        const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        setAndCache(processChicagoResults(await safeFetch(url)));
+      } else if (searchCounty === "montgomery_md") {
+        const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=200&$order=inspectiondate DESC`;
+        setAndCache(processMontgomeryResults(await safeFetch(url)));
+      } else if (searchCounty === "travis") {
+        const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        setAndCache(processAustinResults(await safeFetch(url)));
+      } else if (searchCounty === "sf") {
+        const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        setAndCache(processSFResults(await safeFetch(url)));
+      } else if (searchCounty === "la") {
+        const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=200&$order=activity_date DESC`;
+        setAndCache(processLAResults(await safeFetch(url)));
+      } else if (currentCounty.hasPublicApi) {
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
+        setAndCache(processKingCountyResults(await safeFetch(url)));
+      } else {
+        const today = new Date().toISOString().slice(0, 10);
+        const result = await base44.integrations.Core.InvokeLLM({
+          model: "gemini_3_flash",
+          prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
+          add_context_from_internet: true,
+          response_json_schema: LLM_SCHEMA,
+        });
+        const raw = (result?.restaurants || []).map((r, i) =>
+          buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
+        );
+        const seen = new Map();
+        raw.forEach((r) => {
+          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
+        });
+        setAndCache(Array.from(seen.values()));
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") throw e;
+      return;
     }
 
     clearInterval(loadingTimerRef.current);
