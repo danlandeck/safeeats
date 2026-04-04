@@ -1,31 +1,34 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { REGIONS } from "../utils/regions";
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Average safety scores by state (0–100 scale)
-const STATE_SCORES = {
-  AL: 71, AK: 78, AZ: 82, AR: 69, CA: 85, CO: 88, CT: 83, DE: 80,
-  DC: 77, FL: 79, GA: 76, HI: 90, ID: 84, IL: 81, IN: 74, IA: 86,
-  KS: 80, KY: 72, LA: 68, ME: 87, MD: 82, MA: 84, MI: 77, MN: 89,
-  MS: 65, MO: 73, MT: 85, NE: 83, NV: 75, NH: 88, NJ: 80, NM: 71,
-  NY: 79, NC: 76, ND: 87, OH: 78, OK: 70, OR: 86, PA: 80, RI: 82,
-  SC: 74, SD: 85, TN: 72, TX: 77, UT: 88, VT: 90, VA: 83, WA: 86,
-  WV: 67, WI: 85, WY: 83,
+// ─── Safety scores by ISO-3166-1 alpha-3 (country level) ───────────────────
+const COUNTRY_SCORES = {
+  USA:83, CAN:88, GBR:87, AUS:89, NZL:90, DEU:86, FRA:84, NLD:87,
+  BEL:83, CHE:90, AUT:86, SWE:91, NOR:92, DNK:91, FIN:90, IRL:86,
+  ESP:81, ITA:79, PRT:82, GRC:74, POL:77, CZE:78, SVK:76, HUN:75,
+  ROU:70, BGR:68, HRV:72, SRB:66, BIH:64, MKD:63, ALB:62, MNE:65,
+  SVN:80, EST:79, LVA:77, LTU:76, LUX:88, ISL:91, MLT:78, CYP:75,
+  JPN:92, SGP:94, KOR:88, CHN:71, HKG:91, TWN:87, VNM:65, THA:68,
+  PHL:60, IDN:62, MYS:70, MMR:55, LAO:52, KHM:58, BGD:56, IND:63,
+  PAK:55, LKA:64, NPL:58, BRN:75, TLS:50,
+  BRA:72, ARG:74, CHL:78, COL:68, PER:64, VEN:52, ECU:66, BOL:60,
+  PRY:62, URY:77, GUY:58, SUR:60,
+  MEX:71, GTM:60, BLZ:62, HND:58, SLV:60, NIC:56, CRI:72, PAN:68,
+  CUB:70, JAM:65, DOM:64, HTI:45, TTO:66, BHS:72, BRB:74,
+  ZAF:70, KEN:62, ETH:54, TZA:58, UGA:55, GHA:60, NGA:56, CMR:52,
+  CIV:55, SEN:60, MOZ:50, ZMB:54, ZWE:52, MWI:50, MDG:48, RWA:60,
+  EGY:68, MAR:70, TUN:72, DZA:65, LBY:50, SDN:46, SOM:38,
+  SAU:74, ARE:80, QAT:78, KWT:75, BHR:76, OMN:74, JOR:70, ISR:84,
+  LBN:60, SYR:42, IRQ:50, IRN:62, AFG:38, YEM:40,
+  RUS:66, UKR:64, BLR:65, KAZ:62, UZB:60, TKM:58, KGZ:56, TJK:54,
+  AZE:64, GEO:68, ARM:66, MDA:62,
+  TUR:71, NOR:92, ISL:91,
 };
 
-// State abbreviation → 2-digit FIPS code
-const STATE_FIPS = {
-  AL:"01", AK:"02", AZ:"04", AR:"05", CA:"06", CO:"08", CT:"09", DE:"10",
-  DC:"11", FL:"12", GA:"13", HI:"15", ID:"16", IL:"17", IN:"18", IA:"19",
-  KS:"20", KY:"21", LA:"22", ME:"23", MD:"24", MA:"25", MI:"26", MN:"27",
-  MS:"28", MO:"29", MT:"30", NE:"31", NV:"32", NH:"33", NJ:"34", NM:"35",
-  NY:"36", NC:"37", ND:"38", OH:"39", OK:"40", OR:"41", PA:"42", RI:"44",
-  SC:"45", SD:"46", TN:"47", TX:"48", UT:"49", VT:"50", VA:"51", WA:"53",
-  WV:"54", WI:"55", WY:"56",
-};
-
-// Map full state names → abbreviations (PublicaMundi GeoJSON uses full names)
+// US state name → abbr
 const NAME_TO_ABBR = {
   "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
   "Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC",
@@ -40,220 +43,186 @@ const NAME_TO_ABBR = {
   "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
 };
 
+const STATE_SCORES = {
+  AL:71,AK:78,AZ:82,AR:69,CA:85,CO:88,CT:83,DE:80,DC:77,FL:79,GA:76,
+  HI:90,ID:84,IL:81,IN:74,IA:86,KS:80,KY:72,LA:68,ME:87,MD:82,MA:84,
+  MI:77,MN:89,MS:65,MO:73,MT:85,NE:83,NV:75,NH:88,NJ:80,NM:71,NY:79,
+  NC:76,ND:87,OH:78,OK:70,OR:86,PA:80,RI:82,SC:74,SD:85,TN:72,TX:77,
+  UT:88,VT:90,VA:83,WA:86,WV:67,WI:85,WY:83,
+};
+
+// Region key → map focus [lat, lng, zoom]
+const REGION_VIEW = {
+  // US states → zoom into US
+  default_us: [38, -96, 4],
+  // International
+  canada:      [56, -96, 4],
+  uk:          [54, -2, 6],
+  france:      [46.5, 2.5, 6],
+  germany:     [51, 10, 6],
+  spain:       [40, -3, 6],
+  italy:       [42, 12.5, 6],
+  netherlands: [52.4, 5.3, 7],
+  portugal:    [39.5, -8, 7],
+  greece:      [39, 22, 6],
+  turkey:      [39, 35, 6],
+  japan:       [36, 138, 5],
+  south_korea: [36, 128, 7],
+  china:       [35, 105, 4],
+  india:       [21, 79, 5],
+  uae:         [24, 54, 7],
+  singapore:   [1.35, 103.8, 11],
+  thailand:    [13, 101, 6],
+  australia:   [-25, 134, 4],
+  new_zealand: [-41, 174, 6],
+  brazil:      [-15, -52, 4],
+  argentina:   [-34, -64, 4],
+  mexico:      [23, -102, 5],
+  south_africa:[29, 25, 5],
+};
+
 const RISK_LEVELS = [
-  { minScore: 90, color: "#1a9641", label: "Very Low Risk",  grade: "A" },
-  { minScore: 80, color: "#a6d96a", label: "Low Risk",       grade: "B" },
-  { minScore: 70, color: "#ffffbf", label: "Moderate Risk",  grade: "C" },
-  { minScore: 60, color: "#fdae61", label: "Elevated Risk",  grade: "D" },
-  { minScore: 0,  color: "#d7191c", label: "High Risk",      grade: "F" },
+  { minScore: 90, color: "#1a9641", label: "Very Low Risk", grade: "A" },
+  { minScore: 80, color: "#a6d96a", label: "Low Risk",      grade: "B" },
+  { minScore: 70, color: "#ffffbf", label: "Moderate Risk", grade: "C" },
+  { minScore: 60, color: "#fdae61", label: "Elevated Risk", grade: "D" },
+  { minScore: 0,  color: "#d7191c", label: "High Risk",     grade: "F" },
 ];
 
-const LIVE_API_STATES = new Set(["WA", "NY", "IL", "MD", "CA", "TX", "LA", "MA"]);
+function getRisk(score) { return RISK_LEVELS.find(r => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length-1]; }
+function getColor(score) { return getRisk(score).color; }
+function getGrade(score) { return getRisk(score).grade; }
 
-// Counties with live public API data — all others have no public inspection data
-const LIVE_COUNTY_KEYS = new Set([
-  "WA:King",
-  "NY:New York", "NY:Kings", "NY:Queens", "NY:Bronx", "NY:Richmond",
-  "IL:Cook",
-  "MD:Montgomery",
-  "TX:Travis",
-  "CA:San Francisco",
-  "CA:Los Angeles",
+// Derive if the selected region is a US state (not international)
+const INTL_KEYS = new Set([
+  "canada","uk","mexico","australia","france","germany","spain","italy","japan",
+  "brazil","india","south_korea","china","uae","singapore","netherlands","portugal",
+  "new_zealand","argentina","thailand","greece","turkey","south_africa",
 ]);
 
-function getRiskLevel(score) {
-  return RISK_LEVELS.find((r) => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length - 1];
-}
-function getGrade(score) { return getRiskLevel(score).grade; }
-function getScoreColor(score) { return getRiskLevel(score).color; }
-
-// Slightly vary county scores around the state average for realism
-function countyScore(stateScore, fips) {
-  const seed = parseInt(fips, 10) % 20;
-  return Math.max(0, Math.min(100, stateScore - 8 + seed));
-}
-
-// Child component: handles map zoom when selectedBounds changes
-function MapController({ bounds, onReady }) {
+function MapController({ view }) {
   const map = useMap();
-  useEffect(() => { onReady(map); }, [map]);
   useEffect(() => {
-    if (bounds) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 8 });
-    else map.setView([38, -96], 4);
-  }, [bounds, map]);
+    if (view) map.setView([view[0], view[1]], view[2], { animate: true });
+  }, [view, map]);
   return null;
 }
 
-export default function NationalHeatMap() {
+export default function NationalHeatMap({ region, onNavigate }) {
   const navigate = useNavigate();
-  const [geoData, setGeoData] = useState(null);
-  const [countyData, setCountyData] = useState(null);
-  const [loadingCounties, setLoadingCounties] = useState(false);
-  const [selectedState, setSelectedState] = useState(null); // { abbr, name, score, bounds }
-  const [hoveredState, setHoveredState] = useState(null);
+  const [worldGeo, setWorldGeo] = useState(null);
+  const [usGeo, setUsGeo] = useState(null);
+  const [hovered, setHovered] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [stateBounds, setStateBounds] = useState(null);
-  const countyCache = useRef(null);
-  const mapRef = useRef(null);
+  const isIntl = INTL_KEYS.has(region);
+
+  // Determine map view
+  const mapView = REGION_VIEW[region] || REGION_VIEW["default_us"];
 
   useEffect(() => {
-    fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json")
-      .then((r) => r.json())
-      .then((data) => { setGeoData(data); setLoading(false); })
-      .catch(() => { setError(true); setLoading(false); });
+    // Always load world GeoJSON
+    fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson")
+      .then(r => r.json())
+      .then(d => { setWorldGeo(d); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
-  const loadCounties = useCallback(async () => {
-    if (countyCache.current) return countyCache.current;
-    setLoadingCounties(true);
-    try {
-      const res = await fetch("https://raw.githubusercontent.com/loganpowell/census-geojson/master/GeoJSON/500k/2019/county.json");
-      const data = await res.json();
-      countyCache.current = data;
-      setLoadingCounties(false);
-      return data;
-    } catch {
-      setLoadingCounties(false);
-      return null;
+  useEffect(() => {
+    // Lazy-load US states GeoJSON only when needed
+    if (!isIntl && !usGeo) {
+      fetch("https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json")
+        .then(r => r.json())
+        .then(d => setUsGeo(d))
+        .catch(() => {});
     }
-  }, []);
+  }, [isIntl]);
 
-  const handleStateClick = useCallback(async (abbr, name, score, layer) => {
-    const bounds = layer.getBounds();
-    setStateBounds(bounds);
-    setSelectedState({ abbr, name, score });
-    setHoveredState(null);
-
-    const data = await loadCounties();
-    if (data) {
-      const fips = STATE_FIPS[abbr];
-      if (!fips) return;
-      const filtered = {
-        type: "FeatureCollection",
-        features: data.features.filter((f) => {
-          // Pad to 5 digits to handle numeric IDs without leading zeros (e.g. 6001 → 06001)
-          const id = String(f.id || f.properties?.GEOID || f.properties?.FIPS || "").padStart(5, "0");
-          return id.startsWith(fips);
-        }),
-      };
-      setCountyData(filtered);
-    }
-  }, [loadCounties]);
-
-  const handleReset = useCallback(() => {
-    setSelectedState(null);
-    setStateBounds(null);
-    setCountyData(null);
-    setHoveredState(null);
-  }, []);
-
-  const styleState = useCallback((feature) => {
-    const abbr = feature.properties.postal || NAME_TO_ABBR[feature.properties.name];
-    const score = STATE_SCORES[abbr] ?? 75;
-    const isSelected = selectedState?.abbr === abbr;
+  const styleWorld = useCallback((feature) => {
+    const iso = feature.properties?.ISO_A3;
+    const score = COUNTRY_SCORES[iso] ?? 65;
     return {
-      fillColor: getScoreColor(score),
-      fillOpacity: isSelected ? 0.3 : 0.78,
-      color: isSelected ? "#1e40af" : "#ffffff",
-      weight: isSelected ? 3 : 2,
+      fillColor: getColor(score),
+      fillOpacity: 0.78,
+      color: "#fff",
+      weight: 0.8,
     };
-  }, [selectedState]);
+  }, []);
 
-  const styleCounty = useCallback((feature) => {
-    const abbr = selectedState?.abbr;
-    const stateScore = STATE_SCORES[abbr] ?? 75;
-    const fips = String(feature.id || feature.properties?.GEOID || feature.properties?.FIPS || "00000");
-    const score = countyScore(stateScore, fips);
+  const styleUS = useCallback((feature) => {
+    const abbr = feature.properties?.postal || NAME_TO_ABBR[feature.properties?.name];
+    const score = STATE_SCORES[abbr] ?? 75;
     return {
-      fillColor: getScoreColor(score),
+      fillColor: getColor(score),
       fillOpacity: 0.82,
-      color: "#ffffff",
-      weight: 1.2,
+      color: "#fff",
+      weight: 1.5,
     };
-  }, [selectedState]);
+  }, []);
 
-  const onEachState = useCallback((feature, layer) => {
-    const abbr = feature.properties.postal || NAME_TO_ABBR[feature.properties.name];
-    const name = feature.properties.name;
-    const score = STATE_SCORES[abbr] ?? 75;
-    const isLive = LIVE_API_STATES.has(abbr);
+  const onEachWorld = useCallback((feature, layer) => {
+    const name = feature.properties?.ADMIN || feature.properties?.name || "Country";
+    const iso = feature.properties?.ISO_A3;
+    const score = COUNTRY_SCORES[iso] ?? 65;
+    const risk = getRisk(score);
 
     layer.on({
       mouseover: (e) => {
-        if (!selectedState) {
-          e.target.setStyle({ weight: 3.5, color: "#222", fillOpacity: 1 });
-        }
-        const risk = getRiskLevel(score);
-        setHoveredState({ name, abbr, score, grade: getGrade(score), isLive, risk });
+        e.target.setStyle({ weight: 2.5, color: "#222", fillOpacity: 1 });
+        setHovered({ name, score, grade: getGrade(score), risk, type: "country" });
       },
       mouseout: (e) => {
-        e.target.setStyle(styleState(feature));
-        setHoveredState(null);
-      },
-      click: (e) => {
-        if (selectedState) {
-          handleReset();
-        } else {
-          handleStateClick(abbr, name, score, e.target);
-        }
+        e.target.setStyle(styleWorld(feature));
+        setHovered(null);
       },
     });
-  }, [selectedState, handleStateClick, handleReset]);
+  }, [styleWorld]);
 
-  const onEachCounty = useCallback((feature, layer) => {
-    const name = feature.properties?.NAME || feature.properties?.name || "County";
-    const abbr = selectedState?.abbr;
-    const countyKey = `${abbr}:${name}`;
-    const isLive = LIVE_COUNTY_KEYS.has(countyKey);
-    const stateScore = STATE_SCORES[abbr] ?? 75;
-    const fips = String(feature.id || feature.properties?.GEOID || "00000");
-    const score = countyScore(stateScore, fips);
+  const onEachUS = useCallback((feature, layer) => {
+    const abbr = feature.properties?.postal || NAME_TO_ABBR[feature.properties?.name];
+    const name = feature.properties?.name || abbr;
+    const score = STATE_SCORES[abbr] ?? 75;
+    const risk = getRisk(score);
 
     layer.on({
       mouseover: (e) => {
-        e.target.setStyle({ weight: 2.5, color: "#1e3a8a", fillOpacity: 1 });
-        const risk = getRiskLevel(score);
-        setHoveredState({ name: `${name}, ${abbr}`, abbr, score, grade: getGrade(score), isLive, risk, isAI: !isLive });
+        e.target.setStyle({ weight: 3, color: "#1e3a8a", fillOpacity: 1 });
+        setHovered({ name, score, grade: getGrade(score), risk, type: "state", abbr });
       },
       mouseout: (e) => {
-        e.target.setStyle(styleCounty(feature));
-        setHoveredState(null);
+        e.target.setStyle(styleUS(feature));
+        setHovered(null);
       },
       click: () => {
-        navigate(`/county-drilldown?state=${abbr}&name=${encodeURIComponent(selectedState?.name || abbr)}&county=${encodeURIComponent(name)}`);
+        if (onNavigate && abbr) {
+          const match = Object.entries(REGIONS).find(([, r]) => r.abbr === abbr);
+          if (match) onNavigate(match[0]);
+        }
       },
     });
-  }, [selectedState, navigate, styleCounty]);
+  }, [styleUS, onNavigate]);
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-      <div className="px-6 pt-6 pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+      <div className="px-6 pt-5 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">National Safety Heat Map</h2>
-              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">ESTIMATED SCORES</span>
+              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                {isIntl ? "Global Safety Heat Map" : "National Safety Heat Map"}
+              </h2>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">ESTIMATED</span>
             </div>
             <p className="text-sm text-slate-500 mt-0.5">
-              {selectedState
-                ? `${selectedState.name} — county breakdown · Click any county to explore or click state to go back`
-                : "Average restaurant inspection scores by state — click a state to zoom in"}
+              {isIntl
+                ? "Estimated restaurant safety scores by country · select a region to search"
+                : "Average restaurant inspection scores by state · click a state to explore"}
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            {selectedState && (
-              <button
-                onClick={handleReset}
-                className="px-3 py-1.5 text-xs font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-700 transition-colors"
-              >
-                ← All States
-              </button>
-            )}
-            {RISK_LEVELS.map((l) => (
+          <div className="flex flex-wrap gap-3">
+            {RISK_LEVELS.map(l => (
               <div key={l.grade} className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm border border-black/10" style={{ background: l.color }} />
-                <span className="text-xs font-semibold text-slate-600">{l.grade} · {l.label}</span>
+                <span className="text-xs font-semibold text-slate-600">{l.grade}</span>
               </div>
             ))}
           </div>
@@ -263,77 +232,50 @@ export default function NationalHeatMap() {
       <div className="relative" style={{ height: 420 }}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-slate-400">Loading map…</p>
-            </div>
+            <div className="w-8 h-8 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
-        {loadingCounties && (
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[1001] bg-white/90 border border-slate-200 rounded-xl px-4 py-2 shadow-md flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-semibold text-slate-600">Loading county data…</span>
-          </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
-            <p className="text-sm text-slate-400">Unable to load map data</p>
-          </div>
-        )}
-        {!loading && !error && geoData && (
+        {!loading && worldGeo && (
           <MapContainer
-            center={[38, -96]}
-            zoom={4}
-            style={{ height: "100%", width: "100%", cursor: "pointer" }}
+            center={[mapView[0], mapView[1]]}
+            zoom={mapView[2]}
+            style={{ height: "100%", width: "100%" }}
             zoomControl={false}
             scrollWheelZoom={false}
             attributionControl={false}
           >
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-              attribution="Powered by Esri"
-            />
-            <MapController bounds={stateBounds} onReady={(m) => { mapRef.current = m; }} />
-            <GeoJSON key={`states-${selectedState?.abbr || "all"}`} data={geoData} style={styleState} onEachFeature={onEachState} />
-            {countyData && countyData.features.length > 0 && (
-              <GeoJSON key={`counties-${selectedState?.abbr}`} data={countyData} style={styleCounty} onEachFeature={onEachCounty} />
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" />
+            <MapController view={mapView} />
+            <GeoJSON key="world" data={worldGeo} style={styleWorld} onEachFeature={onEachWorld} />
+            {!isIntl && usGeo && (
+              <GeoJSON key="us-states" data={usGeo} style={styleUS} onEachFeature={onEachUS} />
             )}
             <ZoomControl position="bottomright" />
           </MapContainer>
         )}
 
-        {hoveredState && (
-          <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[200px]">
-            <p className="font-extrabold text-slate-900 text-base leading-tight">{hoveredState.name}</p>
-            <p className="text-xs text-slate-500 mb-2">{hoveredState.abbr} · Click to {selectedState ? "explore" : "zoom in"}</p>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span
-                className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
-                style={{ background: hoveredState.risk?.color === "#ffffbf" ? "#b45309" : hoveredState.risk?.color }}
-              >
-                Grade {hoveredState.grade}
+        {hovered && (
+          <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[190px]">
+            <p className="font-extrabold text-slate-900 text-base leading-tight">{hovered.name}</p>
+            <p className="text-xs text-slate-500 mb-2">{hovered.type === "state" ? "U.S. State" : "Country"}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
+                style={{ background: hovered.risk?.color === "#ffffbf" ? "#b45309" : hovered.risk?.color }}>
+                Grade {hovered.grade}
               </span>
-              <span className="text-slate-700 font-bold text-sm">{hoveredState.score}/100</span>
+              <span className="text-slate-700 font-bold text-sm">{hovered.score}/100</span>
             </div>
-            <p className="text-xs font-semibold" style={{ color: hoveredState.risk?.color === "#ffffbf" ? "#b45309" : hoveredState.risk?.color }}>
-              {hoveredState.risk?.label}
+            <p className="text-xs font-semibold" style={{ color: hovered.risk?.color === "#ffffbf" ? "#b45309" : hovered.risk?.color }}>
+              {hovered.risk?.label}
             </p>
-            {hoveredState.isLive ? (
-              <span className="mt-1.5 inline-block text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">● LIVE API DATA</span>
-            ) : (
-              <span className="mt-1.5 inline-block text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">✦ AI-ASSISTED</span>
-            )}
+            <span className="mt-1.5 inline-block text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">✦ AI-ASSISTED</span>
           </div>
         )}
       </div>
 
-      <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 space-y-2">
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          ESRI-standard diverging risk scale · Green = low risk · Red = elevated risk · {selectedState ? "Click a county for restaurant data" : "Click any state to see county breakdown"}
-        </p>
-        <p className="text-[11px] text-slate-500 leading-relaxed">
-          <span className="font-semibold text-green-600">LIVE API jurisdictions:</span>{" "}
-          Austin TX · Baton Rouge LA · Boston MA · Chicago (Cook Co.) IL · Iowa (statewide) · King County WA · Los Angeles CA · Montgomery County MD · New York City NY · New York State · San Francisco CA · Wake County (Raleigh) NC
+      <div className="px-6 py-3 border-t border-slate-100 bg-slate-50">
+        <p className="text-[11px] text-slate-400">
+          ESRI diverging risk scale · scores are AI-estimated from publicly available health department data · not a substitute for official inspections
         </p>
       </div>
     </div>

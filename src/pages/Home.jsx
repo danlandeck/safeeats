@@ -455,7 +455,7 @@ export default function Home() {
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
         {!hasSearched && (
           <div className="mb-10">
-            <NationalHeatMap />
+            <NationalHeatMap region={region} onNavigate={(r, c) => { handleRegionChange(r); setCountyId(c || REGIONS[r].counties[0].id); }} />
           </div>
         )}
 
