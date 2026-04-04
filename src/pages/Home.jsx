@@ -166,6 +166,7 @@ export default function Home() {
     setResults([]);
     setHasSearched(false);
     setSelectedBusiness(null);
+    window.history.pushState({}, '', window.location.pathname);
     setViewMode("list");
     setCompareList([]);
     setShowCompare(false);
@@ -281,6 +282,7 @@ export default function Home() {
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setSelectedBusiness(biz);
+    window.history.pushState({}, '', `?q=${encodeURIComponent(searchQuery)}&biz=${encodeURIComponent(biz.business_id)}`);
 
     if (detailCacheRef.current.has(biz.business_id)) {
       setDetailRows(detailCacheRef.current.get(biz.business_id));
