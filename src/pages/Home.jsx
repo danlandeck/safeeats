@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, X, GitCompareArrows } from "lucide-react";
+import { Utensils, X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
@@ -99,6 +99,10 @@ export default function Home() {
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
+  const [nearMeActive, setNearMeActive]       = useState(false);
+  const [userCoords, setUserCoords]           = useState(null);
+  const [isGeolocating, setIsGeolocating]     = useState(false);
+  const [nearMeError, setNearMeError]         = useState("");
   const searchCacheRef                        = useRef(new Map());
   const detailCacheRef                        = useRef(new Map());
 
@@ -304,6 +308,37 @@ export default function Home() {
     setViewMode("map");
   }, []);
 
+  // Haversine distance in miles
+  const haversineMiles = (lat1, lon1, lat2, lon2) => {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
+
+  const handleFindNearMe = useCallback(async () => {
+    if (nearMeActive) { setNearMeActive(false); setUserCoords(null); setNearMeError(""); return; }
+    setNearMeError("");
+    setIsGeolocating(true);
+    const abbr = REGIONS[region].abbr;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserCoords(coords);
+        // Geocode any results missing coords
+        const missing = filteredAndSortedResults.filter((r) => !r.latitude || !r.longitude);
+        await Promise.all(missing.map(async (r) => {
+          const gc = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
+          if (gc) setResults((prev) => prev.map((p) => p.business_id === r.business_id ? { ...p, ...gc } : p));
+        }));
+        setNearMeActive(true);
+        setIsGeolocating(false);
+      },
+      () => { setNearMeError("Location access denied."); setIsGeolocating(false); }
+    );
+  }, [nearMeActive, region, filteredAndSortedResults]);
+
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);
     switch (sortBy) {
@@ -314,8 +349,14 @@ export default function Home() {
       case "date-oldest":  filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate)); break;
       default:             filtered.sort((a, b) => b.safetyScore - a.safetyScore);
     }
+    if (nearMeActive && userCoords) {
+      filtered = filtered.filter((r) => {
+        if (!r.latitude || !r.longitude) return false;
+        return haversineMiles(userCoords.lat, userCoords.lng, parseFloat(r.latitude), parseFloat(r.longitude)) <= 5;
+      });
+    }
     return filtered;
-  }, [results, filterResult, sortBy]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -425,12 +466,25 @@ export default function Home() {
                           <div>
                             <p className="text-sm text-slate-500">
                               <span className="font-semibold text-slate-800">{filteredAndSortedResults.length}</span> of {results.length} establishment{results.length !== 1 ? "s" : ""} for "{searchQuery}"
+                              {nearMeActive && <span className="ml-1 text-blue-600 font-semibold">· within 5 mi</span>}
                             </p>
+                            {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">
                               Sorted by safety score · inspection count breaks ties only between equal scores.
                             </p>
                           </div>
                           <div className="flex gap-2">
+                            <button
+                              onClick={handleFindNearMe}
+                              disabled={isGeolocating}
+                              title={nearMeActive ? "Clear location filter" : "Find restaurants near me"}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                nearMeActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
+                              {nearMeActive ? "Near Me ✓" : "Near Me"}
+                            </button>
                             <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>List</button>
                             <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Map</button>
                           </div>
