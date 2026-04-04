@@ -25,6 +25,7 @@ import {
   geocodeAddress,
 } from "../utils/inspectionProcessors";
 import SearchBar, { parseLocationQuery } from "../components/SearchBar";
+import CameraScanner from "../components/CameraScanner";
 import RestaurantCard from "../components/RestaurantCard";
 import RestaurantDetail from "../components/RestaurantDetail";
 import ScoreLegend from "../components/ScoreLegend";
@@ -107,6 +108,7 @@ export default function Home() {
   const [userCoords, setUserCoords]           = useState(null);
   const [isGeolocating, setIsGeolocating]     = useState(false);
   const [nearMeError, setNearMeError]         = useState("");
+  const [showScanner, setShowScanner]         = useState(false);
   const searchCacheRef                        = useRef(new Map());
   const detailCacheRef                        = useRef(new Map());
 
@@ -441,7 +443,21 @@ export default function Home() {
             </div>
           </div>
 
-          <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder={t.searchPlaceholder} dir={isRTL ? "rtl" : "ltr"} />
+          <div className="flex items-center gap-2 w-full max-w-2xl mx-auto">
+            <div className="flex-1">
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder={t.searchPlaceholder} dir={isRTL ? "rtl" : "ltr"} />
+            </div>
+            <button
+              onClick={() => setShowScanner(true)}
+              title="Scan restaurant with camera"
+              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 flex items-center justify-center transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
+                <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
 
           {!currentCounty.hasPublicApi && (
             <p className="text-center text-xs text-slate-500 mt-3">
@@ -589,6 +605,13 @@ export default function Home() {
             <X className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {showScanner && (
+        <CameraScanner
+          onResult={(query) => { handleSearch(query); }}
+          onClose={() => setShowScanner(false)}
+        />
       )}
 
       {showCompare && (
