@@ -353,4 +353,208 @@ export const REGIONS = {
     { id: "natrona", name: "Natrona County (Casper)", city: "Casper", hasPublicApi: false },
     { id: "teton", name: "Teton County (Jackson)", city: "Jackson", hasPublicApi: false },
   ]},
+
+  // ── INTERNATIONAL ────────────────────────────────────────────────────────────
+
+  canada: { name: "Canada", abbr: "CA", counties: [
+    { id: "toronto", name: "Toronto, Ontario", city: "Toronto", hasPublicApi: false },
+    { id: "vancouver", name: "Vancouver, British Columbia", city: "Vancouver", hasPublicApi: false },
+    { id: "montreal", name: "Montréal, Québec", city: "Montréal", hasPublicApi: false },
+    { id: "calgary", name: "Calgary, Alberta", city: "Calgary", hasPublicApi: false },
+    { id: "edmonton", name: "Edmonton, Alberta", city: "Edmonton", hasPublicApi: false },
+    { id: "ottawa", name: "Ottawa, Ontario", city: "Ottawa", hasPublicApi: false },
+    { id: "winnipeg", name: "Winnipeg, Manitoba", city: "Winnipeg", hasPublicApi: false },
+    { id: "quebec_city", name: "Québec City, Québec", city: "Québec City", hasPublicApi: false },
+    { id: "hamilton_on", name: "Hamilton, Ontario", city: "Hamilton", hasPublicApi: false },
+    { id: "halifax", name: "Halifax, Nova Scotia", city: "Halifax", hasPublicApi: false },
+  ]},
+
+  uk: { name: "United Kingdom", abbr: "UK", counties: [
+    { id: "london", name: "London, England", city: "London", hasPublicApi: false },
+    { id: "birmingham", name: "Birmingham, England", city: "Birmingham", hasPublicApi: false },
+    { id: "manchester", name: "Manchester, England", city: "Manchester", hasPublicApi: false },
+    { id: "leeds", name: "Leeds, England", city: "Leeds", hasPublicApi: false },
+    { id: "glasgow", name: "Glasgow, Scotland", city: "Glasgow", hasPublicApi: false },
+    { id: "edinburgh", name: "Edinburgh, Scotland", city: "Edinburgh", hasPublicApi: false },
+    { id: "liverpool", name: "Liverpool, England", city: "Liverpool", hasPublicApi: false },
+    { id: "bristol", name: "Bristol, England", city: "Bristol", hasPublicApi: false },
+    { id: "sheffield", name: "Sheffield, England", city: "Sheffield", hasPublicApi: false },
+    { id: "cardiff", name: "Cardiff, Wales", city: "Cardiff", hasPublicApi: false },
+    { id: "belfast", name: "Belfast, Northern Ireland", city: "Belfast", hasPublicApi: false },
+  ]},
+
+  mexico: { name: "Mexico", abbr: "MX", counties: [
+    { id: "mexico_city", name: "Mexico City (CDMX)", city: "Mexico City", hasPublicApi: false },
+    { id: "guadalajara", name: "Guadalajara, Jalisco", city: "Guadalajara", hasPublicApi: false },
+    { id: "monterrey", name: "Monterrey, Nuevo León", city: "Monterrey", hasPublicApi: false },
+    { id: "cancun", name: "Cancún, Quintana Roo", city: "Cancún", hasPublicApi: false },
+    { id: "tijuana", name: "Tijuana, Baja California", city: "Tijuana", hasPublicApi: false },
+    { id: "puebla_mx", name: "Puebla, Puebla", city: "Puebla", hasPublicApi: false },
+    { id: "queretaro", name: "Querétaro, Querétaro", city: "Querétaro", hasPublicApi: false },
+    { id: "merida", name: "Mérida, Yucatán", city: "Mérida", hasPublicApi: false },
+  ]},
+
+  australia: { name: "Australia", abbr: "AU", counties: [
+    { id: "sydney", name: "Sydney, New South Wales", city: "Sydney", hasPublicApi: false },
+    { id: "melbourne", name: "Melbourne, Victoria", city: "Melbourne", hasPublicApi: false },
+    { id: "brisbane", name: "Brisbane, Queensland", city: "Brisbane", hasPublicApi: false },
+    { id: "perth", name: "Perth, Western Australia", city: "Perth", hasPublicApi: false },
+    { id: "adelaide", name: "Adelaide, South Australia", city: "Adelaide", hasPublicApi: false },
+    { id: "gold_coast", name: "Gold Coast, Queensland", city: "Gold Coast", hasPublicApi: false },
+    { id: "canberra", name: "Canberra, ACT", city: "Canberra", hasPublicApi: false },
+    { id: "hobart", name: "Hobart, Tasmania", city: "Hobart", hasPublicApi: false },
+  ]},
+
+  france: { name: "France", abbr: "FR", counties: [
+    { id: "paris", name: "Paris, Île-de-France", city: "Paris", hasPublicApi: false },
+    { id: "lyon", name: "Lyon, Auvergne-Rhône-Alpes", city: "Lyon", hasPublicApi: false },
+    { id: "marseille", name: "Marseille, Provence-Alpes-Côte d'Azur", city: "Marseille", hasPublicApi: false },
+    { id: "toulouse", name: "Toulouse, Occitanie", city: "Toulouse", hasPublicApi: false },
+    { id: "nice", name: "Nice, Provence-Alpes-Côte d'Azur", city: "Nice", hasPublicApi: false },
+    { id: "bordeaux", name: "Bordeaux, Nouvelle-Aquitaine", city: "Bordeaux", hasPublicApi: false },
+    { id: "strasbourg", name: "Strasbourg, Grand Est", city: "Strasbourg", hasPublicApi: false },
+  ]},
+
+  germany: { name: "Germany", abbr: "DE", counties: [
+    { id: "berlin", name: "Berlin", city: "Berlin", hasPublicApi: false },
+    { id: "munich", name: "Munich, Bavaria", city: "Munich", hasPublicApi: false },
+    { id: "hamburg", name: "Hamburg", city: "Hamburg", hasPublicApi: false },
+    { id: "cologne", name: "Cologne, North Rhine-Westphalia", city: "Cologne", hasPublicApi: false },
+    { id: "frankfurt", name: "Frankfurt, Hesse", city: "Frankfurt", hasPublicApi: false },
+    { id: "stuttgart", name: "Stuttgart, Baden-Württemberg", city: "Stuttgart", hasPublicApi: false },
+    { id: "dusseldorf", name: "Düsseldorf, North Rhine-Westphalia", city: "Düsseldorf", hasPublicApi: false },
+  ]},
+
+  spain: { name: "Spain", abbr: "ES", counties: [
+    { id: "madrid", name: "Madrid, Community of Madrid", city: "Madrid", hasPublicApi: false },
+    { id: "barcelona", name: "Barcelona, Catalonia", city: "Barcelona", hasPublicApi: false },
+    { id: "valencia_es", name: "Valencia, Valencian Community", city: "Valencia", hasPublicApi: false },
+    { id: "seville", name: "Seville, Andalusia", city: "Seville", hasPublicApi: false },
+    { id: "bilbao", name: "Bilbao, Basque Country", city: "Bilbao", hasPublicApi: false },
+    { id: "malaga", name: "Málaga, Andalusia", city: "Málaga", hasPublicApi: false },
+  ]},
+
+  italy: { name: "Italy", abbr: "IT", counties: [
+    { id: "rome", name: "Rome, Lazio", city: "Rome", hasPublicApi: false },
+    { id: "milan", name: "Milan, Lombardy", city: "Milan", hasPublicApi: false },
+    { id: "naples", name: "Naples, Campania", city: "Naples", hasPublicApi: false },
+    { id: "florence", name: "Florence, Tuscany", city: "Florence", hasPublicApi: false },
+    { id: "venice", name: "Venice, Veneto", city: "Venice", hasPublicApi: false },
+    { id: "turin", name: "Turin, Piedmont", city: "Turin", hasPublicApi: false },
+    { id: "bologna", name: "Bologna, Emilia-Romagna", city: "Bologna", hasPublicApi: false },
+  ]},
+
+  japan: { name: "Japan", abbr: "JP", counties: [
+    { id: "tokyo", name: "Tokyo", city: "Tokyo", hasPublicApi: false },
+    { id: "osaka", name: "Osaka, Osaka Prefecture", city: "Osaka", hasPublicApi: false },
+    { id: "kyoto", name: "Kyoto, Kyoto Prefecture", city: "Kyoto", hasPublicApi: false },
+    { id: "yokohama", name: "Yokohama, Kanagawa Prefecture", city: "Yokohama", hasPublicApi: false },
+    { id: "sapporo", name: "Sapporo, Hokkaido", city: "Sapporo", hasPublicApi: false },
+    { id: "fukuoka", name: "Fukuoka, Fukuoka Prefecture", city: "Fukuoka", hasPublicApi: false },
+    { id: "nagoya", name: "Nagoya, Aichi Prefecture", city: "Nagoya", hasPublicApi: false },
+  ]},
+
+  brazil: { name: "Brazil", abbr: "BR", counties: [
+    { id: "sao_paulo", name: "São Paulo, São Paulo", city: "São Paulo", hasPublicApi: false },
+    { id: "rio", name: "Rio de Janeiro, Rio de Janeiro", city: "Rio de Janeiro", hasPublicApi: false },
+    { id: "brasilia", name: "Brasília, Federal District", city: "Brasília", hasPublicApi: false },
+    { id: "salvador", name: "Salvador, Bahia", city: "Salvador", hasPublicApi: false },
+    { id: "fortaleza", name: "Fortaleza, Ceará", city: "Fortaleza", hasPublicApi: false },
+    { id: "belo_horizonte", name: "Belo Horizonte, Minas Gerais", city: "Belo Horizonte", hasPublicApi: false },
+    { id: "curitiba", name: "Curitiba, Paraná", city: "Curitiba", hasPublicApi: false },
+  ]},
+
+  india: { name: "India", abbr: "IN", counties: [
+    { id: "mumbai", name: "Mumbai, Maharashtra", city: "Mumbai", hasPublicApi: false },
+    { id: "delhi", name: "Delhi, NCT", city: "Delhi", hasPublicApi: false },
+    { id: "bangalore", name: "Bengaluru, Karnataka", city: "Bengaluru", hasPublicApi: false },
+    { id: "hyderabad", name: "Hyderabad, Telangana", city: "Hyderabad", hasPublicApi: false },
+    { id: "chennai", name: "Chennai, Tamil Nadu", city: "Chennai", hasPublicApi: false },
+    { id: "kolkata", name: "Kolkata, West Bengal", city: "Kolkata", hasPublicApi: false },
+    { id: "pune", name: "Pune, Maharashtra", city: "Pune", hasPublicApi: false },
+    { id: "jaipur", name: "Jaipur, Rajasthan", city: "Jaipur", hasPublicApi: false },
+  ]},
+
+  south_korea: { name: "South Korea", abbr: "KR", counties: [
+    { id: "seoul", name: "Seoul", city: "Seoul", hasPublicApi: false },
+    { id: "busan", name: "Busan", city: "Busan", hasPublicApi: false },
+    { id: "incheon", name: "Incheon", city: "Incheon", hasPublicApi: false },
+    { id: "daegu", name: "Daegu", city: "Daegu", hasPublicApi: false },
+    { id: "jeju", name: "Jeju Island", city: "Jeju City", hasPublicApi: false },
+  ]},
+
+  china: { name: "China", abbr: "CN", counties: [
+    { id: "beijing", name: "Beijing", city: "Beijing", hasPublicApi: false },
+    { id: "shanghai", name: "Shanghai", city: "Shanghai", hasPublicApi: false },
+    { id: "shenzhen", name: "Shenzhen, Guangdong", city: "Shenzhen", hasPublicApi: false },
+    { id: "guangzhou", name: "Guangzhou, Guangdong", city: "Guangzhou", hasPublicApi: false },
+    { id: "chengdu", name: "Chengdu, Sichuan", city: "Chengdu", hasPublicApi: false },
+    { id: "hangzhou", name: "Hangzhou, Zhejiang", city: "Hangzhou", hasPublicApi: false },
+    { id: "xian", name: "Xi'an, Shaanxi", city: "Xi'an", hasPublicApi: false },
+    { id: "hong_kong", name: "Hong Kong SAR", city: "Hong Kong", hasPublicApi: false },
+  ]},
+
+  uae: { name: "United Arab Emirates", abbr: "AE", counties: [
+    { id: "dubai", name: "Dubai", city: "Dubai", hasPublicApi: false },
+    { id: "abu_dhabi", name: "Abu Dhabi", city: "Abu Dhabi", hasPublicApi: false },
+    { id: "sharjah", name: "Sharjah", city: "Sharjah", hasPublicApi: false },
+  ]},
+
+  singapore: { name: "Singapore", abbr: "SG", counties: [
+    { id: "singapore", name: "Singapore (City-State)", city: "Singapore", hasPublicApi: false },
+  ]},
+
+  netherlands: { name: "Netherlands", abbr: "NL", counties: [
+    { id: "amsterdam", name: "Amsterdam, North Holland", city: "Amsterdam", hasPublicApi: false },
+    { id: "rotterdam", name: "Rotterdam, South Holland", city: "Rotterdam", hasPublicApi: false },
+    { id: "the_hague", name: "The Hague, South Holland", city: "The Hague", hasPublicApi: false },
+    { id: "utrecht_nl", name: "Utrecht, Utrecht", city: "Utrecht", hasPublicApi: false },
+  ]},
+
+  portugal: { name: "Portugal", abbr: "PT", counties: [
+    { id: "lisbon", name: "Lisbon, Lisbon District", city: "Lisbon", hasPublicApi: false },
+    { id: "porto", name: "Porto, Porto District", city: "Porto", hasPublicApi: false },
+    { id: "faro", name: "Faro, Algarve", city: "Faro", hasPublicApi: false },
+  ]},
+
+  new_zealand: { name: "New Zealand", abbr: "NZ", counties: [
+    { id: "auckland", name: "Auckland", city: "Auckland", hasPublicApi: false },
+    { id: "wellington", name: "Wellington", city: "Wellington", hasPublicApi: false },
+    { id: "christchurch", name: "Christchurch, Canterbury", city: "Christchurch", hasPublicApi: false },
+    { id: "queenstown", name: "Queenstown, Otago", city: "Queenstown", hasPublicApi: false },
+  ]},
+
+  argentina: { name: "Argentina", abbr: "AR", counties: [
+    { id: "buenos_aires", name: "Buenos Aires", city: "Buenos Aires", hasPublicApi: false },
+    { id: "cordoba_ar", name: "Córdoba", city: "Córdoba", hasPublicApi: false },
+    { id: "rosario", name: "Rosario, Santa Fe", city: "Rosario", hasPublicApi: false },
+    { id: "mendoza", name: "Mendoza", city: "Mendoza", hasPublicApi: false },
+  ]},
+
+  thailand: { name: "Thailand", abbr: "TH", counties: [
+    { id: "bangkok", name: "Bangkok", city: "Bangkok", hasPublicApi: false },
+    { id: "chiang_mai", name: "Chiang Mai", city: "Chiang Mai", hasPublicApi: false },
+    { id: "phuket", name: "Phuket", city: "Phuket City", hasPublicApi: false },
+    { id: "pattaya", name: "Pattaya, Chonburi", city: "Pattaya", hasPublicApi: false },
+  ]},
+
+  greece: { name: "Greece", abbr: "GR", counties: [
+    { id: "athens", name: "Athens, Attica", city: "Athens", hasPublicApi: false },
+    { id: "thessaloniki", name: "Thessaloniki, Central Macedonia", city: "Thessaloniki", hasPublicApi: false },
+    { id: "heraklion", name: "Heraklion, Crete", city: "Heraklion", hasPublicApi: false },
+  ]},
+
+  turkey: { name: "Turkey", abbr: "TR", counties: [
+    { id: "istanbul", name: "Istanbul", city: "Istanbul", hasPublicApi: false },
+    { id: "ankara", name: "Ankara", city: "Ankara", hasPublicApi: false },
+    { id: "izmir", name: "İzmir", city: "İzmir", hasPublicApi: false },
+    { id: "antalya", name: "Antalya", city: "Antalya", hasPublicApi: false },
+  ]},
+
+  south_africa: { name: "South Africa", abbr: "ZA", counties: [
+    { id: "cape_town", name: "Cape Town, Western Cape", city: "Cape Town", hasPublicApi: false },
+    { id: "johannesburg", name: "Johannesburg, Gauteng", city: "Johannesburg", hasPublicApi: false },
+    { id: "durban", name: "Durban, KwaZulu-Natal", city: "Durban", hasPublicApi: false },
+    { id: "pretoria", name: "Pretoria, Gauteng", city: "Pretoria", hasPublicApi: false },
+  ]},
 };
