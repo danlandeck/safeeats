@@ -31,6 +31,41 @@ export default function About() {
             </p>
           </div>
 
+          {/* ⚠️ Legal Disclaimer — prominent, top of page */}
+          <Card className="p-8 border-2 border-red-300 bg-red-50">
+            <div className="flex gap-4 items-start">
+              <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <AlertTriangle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-red-900 mb-3">Important Legal Disclaimer — Please Read</h2>
+                <div className="space-y-3 text-sm text-red-800 leading-relaxed">
+                  <p>
+                    <strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency, health department, or official inspection authority. SafeEats does not conduct, verify, or certify food safety inspections.
+                  </p>
+                  <p>
+                    <strong>Data accuracy is not guaranteed.</strong> Information displayed on SafeEats is sourced either from third-party government open-data APIs (which SafeEats does not control) or from AI-assisted lookups of publicly available web content. Both sources may contain errors, omissions, outdated entries, or inaccuracies that are outside SafeEats' control. A restaurant's displayed score, grade, or inspection record may not reflect its current or actual health status.
+                  </p>
+                  <p>
+                    <strong>AI-assisted results carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by an AI model that reads publicly available sources such as health department websites, news articles, and posted inspection reports. These estimates are clearly labeled and <em>are not official government records</em>. They may be incorrect, incomplete, or based on outdated source material. Do not treat AI-estimated scores as verified facts.
+                  </p>
+                  <p>
+                    <strong>Camera scan results are AI-interpreted and unverified.</strong> The camera scanning feature uses AI vision to attempt to read a restaurant name or inspection placard from a photo. Results may be misidentified, misread, or matched to the wrong establishment. A successful scan does not guarantee the search result corresponds to the correct restaurant or reflects a current inspection.
+                  </p>
+                  <p>
+                    <strong>Do not rely on SafeEats as your sole source for food safety decisions.</strong> Always consult your local health department's official records for authoritative inspection data. SafeEats should be used as a starting point for research, not as a definitive verdict on any establishment's safety.
+                  </p>
+                  <p>
+                    <strong>No warranty. No liability.</strong> SafeEats is provided "as is" without warranty of any kind, express or implied. The creators and operators of SafeEats shall not be liable for any damages, losses, or adverse outcomes arising from reliance on information displayed on this platform, including but not limited to incorrect scores, missing violations, misidentified restaurants, or data that has not been updated to reflect recent inspections.
+                  </p>
+                  <p className="font-bold text-red-900 border-t border-red-200 pt-3 mt-1">
+                    By using SafeEats, you acknowledge that data may be incomplete or inaccurate, and that you are solely responsible for any decisions made based on information from this platform.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Mission */}
           <Card className="p-8 border-slate-200 bg-white">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-4">Our Mission</h2>
