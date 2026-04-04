@@ -337,7 +337,7 @@ export default function Home() {
       },
       () => { setNearMeError("Location access denied."); setIsGeolocating(false); }
     );
-  }, [nearMeActive, region, filteredAndSortedResults]);
+  }, [nearMeActive, region, results]);
 
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => r.latestResult === filterResult);
