@@ -142,7 +142,7 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
             </button>
           ))}
           <button
-            onClick={() => onSearch && onSearch(locationLabel || "")}
+            onClick={() => onSearch && onSearch("restaurant")}
             className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
           >
             🔍 Search Here
