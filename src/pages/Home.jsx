@@ -327,7 +327,7 @@ export default function Home() {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserCoords(coords);
         // Geocode any results missing coords
-        const missing = filteredAndSortedResults.filter((r) => !r.latitude || !r.longitude);
+        const missing = results.filter((r) => !r.latitude || !r.longitude);
         await Promise.all(missing.map(async (r) => {
           const gc = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
           if (gc) setResults((prev) => prev.map((p) => p.business_id === r.business_id ? { ...p, ...gc } : p));
