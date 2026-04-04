@@ -117,11 +117,11 @@ const REGION_VIEW = {
 };
 
 const RISK_LEVELS = [
-  { minScore: 90, color: "#1a9641", label: "Very Low Risk", grade: "A" },
-  { minScore: 80, color: "#a6d96a", label: "Low Risk",      grade: "B" },
-  { minScore: 70, color: "#ffffbf", label: "Moderate Risk", grade: "C" },
-  { minScore: 60, color: "#fdae61", label: "Elevated Risk", grade: "D" },
-  { minScore: 0,  color: "#d7191c", label: "High Risk",     grade: "F" },
+  { minScore: 90, color: "#1a9641", label: "Super Safe! 🥗",     grade: "A", simple: "Restaurants here are really clean and safe!" },
+  { minScore: 80, color: "#a6d96a", label: "Pretty Safe 👍",     grade: "B", simple: "Most restaurants pass their inspections." },
+  { minScore: 70, color: "#ffffbf", label: "Okay 😐",            grade: "C", simple: "Some restaurants have small problems." },
+  { minScore: 60, color: "#fdae61", label: "Be Careful ⚠️",     grade: "D", simple: "Restaurants here have more issues to fix." },
+  { minScore: 0,  color: "#d7191c", label: "Risky 🚨",          grade: "F", simple: "Many restaurants here have food safety problems." },
 ];
 
 function getRisk(score) { return RISK_LEVELS.find(r => score >= r.minScore) || RISK_LEVELS[RISK_LEVELS.length-1]; }
@@ -198,18 +198,30 @@ export default function NationalHeatMap({ region, onNavigate }) {
     const iso = feature.properties?.ISO_A3;
     const score = getCountryScore(iso);
     const risk = getRisk(score);
+    const isKnown = iso && iso !== "-99" && COUNTRY_SCORES[iso] !== undefined;
 
     layer.on({
       mouseover: (e) => {
         e.target.setStyle({ weight: 2.5, color: "#222", fillOpacity: 1 });
-        setHovered({ name, score, grade: getGrade(score), risk, type: "country" });
+        setHovered({ name, score, grade: getGrade(score), risk, type: "country", isKnown, clickable: true });
       },
       mouseout: (e) => {
         e.target.setStyle(styleWorld(feature));
         setHovered(null);
       },
+      click: () => {
+        if (onNavigate) {
+          // Find matching region key by country name or ISO
+          const match = Object.entries(REGIONS).find(([k, r]) =>
+            r.name?.toLowerCase().includes(name.toLowerCase()) ||
+            name.toLowerCase().includes(r.name?.toLowerCase()) ||
+            r.abbr === iso
+          );
+          if (match) onNavigate(match[0]);
+        }
+      },
     });
-  }, [styleWorld]);
+  }, [styleWorld, onNavigate]);
 
   const onEachUS = useCallback((feature, layer) => {
     const abbr = feature.properties?.postal || NAME_TO_ABBR[feature.properties?.name];
@@ -220,7 +232,7 @@ export default function NationalHeatMap({ region, onNavigate }) {
     layer.on({
       mouseover: (e) => {
         e.target.setStyle({ weight: 3, color: "#1e3a8a", fillOpacity: 1 });
-        setHovered({ name, score, grade: getGrade(score), risk, type: "state", abbr });
+        setHovered({ name, score, grade: getGrade(score), risk, type: "state", abbr, isKnown: true, clickable: true });
       },
       mouseout: (e) => {
         e.target.setStyle(styleUS(feature));
@@ -242,21 +254,21 @@ export default function NationalHeatMap({ region, onNavigate }) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                {isIntl ? "Global Safety Heat Map" : "National Safety Heat Map"}
+                🌍 {isIntl ? "World Food Safety Map" : "USA Food Safety Map"}
               </h2>
               <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">ESTIMATED</span>
             </div>
             <p className="text-sm text-slate-500 mt-0.5">
               {isIntl
-                ? "Estimated restaurant safety scores by country · select a region to search"
-                : "Average restaurant inspection scores by state · click a state to explore"}
+                ? "👆 Click any country to search restaurants there!"
+                : "👆 Click any state to search restaurants there!"}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {RISK_LEVELS.map(l => (
-              <div key={l.grade} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm border border-black/10" style={{ background: l.color }} />
-                <span className="text-xs font-semibold text-slate-600">{l.grade}</span>
+              <div key={l.grade} className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2 py-1">
+                <div className="w-3 h-3 rounded-sm border border-black/10 flex-shrink-0" style={{ background: l.color }} />
+                <span className="text-xs font-semibold text-slate-700">{l.label}</span>
               </div>
             ))}
           </div>
@@ -289,27 +301,32 @@ export default function NationalHeatMap({ region, onNavigate }) {
         )}
 
         {hovered && (
-          <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[190px]">
+          <div className="absolute top-3 left-3 z-[1000] bg-white border border-slate-200 rounded-2xl shadow-xl px-4 py-3 pointer-events-none min-w-[210px] max-w-[260px]">
             <p className="font-extrabold text-slate-900 text-base leading-tight">{hovered.name}</p>
-            <p className="text-xs text-slate-500 mb-2">{hovered.type === "state" ? "U.S. State" : "Country"}</p>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-extrabold text-xs px-2 py-0.5 rounded-md text-white"
+            <p className="text-xs text-slate-400 mb-2">{hovered.type === "state" ? "🇺🇸 U.S. State" : "🌐 Country"}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-extrabold text-sm px-3 py-1 rounded-xl text-white"
                 style={{ background: hovered.risk?.color === "#ffffbf" ? "#b45309" : hovered.risk?.color }}>
-                Grade {hovered.grade}
+                Grade {hovered.grade} · {hovered.score}/100
               </span>
-              <span className="text-slate-700 font-bold text-sm">{hovered.score}/100</span>
             </div>
-            <p className="text-xs font-semibold" style={{ color: hovered.risk?.color === "#ffffbf" ? "#b45309" : hovered.risk?.color }}>
+            <p className="text-sm font-bold mb-1" style={{ color: hovered.risk?.color === "#ffffbf" ? "#b45309" : hovered.risk?.color }}>
               {hovered.risk?.label}
             </p>
-            <span className="mt-1.5 inline-block text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">✦ AI-ASSISTED</span>
+            <p className="text-xs text-slate-500 leading-snug">{hovered.risk?.simple}</p>
+            {hovered.clickable && (
+              <p className="mt-2 text-[11px] font-bold text-blue-600">🔍 Click to search here!</p>
+            )}
+            {!hovered.isKnown && (
+              <span className="mt-1.5 inline-block text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">⚠ estimated score</span>
+            )}
           </div>
         )}
       </div>
 
       <div className="px-6 py-3 border-t border-slate-100 bg-slate-50">
         <p className="text-[11px] text-slate-400">
-          ESRI diverging risk scale · scores for highlighted countries are research-based estimates from public health department data · scores for all other countries are algorithmically derived from their ISO code and serve as relative placeholders only · not a substitute for official inspections
+          📊 Scores for countries shown above are estimates based on public health department data. Countries without data get a calculated placeholder score — not a real measurement. Always check official health inspections for the most accurate info.
         </p>
       </div>
     </div>
