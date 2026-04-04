@@ -32,7 +32,7 @@ import ScoreLegend from "../components/ScoreLegend";
 import MapView from "../components/MapView";
 import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
-import NationalHeatMap from "../components/NationalHeatMap";
+
 import ComparePanel from "../components/ComparePanel";
 
 export { getGrade };
@@ -469,11 +469,7 @@ export default function Home() {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
-        {!hasSearched && (
-          <div className="mb-10">
-            <NationalHeatMap region={region} onNavigate={(r, c) => { handleRegionChange(r); setCountyId(c || REGIONS[r].counties[0].id); }} />
-          </div>
-        )}
+
 
         <AnimatePresence mode="wait">
           {selectedBusiness ? (
