@@ -257,9 +257,7 @@ export default function Home() {
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const result = await base44.integrations.Core.InvokeLLM({
-          model: "gemini_3_flash",
           prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
-          add_context_from_internet: true,
           response_json_schema: LLM_SCHEMA,
         });
         const raw = (result?.restaurants || []).map((r, i) =>
