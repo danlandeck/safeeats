@@ -252,7 +252,7 @@ export default function Home() {
         setAndCache(processLAResults(await safeFetch(url)));
       } else if (currentCounty.hasPublicApi) {
         const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
+        const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25' OR zip_code like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processKingCountyResults(await safeFetch(url)));
       } else {
         const today = new Date().toISOString().slice(0, 10);
