@@ -50,7 +50,7 @@ const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find food establishments matching "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''} from official health department records.
 
-Return up to 3 real matches. For each:
+Return up to 10 real matches. If the query is a chain restaurant, return as many distinct locations as you know about in this area. For each:
 - name, address, city, zip_code, phone
 - latest_score (0-100, 100=perfect), total_violation_points, latest_date (YYYY-MM-DD), latest_result
 - total_inspections (count)
@@ -237,16 +237,20 @@ export default function Home() {
         const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
-        const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(dba_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processChicagoResults(await safeFetch(url)));
       } else if (searchCounty === "montgomery_md") {
-        const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25'&$limit=200&$order=inspectiondate DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspectiondate DESC`;
         setAndCache(processMontgomeryResults(await safeFetch(url)));
       } else if (searchCounty === "travis") {
-        const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(restaurant_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processAustinResults(await safeFetch(url)));
       } else if (searchCounty === "sf") {
-        const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25' OR upper(replace(business_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processSFResults(await safeFetch(url)));
       } else if (searchCounty === "la") {
         const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
