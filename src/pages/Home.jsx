@@ -48,20 +48,20 @@ const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find "${query}" food establishments in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''} from official health department records only.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. List real "${query}" restaurant locations in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
 
-Return up to 15 real locations. For chains, list every distinct address you know in this area. Every field must come from real inspection records — no estimates:
-- name: exact legal name on file
-- address: exact street address
+Return up to 15 distinct locations. For chain restaurants return as many real locations as you know. Use your best knowledge of actual addresses and health inspection history for this area. Each record:
+- name: exact business name
+- address: real street address
 - city, zip_code, phone
-- latest_score: integer 0–100 (100 = zero violations, 0 = condemned); use the actual score from the most recent inspection
-- total_violation_points: exact integer from latest inspection
-- latest_date: YYYY-MM-DD of most recent inspection
-- latest_result: exact status string (Pass, Fail, Closed, Satisfactory, etc.)
-- total_inspections: exact integer count on record
+- latest_score: integer 0–100 (100 = perfect, 0 = condemned) based on known inspection history
+- total_violation_points: integer from latest known inspection
+- latest_date: YYYY-MM-DD of most recent known inspection
+- latest_result: Pass, Fail, Satisfactory, Closed, etc.
+- total_inspections: estimated count
 - violations: up to 3 specific violation descriptions from the latest inspection
 
-If a value is unknown, omit the field. No invented data. No duplicates.`;
+Only return locations you are confident actually exist. No duplicates. If you know of fewer than 15 real locations, return only those you know.`;
 
 const LLM_SCHEMA = {
   type: "object",
