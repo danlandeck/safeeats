@@ -249,7 +249,8 @@ export default function Home() {
         const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processSFResults(await safeFetch(url)));
       } else if (searchCounty === "la") {
-        const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25'&$limit=200&$order=activity_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
+        const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25' OR upper(replace(facility_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=activity_date DESC`;
         setAndCache(processLAResults(await safeFetch(url)));
       } else if (currentCounty.hasPublicApi) {
         const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
