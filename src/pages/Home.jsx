@@ -48,15 +48,20 @@ const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find food establishments matching "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''} from official health department records.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Find "${query}" food establishments in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''} from official health department records only.
 
-Return up to 10 real matches. If the query is a chain restaurant, return as many distinct locations as you know about in this area. For each:
-- name, address, city, zip_code, phone
-- latest_score (0-100, 100=perfect), total_violation_points, latest_date (YYYY-MM-DD), latest_result
-- total_inspections (count)
-- violations: up to 2 short strings from the latest inspection
+Return up to 15 real locations. For chains, list every distinct address you know in this area. Every field must come from real inspection records — no estimates:
+- name: exact legal name on file
+- address: exact street address
+- city, zip_code, phone
+- latest_score: integer 0–100 (100 = zero violations, 0 = condemned); use the actual score from the most recent inspection
+- total_violation_points: exact integer from latest inspection
+- latest_date: YYYY-MM-DD of most recent inspection
+- latest_result: exact status string (Pass, Fail, Closed, Satisfactory, etc.)
+- total_inspections: exact integer count on record
+- violations: up to 3 specific violation descriptions from the latest inspection
 
-No duplicates. Use real names and addresses only.`;
+If a value is unknown, omit the field. No invented data. No duplicates.`;
 
 const LLM_SCHEMA = {
   type: "object",
@@ -265,6 +270,7 @@ export default function Home() {
         const result = await base44.integrations.Core.InvokeLLM({
           prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
           response_json_schema: LLM_SCHEMA,
+          model: "claude_sonnet_4_6",
         });
         const raw = (result?.restaurants || []).map((r, i) =>
           buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
