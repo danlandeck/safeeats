@@ -271,7 +271,7 @@ export default function Home() {
           prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
           response_json_schema: LLM_SCHEMA,
           add_context_from_internet: true,
-          model: "gemini_3_1_pro",
+          model: "gemini_3_flash",
         });
         const raw = (result?.restaurants || []).map((r, i) =>
           buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
