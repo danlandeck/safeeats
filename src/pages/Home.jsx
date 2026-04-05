@@ -270,7 +270,8 @@ export default function Home() {
         const result = await base44.integrations.Core.InvokeLLM({
           prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
           response_json_schema: LLM_SCHEMA,
-          model: "claude_sonnet_4_6",
+          add_context_from_internet: true,
+          model: "gemini_3_1_pro",
         });
         const raw = (result?.restaurants || []).map((r, i) =>
           buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
