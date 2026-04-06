@@ -48,25 +48,25 @@ const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. List real "${query}" restaurant locations in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
-
-Return up to 15 distinct locations. For chain restaurants return as many real locations as you know. Use your best knowledge of actual addresses and health inspection history for this area. Each record:
-- name: exact business name
-- address: real street address
-- city, zip_code, phone
-- latest_score: integer 0–100 (100 = perfect, 0 = condemned) based on known inspection history
-- total_violation_points: integer from latest known inspection
-- latest_date: YYYY-MM-DD of most recent known inspection
-- latest_result: Pass, Fail, Satisfactory, Closed, etc.
-- total_inspections: estimated count
-- violations: up to 3 specific violation descriptions from the latest inspection
-
-Only return locations you are confident actually exist. No duplicates. If you know of fewer than 15 real locations, return only those you know.`;
-
-const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. List real "${query}" restaurant locations in ${city}.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. List ONLY "${query}" restaurant locations in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}. Do NOT include any other restaurant names or chains — ONLY "${query}".
 
 Return up to 15 distinct locations. Each record:
-- name: exact business name
+- name: exact business name (must be "${query}" or a direct variant)
+- address: real street address
+- city, zip_code, phone
+- latest_score: integer 0–100 based on known inspection history
+- total_violation_points: integer from latest known inspection
+- latest_date: YYYY-MM-DD of most recent known inspection
+- latest_result: Pass, Fail, Satisfactory, Closed, etc.
+- total_inspections: estimated count
+- violations: up to 3 specific violation descriptions
+
+STRICT RULE: Every result must be a "${query}" location. No substitutions. No other restaurants.`;
+
+const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. List ONLY "${query}" restaurant locations in ${city}. Do NOT include any other restaurant names or chains.
+
+Return up to 15 distinct locations. Each record:
+- name: must be "${query}" or a direct variant
 - address: real street address
 - city, zip_code, phone
 - latest_score: integer 0–100 based on known health inspection history
@@ -76,12 +76,12 @@ Return up to 15 distinct locations. Each record:
 - total_inspections: estimated count
 - violations: up to 3 specific violation descriptions
 
-Only return locations you are confident actually exist in ${city}. No duplicates.`;
+STRICT RULE: Every result must be a "${query}" location only. No other restaurants.`;
 
-const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. The user searched for "${query}" with no specific location. Find the most well-known real locations of this restaurant anywhere — prioritize iconic or famous establishments first.
+const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. Find real "${query}" restaurant locations anywhere in the world. Do NOT include any other restaurant names or chains — ONLY "${query}".
 
 Return up to 15 distinct real locations. Each record:
-- name: exact business name
+- name: must be "${query}" or a direct variant
 - address: real street address
 - city, zip_code, phone
 - latest_score: integer 0–100 based on known health inspection history
@@ -91,7 +91,7 @@ Return up to 15 distinct real locations. Each record:
 - total_inspections: estimated count
 - violations: up to 3 specific violation descriptions
 
-Only return locations you are highly confident actually exist. No duplicates.`;
+STRICT RULE: Every result must be a "${query}" location only. No substitutions.`;
 
 const LLM_SCHEMA = {
   type: "object",
