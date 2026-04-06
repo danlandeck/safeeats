@@ -507,11 +507,7 @@ export default function Home() {
             </button>
           </div>
 
-          {!currentCounty.hasPublicApi && (
-            <p className="text-center text-xs text-slate-500 mt-3">
-              {t.aiDisclaimer(currentCounty.city)}
-            </p>
-          )}
+
         </div>
       </div>
 
@@ -555,10 +551,10 @@ export default function Home() {
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
                         <p className="text-sm text-slate-400">
-                         {currentCounty.hasPublicApi ? t.loading(currentCounty.name) : t.loadingAI(loadingSeconds)}
+                          Searching restaurants worldwide{loadingSeconds >= 3 ? " — this may take a moment…" : "…"}
                         </p>
-                        {!currentCounty.hasPublicApi && loadingSeconds >= 5 && (
-                         <p className="text-xs text-slate-400 mt-2">{t.loadingAILong}</p>
+                        {loadingSeconds >= 8 && (
+                          <p className="text-xs text-slate-400 mt-2">Cross-referencing multiple AI models for accuracy…</p>
                         )}
                       </div>
                     ) : results.length > 0 ? (
