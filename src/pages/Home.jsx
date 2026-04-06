@@ -267,14 +267,16 @@ export default function Home() {
         setAndCache(processKingCountyResults(await safeFetch(url)));
       } else {
         const today = new Date().toISOString().slice(0, 10);
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today),
-          response_json_schema: LLM_SCHEMA,
-          model: "gemini_3_flash",
-        });
-        const raw = (result?.restaurants || []).map((r, i) =>
-          buildLLMRestaurant(r, i, searchCounty, currentCounty.city)
-        );
+        const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
+        const [result1, result2] = await Promise.allSettled([
+          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" }),
+          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gpt_5_mini" }),
+        ]);
+        const combined = [
+          ...((result1.status === "fulfilled" ? result1.value?.restaurants : null) || []),
+          ...((result2.status === "fulfilled" ? result2.value?.restaurants : null) || []),
+        ];
+        const raw = combined.map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
         const seen = new Map();
         raw.forEach((r) => {
           const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
