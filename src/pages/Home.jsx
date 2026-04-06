@@ -466,6 +466,15 @@ export default function Home() {
             <div className="flex-1">
               <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder={t.searchPlaceholder} dir={isRTL ? "rtl" : "ltr"} />
             </div>
+            {hasSearched && (
+              <button
+                onClick={resetSearch}
+                title="Reset search"
+                className="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            )}
             <button
               onClick={() => setShowScanner(true)}
               title="Scan restaurant with camera"
