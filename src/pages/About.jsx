@@ -1,14 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
-import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, MapPin, Search, Ban, FileText } from "lucide-react";
+import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function About() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-3xl mx-auto px-4 py-12">
         <Link to={createPageUrl("Home")}>
           <Button variant="ghost" className="mb-6 text-slate-500 hover:text-slate-800 -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -26,40 +26,25 @@ export default function About() {
             <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
               Your Food Safety Companion
             </h1>
-            <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
-              One platform. All counties. Real inspection data — no third-party redirects.
+            <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto">
+              Real inspection data. No third-party redirects. No angry Yelp reviews.
             </p>
           </div>
 
-          {/* ⚠️ Legal Disclaimer — prominent, top of page */}
+          {/* Legal Disclaimer */}
           <Card className="p-8 border-2 border-red-300 bg-red-50">
             <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                <AlertTriangle className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-extrabold text-red-900 mb-3">Important Legal Disclaimer — Please Read</h2>
-                <div className="space-y-3 text-sm text-red-800 leading-relaxed">
-                  <p>
-                    <strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency, health department, or official inspection authority. SafeEats does not conduct, verify, or certify food safety inspections.
-                  </p>
-                  <p>
-                    <strong>Data accuracy is not guaranteed.</strong> Information displayed on SafeEats is sourced either from third-party government open-data APIs (which SafeEats does not control) or from AI-assisted lookups of publicly available web content. Both sources may contain errors, omissions, outdated entries, or inaccuracies that are outside SafeEats' control. A restaurant's displayed score, grade, or inspection record may not reflect its current or actual health status.
-                  </p>
-                  <p>
-                    <strong>AI-assisted results carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by an AI model that reads publicly available sources such as health department websites, news articles, and posted inspection reports. These estimates are clearly labeled and <em>are not official government records</em>. They may be incorrect, incomplete, or based on outdated source material. Do not treat AI-estimated scores as verified facts.
-                  </p>
-                  <p>
-                    <strong>Camera scan results are AI-interpreted and unverified.</strong> The camera scanning feature uses AI vision to attempt to read a restaurant name or inspection placard from a photo. Results may be misidentified, misread, or matched to the wrong establishment. A successful scan does not guarantee the search result corresponds to the correct restaurant or reflects a current inspection.
-                  </p>
-                  <p>
-                    <strong>Do not rely on SafeEats as your sole source for food safety decisions.</strong> Always consult your local health department's official records for authoritative inspection data. SafeEats should be used as a starting point for research, not as a definitive verdict on any establishment's safety.
-                  </p>
-                  <p>
-                    <strong>No warranty. No liability.</strong> SafeEats is provided "as is" without warranty of any kind, express or implied. The creators and operators of SafeEats shall not be liable for any damages, losses, or adverse outcomes arising from reliance on information displayed on this platform, including but not limited to incorrect scores, missing violations, misidentified restaurants, or data that has not been updated to reflect recent inspections.
-                  </p>
-                  <p className="font-bold text-red-900 border-t border-red-200 pt-3 mt-1">
-                    By using SafeEats, you acknowledge that data may be incomplete or inaccurate, and that you are solely responsible for any decisions made based on information from this platform.
+                <h2 className="text-lg font-extrabold text-red-900 mb-3">Important Disclaimer</h2>
+                <div className="space-y-2 text-sm text-red-800 leading-relaxed">
+                  <p><strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency or official inspection authority.</p>
+                  <p><strong>Data accuracy is not guaranteed.</strong> Scores come from government open-data APIs (which SafeEats does not control) or AI-assisted lookups of public records. Both may contain errors, omissions, or outdated entries.</p>
+                  <p><strong>AI-estimated scores carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by AI reading publicly available sources. These are <em>not official government records</em> and may be incorrect or incomplete.</p>
+                  <p className="font-bold text-red-900 border-t border-red-200 pt-3">
+                    Always consult your local health department for authoritative inspection records. By using SafeEats you acknowledge that data may be incomplete or inaccurate, and that you are solely responsible for decisions made based on it.
                   </p>
                 </div>
               </div>
@@ -68,48 +53,48 @@ export default function About() {
 
           {/* Mission */}
           <Card className="p-8 border-slate-200 bg-white">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-4">Our Mission</h2>
-            <p className="text-slate-600 leading-relaxed mb-4">
-              SafeEats was built because food safety data should be accessible, legible, and consolidated. No more bouncing between county portals or decoding government inspection PDFs. We pull the most current data from each jurisdiction's official health department records and present it uniformly — so you can compare a restaurant in King County, WA the same way you'd compare one in Clark County, NV.
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
+            <p className="text-slate-600 leading-relaxed mb-3">
+              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments worldwide and presents them through a single, consistent interface with a universal A–F grading system.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Our universal A–F grading system and 0–100 safety scores give you a consistent lens across all regions, even though each jurisdiction grades on its own criteria.
+              Every jurisdiction grades differently. A "Pass" in Chicago, 94 penalty points in LA, and a letter grade in NYC all mean different things. SafeEats normalizes everything to a 0–100 scale so you're always comparing apples to apples.
             </p>
           </Card>
 
-          {/* Data Mining Methodology */}
+          {/* How We Get Data */}
           <Card className="p-8 border-slate-200 bg-white">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">How We Mine Data When No API Exists</h2>
-            <p className="text-slate-500 text-sm mb-6">For jurisdictions without a live public inspection API, SafeEats uses a structured AI-assisted research process to surface official government data. Here's exactly how it works — and what we deliberately avoid.</p>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-1">How We Source Data</h2>
+            <p className="text-slate-500 text-sm mb-6">Two methods — live APIs where they exist, AI-assisted research everywhere else.</p>
 
             <div className="space-y-4 mb-8">
               <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Database className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-slate-900 mb-1">Live Government APIs <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full ml-2">REAL-TIME</span></p>
+                  <p className="text-sm text-slate-600 leading-relaxed">For jurisdictions that publish open-data APIs — including Los Angeles, New York City, Chicago, San Francisco, King County (Seattle), Austin, and Montgomery County MD — SafeEats queries the official database directly. Data is current as of the moment you search.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Search className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-slate-900 mb-1">Step 1 — Official State & County Health Department Websites</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">We query official state and county health department portals first. Many jurisdictions publish inspection databases as searchable HTML tables, downloadable CSVs, or PDF report archives — even if they don't offer a formal API. Our AI agent navigates and extracts from these sources directly.</p>
+                  <p className="font-extrabold text-slate-900 mb-1">AI-Assisted Research <span className="text-xs font-bold bg-slate-500 text-white px-2 py-0.5 rounded-full ml-2">EVERYWHERE ELSE</span></p>
+                  <p className="text-sm text-slate-600 leading-relaxed">For jurisdictions without a live API, our AI reads official state/county health department websites, publicly posted inspection PDFs, and verified local news coverage of health department records. Results are clearly labeled as AI-estimated — never presented as official government data.</p>
                 </div>
               </div>
 
               <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <FileText className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-slate-900 mb-1">Step 2 — Local News & Investigative Journalism</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">Reputable local newspapers and TV news stations often publish health inspection roundups, restaurant closure notices, and violation summaries sourced directly from the health department. These articles cite the official record and provide a secondary verification layer for scores and violations.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Globe className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-extrabold text-slate-900 mb-1">Step 3 — Publicly Posted Inspection Reports</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">Some health departments post inspection PDFs and summary reports on their own websites or via county document portals. When accessible, these are the most authoritative source available — inspector-signed, date-stamped official records. We extract scores, violation codes, and dates directly from these documents.</p>
+                  <p className="font-extrabold text-slate-900 mb-1">Global Coverage</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">SafeEats is location-agnostic. Search for a restaurant by name alone and we find it anywhere in the world. Add a city, state, or ZIP to narrow results to a specific area. The same AI-assisted research applies globally — not just the US.</p>
                 </div>
               </div>
             </div>
@@ -117,280 +102,66 @@ export default function About() {
             {/* Yelp callout */}
             <div className="bg-red-950 rounded-2xl p-6 text-white">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Ban className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Ban className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <p className="text-xl font-extrabold">We Don't Use Yelp. Not Even a Little.</p>
+                    <p className="text-lg font-extrabold">We Don't Use Yelp. Not Even a Little.</p>
                     <span className="text-xs font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">BY DESIGN</span>
                   </div>
                   <p className="text-red-200 leading-relaxed text-sm mb-3">
-                    Yelp is a <em>consumer review platform</em> — not a health data source. It aggregates star ratings from anonymous users, which means your food safety intelligence is being sourced from the same pool that includes a one-star review because the parking lot was too small, a five-star review bought by the restaurant owner, and three paragraphs of all-caps rage from someone who had to wait 20 minutes on a Saturday night.
-                  </p>
-                  <p className="text-red-200 leading-relaxed text-sm mb-3">
-                    Yelp does surface health inspection grades in some markets — but only when directly scraped from the same government databases we already access natively. There's no value-add, just an extra layer of algorithmic noise, paid placement, and review manipulation sitting between you and the facts.
+                    Yelp is a consumer review platform. Your food safety intelligence should not be sourced from the same pool that includes one-star reviews because the parking lot was too small, five-star reviews bought by the restaurant owner, and anonymous rage-posts from someone who waited 20 minutes on a Saturday night.
                   </p>
                   <p className="text-red-100 font-semibold text-sm">
-                    SafeEats is just the facts, ma'am. Inspector-issued scores. Violation codes. Official records. No angry Karens. No paid bots. No stars for ambiance. Just: did the health department pass this restaurant or not?
+                    SafeEats is just the facts. Inspector-issued scores. Violation codes. Official records. Did the health department pass this restaurant or not?
                   </p>
                 </div>
               </div>
             </div>
-
-            <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Transparency caveat:</strong> AI-assisted lookup depends entirely on what a jurisdiction publishes online. Many smaller counties do not digitize or publicly post their records — in those cases results may be incomplete or unavailable. We always clearly label AI-estimated scores as such, and the RestaurantDetail page explicitly states when no official inspection records were found. We never fabricate scores or present AI estimates as verified government data.
-              </p>
-            </div>
           </Card>
 
-          {/* Data Sources */}
+          {/* Score System */}
           <Card className="p-8 border-slate-200 bg-white">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Data Sources by Region</h2>
-            <p className="text-slate-500 text-sm mb-6">SafeEats covers all 50 states + Washington D.C., sourcing data from each jurisdiction's official health department. <strong className="text-slate-700">12 jurisdictions</strong> use live real-time public APIs — data updates with every new inspection. All other jurisdictions use AI-assisted lookup from official public health records — same interface, no third-party redirects.</p>
-
-            {/* Live API callouts - alphabetical */}
-            <div className="mb-6 space-y-3">
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-4">The Grading System</h2>
+            <div className="grid grid-cols-5 gap-2 mb-6">
               {[
-                {
-                  name: "Austin (Travis County), TX",
-                  desc: "City of Austin Open Data Portal — Food Establishment Inspection Scores",
-                  detail: "Real-time inspection scores for food establishments inspected within the last 3 years by Austin Public Health.",
-                  url: "https://data.austintexas.gov/Health-and-Community-Services/Food-Establishment-Inspection-Scores/ecmv-9xxi",
-                  urlLabel: "data.austintexas.gov →",
-                },
-                {
-                  name: "Baton Rouge (East Baton Rouge Parish), LA",
-                  desc: "City of Baton Rouge Open Data — Retail Food Inspections",
-                  detail: "Real-time inspection records for all East Baton Rouge Parish food establishments from the Louisiana Dept. of Health.",
-                  url: "https://data.brla.gov/Health-and-Human-Services/Retail-Food-Inspections/ux2t-b9wr",
-                  urlLabel: "data.brla.gov →",
-                },
-                {
-                  name: "Boston (Suffolk County), MA",
-                  desc: "Analyze Boston Open Data — Food Establishment Inspections",
-                  detail: "Real-time inspection records from the Boston Inspectional Services Department, updated continuously.",
-                  url: "https://data.boston.gov/dataset/food-establishment-inspections",
-                  urlLabel: "data.boston.gov →",
-                },
-                {
-                  name: "Chicago (Cook County), IL",
-                  desc: "City of Chicago Data Portal — Food Inspections",
-                  detail: "Real-time inspection records from the Chicago Dept. of Public Health's Food Protection Program.",
-                  url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5",
-                  urlLabel: "data.cityofchicago.org →",
-                },
-                {
-                  name: "Iowa (Statewide), IA",
-                  desc: "State of Iowa Open Data — Food Establishment Inspections",
-                  detail: "Statewide real-time inspection records from the Iowa Dept. of Inspections and Appeals, covering all licensed food establishments.",
-                  url: "https://data.iowa.gov/Regulatory/Food-Establishment-Inspections/xqcp-6ys7",
-                  urlLabel: "data.iowa.gov →",
-                },
-                {
-                  name: "King County (Seattle), WA",
-                  desc: "King County Public Health Open Data Portal",
-                  detail: "Real-time records updated with every new inspection across all King County food establishments.",
-                  url: "https://data.kingcounty.gov",
-                  urlLabel: "data.kingcounty.gov →",
-                },
-                {
-                  name: "Los Angeles, CA",
-                  desc: "Los Angeles Open Data — Restaurant and Market Health Inspections",
-                  detail: "Real-time inspection results for restaurants and markets in the City of Los Angeles, provided by LA County Environmental Health.",
-                  url: "https://data.lacity.org/Health/Restaurant-and-Market-Health-Inspections/29fd-3paw",
-                  urlLabel: "data.lacity.org →",
-                },
-                {
-                  name: "Montgomery County, MD",
-                  desc: "dataMontgomery — Food Inspection Open Data Portal",
-                  detail: "Real-time food inspection records from Montgomery County's Licensure & Regulatory Services Program.",
-                  url: "https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspection/5pue-gfbe",
-                  urlLabel: "data.montgomerycountymd.gov →",
-                },
-                {
-                  name: "New York City (5 Boroughs), NY",
-                  desc: "NYC Open Data — DOHMH Restaurant Inspection Results",
-                  detail: "Real-time records from all five boroughs, updated continuously by the NYC Dept. of Health.",
-                  url: "https://data.cityofnewyork.us/resource/43nn-pn8j",
-                  urlLabel: "data.cityofnewyork.us →",
-                },
-                {
-                  name: "New York State (Statewide), NY",
-                  desc: "NY Open Data — Food Safety Inspections: Current Ratings",
-                  detail: "Statewide real-time inspection data covering all food safety inspections conducted in the last 24 months across New York State.",
-                  url: "https://data.ny.gov/Health/Food-Safety-Inspections-Current-Ratings/d6dy-3h7r",
-                  urlLabel: "data.ny.gov →",
-                },
-                {
-                  name: "San Francisco, CA",
-                  desc: "San Francisco Open Data — Restaurant Scores (LIVES Standard)",
-                  detail: "Real-time health inspection scores for SF restaurants published by the SF Dept. of Public Health using the LIVES open standard.",
-                  url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i",
-                  urlLabel: "data.sfgov.org →",
-                },
-                {
-                  name: "Wake County (Raleigh), NC",
-                  desc: "Wake County Open Data — Food Inspections",
-                  detail: "Real-time food inspection records from the Wake County Health Dept., covering all permitted food service facilities across the county.",
-                  url: "https://data-wake.opendata.arcgis.com/datasets/Wake::food-inspections",
-                  urlLabel: "data-wake.opendata.arcgis.com →",
-                },
-              ].map((api) => (
-                <div key={api.name} className="bg-slate-900 rounded-xl p-5 text-white">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">LIVE API</span>
-                      </div>
-                      <p className="font-extrabold text-base">{api.name}</p>
-                      <p className="text-slate-300 text-sm mt-0.5">{api.desc}</p>
-                      <p className="text-slate-400 text-xs mt-1">{api.detail}</p>
-                    </div>
-                    <a href={api.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-slate-300 hover:text-white underline underline-offset-2 flex-shrink-0">
-                      {api.urlLabel}
-                    </a>
-                  </div>
+                { grade: "A", range: "90–100", color: "bg-green-600" },
+                { grade: "B", range: "80–89", color: "bg-lime-500" },
+                { grade: "C", range: "70–79", color: "bg-yellow-400" },
+                { grade: "D", range: "60–69", color: "bg-orange-500" },
+                { grade: "F", range: "< 60", color: "bg-red-600" },
+              ].map(({ grade, range, color }) => (
+                <div key={grade} className={`${color} rounded-xl p-3 text-center text-white`}>
+                  <div className="text-2xl font-extrabold">{grade}</div>
+                  <div className="text-xs font-semibold opacity-90">{range}</div>
                 </div>
               ))}
             </div>
-
-            {/* All other states */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                { state: "Alabama (AL)", counties: "Jefferson, Mobile, Madison, Montgomery" },
-                { state: "Alaska (AK)", counties: "Anchorage, Fairbanks, Juneau" },
-                { state: "Arizona (AZ)", counties: "Maricopa, Pima, Pinal, Yavapai, Coconino" },
-                { state: "Arkansas (AR)", counties: "Pulaski, Benton, Washington" },
-                { state: "California (CA)", counties: "Los Angeles, San Francisco, San Diego, Sacramento, Alameda, Orange, Riverside, San Bernardino, Santa Clara, Fresno, Kern, Ventura" },
-                { state: "Colorado (CO)", counties: "Denver, El Paso, Boulder, Arapahoe, Adams, Larimer, Jefferson" },
-                { state: "Connecticut (CT)", counties: "Hartford, New Haven, Fairfield" },
-                { state: "Delaware (DE)", counties: "New Castle, Kent, Sussex" },
-                { state: "Washington D.C.", counties: "District of Columbia" },
-                { state: "Florida (FL)", counties: "Miami-Dade, Broward, Orange, Hillsborough, Palm Beach, Pinellas, Duval, Polk, Lee" },
-                { state: "Georgia (GA)", counties: "Fulton, DeKalb, Gwinnett, Cobb, Chatham, Bibb" },
-                { state: "Hawaii (HI)", counties: "Honolulu, Maui, Hawaii (Big Island), Kauai" },
-                { state: "Idaho (ID)", counties: "Ada, Canyon, Kootenai" },
-                { state: "Illinois (IL)", counties: "Cook County (Chicago) — LIVE API, DuPage, Lake, Will, Kane, Sangamon" },
-                { state: "Indiana (IN)", counties: "Marion, Lake, Allen, Hamilton" },
-                { state: "Iowa (IA)", counties: "Polk, Linn, Scott, Johnson" },
-                { state: "Kansas (KS)", counties: "Johnson, Sedgwick, Wyandotte, Shawnee" },
-                { state: "Kentucky (KY)", counties: "Jefferson, Fayette, Boone" },
-                { state: "Louisiana (LA)", counties: "Orleans, East Baton Rouge, Jefferson, Caddo" },
-                { state: "Maine (ME)", counties: "Cumberland, Penobscot, York" },
-                { state: "Maryland (MD)", counties: "Baltimore City, Baltimore County, Montgomery County — LIVE API, Prince George's, Anne Arundel, Howard" },
-                { state: "Massachusetts (MA)", counties: "Suffolk, Middlesex, Worcester, Hampden, Norfolk, Essex" },
-                { state: "Michigan (MI)", counties: "Wayne, Kent, Oakland, Macomb, Ingham, Washtenaw" },
-                { state: "Minnesota (MN)", counties: "Hennepin, Ramsey, Dakota, Anoka, St. Louis" },
-                { state: "Mississippi (MS)", counties: "Hinds, Harrison, DeSoto" },
-                { state: "Missouri (MO)", counties: "St. Louis City, St. Louis County, Jackson, Greene, Boone" },
-                { state: "Montana (MT)", counties: "Yellowstone, Cascade, Missoula, Gallatin" },
-                { state: "Nebraska (NE)", counties: "Douglas, Lancaster, Sarpy" },
-                { state: "Nevada (NV)", counties: "Clark, Washoe, Carson City" },
-                { state: "New Hampshire (NH)", counties: "Hillsborough, Rockingham, Merrimack" },
-                { state: "New Jersey (NJ)", counties: "Essex, Bergen, Hudson, Middlesex, Monmouth, Ocean, Union, Camden" },
-                { state: "New Mexico (NM)", counties: "Bernalillo, Doña Ana, Santa Fe" },
-                { state: "New York (NY)", counties: "NYC (5 Boroughs) — LIVE API, Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga" },
-                { state: "North Carolina (NC)", counties: "Mecklenburg, Wake, Guilford, Forsyth, Durham, Cumberland, Buncombe" },
-                { state: "North Dakota (ND)", counties: "Cass, Burleigh, Grand Forks" },
-                { state: "Ohio (OH)", counties: "Cuyahoga, Franklin, Hamilton, Summit, Montgomery, Lucas, Stark" },
-                { state: "Oklahoma (OK)", counties: "Oklahoma, Tulsa, Cleveland" },
-                { state: "Oregon (OR)", counties: "Multnomah, Lane, Marion, Washington, Clackamas, Jackson, Deschutes" },
-                { state: "Pennsylvania (PA)", counties: "Philadelphia, Allegheny, Montgomery, Bucks, Chester, Lancaster, York, Berks" },
-                { state: "Rhode Island (RI)", counties: "Providence, Kent, Washington" },
-                { state: "South Carolina (SC)", counties: "Greenville, Richland, Charleston, Spartanburg" },
-                { state: "South Dakota (SD)", counties: "Minnehaha, Pennington" },
-                { state: "Tennessee (TN)", counties: "Shelby, Davidson, Knox, Hamilton, Rutherford" },
-                { state: "Texas (TX)", counties: "Harris, Dallas, Travis, Bexar, Tarrant, Collin, Hidalgo, Denton, El Paso, Nueces, Williamson, Lubbock" },
-                { state: "Utah (UT)", counties: "Salt Lake, Utah, Davis, Weber, Washington" },
-                { state: "Vermont (VT)", counties: "Chittenden, Rutland, Washington" },
-                { state: "Virginia (VA)", counties: "Fairfax, Virginia Beach, Richmond, Arlington, Chesapeake, Norfolk, Chesterfield, Loudoun" },
-                { state: "Washington (WA)", counties: "King County — LIVE API, Snohomish, Pierce, Clark, Spokane, Thurston, Kitsap, Whatcom, Benton, Yakima" },
-                { state: "West Virginia (WV)", counties: "Kanawha, Cabell, Monongalia" },
-                { state: "Wisconsin (WI)", counties: "Milwaukee, Dane, Waukesha, Brown, Racine" },
-                { state: "Wyoming (WY)", counties: "Laramie, Natrona, Teton" },
-              ].map((row) => (
-                <div key={row.state} className="bg-slate-50 rounded-lg p-3">
-                  <p className="font-bold text-slate-800 text-sm">{row.state}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{row.counties}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
-              <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Data method:</strong> <strong>12 jurisdictions</strong> use live real-time public APIs — Austin TX, Baton Rouge LA, Boston MA, Chicago IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC. Data is current as of the moment you search. All other jurisdictions use <strong>AI-assisted lookup</strong> that searches publicly available official health department records — results depend entirely on whether that jurisdiction publishes inspection data online. Many smaller counties do not digitize or publicly post their records, in which case results may be incomplete, outdated, or unavailable. SafeEats lists all 50 states and hundreds of counties in the selector, but that reflects <em>potential</em> coverage, not a guaranteed direct database connection for every jurisdiction.
-              </p>
-              <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>Geographic precision:</strong> Live API routing is matched on <strong>both state abbreviation and county name together</strong> — never on county name alone. This prevents counties that share names across states from being routed to the wrong data source. For example, <em>King County, WA</em> correctly hits the King County Public Health API, while <em>King County, TX</em> falls back to AI-assisted lookup. The same logic applies to <em>Montgomery County</em> (MD has a live API; OH, PA, and others do not), <em>Cook County</em> (IL has a live API; others do not), and all five New York City boroughs (NY). Only the four specifically integrated county/city combinations receive live API data — all same-named counties in other states use AI-assisted lookup.
-              </p>
-            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
+            </p>
           </Card>
 
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
-                <Database className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Live + AI-Assisted Data</h3>
-              <p className="text-sm text-slate-600">
-                King County, WA · New York City, NY · Cook County (Chicago), IL · and Montgomery County, MD use live real-time APIs. All other regions use AI-assisted lookups from official health department records — same UI, no third-party redirects.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Universal A–F Grading</h3>
-              <p className="text-sm text-slate-600">
-                Because each county uses different criteria, we normalize all scores to a universal 0–100 scale and A–F letter grade, so comparisons are always apples-to-apples.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-slate-200">
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Full History</h3>
-              <p className="text-sm text-slate-600">
-                We display the complete inspection history for each establishment — not just the latest result — with violation breakdowns, trends, and charts.
-              </p>
-            </Card>
-          </div>
-
-          {/* ESRI Credit */}
+          {/* Esri */}
           <Card className="p-8 border-slate-200 bg-white">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center">
-                  <Globe className="w-8 h-8 text-white" />
-                </div>
+            <div className="flex gap-5 items-start">
+              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Globe className="w-6 h-6 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h2 className="text-2xl font-extrabold text-slate-900">Powered by Esri Technology</h2>
+                  <h2 className="text-xl font-extrabold text-slate-900">Powered by Esri GIS Technology</h2>
                   <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Map Data Partner</span>
                 </div>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  SafeEats uses <strong className="text-slate-900">Esri's industry-leading GIS color ramp standards</strong> — specifically the ESRI-standard diverging health-risk color scale (green-to-red) — to communicate food safety risk in a way that's immediately intuitive to anyone familiar with professional geospatial analysis. This is the same visual language used by public health agencies, emergency management teams, and environmental scientists worldwide.
-                </p>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  What makes Esri's approach so powerful — and why SafeEats adopted it — is that their color science isn't arbitrary. The diverging ramp is perceptually calibrated so that severity differences are immediately legible at a glance, even for users with color vision deficiencies. Applying that cartographic rigor to restaurant safety data transforms what could be a dry table of numbers into a genuinely actionable risk map.
-                </p>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  SafeEats also draws on Esri's publicly available GeoJSON boundary datasets for state-level mapping, enabling smooth, high-fidelity geographic visualizations without requiring proprietary software. This is a testament to Esri's commitment to making professional-grade geospatial infrastructure accessible to developers building civic technology.
-                </p>
-                <p className="text-slate-600 leading-relaxed">
-                  Esri has been the gold standard in GIS for over five decades. Their innovation in spatial analysis, data visualization, and open geospatial standards directly enables platforms like SafeEats to deliver meaningful, data-driven public health tools. We're proud to build on that foundation.
+                <p className="text-slate-600 leading-relaxed text-sm mb-3">
+                  SafeEats uses Esri's diverging health-risk color scale — the same visual language used by public health agencies worldwide — to make safety risk immediately legible at a glance. Their perceptually calibrated color ramp works even for users with color vision deficiencies. We also use Esri's GeoJSON boundary datasets for geographic visualizations.
                 </p>
                 <a
                   href="https://www.esri.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors"
                 >
                   Learn more about Esri →
                 </a>
@@ -398,83 +169,26 @@ export default function About() {
             </div>
           </Card>
 
-          {/* Score caveat */}
-          <Card className="p-6 border-amber-200 bg-amber-50">
-            <div className="flex gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="text-lg font-semibold text-amber-900 mb-2">A Note on Score Fluctuation</h3>
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  Every jurisdiction grades restaurants on different criteria — point systems, letter grades, pass/fail — and inspectors evaluate different risk factors. SafeEats normalizes these into a universal score, but because the underlying grading philosophies differ, scores may fluctuate between counties and over time. A score of 85 in King County may reflect different standards than an 85 in Clark County. Always consider the full inspection history and violation details when making dining decisions.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* How It Works */}
-          <Card className="p-8 border-slate-200 bg-slate-50">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-4">How We Calculate Safety Scores</h2>
-            <div className="space-y-3 text-slate-600">
-              <p className="leading-relaxed">
-                <strong className="text-slate-900">1. Data Pull:</strong> We fetch the most current data from each city/county health department — live real-time APIs for Austin TX, Baton Rouge LA, Boston MA, Chicago (Cook County) IL, Iowa (statewide), King County WA, Los Angeles CA, Montgomery County MD, New York City NY, New York State (statewide), San Francisco CA, and Wake County (Raleigh) NC; AI-assisted lookup from official public records for all other jurisdictions.
-              </p>
-              <p className="leading-relaxed">
-                <strong className="text-slate-900">2. Normalization:</strong> Each region's raw scores (penalty points, pass/fail, letter grades) are converted to a unified 0–100 scale.
-              </p>
-              <p className="leading-relaxed">
-                <strong className="text-slate-900">3. Letter Grade:</strong> A (90–100), B (80–89), C (70–79), D (60–69), F (below 60) — giving you an instant at-a-glance verdict.
-              </p>
-              <p className="leading-relaxed">
-                <strong className="text-slate-900">4. Full History:</strong> We display every inspection on record — not just the most recent — with charts showing safety trends over time.
-              </p>
-            </div>
-          </Card>
-
-          {/* Creator Info */}
-          <Card className="p-6 border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-3">About the Creator</h3>
-            <div className="space-y-4 text-sm text-slate-600">
+          {/* Creator */}
+          <Card className="p-8 border-slate-200 bg-white">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">About the Creator</h3>
+            <div className="space-y-3 text-sm text-slate-600">
               <div>
                 <p className="text-xl font-extrabold text-slate-900">Daniel Landeck</p>
                 <p className="text-slate-500 text-xs mt-0.5">Seattle Metro Area · University of Washington Graduate</p>
               </div>
               <p className="leading-relaxed">
-                Daniel Landeck is the rare kind of creative professional who operates at the intersection of storytelling, technology, and physical discipline. By day he's a veteran game developer and film producer with credits spanning two industries. By night — or, let's be honest, also by day — he's the guy who built SafeEats as a <span className="font-semibold text-slate-800">genuine public service</span>: transparent food safety data, free, for everyone, because the public deserves better than a wall of government PDFs.
+                Veteran game developer, film producer, and black belt in Okinawan Karate (Shudokan). Daniel built SafeEats as a genuine public service — transparent food safety data, free, because the public deserves better than a wall of government PDFs.
               </p>
-              <p className="leading-relaxed">
-                A <span className="font-semibold text-slate-800">black belt in traditional Okinawan Karate (Shudokan)</span> and a <span className="font-semibold text-slate-800">blue belt in Brazilian Jiu-Jitsu</span>, Daniel approaches every project — whether it's a game, a film, or a civic tech platform — with the same philosophy: discipline, craft, and finishing what you start. He is actively seeking new collaborations in games, film, and technology.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-2">
-                <a
-                  href="https://www.linkedin.com/in/danlandeck/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors"
-                >
-                  LinkedIn →
-                </a>
-                <a
-                  href="https://www.mobygames.com/person/277275/daniel-landeck/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors"
-                >
-                  MobyGames (Game Dev) →
-                </a>
-                <a
-                  href="https://www.imdb.com/name/nm6015660/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors"
-                >
-                  IMDb (Film Producer) →
-                </a>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <a href="https://www.linkedin.com/in/danlandeck/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors">LinkedIn →</a>
+                <a href="https://www.mobygames.com/person/277275/daniel-landeck/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors">MobyGames →</a>
+                <a href="https://www.imdb.com/name/nm6015660/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition-colors">IMDb →</a>
               </div>
             </div>
           </Card>
 
-          {/* Footer */}
-          <div className="text-center pt-6 border-t border-slate-200">
+          <div className="text-center pt-4 border-t border-slate-200">
             <p className="text-sm text-slate-500">
               Built with <Heart className="w-4 h-4 inline text-red-500 fill-red-500" /> for food safety transparency
             </p>
