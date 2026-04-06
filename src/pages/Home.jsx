@@ -613,7 +613,7 @@ export default function Home() {
 
                         <div className="mb-6">
                           <DataVisualizations
-                            restaurants={filteredAndSortedResults}
+                            restaurants={results}
                             activeGrade={activeGrade}
                             activeResult={activeResult}
                             onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
