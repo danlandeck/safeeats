@@ -150,6 +150,8 @@ export default function Home() {
   const [dateFrom, setDateFrom]               = useState("");
   const [dateTo, setDateTo]                   = useState("");
   const [minScore, setMinScore]               = useState(0);
+  const [activeGrade, setActiveGrade]         = useState(null);
+  const [activeResult, setActiveResult]       = useState(null);
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
@@ -441,6 +443,12 @@ export default function Home() {
     if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
     if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
     if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore >= minScore);
+    if (activeGrade) {
+      const gradeRanges = { "A (90-100)": [90,100], "B (80-89)": [80,89], "C (70-79)": [70,79], "D (60-69)": [60,69], "F (<60)": [0,59] };
+      const [lo, hi] = gradeRanges[activeGrade] || [0, 100];
+      filtered = filtered.filter((r) => r.safetyScore >= lo && r.safetyScore <= hi);
+    }
+    if (activeResult) filtered = filtered.filter((r) => (r.latestResult || "").toLowerCase() === activeResult.toLowerCase());
     switch (sortBy) {
       case "score-high":   filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections); break;
       case "score-low":    filtered.sort((a, b) => a.safetyScore - b.safetyScore || b.totalInspections - a.totalInspections); break;
@@ -604,7 +612,13 @@ export default function Home() {
                         </div>
 
                         <div className="mb-6">
-                          <DataVisualizations restaurants={filteredAndSortedResults} />
+                          <DataVisualizations
+                            restaurants={filteredAndSortedResults}
+                            activeGrade={activeGrade}
+                            activeResult={activeResult}
+                            onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
+                            onResultClick={(r) => setActiveResult(prev => prev === r ? null : r)}
+                          />
                         </div>
 
                         {viewMode === "map" ? (

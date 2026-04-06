@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, CheckCircle2, Clock } from "lucide-react";
 
-export default function DataVisualizations({ restaurants }) {
+export default function DataVisualizations({ restaurants, activeGrade, activeResult, onGradeClick, onResultClick }) {
   const stats = useMemo(() => {
     if (!restaurants || restaurants.length === 0) return null;
 
@@ -82,29 +82,37 @@ export default function DataVisualizations({ restaurants }) {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5 border-slate-200">
-          <h3 className="text-sm font-bold text-slate-900 mb-4">Grade Distribution</h3>
+        <Card className="p-5 border-slate-200 cursor-pointer">
+          <h3 className="text-sm font-bold text-slate-900 mb-1">Grade Distribution</h3>
+          <p className="text-xs text-slate-400 mb-3">Click a bar to filter results</p>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={stats.scoreData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <BarChart data={stats.scoreData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} onClick={(e) => e?.activePayload && onGradeClick?.(e.activePayload[0]?.payload?.name)}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
               <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }} />
-              <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                {stats.scoreData.map((entry, i) => <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />)}
+              <Bar dataKey="count" radius={[6, 6, 0, 0]} cursor="pointer">
+                {stats.scoreData.map((entry, i) => (
+                  <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} opacity={activeGrade && activeGrade !== entry.name ? 0.35 : 1} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          {activeGrade && <button onClick={() => onGradeClick?.(null)} className="text-xs text-blue-600 font-semibold mt-1 hover:underline">Clear filter</button>}
         </Card>
 
         <Card className="p-5 border-slate-200">
-          <h3 className="text-sm font-bold text-slate-900 mb-3">Inspection Results Breakdown</h3>
+          <h3 className="text-sm font-bold text-slate-900 mb-1">Inspection Results Breakdown</h3>
+          <p className="text-xs text-slate-400 mb-3">Click a slice or label to filter results</p>
           <div className="flex gap-4">
             <div className="flex-1" style={{ minWidth: 0 }}>
               <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
-                  <Pie data={stats.resultsData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={false} labelLine={false}>
-                    {stats.resultsData.map((entry, i) => <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} />)}
+                  <Pie data={stats.resultsData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={false} labelLine={false} cursor="pointer"
+                    onClick={(entry) => onResultClick?.(entry?.name)}>
+                    {stats.resultsData.map((entry, i) => (
+                      <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} opacity={activeResult && activeResult !== entry.name ? 0.35 : 1} />
+                    ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }} formatter={(value, name) => [value, name]} />
                 </PieChart>
@@ -112,12 +120,14 @@ export default function DataVisualizations({ restaurants }) {
             </div>
             <div className="flex flex-col justify-center gap-2 flex-shrink-0 pr-1">
               {stats.resultsData.map((entry, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <button key={i} onClick={() => onResultClick?.(entry.name)}
+                  className={`flex items-center gap-2 rounded-lg px-1 py-0.5 transition-all hover:bg-slate-100 ${activeResult === entry.name ? "ring-1 ring-slate-400 bg-slate-50" : ""}`}>
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: RESULT_COLORS[i % RESULT_COLORS.length] }} />
                   <span className="text-xs text-slate-600 font-medium truncate max-w-[110px]" title={entry.name}>{entry.name}</span>
                   <span className="text-xs text-slate-400 ml-auto pl-1">{entry.value}</span>
-                </div>
+                </button>
               ))}
+              {activeResult && <button onClick={() => onResultClick?.(null)} className="text-xs text-blue-600 font-semibold mt-1 hover:underline text-left">Clear filter</button>}
             </div>
           </div>
         </Card>
