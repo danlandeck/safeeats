@@ -23,6 +23,10 @@ export function parseLocationQuery(raw) {
   const locationOnly = trimmed.match(/^([A-Za-z\s]+),?\s+([A-Z]{2})$/i);
   if (locationOnly) return { name: "", city: locationOnly[1].trim(), state: locationOnly[2].toUpperCase(), zip: null };
 
+  // "Name, City" or just "City" (no state)
+  const nameCity = trimmed.match(/^(.+?),\s*([A-Za-z][A-Za-z\s]+)$/);
+  if (nameCity) return { name: nameCity[1].trim(), city: nameCity[2].trim(), state: null, zip: null };
+
   return null;
 }
 

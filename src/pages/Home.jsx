@@ -63,6 +63,21 @@ Return up to 15 distinct locations. For chain restaurants return as many real lo
 
 Only return locations you are confident actually exist. No duplicates. If you know of fewer than 15 real locations, return only those you know.`;
 
+const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. List real "${query}" restaurant locations in ${city}.
+
+Return up to 15 distinct locations. Each record:
+- name: exact business name
+- address: real street address
+- city, zip_code, phone
+- latest_score: integer 0–100 based on known health inspection history
+- total_violation_points: integer from latest known inspection
+- latest_date: YYYY-MM-DD of most recent known inspection
+- latest_result: Pass, Fail, Satisfactory, Closed, etc.
+- total_inspections: estimated count
+- violations: up to 3 specific violation descriptions
+
+Only return locations you are confident actually exist in ${city}. No duplicates.`;
+
 const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. The user searched for "${query}" with no specific location. Find the most well-known real locations of this restaurant anywhere — prioritize iconic or famous establishments first.
 
 Return up to 15 distinct real locations. Each record:
@@ -275,18 +290,23 @@ export default function Home() {
 
     try {
       if (!hasLocationHint) {
-        // No location = global LLM search, finds any restaurant anywhere
+        // No location = global LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_GLOBAL(query, today);
-        const [result1, result2] = await Promise.allSettled([
-          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" }),
-          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gpt_5_mini" }),
-        ]);
-        const combined = [
-          ...((result1.status === "fulfilled" ? result1.value?.restaurants : null) || []),
-          ...((result2.status === "fulfilled" ? result2.value?.restaurants : null) || []),
-        ];
-        const raw = combined.map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
+        const seen = new Map();
+        raw.forEach((r) => {
+          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
+        });
+        setAndCache(Array.from(seen.values()));
+      } else if (parsed?.city && !parsed?.state) {
+        // City-only hint (e.g. "Taco Bell, San Diego") — scoped LLM search
+        const today = new Date().toISOString().slice(0, 10);
+        const prompt = LLM_PROMPT_CITY(query, parsed.city, today);
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
         const seen = new Map();
         raw.forEach((r) => {
           const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
@@ -324,15 +344,8 @@ export default function Home() {
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
-        const [result1, result2] = await Promise.allSettled([
-          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" }),
-          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gpt_5_mini" }),
-        ]);
-        const combined = [
-          ...((result1.status === "fulfilled" ? result1.value?.restaurants : null) || []),
-          ...((result2.status === "fulfilled" ? result2.value?.restaurants : null) || []),
-        ];
-        const raw = combined.map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
         const seen = new Map();
         raw.forEach((r) => {
           const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
