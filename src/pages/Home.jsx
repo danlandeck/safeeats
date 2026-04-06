@@ -464,7 +464,7 @@ export default function Home() {
       });
     }
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore, activeGrade, activeResult]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
