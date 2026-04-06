@@ -446,44 +446,6 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
-            <div className="flex flex-col items-center gap-1">
-              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">{t.labelCountry}</label>
-              <select
-                value={region}
-                onChange={(e) => handleRegionChange(e.target.value)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[240px]"
-              >
-                {(() => {
-                  const intlKeys = new Set(["canada","uk","mexico","australia","france","germany","spain","italy","japan","brazil","india","south_korea","china","uae","singapore","netherlands","portugal","new_zealand","argentina","thailand","greece","turkey","south_africa"]);
-                  const usEntries = Object.entries(REGIONS).filter(([k]) => !intlKeys.has(k)).sort(([,a],[,b]) => a.name.localeCompare(b.name));
-                  const intlEntries = Object.entries(REGIONS).filter(([k]) => intlKeys.has(k)).sort(([,a],[,b]) => a.name.localeCompare(b.name));
-                  return (
-                    <>
-                      <optgroup label={t.optgroupUS}>
-                        {usEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
-                      </optgroup>
-                      <optgroup label={t.optgroupIntl}>
-                        {intlEntries.map(([key, reg]) => <option key={key} value={key}>{reg.name}</option>)}
-                      </optgroup>
-                    </>
-                  );
-                })()}
-              </select>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <label className="text-xs font-semibold text-slate-500 tracking-widest uppercase">{t.labelCity}</label>
-              <select
-                value={countyId}
-                onChange={(e) => { setCountyId(e.target.value); resetSearch(); }}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold border border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer min-w-[260px]"
-              >
-                {currentRegion.counties.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
 
           <div className="flex items-center gap-2 w-full max-w-2xl mx-auto">
             <div className="flex-1">
