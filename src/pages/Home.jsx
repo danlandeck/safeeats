@@ -63,6 +63,21 @@ Return up to 15 distinct locations. For chain restaurants return as many real lo
 
 Only return locations you are confident actually exist. No duplicates. If you know of fewer than 15 real locations, return only those you know.`;
 
+const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. The user searched for "${query}" with no specific location. Find the most well-known real locations of this restaurant anywhere — prioritize iconic or famous establishments first.
+
+Return up to 15 distinct real locations. Each record:
+- name: exact business name
+- address: real street address
+- city, zip_code, phone
+- latest_score: integer 0–100 based on known health inspection history
+- total_violation_points: integer from latest known inspection
+- latest_date: YYYY-MM-DD of most recent known inspection
+- latest_result: Pass, Fail, Satisfactory, Closed, etc.
+- total_inspections: estimated count
+- violations: up to 3 specific violation descriptions
+
+Only return locations you are highly confident actually exist. No duplicates.`;
+
 const LLM_SCHEMA = {
   type: "object",
   properties: {
@@ -190,6 +205,8 @@ export default function Home() {
     let searchCounty = countyId;
 
     const parsed = parseLocationQuery(rawQuery);
+    const hasLocationHint = !!parsed;
+
     if (parsed) {
       query = parsed.name || parsed.zip || parsed.city || rawQuery;
 
@@ -226,7 +243,6 @@ export default function Home() {
         setCountyId(searchCounty);
       }
 
-      // If only a location was entered (no restaurant name), search for "restaurant" broadly
       if (!parsed.name) query = "restaurant";
     }
 
@@ -258,7 +274,26 @@ export default function Home() {
     const setAndCache = (data) => { searchCacheRef.current.set(cacheKey, data); setResults(data); };
 
     try {
-      if (searchCounty === "nyc") {
+      if (!hasLocationHint) {
+        // No location = global LLM search, finds any restaurant anywhere
+        const today = new Date().toISOString().slice(0, 10);
+        const prompt = LLM_PROMPT_GLOBAL(query, today);
+        const [result1, result2] = await Promise.allSettled([
+          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" }),
+          base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gpt_5_mini" }),
+        ]);
+        const combined = [
+          ...((result1.status === "fulfilled" ? result1.value?.restaurants : null) || []),
+          ...((result2.status === "fulfilled" ? result2.value?.restaurants : null) || []),
+        ];
+        const raw = combined.map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
+        const seen = new Map();
+        raw.forEach((r) => {
+          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
+        });
+        setAndCache(Array.from(seen.values()));
+      } else if (searchCounty === "nyc") {
         const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
         const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
