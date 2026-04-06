@@ -48,10 +48,13 @@ const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. List ONLY "${query}" restaurant locations in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}. Do NOT include any other restaurant names or chains — ONLY "${query}".
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. The user searched for "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
 
-Return up to 15 distinct locations. Each record:
-- name: exact business name (must be "${query}" or a direct variant)
+If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return ONLY locations of that exact chain.
+If "${query}" is a cuisine or food type (e.g. "tacos", "thai", "sushi"), return up to 15 real restaurants of that cuisine in the area.
+
+Each record:
+- name: exact business name
 - address: real street address
 - city, zip_code, phone
 - latest_score: integer 0–100 based on known inspection history
@@ -61,12 +64,15 @@ Return up to 15 distinct locations. Each record:
 - total_inspections: estimated count
 - violations: up to 3 specific violation descriptions
 
-STRICT RULE: Every result must be a "${query}" location. No substitutions. No other restaurants.`;
+Only return real locations you are confident exist. No duplicates.`;
 
-const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. List ONLY "${query}" restaurant locations in ${city}. Do NOT include any other restaurant names or chains.
+const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. The user searched for "${query}" in ${city}.
 
-Return up to 15 distinct locations. Each record:
-- name: must be "${query}" or a direct variant
+If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return ONLY locations of that exact chain in ${city}.
+If "${query}" is a cuisine or food type (e.g. "tacos", "thai", "sushi"), return up to 15 real restaurants of that cuisine in ${city}.
+
+Each record:
+- name: exact business name
 - address: real street address
 - city, zip_code, phone
 - latest_score: integer 0–100 based on known health inspection history
@@ -76,12 +82,15 @@ Return up to 15 distinct locations. Each record:
 - total_inspections: estimated count
 - violations: up to 3 specific violation descriptions
 
-STRICT RULE: Every result must be a "${query}" location only. No other restaurants.`;
+Only return real locations you are confident exist in ${city}. No duplicates.`;
 
-const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. Find real "${query}" restaurant locations anywhere in the world. Do NOT include any other restaurant names or chains — ONLY "${query}".
+const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. The user searched for "${query}" with no specific location.
 
-Return up to 15 distinct real locations. Each record:
-- name: must be "${query}" or a direct variant
+If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return up to 15 of the most well-known locations of that exact chain worldwide.
+If "${query}" is a cuisine or food type (e.g. "tacos", "thai"), return up to 15 highly-rated or well-known restaurants of that cuisine from around the world.
+
+Each record:
+- name: exact business name
 - address: real street address
 - city, zip_code, phone
 - latest_score: integer 0–100 based on known health inspection history
@@ -91,7 +100,7 @@ Return up to 15 distinct real locations. Each record:
 - total_inspections: estimated count
 - violations: up to 3 specific violation descriptions
 
-STRICT RULE: Every result must be a "${query}" location only. No substitutions.`;
+Only return real locations you are highly confident exist. No duplicates.`;
 
 const LLM_SCHEMA = {
   type: "object",
@@ -244,7 +253,7 @@ export default function Home() {
         setCountyId(searchCounty);
       }
 
-      if (!parsed.name) query = "restaurant";
+      if (!parsed.name) query = rawQuery;
     }
 
     if (abortRef.current) abortRef.current.abort();
