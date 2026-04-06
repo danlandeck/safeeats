@@ -191,22 +191,43 @@ export default function Home() {
 
     const parsed = parseLocationQuery(rawQuery);
     if (parsed) {
-      query = parsed.name;
-      // Find matching region by state abbreviation
-      const matchedRegionEntry = Object.entries(REGIONS).find(([, r]) => r.abbr === parsed.state);
+      query = parsed.name || parsed.zip || parsed.city || rawQuery;
+
+      // Resolve ZIP to city/state via geocoding if needed
+      let resolvedCity = parsed.city;
+      let resolvedState = parsed.state;
+      if (parsed.zip && (!parsed.state || !parsed.city)) {
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${parsed.zip}&country=us&format=json&limit=1`);
+          const geoData = await geoRes.json();
+          if (geoData?.[0]) {
+            const rev = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${geoData[0].lat}&lon=${geoData[0].lon}&format=json`).then(r => r.json());
+            const a = rev.address || {};
+            resolvedCity = a.city || a.town || a.village || a.suburb || resolvedCity;
+            resolvedState = a.state_code || a.state || resolvedState;
+          }
+        } catch { /* use whatever we have */ }
+      }
+
+      const stateToMatch = resolvedState?.toUpperCase();
+      const matchedRegionEntry = stateToMatch
+        ? Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch)
+        : null;
+
       if (matchedRegionEntry) {
         searchRegion = matchedRegionEntry[0];
         const matchedRegion = matchedRegionEntry[1];
-        // Find best matching county by city name
-        const cityLower = parsed.city.toLowerCase();
+        const cityLower = resolvedCity.toLowerCase();
         const matchedCounty = matchedRegion.counties.find(
           (c) => c.city.toLowerCase().includes(cityLower) || cityLower.includes(c.city.toLowerCase())
         ) || matchedRegion.counties[0];
         searchCounty = matchedCounty.id;
-        // Update dropdowns
         setRegion(searchRegion);
         setCountyId(searchCounty);
       }
+
+      // If only a location was entered (no restaurant name), search for "restaurant" broadly
+      if (!parsed.name) query = "restaurant";
     }
 
     if (abortRef.current) abortRef.current.abort();
