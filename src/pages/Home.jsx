@@ -657,6 +657,7 @@ export default function Home() {
 
     const parsed = parseLocationQuery(rawQuery);
     const hasLocationHint = !!parsed;
+    let useLLMCity = false; // will be set if city is known but not a live-API county
 
     if (parsed) {
       query = parsed.name || parsed.zip || parsed.city || rawQuery;
@@ -670,24 +671,19 @@ export default function Home() {
         setRegion(searchRegion);
         setCountyId(searchCounty);
       } else {
-        // Fallback: match by state abbreviation
-        const stateToMatch = parsed.state?.toUpperCase();
-        const matchedRegionEntry = stateToMatch
-          ? Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch)
-          : null;
-
-        if (matchedRegionEntry) {
-          searchRegion = matchedRegionEntry[0];
-          const matchedRegion = matchedRegionEntry[1];
-          const cityLower = (parsed.city || "").toLowerCase();
-          const matchedCounty = cityLower
-            ? matchedRegion.counties.find(
-                (c) => c.city.toLowerCase().includes(cityLower) || cityLower.includes(c.city.toLowerCase())
-              ) || matchedRegion.counties[0]
-            : matchedRegion.counties[0];
-          searchCounty = matchedCounty.id;
-          setRegion(searchRegion);
-          setCountyId(searchCounty);
+        // City not in live-API alias map — use LLM city search if we have a city
+        if (parsed.city) {
+          useLLMCity = true;
+        } else if (parsed.state) {
+          // Only a state was given, map to that state's first county
+          const stateToMatch = parsed.state.toUpperCase();
+          const matchedRegionEntry = Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch);
+          if (matchedRegionEntry) {
+            searchRegion = matchedRegionEntry[0];
+            searchCounty = matchedRegionEntry[1].counties[0].id;
+            setRegion(searchRegion);
+            setCountyId(searchCounty);
+          }
         }
       }
 
@@ -740,10 +736,11 @@ export default function Home() {
           if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
         });
         setAndCache(Array.from(seen.values()));
-      } else if (parsed?.city && !parsed?.state) {
-        // City-only hint (e.g. "Taco Bell, San Diego") — scoped LLM search
+      } else if (useLLMCity && parsed?.city) {
+        // City is not a live-API county (e.g. San Diego, Denver, Miami) — scoped LLM city search
         const today = new Date().toISOString().slice(0, 10);
-        const prompt = LLM_PROMPT_CITY(query, parsed.city, today);
+        const cityLabel = parsed.state ? `${parsed.city}, ${parsed.state}` : parsed.city;
+        const prompt = LLM_PROMPT_CITY(query, cityLabel, today);
         const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
         const seen = new Map();
@@ -757,26 +754,6 @@ export default function Home() {
         const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${CHICAGO_API}?$where=upper(replace(dba_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processChicagoResults(await safeFetch(url)));
-      } else if (searchCounty === "montgomery_md") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${MONTGOMERY_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspectiondate DESC`;
-        setAndCache(processMontgomeryResults(await safeFetch(url)));
-      } else if (searchCounty === "travis") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${AUSTIN_API}?$where=upper(replace(restaurant_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processAustinResults(await safeFetch(url)));
-      } else if (searchCounty === "sf") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${SF_API}?$where=upper(replace(business_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processSFResults(await safeFetch(url)));
-      } else if (searchCounty === "la") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${LA_API}?$where=upper(replace(facility_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=activity_date DESC`;
-        setAndCache(processLAResults(await safeFetch(url)));
-      } else if (currentCounty.hasPublicApi) {
         const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
         const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25' OR upper(replace(name,'-','')) like '%25${clean}%25' OR upper(address) like '%25${clean}%25' OR zip_code like '%25${encodeURIComponent(query.trim())}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processKingCountyResults(await safeFetch(url)));
