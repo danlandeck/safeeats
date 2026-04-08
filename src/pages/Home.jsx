@@ -52,7 +52,7 @@ const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}.
 
 CRITICAL RULES:
 - If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations (exact name matches only).
-- If "${query}" is a cuisine/food type, return up to 15 real restaurants of that type in the area.
+- If "${query}" is a cuisine/food type, return up to 8 real restaurants of that type in the area.
 - Every record MUST be a real, verifiable business. No invented addresses. No placeholders.
 - Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
 - latest_score must be a real integer 0–100 from actual inspection history (higher = safer).
@@ -64,7 +64,7 @@ const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. Search the w
 
 CRITICAL RULES:
 - If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations in ${city}.
-- If "${query}" is a cuisine/food type, return up to 15 real restaurants of that type in ${city}.
+- If "${query}" is a cuisine/food type, return up to 8 real restaurants of that type in ${city}.
 - Every record MUST be a real, verifiable business with a real address in ${city}.
 - Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
 - latest_score: real integer 0–100 from actual inspection history.
@@ -74,8 +74,8 @@ CRITICAL RULES:
 const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
 
 CRITICAL RULES:
-- If "${query}" looks like a specific restaurant name or chain, return up to 15 real locations of that exact chain.
-- If "${query}" is a cuisine/food type, return up to 15 well-known real restaurants of that cuisine worldwide.
+- If "${query}" looks like a specific restaurant name or chain, return up to 8 real locations of that exact chain.
+- If "${query}" is a cuisine/food type, return up to 8 well-known real restaurants of that cuisine worldwide.
 - Every record MUST be a real, verifiable business. No invented data.
 - Use health department databases, local government inspection sites, or Yelp disclosures as sources.
 - latest_score: real integer 0–100. latest_result: actual inspection outcome.
@@ -139,7 +139,13 @@ export default function Home() {
   const [isGeolocating, setIsGeolocating]     = useState(false);
   const [nearMeError, setNearMeError]         = useState("");
   const [showScanner, setShowScanner]         = useState(false);
-  const searchCacheRef                        = useRef(new Map());
+  const searchCacheRef                        = useRef(null);
+  if (!searchCacheRef.current) {
+    try {
+      const stored = localStorage.getItem('safeeats_cache');
+      searchCacheRef.current = stored ? new Map(JSON.parse(stored)) : new Map();
+    } catch { searchCacheRef.current = new Map(); }
+  }
   const detailCacheRef                        = useRef(new Map());
 
   const handleToggleCompare = (restaurant) => {
@@ -270,7 +276,11 @@ export default function Home() {
     const currentCounty = currentRegion.counties.find((c) => c.id === searchCounty) || currentRegion.counties[0];
     const encode = (s) => encodeURIComponent(s.toUpperCase());
     const safeFetch = (url) => fetch(url, { signal }).then(r => r.json());
-    const setAndCache = (data) => { searchCacheRef.current.set(cacheKey, data); setResults(data); };
+    const setAndCache = (data) => {
+      searchCacheRef.current.set(cacheKey, data);
+      try { localStorage.setItem('safeeats_cache', JSON.stringify([...searchCacheRef.current])); } catch {}
+      setResults(data);
+    };
 
     try {
       if (!hasLocationHint) {
