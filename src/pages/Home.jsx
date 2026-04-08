@@ -343,8 +343,8 @@ export default function Home() {
         const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25' OR upper(replace(facility_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=activity_date DESC`;
         setAndCache(processLAResults(await safeFetch(url)));
       } else if (currentCounty.hasPublicApi) {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${KING_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25' OR zip_code like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25' OR upper(replace(name,'-','')) like '%25${clean}%25' OR upper(address) like '%25${clean}%25' OR zip_code like '%25${encodeURIComponent(query.trim())}%25'&$limit=200&$order=inspection_date DESC`;
         setAndCache(processKingCountyResults(await safeFetch(url)));
       } else {
         const today = new Date().toISOString().slice(0, 10);
