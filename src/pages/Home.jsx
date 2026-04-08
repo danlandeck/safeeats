@@ -558,7 +558,58 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
         {!hasSearched && (
-          <div className="mb-10">
+          <div className="space-y-10 mb-10">
+
+            {/* Stats strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { value: "7", label: "Cities with live gov't APIs" },
+                { value: "50K+", label: "Restaurants tracked" },
+                { value: "100%", label: "Free & public data" },
+                { value: "A–F", label: "Universal grading scale" },
+              ].map(({ value, label }) => (
+                <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+                  <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* How it works */}
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-800 mb-4 text-center">How SafeEats Works</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { step: "1", icon: "🔍", title: "Search Any Restaurant", desc: "Type a name, cuisine, or location. We search live government health databases and AI sources instantly." },
+                  { step: "2", icon: "📋", title: "See Real Inspection Data", desc: "Get the actual health inspection scores, violations, and pass/fail results — the same records inspectors file." },
+                  { step: "3", icon: "🛡️", title: "Make an Informed Choice", desc: "Our A–F grading normalizes scores across cities so you can compare any restaurant, anywhere." },
+                ].map(({ step, icon, title, desc }) => (
+                  <div key={step} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-sm font-extrabold flex items-center justify-center flex-shrink-0">{step}</div>
+                      <span className="text-2xl">{icon}</span>
+                    </div>
+                    <h3 className="font-extrabold text-slate-900 text-sm mb-1">{title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Live data sources */}
+            <div className="bg-slate-900 rounded-2xl p-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-4">Live Government Data Sources</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {["King County, WA", "New York City, NY", "Chicago, IL", "Montgomery Co., MD", "Austin, TX", "San Francisco, CA", "Los Angeles, CA"].map(src => (
+                  <span key={src} className="flex items-center gap-1.5 bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                    {src}
+                  </span>
+                ))}
+              </div>
+              <p className="text-center text-xs text-slate-500 mt-4">All other cities use AI-assisted research from publicly available health department records.</p>
+            </div>
+
             <LocalAreaMap
               onSearch={(label, coords, radiusMiles) => {
                 if (label) {
