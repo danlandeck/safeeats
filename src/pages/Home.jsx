@@ -48,59 +48,38 @@ const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
 const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. The user searched for "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
+const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
 
-If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return ONLY locations of that exact chain.
-If "${query}" is a cuisine or food type (e.g. "tacos", "thai", "sushi"), return up to 15 real restaurants of that cuisine in the area.
+CRITICAL RULES:
+- If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations (exact name matches only).
+- If "${query}" is a cuisine/food type, return up to 15 real restaurants of that type in the area.
+- Every record MUST be a real, verifiable business. No invented addresses. No placeholders.
+- Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
+- latest_score must be a real integer 0–100 from actual inspection history (higher = safer).
+- latest_result: use the actual outcome — Pass, Fail, Satisfactory, Unsatisfactory, Closed, Conditional Pass, etc.
+- violations: list actual violations found, not generic descriptions.
+- If you cannot find real inspection data for a restaurant, omit it entirely rather than guessing.`;
 
-Each record:
-- name: exact business name
-- address: real street address
-- city, zip_code, phone
-- latest_score: integer 0–100 based on known inspection history
-- total_violation_points: integer from latest known inspection
-- latest_date: YYYY-MM-DD of most recent known inspection
-- latest_result: Pass, Fail, Satisfactory, Closed, etc.
-- total_inspections: estimated count
-- violations: up to 3 specific violation descriptions
+const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${city}.
 
-Only return real locations you are confident exist. No duplicates.`;
+CRITICAL RULES:
+- If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations in ${city}.
+- If "${query}" is a cuisine/food type, return up to 15 real restaurants of that type in ${city}.
+- Every record MUST be a real, verifiable business with a real address in ${city}.
+- Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
+- latest_score: real integer 0–100 from actual inspection history.
+- latest_result: actual inspection outcome (Pass, Fail, Satisfactory, Unsatisfactory, Closed, etc.)
+- violations: list actual violations found. Omit any restaurant you cannot verify.`;
 
-const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. The user searched for "${query}" in ${city}.
+const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
 
-If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return ONLY locations of that exact chain in ${city}.
-If "${query}" is a cuisine or food type (e.g. "tacos", "thai", "sushi"), return up to 15 real restaurants of that cuisine in ${city}.
-
-Each record:
-- name: exact business name
-- address: real street address
-- city, zip_code, phone
-- latest_score: integer 0–100 based on known health inspection history
-- total_violation_points: integer from latest known inspection
-- latest_date: YYYY-MM-DD of most recent known inspection
-- latest_result: Pass, Fail, Satisfactory, Closed, etc.
-- total_inspections: estimated count
-- violations: up to 3 specific violation descriptions
-
-Only return real locations you are confident exist in ${city}. No duplicates.`;
-
-const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. The user searched for "${query}" with no specific location.
-
-If "${query}" is a specific restaurant chain (e.g. "Taco Bell"), return up to 15 of the most well-known locations of that exact chain worldwide.
-If "${query}" is a cuisine or food type (e.g. "tacos", "thai"), return up to 15 highly-rated or well-known restaurants of that cuisine from around the world.
-
-Each record:
-- name: exact business name
-- address: real street address
-- city, zip_code, phone
-- latest_score: integer 0–100 based on known health inspection history
-- total_violation_points: integer from latest known inspection
-- latest_date: YYYY-MM-DD of most recent known inspection
-- latest_result: Pass, Fail, Satisfactory, Closed, etc.
-- total_inspections: estimated count
-- violations: up to 3 specific violation descriptions
-
-Only return real locations you are highly confident exist. No duplicates.`;
+CRITICAL RULES:
+- If "${query}" looks like a specific restaurant name or chain, return up to 15 real locations of that exact chain.
+- If "${query}" is a cuisine/food type, return up to 15 well-known real restaurants of that cuisine worldwide.
+- Every record MUST be a real, verifiable business. No invented data.
+- Use health department databases, local government inspection sites, or Yelp disclosures as sources.
+- latest_score: real integer 0–100. latest_result: actual inspection outcome.
+- violations: real violations only. Omit any restaurant you cannot verify.`;
 
 const LLM_SCHEMA = {
   type: "object",
@@ -298,7 +277,7 @@ export default function Home() {
         // No location = global LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_GLOBAL(query, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
         const seen = new Map();
         raw.forEach((r) => {
@@ -310,7 +289,7 @@ export default function Home() {
         // City-only hint (e.g. "Taco Bell, San Diego") — scoped LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_CITY(query, parsed.city, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
         const seen = new Map();
         raw.forEach((r) => {
@@ -349,7 +328,7 @@ export default function Home() {
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
         const seen = new Map();
         raw.forEach((r) => {
