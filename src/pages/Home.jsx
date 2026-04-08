@@ -502,21 +502,23 @@ export default function Home() {
             {hasSearched && (
               <button
                 onClick={resetSearch}
-                title="Reset search"
-                className="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center transition-colors"
+                title="Start a new search"
+                className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-5 h-5" />
+                <span className="text-[10px] font-bold">New Search</span>
               </button>
             )}
             <button
               onClick={() => setShowScanner(true)}
-              title="Scan restaurant with camera"
-              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 flex items-center justify-center transition-colors"
+              title="Point your camera at a restaurant sign to identify it"
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
                 <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
               </svg>
+              <span className="text-[10px] font-bold">Scan Sign</span>
             </button>
           </div>
 
@@ -656,29 +658,33 @@ export default function Home() {
                       </div>
                     ) : results.length > 0 ? (
                       <div>
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm font-bold text-slate-700">
                               {t.resultsFor(filteredAndSortedResults.length, results.length, searchQuery)}
-                              {nearMeActive && <span className="ml-1 text-blue-600 font-semibold">{t.withinDist}</span>}
+                              {nearMeActive && <span className="ml-1 text-blue-600">{t.withinDist}</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
-                            <p className="text-xs text-slate-400 mt-0.5">{t.sortedBy}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Sorted by safety score · click any card for full inspection history</p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap justify-end">
                             <button
                               onClick={handleFindNearMe}
                               disabled={isGeolocating}
-                              title={nearMeActive ? t.nearMeActive : t.nearMe}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                                nearMeActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              title={nearMeActive ? "Click to turn off nearby filter" : "Filter to restaurants within 5 miles of you"}
+                              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${
+                                nearMeActive ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                               }`}
                             >
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
-                              {nearMeActive ? t.nearMeActive : t.nearMe}
+                              {nearMeActive ? "📍 Near Me (ON)" : "📍 Near Me"}
                             </button>
-                            <button onClick={() => setViewMode("list")} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t.listLabel}</button>
-                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "map" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t.mapLabel}</button>
+                            <button onClick={() => setViewMode("list")} title="Show results as a list" className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                              📋 List
+                            </button>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} title="Show results on a map" className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                              🗺️ Map
+                            </button>
                           </div>
                         </div>
 
@@ -771,23 +777,25 @@ export default function Home() {
 
       {/* Compare floating bar */}
       {compareList.length >= 2 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <GitCompareArrows className="w-4 h-4 text-blue-400" />
-            {compareList.length} {t.selected}
-          </div>
-          <div className="flex items-center gap-1">
-            {compareList.map((r) => (
-              <span key={r.business_id} className="text-xs bg-slate-700 px-2 py-1 rounded-lg truncate max-w-[120px]">{r.name}</span>
-            ))}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4 max-w-lg w-[90vw]">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 text-sm font-bold">
+              <GitCompareArrows className="w-4 h-4 text-blue-400" />
+              Compare Side-by-Side
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              {compareList.map((r) => (
+                <span key={r.business_id} className="text-[11px] bg-slate-700 px-2 py-0.5 rounded-lg truncate max-w-[100px]">{r.name}</span>
+              ))}
+            </div>
           </div>
           <button
             onClick={() => setShowCompare(true)}
-            className="bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-1.5 rounded-xl transition-colors"
+            className="ml-auto bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
           >
-            {t.compare}
+            ⚖️ Compare Now
           </button>
-          <button onClick={() => setCompareList([])} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={() => setCompareList([])} title="Clear comparison" className="text-slate-400 hover:text-white transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
