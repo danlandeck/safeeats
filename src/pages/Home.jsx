@@ -81,6 +81,62 @@ CRITICAL RULES:
 - latest_score: real integer 0–100. latest_result: actual inspection outcome.
 - violations: real violations only. Omit any restaurant you cannot verify.`;
 
+// City aliases → { region, countyId } for all supported live API counties
+const CITY_TO_COUNTY = {
+  // King County, WA
+  "seattle": { region: "washington", countyId: "king" },
+  "bellevue": { region: "washington", countyId: "king" },
+  "redmond": { region: "washington", countyId: "king" },
+  "kirkland": { region: "washington", countyId: "king" },
+  "renton": { region: "washington", countyId: "king" },
+  "kent": { region: "washington", countyId: "king" },
+  "burien": { region: "washington", countyId: "king" },
+  "federal way": { region: "washington", countyId: "king" },
+  "auburn": { region: "washington", countyId: "king" },
+  "shoreline": { region: "washington", countyId: "king" },
+  "bothell": { region: "washington", countyId: "king" },
+  "sammamish": { region: "washington", countyId: "king" },
+  "issaquah": { region: "washington", countyId: "king" },
+  "king county": { region: "washington", countyId: "king" },
+  // NYC
+  "new york": { region: "newyork", countyId: "nyc" },
+  "new york city": { region: "newyork", countyId: "nyc" },
+  "nyc": { region: "newyork", countyId: "nyc" },
+  "manhattan": { region: "newyork", countyId: "nyc" },
+  "brooklyn": { region: "newyork", countyId: "nyc" },
+  "queens": { region: "newyork", countyId: "nyc" },
+  "bronx": { region: "newyork", countyId: "nyc" },
+  "staten island": { region: "newyork", countyId: "nyc" },
+  "the bronx": { region: "newyork", countyId: "nyc" },
+  // Chicago / Cook County
+  "chicago": { region: "illinois", countyId: "cook" },
+  "cook county": { region: "illinois", countyId: "cook" },
+  // Montgomery County, MD
+  "rockville": { region: "maryland", countyId: "montgomery_md" },
+  "silver spring": { region: "maryland", countyId: "montgomery_md" },
+  "bethesda": { region: "maryland", countyId: "montgomery_md" },
+  "gaithersburg": { region: "maryland", countyId: "montgomery_md" },
+  "germantown": { region: "maryland", countyId: "montgomery_md" },
+  "montgomery county": { region: "maryland", countyId: "montgomery_md" },
+  // Austin / Travis County
+  "austin": { region: "texas", countyId: "travis" },
+  "travis county": { region: "texas", countyId: "travis" },
+  // San Francisco
+  "san francisco": { region: "california", countyId: "sf" },
+  "sf": { region: "california", countyId: "sf" },
+  // Los Angeles
+  "los angeles": { region: "california", countyId: "la" },
+  "la": { region: "california", countyId: "la" },
+  "hollywood": { region: "california", countyId: "la" },
+  "santa monica": { region: "california", countyId: "la" },
+  "long beach": { region: "california", countyId: "la" },
+  "pasadena": { region: "california", countyId: "la" },
+  "burbank": { region: "california", countyId: "la" },
+  "glendale": { region: "california", countyId: "la" },
+  "compton": { region: "california", countyId: "la" },
+  "inglewood": { region: "california", countyId: "la" },
+};
+
 const LLM_SCHEMA = {
   type: "object",
   properties: {
@@ -227,23 +283,34 @@ export default function Home() {
     if (parsed) {
       query = parsed.name || parsed.zip || parsed.city || rawQuery;
 
-      const stateToMatch = parsed.state?.toUpperCase();
-      const matchedRegionEntry = stateToMatch
-        ? Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch)
-        : null;
-
-      if (matchedRegionEntry) {
-        searchRegion = matchedRegionEntry[0];
-        const matchedRegion = matchedRegionEntry[1];
-        const cityLower = (parsed.city || "").toLowerCase();
-        const matchedCounty = cityLower
-          ? matchedRegion.counties.find(
-              (c) => c.city.toLowerCase().includes(cityLower) || cityLower.includes(c.city.toLowerCase())
-            ) || matchedRegion.counties[0]
-          : matchedRegion.counties[0];
-        searchCounty = matchedCounty.id;
+      // First: check city alias map for known county-level API cities
+      const cityKey = (parsed.city || "").toLowerCase().trim();
+      const aliasMatch = cityKey ? CITY_TO_COUNTY[cityKey] : null;
+      if (aliasMatch && REGIONS[aliasMatch.region]) {
+        searchRegion = aliasMatch.region;
+        searchCounty = aliasMatch.countyId;
         setRegion(searchRegion);
         setCountyId(searchCounty);
+      } else {
+        // Fallback: match by state abbreviation
+        const stateToMatch = parsed.state?.toUpperCase();
+        const matchedRegionEntry = stateToMatch
+          ? Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch)
+          : null;
+
+        if (matchedRegionEntry) {
+          searchRegion = matchedRegionEntry[0];
+          const matchedRegion = matchedRegionEntry[1];
+          const cityLower = (parsed.city || "").toLowerCase();
+          const matchedCounty = cityLower
+            ? matchedRegion.counties.find(
+                (c) => c.city.toLowerCase().includes(cityLower) || cityLower.includes(c.city.toLowerCase())
+              ) || matchedRegion.counties[0]
+            : matchedRegion.counties[0];
+          searchCounty = matchedCounty.id;
+          setRegion(searchRegion);
+          setCountyId(searchCounty);
+        }
       }
 
       if (!parsed.name) query = rawQuery;
