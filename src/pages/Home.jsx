@@ -298,7 +298,7 @@ export default function Home() {
         // No location = global LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_GLOBAL(query, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
         const seen = new Map();
         raw.forEach((r) => {
@@ -310,7 +310,7 @@ export default function Home() {
         // City-only hint (e.g. "Taco Bell, San Diego") — scoped LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_CITY(query, parsed.city, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
         const seen = new Map();
         raw.forEach((r) => {
@@ -349,7 +349,7 @@ export default function Home() {
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash" });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "claude_sonnet_4_6" });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
         const seen = new Map();
         raw.forEach((r) => {
@@ -531,6 +531,26 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Quick demo search chips */}
+          {!hasSearched && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-2xl mx-auto">
+              {[
+                { label: "🍔 McDonald's, Seattle WA", query: "McDonald's, Seattle WA" },
+                { label: "🌮 Subway, New York NY", query: "Subway, New York NY" },
+                { label: "🍕 Pizza, Chicago IL", query: "pizza, Chicago IL" },
+                { label: "🌯 Chipotle, San Francisco CA", query: "Chipotle, San Francisco CA" },
+                { label: "🍣 Sushi, Los Angeles CA", query: "sushi, Los Angeles CA" },
+              ].map(({ label, query }) => (
+                <button
+                  key={query}
+                  onClick={() => handleSearch(query)}
+                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 transition-all"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
         </div>
       </div>
@@ -666,12 +686,21 @@ export default function Home() {
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-20">
+                      <div className="text-center py-16">
                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                           <Utensils className="w-7 h-7 text-slate-400" />
                         </div>
                         <h3 className="text-lg font-semibold text-slate-700">{t.noResults}</h3>
-                        <p className="text-sm text-slate-400 mt-1">{t.noResultsSub}</p>
+                        <p className="text-sm text-slate-400 mt-1 mb-6">{t.noResultsSub}</p>
+                        <p className="text-xs text-slate-400 mb-3 font-semibold uppercase tracking-wide">Try one of these instead</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {["McDonald's, Seattle WA", "Subway, New York NY", "Chipotle, Chicago IL", "Sushi, San Francisco CA"].map(q => (
+                            <button key={q} onClick={() => handleSearch(q)}
+                              className="px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-all">
+                              {q}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
