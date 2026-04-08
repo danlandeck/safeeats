@@ -520,6 +520,19 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Search tips */}
+          {!hasSearched && (
+            <div className="mt-3 bg-amber-500/20 border border-amber-400/40 rounded-xl px-4 py-3 max-w-2xl mx-auto">
+              <p className="text-amber-300 text-xs font-bold uppercase tracking-wider mb-1.5">⚡ For fastest results</p>
+              <ul className="text-amber-200 text-xs space-y-1">
+                <li>✅ <strong>Always include City + State</strong> — e.g. <span className="font-mono bg-black/20 px-1 rounded">Subway, New York NY</span></li>
+                <li>✅ <strong>Use a supported city</strong> (King County WA, NYC, Chicago, Austin TX, SF CA, LA CA, Montgomery MD) for instant results</li>
+                <li>⏳ <strong>Global / unknown cities</strong> use AI web search — takes 10–20 seconds, be patient</li>
+                <li>🚫 <strong>Avoid vague queries</strong> like "pizza" with no location — forces a slow worldwide AI search</li>
+              </ul>
+            </div>
+          )}
+
           {/* Quick demo search chips */}
           {!hasSearched && (
             <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-2xl mx-auto">
