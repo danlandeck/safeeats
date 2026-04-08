@@ -191,72 +191,71 @@ const CITY_TO_COUNTY = {
   "white center": { region: "washington", countyId: "king" },
   "arbor heights": { region: "washington", countyId: "king" },
   // NYC — all boroughs and neighborhoods
-  "new york": { region: "newyork", countyId: "nyc" },
-  "new york city": { region: "newyork", countyId: "nyc" },
-  "nyc": { region: "newyork", countyId: "nyc" },
-  "manhattan": { region: "newyork", countyId: "nyc" },
-  "brooklyn": { region: "newyork", countyId: "nyc" },
-  "queens": { region: "newyork", countyId: "nyc" },
-  "bronx": { region: "newyork", countyId: "nyc" },
-  "the bronx": { region: "newyork", countyId: "nyc" },
-  "staten island": { region: "newyork", countyId: "nyc" },
+  "new york": { region: "new_york", countyId: "nyc" },
+  "new york city": { region: "new_york", countyId: "nyc" },
+  "nyc": { region: "new_york", countyId: "nyc" },
+  "manhattan": { region: "new_york", countyId: "nyc" },
+  "brooklyn": { region: "new_york", countyId: "nyc" },
+  "queens": { region: "new_york", countyId: "nyc" },
+  "bronx": { region: "new_york", countyId: "nyc" },
+  "the bronx": { region: "new_york", countyId: "nyc" },
+  "staten island": { region: "new_york", countyId: "nyc" },
   // Manhattan neighborhoods
-  "harlem": { region: "newyork", countyId: "nyc" },
-  "upper east side": { region: "newyork", countyId: "nyc" },
-  "upper west side": { region: "newyork", countyId: "nyc" },
-  "midtown": { region: "newyork", countyId: "nyc" },
-  "chelsea": { region: "newyork", countyId: "nyc" },
-  "hell's kitchen": { region: "newyork", countyId: "nyc" },
-  "hells kitchen": { region: "newyork", countyId: "nyc" },
-  "lower east side": { region: "newyork", countyId: "nyc" },
-  "east village": { region: "newyork", countyId: "nyc" },
-  "west village": { region: "newyork", countyId: "nyc" },
-  "greenwich village": { region: "newyork", countyId: "nyc" },
-  "soho": { region: "newyork", countyId: "nyc" },
-  "tribeca": { region: "newyork", countyId: "nyc" },
-  "financial district": { region: "newyork", countyId: "nyc" },
-  "chinatown": { region: "newyork", countyId: "nyc" },
-  "little italy": { region: "newyork", countyId: "nyc" },
-  "nolita": { region: "newyork", countyId: "nyc" },
-  "noho": { region: "newyork", countyId: "nyc" },
-  "gramercy": { region: "newyork", countyId: "nyc" },
-  "flatiron": { region: "newyork", countyId: "nyc" },
-  "murray hill": { region: "newyork", countyId: "nyc" },
-  "kips bay": { region: "newyork", countyId: "nyc" },
-  "inwood": { region: "newyork", countyId: "nyc" },
-  "washington heights": { region: "newyork", countyId: "nyc" },
-  "morningside heights": { region: "newyork", countyId: "nyc" },
-  "hamilton heights": { region: "newyork", countyId: "nyc" },
+  "harlem": { region: "new_york", countyId: "nyc" },
+  "upper east side": { region: "new_york", countyId: "nyc" },
+  "upper west side": { region: "new_york", countyId: "nyc" },
+  "midtown": { region: "new_york", countyId: "nyc" },
+  "chelsea": { region: "new_york", countyId: "nyc" },
+  "hell's kitchen": { region: "new_york", countyId: "nyc" },
+  "hells kitchen": { region: "new_york", countyId: "nyc" },
+  "lower east side": { region: "new_york", countyId: "nyc" },
+  "east village": { region: "new_york", countyId: "nyc" },
+  "west village": { region: "new_york", countyId: "nyc" },
+  "greenwich village": { region: "new_york", countyId: "nyc" },
+  "soho": { region: "new_york", countyId: "nyc" },
+  "tribeca": { region: "new_york", countyId: "nyc" },
+  "financial district": { region: "new_york", countyId: "nyc" },
+  "little italy": { region: "new_york", countyId: "nyc" },
+  "nolita": { region: "new_york", countyId: "nyc" },
+  "noho": { region: "new_york", countyId: "nyc" },
+  "gramercy": { region: "new_york", countyId: "nyc" },
+  "flatiron": { region: "new_york", countyId: "nyc" },
+  "murray hill": { region: "new_york", countyId: "nyc" },
+  "kips bay": { region: "new_york", countyId: "nyc" },
+  "inwood": { region: "new_york", countyId: "nyc" },
+  "washington heights": { region: "new_york", countyId: "nyc" },
+  "morningside heights": { region: "new_york", countyId: "nyc" },
+  "hamilton heights": { region: "new_york", countyId: "nyc" },
   // Brooklyn neighborhoods
-  "williamsburg": { region: "newyork", countyId: "nyc" },
-  "bushwick": { region: "newyork", countyId: "nyc" },
-  "bed stuy": { region: "newyork", countyId: "nyc" },
-  "bedford stuyvesant": { region: "newyork", countyId: "nyc" },
-  "park slope": { region: "newyork", countyId: "nyc" },
-  "crown heights": { region: "newyork", countyId: "nyc" },
-  "flatbush": { region: "newyork", countyId: "nyc" },
-  "borough park": { region: "newyork", countyId: "nyc" },
-  "sunset park": { region: "newyork", countyId: "nyc" },
-  "bay ridge": { region: "newyork", countyId: "nyc" },
-  "bensonhurst": { region: "newyork", countyId: "nyc" },
-  "coney island": { region: "newyork", countyId: "nyc" },
-  "brighton beach": { region: "newyork", countyId: "nyc" },
-  "dumbo": { region: "newyork", countyId: "nyc" },
-  "boerum hill": { region: "newyork", countyId: "nyc" },
-  "cobble hill": { region: "newyork", countyId: "nyc" },
-  "carroll gardens": { region: "newyork", countyId: "nyc" },
-  "red hook": { region: "newyork", countyId: "nyc" },
-  "greenpoint": { region: "newyork", countyId: "nyc" },
-  "astoria": { region: "newyork", countyId: "nyc" },
-  "flushing": { region: "newyork", countyId: "nyc" },
-  "jackson heights": { region: "newyork", countyId: "nyc" },
-  "jamaica": { region: "newyork", countyId: "nyc" },
-  "long island city": { region: "newyork", countyId: "nyc" },
-  "forest hills": { region: "newyork", countyId: "nyc" },
-  "ridgewood": { region: "newyork", countyId: "nyc" },
-  "bayside": { region: "newyork", countyId: "nyc" },
-  "howard beach": { region: "newyork", countyId: "nyc" },
-  "rego park": { region: "newyork", countyId: "nyc" },
+  "williamsburg": { region: "new_york", countyId: "nyc" },
+  "bushwick": { region: "new_york", countyId: "nyc" },
+  "bed stuy": { region: "new_york", countyId: "nyc" },
+  "bedford stuyvesant": { region: "new_york", countyId: "nyc" },
+  "park slope": { region: "new_york", countyId: "nyc" },
+  "crown heights": { region: "new_york", countyId: "nyc" },
+  "flatbush": { region: "new_york", countyId: "nyc" },
+  "borough park": { region: "new_york", countyId: "nyc" },
+  "sunset park": { region: "new_york", countyId: "nyc" },
+  "bay ridge": { region: "new_york", countyId: "nyc" },
+  "bensonhurst": { region: "new_york", countyId: "nyc" },
+  "coney island": { region: "new_york", countyId: "nyc" },
+  "brighton beach": { region: "new_york", countyId: "nyc" },
+  "dumbo": { region: "new_york", countyId: "nyc" },
+  "boerum hill": { region: "new_york", countyId: "nyc" },
+  "cobble hill": { region: "new_york", countyId: "nyc" },
+  "carroll gardens": { region: "new_york", countyId: "nyc" },
+  "red hook": { region: "new_york", countyId: "nyc" },
+  "greenpoint": { region: "new_york", countyId: "nyc" },
+  "astoria": { region: "new_york", countyId: "nyc" },
+  "flushing": { region: "new_york", countyId: "nyc" },
+  "jackson heights": { region: "new_york", countyId: "nyc" },
+  "jamaica": { region: "new_york", countyId: "nyc" },
+  "long island city": { region: "new_york", countyId: "nyc" },
+  "forest hills": { region: "new_york", countyId: "nyc" },
+  "ridgewood": { region: "new_york", countyId: "nyc" },
+  "bayside": { region: "new_york", countyId: "nyc" },
+  "howard beach": { region: "new_york", countyId: "nyc" },
+  "rego park": { region: "new_york", countyId: "nyc" },
   // Chicago / Cook County — city + all suburbs and neighborhoods
   "chicago": { region: "illinois", countyId: "cook" },
   "cook county": { region: "illinois", countyId: "cook" },
@@ -513,7 +512,28 @@ const CITY_TO_COUNTY = {
   "palms": { region: "california", countyId: "la" },
   "sawtelle": { region: "california", countyId: "la" },
   "century city": { region: "california", countyId: "la" },
+  // Montgomery County MD
+  "rockville": { region: "maryland", countyId: "montgomery_md" },
+  "bethesda": { region: "maryland", countyId: "montgomery_md" },
+  "silver spring": { region: "maryland", countyId: "montgomery_md" },
+  "gaithersburg": { region: "maryland", countyId: "montgomery_md" },
+  "germantown": { region: "maryland", countyId: "montgomery_md" },
+  "chevy chase": { region: "maryland", countyId: "montgomery_md" },
+  "potomac": { region: "maryland", countyId: "montgomery_md" },
+  "montgomery county": { region: "maryland", countyId: "montgomery_md" },
+  "montgomery county md": { region: "maryland", countyId: "montgomery_md" },
 };
+
+// The 7 cities with live government inspection APIs
+const LIVE_API_CITIES = [
+  { label: "Seattle / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
+  { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
+  { label: "Chicago", region: "illinois", countyId: "cook", emoji: "🏙️", example: "pizza" },
+  { label: "Montgomery Co. MD", region: "maryland", countyId: "montgomery_md", emoji: "🏛️", example: "Chipotle" },
+  { label: "Austin TX", region: "texas", countyId: "travis", emoji: "🤠", example: "tacos" },
+  { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉", example: "sushi" },
+  { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
+];
 
 const LLM_SCHEMA = {
   type: "object",
@@ -724,6 +744,7 @@ export default function Home() {
     };
 
     try {
+      const clean = (q) => encodeURIComponent(q.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
       if (!hasLocationHint) {
         // No location = global LLM search
         const today = new Date().toISOString().slice(0, 10);
@@ -737,7 +758,7 @@ export default function Home() {
         });
         setAndCache(Array.from(seen.values()));
       } else if (useLLMCity && parsed?.city) {
-        // City is not a live-API county (e.g. San Diego, Denver, Miami) — scoped LLM city search
+        // City not in live-API map — scoped LLM city search
         const today = new Date().toISOString().slice(0, 10);
         const cityLabel = parsed.state ? `${parsed.city}, ${parsed.state}` : parsed.city;
         const prompt = LLM_PROMPT_CITY(query, cityLabel, today);
@@ -749,14 +770,27 @@ export default function Home() {
           if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
         });
         setAndCache(Array.from(seen.values()));
+      } else if (searchCounty === "king") {
+        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25' OR upper(replace(name,'-','')) like '%25${clean(query)}%25' OR upper(address) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
+        setAndCache(processKingCountyResults(await safeFetch(url)));
       } else if (searchCounty === "nyc") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
+        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25' OR upper(replace(name,'-','')) like '%25${clean}%25' OR upper(address) like '%25${clean}%25' OR zip_code like '%25${encodeURIComponent(query.trim())}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processKingCountyResults(await safeFetch(url)));
+        const url = `${CHICAGO_API}?$where=upper(replace(dba_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
+        setAndCache(processChicagoResults(await safeFetch(url)));
+      } else if (searchCounty === "montgomery_md") {
+        const url = `${MONTGOMERY_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspectiondate DESC`;
+        setAndCache(processMontgomeryResults(await safeFetch(url)));
+      } else if (searchCounty === "travis") {
+        const url = `${AUSTIN_API}?$where=upper(replace(restaurant_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
+        setAndCache(processAustinResults(await safeFetch(url)));
+      } else if (searchCounty === "sf") {
+        const url = `${SF_API}?$where=upper(replace(business_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
+        setAndCache(processSFResults(await safeFetch(url)));
+      } else if (searchCounty === "la") {
+        const url = `${LA_API}?$where=upper(replace(facility_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=activity_date DESC`;
+        setAndCache(processLAResults(await safeFetch(url)));
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
@@ -944,37 +978,33 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Search tips */}
-          {!hasSearched && (
-            <div className="mt-3 bg-amber-500/20 border border-amber-400/40 rounded-xl px-4 py-3 max-w-2xl mx-auto">
-              <p className="text-amber-300 text-xs font-bold uppercase tracking-wider mb-1.5">⚡ For fastest results</p>
-              <ul className="text-amber-200 text-xs space-y-1">
-                <li>✅ <strong>Always include City + State</strong> — e.g. <span className="font-mono bg-black/20 px-1 rounded">Subway, New York NY</span></li>
-                <li>✅ <strong>Use a supported city</strong> (King County WA, NYC, Chicago, Austin TX, SF CA, LA CA, Montgomery MD) for instant results</li>
-                <li>⏳ <strong>Global / unknown cities</strong> use AI web search — takes 10–20 seconds, be patient</li>
-                <li>🚫 <strong>Avoid vague queries</strong> like "pizza" with no location — forces a slow worldwide AI search</li>
-              </ul>
-            </div>
-          )}
 
-          {/* Quick demo search chips */}
+
+          {/* Live API city selector */}
           {!hasSearched && (
-            <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-2xl mx-auto">
-              {[
-                { label: "🍔 McDonald's, Seattle WA", query: "McDonald's, Seattle WA" },
-                { label: "🌮 Subway, New York NY", query: "Subway, New York NY" },
-                { label: "🍕 Pizza, Chicago IL", query: "pizza, Chicago IL" },
-                { label: "🌯 Chipotle, San Francisco CA", query: "Chipotle, San Francisco CA" },
-                { label: "🍣 Sushi, Los Angeles CA", query: "sushi, Los Angeles CA" },
-              ].map(({ label, query }) => (
-                <button
-                  key={query}
-                  onClick={() => handleSearch(query)}
-                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 transition-all"
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="mt-4 max-w-2xl mx-auto">
+              <p className="text-center text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">⚡ Instant Live API Cities — select one then search</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {LIVE_API_CITIES.map((city) => {
+                  const isActive = region === city.region && countyId === city.countyId;
+                  return (
+                    <button
+                      key={city.countyId}
+                      onClick={() => { setRegion(city.region); setCountyId(city.countyId); }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
+                        isActive
+                          ? "bg-emerald-500 text-white border-emerald-400 shadow-lg scale-105"
+                          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
+                      }`}
+                    >
+                      <span>{city.emoji}</span>
+                      <span>{city.label}</span>
+                      {isActive && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">✓ Active</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-center text-xs text-slate-400 mt-2">Or type any city for AI-assisted search (slower)</p>
             </div>
           )}
 
