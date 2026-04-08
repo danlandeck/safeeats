@@ -746,22 +746,16 @@ export default function Home() {
     try {
       const clean = (q) => encodeURIComponent(q.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
       const liveCounties = ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"];
-      if (!hasLocationHint && !liveCounties.includes(searchCounty)) {
-        // No location hint AND not on a live API county = global LLM search
-        const today = new Date().toISOString().slice(0, 10);
-        const prompt = LLM_PROMPT_GLOBAL(query, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
-        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
-        const seen = new Map();
-        raw.forEach((r) => {
-          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
-        });
-        setAndCache(Array.from(seen.values()));
-      } else if (useLLMCity && parsed?.city) {
-        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25' OR upper(replace(name,'-','')) like '%25${clean(query)}%25' OR upper(address) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processKingCountyResults(await safeFetch(url)));
-      } else if (searchCounty === "nyc") {
+
+      // If not a supported live-API county, stop immediately — no LLM fallback
+      if (!liveCounties.includes(searchCounty)) {
+        clearInterval(loadingTimerRef.current);
+        setIsLoading(false);
+        setResults([]);
+        return;
+      }
+
+      if (searchCounty === "nyc") {
         const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
@@ -780,16 +774,9 @@ export default function Home() {
         const url = `${LA_API}?$where=upper(replace(facility_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=activity_date DESC`;
         setAndCache(processLAResults(await safeFetch(url)));
       } else {
-        const today = new Date().toISOString().slice(0, 10);
-        const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
-        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
-        const seen = new Map();
-        raw.forEach((r) => {
-          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
-        });
-        setAndCache(Array.from(seen.values()));
+        // king (default)
+        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25' OR upper(replace(name,'-','')) like '%25${clean(query)}%25' OR upper(address) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
+        setAndCache(processKingCountyResults(await safeFetch(url)));
       }
     } catch (e) {
       if (e.name !== "AbortError") throw e;
@@ -1089,12 +1076,7 @@ export default function Home() {
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm text-slate-400">
-                          Searching restaurants worldwide{loadingSeconds >= 3 ? " — this may take a moment…" : "…"}
-                        </p>
-                        {loadingSeconds >= 8 && (
-                          <p className="text-xs text-slate-400 mt-2">Cross-referencing multiple AI models for accuracy…</p>
-                        )}
+                        <p className="text-sm text-slate-400">Searching live government database…</p>
                       </div>
                     ) : results.length > 0 ? (
                       <div>
@@ -1111,7 +1093,6 @@ export default function Home() {
                             <button
                               onClick={handleFindNearMe}
                               disabled={isGeolocating}
-                              title={nearMeActive ? "Click to turn off nearby filter" : "Filter to restaurants within 5 miles of you"}
                               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${
                                 nearMeActive ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                               }`}
@@ -1119,10 +1100,10 @@ export default function Home() {
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
                               {nearMeActive ? "📍 Near Me (ON)" : "📍 Near Me"}
                             </button>
-                            <button onClick={() => setViewMode("list")} title="Show results as a list" className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={() => setViewMode("list")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               📋 List
                             </button>
-                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} title="Show results on a map" className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               🗺️ Map
                             </button>
                           </div>
@@ -1186,17 +1167,17 @@ export default function Home() {
                       </div>
                     ) : (
                       <div className="text-center py-16">
-                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Utensils className="w-7 h-7 text-slate-400" />
+                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-3xl">🏙️</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-700">{t.noResults}</h3>
-                        <p className="text-sm text-slate-400 mt-1 mb-6">{t.noResultsSub}</p>
-                        <p className="text-xs text-slate-400 mb-3 font-semibold uppercase tracking-wide">Try one of these instead</p>
+                        <h3 className="text-lg font-semibold text-slate-700">Pick a city to search</h3>
+                        <p className="text-sm text-slate-400 mt-1 mb-6">SafeEats uses live government databases only — instant results, no AI slowdown. Select a city first.</p>
                         <div className="flex flex-wrap justify-center gap-2">
-                          {["McDonald's, Seattle WA", "Subway, New York NY", "Chipotle, Chicago IL", "Sushi, San Francisco CA"].map(q => (
-                            <button key={q} onClick={() => handleSearch(q)}
-                              className="px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-all">
-                              {q}
+                          {LIVE_API_CITIES.map(city => (
+                            <button key={city.countyId}
+                              onClick={() => { setRegion(city.region); setCountyId(city.countyId); resetSearch(); }}
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
+                              {city.emoji} {city.label}
                             </button>
                           ))}
                         </div>
