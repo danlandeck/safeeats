@@ -745,8 +745,9 @@ export default function Home() {
 
     try {
       const clean = (q) => encodeURIComponent(q.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-      if (!hasLocationHint) {
-        // No location = global LLM search
+      const liveCounties = ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"];
+      if (!hasLocationHint && !liveCounties.includes(searchCounty)) {
+        // No location hint AND not on a live API county = global LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_GLOBAL(query, today);
         const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
@@ -758,19 +759,6 @@ export default function Home() {
         });
         setAndCache(Array.from(seen.values()));
       } else if (useLLMCity && parsed?.city) {
-        // City not in live-API map — scoped LLM city search
-        const today = new Date().toISOString().slice(0, 10);
-        const cityLabel = parsed.state ? `${parsed.city}, ${parsed.state}` : parsed.city;
-        const prompt = LLM_PROMPT_CITY(query, cityLabel, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
-        const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
-        const seen = new Map();
-        raw.forEach((r) => {
-          const key = `${r.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.address.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-          if (!seen.has(key) || r.safetyScore > seen.get(key).safetyScore) seen.set(key, r);
-        });
-        setAndCache(Array.from(seen.values()));
-      } else if (searchCounty === "king") {
         const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25' OR upper(replace(name,'-','')) like '%25${clean(query)}%25' OR upper(address) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processKingCountyResults(await safeFetch(url)));
       } else if (searchCounty === "nyc") {
