@@ -287,7 +287,7 @@ export default function Home() {
         // No location = global LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_GLOBAL(query, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || ""));
         const seen = new Map();
         raw.forEach((r) => {
@@ -299,7 +299,7 @@ export default function Home() {
         // City-only hint (e.g. "Taco Bell, San Diego") — scoped LLM search
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT_CITY(query, parsed.city, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, "llm", r.city || parsed.city));
         const seen = new Map();
         raw.forEach((r) => {
@@ -308,37 +308,37 @@ export default function Home() {
         });
         setAndCache(Array.from(seen.values()));
       } else if (searchCounty === "nyc") {
-        const norm = query.replace(/['''\-]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
-        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${encode(norm)}%25' OR upper(dba) like '%25${encode(query)}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${CHICAGO_API}?$where=upper(dba_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(dba_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${CHICAGO_API}?$where=upper(replace(dba_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processChicagoResults(await safeFetch(url)));
       } else if (searchCounty === "montgomery_md") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${MONTGOMERY_API}?$where=upper(name) like '%25${encode(query)}%25' OR upper(address1) like '%25${encode(query)}%25' OR upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspectiondate DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${MONTGOMERY_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspectiondate DESC`;
         setAndCache(processMontgomeryResults(await safeFetch(url)));
       } else if (searchCounty === "travis") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${AUSTIN_API}?$where=upper(restaurant_name) like '%25${encode(query)}%25' OR upper(address) like '%25${encode(query)}%25' OR upper(replace(restaurant_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${AUSTIN_API}?$where=upper(replace(restaurant_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processAustinResults(await safeFetch(url)));
       } else if (searchCounty === "sf") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${SF_API}?$where=upper(business_name) like '%25${encode(query)}%25' OR upper(business_address) like '%25${encode(query)}%25' OR upper(replace(business_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=inspection_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${SF_API}?$where=upper(replace(business_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processSFResults(await safeFetch(url)));
       } else if (searchCounty === "la") {
-        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase());
-        const url = `${LA_API}?$where=upper(facility_name) like '%25${encode(query)}%25' OR upper(facility_address) like '%25${encode(query)}%25' OR upper(replace(facility_name,chr(39),'')) like '%25${clean}%25'&$limit=200&$order=activity_date DESC`;
+        const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
+        const url = `${LA_API}?$where=upper(replace(facility_name,chr(39),'')) like '%25${clean}%25'&$limit=50&$order=activity_date DESC`;
         setAndCache(processLAResults(await safeFetch(url)));
       } else if (currentCounty.hasPublicApi) {
         const clean = encodeURIComponent(query.replace(/[^a-zA-Z0-9]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25' OR upper(replace(name,'-','')) like '%25${clean}%25' OR upper(address) like '%25${clean}%25' OR zip_code like '%25${encodeURIComponent(query.trim())}%25'&$limit=200&$order=inspection_date DESC`;
+        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean}%25' OR upper(replace(name,'-','')) like '%25${clean}%25' OR upper(address) like '%25${clean}%25' OR zip_code like '%25${encodeURIComponent(query.trim())}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processKingCountyResults(await safeFetch(url)));
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const prompt = LLM_PROMPT(query, currentCounty.name, currentRegion.abbr, today);
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_1_pro", add_context_from_internet: true });
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: LLM_SCHEMA, model: "gemini_3_flash", add_context_from_internet: true });
         const raw = (result?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, searchCounty, currentCounty.city));
         const seen = new Map();
         raw.forEach((r) => {
