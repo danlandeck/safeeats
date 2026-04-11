@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
+import { Utensils, X, GitCompareArrows, LocateFixed, Loader2, MapPin } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
@@ -564,8 +564,8 @@ export default function Home() {
   const location = useLocation();
   const { consent, accept, decline } = useConsent();
   const consentGiven = consent?.location === true;
-  const [region, setRegion]                   = useState("washington");
-  const [countyId, setCountyId]               = useState("king");
+  const [region, setRegion]                   = useState("global");
+  const [countyId, setCountyId]               = useState("global");
   const pendingSearchRef                      = useRef(null);
   const [results, setResults]                 = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -593,6 +593,8 @@ export default function Home() {
   const [isGeolocating, setIsGeolocating]     = useState(false);
   const [nearMeError, setNearMeError]         = useState("");
   const [showScanner, setShowScanner]         = useState(false);
+  const [locationQuery, setLocationQuery]       = useState("");
+  const [isAISearch, setIsAISearch]             = useState(false);
   const searchCacheRef                        = useRef(null);
   if (!searchCacheRef.current) {
     try {
@@ -611,7 +613,7 @@ export default function Home() {
     });
   };
 
-  const currentRegion = REGIONS[region];
+  const currentRegion = REGIONS[region] || REGIONS["global"];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
   const t = getTranslations(region);
   const isRTL = ["uae"].includes(region);
@@ -664,8 +666,9 @@ export default function Home() {
   };
 
   const handleRegionChange = (newRegion) => {
+    const targetRegion = REGIONS[newRegion] || REGIONS["global"];
     setRegion(newRegion);
-    setCountyId(REGIONS[newRegion].counties[0].id);
+    setCountyId(targetRegion.counties[0].id);
     resetSearch();
   };
 
@@ -747,15 +750,19 @@ export default function Home() {
       const clean = (q) => encodeURIComponent(q.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
       const liveCounties = ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"];
 
-      // If not a supported live-API county, stop immediately — no LLM fallback
       if (!liveCounties.includes(searchCounty)) {
-        clearInterval(loadingTimerRef.current);
-        setIsLoading(false);
-        setResults([]);
-        return;
-      }
-
-      if (searchCounty === "nyc") {
+        // Global AI-powered search for any city, country, or region worldwide
+        setIsAISearch(true);
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const locationCtx = locationQuery.trim() || currentCounty.name;
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: LLM_PROMPT_CITY(query, locationCtx, today),
+          add_context_from_internet: true,
+          response_json_schema: LLM_SCHEMA,
+          model: "gemini_3_flash",
+        });
+        setAndCache((result?.restaurants || []).map(r => buildLLMRestaurant(r)));
+      } else if (searchCounty === "nyc") {
         const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
         setAndCache(processNYCResults(await safeFetch(url)));
       } else if (searchCounty === "cook") {
@@ -785,7 +792,8 @@ export default function Home() {
 
     clearInterval(loadingTimerRef.current);
     setIsLoading(false);
-  }, [region, countyId]);
+    setIsAISearch(false);
+  }, [region, countyId, locationQuery]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setSelectedBusiness(biz);
@@ -926,62 +934,74 @@ export default function Home() {
           </div>
 
 
-          <div className="flex items-center gap-2 w-full max-w-2xl mx-auto">
-            <div className="flex-1">
-              <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder={t.searchPlaceholder} dir={isRTL ? "rtl" : "ltr"} />
+          {/* Step 1 — Location */}
+          <div className="w-full max-w-2xl mx-auto mb-3">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 1 — Where are you eating?</p>
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400 pointer-events-none" />
+              <input
+              value={locationQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                  setLocationQuery(val);
+                  const key = val.toLowerCase().trim();
+                  const match = CITY_TO_COUNTY[key];
+                  if (match && REGIONS[match.region]) {
+                    setRegion(match.region);
+                    setCountyId(match.countyId);
+                  } else {
+                    setRegion("global");
+                    setCountyId("global");
+                  }
+                }}
+                placeholder="City, state, country (e.g. London, Tokyo, Sydney, Austin TX, Paris…)"
+                className="w-full pl-11 pr-4 h-12 rounded-2xl border border-white/20 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white/15"
+              />
             </div>
-            {hasSearched && (
-              <button
-                onClick={resetSearch}
-                title="Start a new search"
-                className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-                <span className="text-[10px] font-bold">New Search</span>
-              </button>
-            )}
-            <button
-              onClick={() => setShowScanner(true)}
-              title="Point your camera at a restaurant sign to identify it"
-              className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
-                <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
-              </svg>
-              <span className="text-[10px] font-bold">Scan Sign</span>
-            </button>
+            {/* Live API city quick-select */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {LIVE_API_CITIES.map((city) => {
+                const isActive = region === city.region && countyId === city.countyId;
+                return (
+                  <button
+                    key={city.countyId}
+                    onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); }}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      isActive ? "bg-emerald-500 text-white border-emerald-400" : "bg-white/10 text-slate-300 border-white/15 hover:bg-white/20 hover:text-white"
+                    }`}
+                  >
+                    <span>{city.emoji}</span>
+                    <span>{city.label}</span>
+                    {isActive && <span className="text-[9px] bg-white/20 px-1 py-0.5 rounded-full">✓</span>}
+                  </button>
+                );
+              })}
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-slate-400 border border-white/10 bg-white/5">🌍 Or type any city above for AI search</span>
+            </div>
           </div>
 
-
-
-          {/* Live API city selector */}
-          {!hasSearched && (
-            <div className="mt-4 max-w-2xl mx-auto">
-              <p className="text-center text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">⚡ Instant Live API Cities — select one then search</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {LIVE_API_CITIES.map((city) => {
-                  const isActive = region === city.region && countyId === city.countyId;
-                  return (
-                    <button
-                      key={city.countyId}
-                      onClick={() => { setRegion(city.region); setCountyId(city.countyId); }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
-                        isActive
-                          ? "bg-emerald-500 text-white border-emerald-400 shadow-lg scale-105"
-                          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                      }`}
-                    >
-                      <span>{city.emoji}</span>
-                      <span>{city.label}</span>
-                      {isActive && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">✓ Active</span>}
-                    </button>
-                  );
-                })}
+          {/* Step 2 — Search */}
+          <div className="w-full max-w-2xl mx-auto">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 2 — What restaurant or cuisine?</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="e.g. Subway, pizza, sushi, McDonald's…" dir={isRTL ? "rtl" : "ltr"} />
               </div>
-              <p className="text-center text-xs text-slate-400 mt-2">Or type any city for AI-assisted search (slower)</p>
+              {hasSearched && (
+                <button onClick={resetSearch} title="Start a new search" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors">
+                  <X className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">New Search</span>
+                </button>
+              )}
+              <button onClick={() => setShowScanner(true)} title="Point your camera at a restaurant sign to identify it" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
+                  <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
+                </svg>
+                <span className="text-[10px] font-bold">Scan Sign</span>
+              </button>
             </div>
-          )}
+          </div>
 
         </div>
       </div>
@@ -994,7 +1014,7 @@ export default function Home() {
             {/* Stats strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "7", label: "Cities with live gov't APIs" },
+                { value: "180+", label: "Countries & regions" },
                 { value: "50K+", label: "Restaurants tracked" },
                 { value: "100%", label: "Free & public data" },
                 { value: "A–F", label: "Universal grading scale" },
@@ -1038,7 +1058,7 @@ export default function Home() {
                   </span>
                 ))}
               </div>
-              <p className="text-center text-xs text-slate-500 mt-4">All other cities use AI-assisted research from publicly available health department records.</p>
+              <p className="text-center text-xs text-slate-500 mt-4">🌍 Any other city, country, province, or region worldwide is covered via AI-powered search of public health records.</p>
             </div>
 
             <LocalAreaMap
@@ -1076,7 +1096,7 @@ export default function Home() {
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm text-slate-400">Searching live government database…</p>
+                        <p className="text-sm text-slate-400">{isAISearch ? "🌍 AI is searching global health records… (may take 10-20s)" : "Searching live government database…"}</p>
                       </div>
                     ) : results.length > 0 ? (
                       <div>
@@ -1167,16 +1187,17 @@ export default function Home() {
                       </div>
                     ) : (
                       <div className="text-center py-16">
-                        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-3xl">🏙️</span>
+                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-3xl">🌍</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-700">Pick a city to search</h3>
-                        <p className="text-sm text-slate-400 mt-1 mb-6">SafeEats uses live government databases only — instant results, no AI slowdown. Select a city first.</p>
+                        <h3 className="text-lg font-semibold text-slate-700">No results found for "{searchQuery}"</h3>
+                        <p className="text-sm text-slate-400 mt-1 mb-4">Try a different spelling or a broader term like "pizza" or "burger".</p>
+                        <p className="text-xs text-slate-500 mb-6">Location searched: <span className="font-semibold text-slate-700">{locationQuery}</span></p>
                         <div className="flex flex-wrap justify-center gap-2">
                           {LIVE_API_CITIES.map(city => (
                             <button key={city.countyId}
-                              onClick={() => { setRegion(city.region); setCountyId(city.countyId); resetSearch(); }}
-                              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
+                              onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); resetSearch(); }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
                               {city.emoji} {city.label}
                             </button>
                           ))}

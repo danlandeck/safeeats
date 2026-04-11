@@ -557,4 +557,9 @@ export const REGIONS = {
     { id: "durban", name: "Durban, KwaZulu-Natal", city: "Durban", hasPublicApi: true },
     { id: "pretoria", name: "Pretoria, Gauteng", city: "Pretoria", hasPublicApi: true },
   ]},
+
+  // Catch-all for any city/country typed by the user that isn't in the alias map
+  global: { name: "Worldwide", abbr: "", counties: [
+    { id: "global", name: "Worldwide (AI Search)", city: "", hasPublicApi: false },
+  ]},
 };
