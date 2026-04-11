@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useMemo, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ExternalLink } from "lucide-react";
@@ -60,17 +60,26 @@ function createColoredIcon(score) {
   });
 }
 
-export default function MapView({ restaurants, onSelectRestaurant }) {
-  // Calculate center from all restaurants
-  const center = useMemo(() => {
-    if (restaurants.length === 0) return [47.6062, -122.3321]; // Seattle default
-    const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
-    if (validRestaurants.length === 0) return [47.6062, -122.3321];
-    
-    const avgLat = validRestaurants.reduce((sum, r) => sum + parseFloat(r.latitude), 0) / validRestaurants.length;
-    const avgLon = validRestaurants.reduce((sum, r) => sum + parseFloat(r.longitude), 0) / validRestaurants.length;
-    return [avgLat, avgLon];
-  }, [restaurants]);
+// Auto-pans/zooms map when results or user location changes
+function MapController({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.flyTo(center, zoom, { duration: 1.2 });
+  }, [center[0], center[1], zoom]);
+  return null;
+}
+
+export default function MapView({ restaurants, onSelectRestaurant, userCoords }) {
+  const { center, zoom } = useMemo(() => {
+    const valid = restaurants.filter(r => r.latitude && r.longitude);
+    if (valid.length > 0) {
+      const avgLat = valid.reduce((s, r) => s + parseFloat(r.latitude), 0) / valid.length;
+      const avgLon = valid.reduce((s, r) => s + parseFloat(r.longitude), 0) / valid.length;
+      return { center: [avgLat, avgLon], zoom: valid.length === 1 ? 15 : 13 };
+    }
+    if (userCoords) return { center: [userCoords.lat, userCoords.lng], zoom: 12 };
+    return { center: [47.6062, -122.3321], zoom: 11 }; // Seattle default
+  }, [restaurants, userCoords]);
 
   const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
 
@@ -78,17 +87,18 @@ export default function MapView({ restaurants, onSelectRestaurant }) {
     <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
       <MapContainer
         center={center}
-        zoom={11}
+        zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
       >
+        <MapController center={center} zoom={zoom} />
         <TileLayer
           attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin, FAO, NOAA, USGS'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
         />
         {validRestaurants.map((restaurant) => (
           <Marker
-            key={restaurant.business_id}
+            key={`${restaurant.business_id}-${restaurant.latitude}`}
             position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
             icon={createColoredIcon(restaurant.safetyScore)}
           >

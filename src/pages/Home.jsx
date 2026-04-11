@@ -618,6 +618,18 @@ export default function Home() {
   const t = getTranslations(region);
   const isRTL = ["uae"].includes(region);
 
+  // Silently grab user coords if already permitted (no prompt)
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.permissions?.query({ name: 'geolocation' }).then((result) => {
+      if (result.state === 'granted') {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        }, () => {});
+      }
+    }).catch(() => {});
+  }, []);
+
   // Auto-search from URL params (e.g. navigated here from CountyDrillDown)
   useEffect(() => {
     // If navigated with a pre-loaded restaurant, show it directly
@@ -1169,7 +1181,7 @@ export default function Home() {
                         </div>
 
                         {viewMode === "map" ? (
-                          <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} />
+                          <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} />
                         ) : (
                           <div className="space-y-3">
                             {filteredAndSortedResults.map((r) => (

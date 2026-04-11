@@ -1,4 +1,5 @@
 import React from "react";
+import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, Building2, ClipboardList, Globe } from "lucide-react";
@@ -120,6 +121,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Directions */}
+      <DirectionsButtons restaurant={restaurant} />
 
       {/* Trend Chart */}
       {uniqueInspections.length > 1 && (
