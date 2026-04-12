@@ -83,7 +83,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-slate-600">
                 <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" />{restaurant.address}, {restaurant.city} {restaurant.zip_code}</span>
                 {restaurant.phone && (
-                  <span className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-slate-400" />{restaurant.phone}</span>
+                  <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, '')}`} className="flex items-center gap-1.5 text-emerald-700 hover:text-emerald-900 font-medium transition-colors">
+                    <Phone className="w-4 h-4 text-emerald-600" />{restaurant.phone}
+                  </a>
                 )}
                 {restaurant.website ? (
                   <a

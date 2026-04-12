@@ -1,5 +1,4 @@
 import React from "react";
-import DirectionsButtons from "./DirectionsButtons";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows } from "lucide-react";
@@ -52,13 +51,10 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           </div>
           <div className="flex flex-wrap items-center gap-3 mt-2.5">
             {latestResult && (
-              <Badge variant="outline" className="text-[11px] font-medium bg-slate-50 text-slate-700 border-slate-200">
+              <Badge variant="outline" className="text-[11px] font-medium bg-slate-50 text-slate-700 border-slate-200 pointer-events-none">
                 {latestResult}
               </Badge>
             )}
-            <div onClick={(e) => e.stopPropagation()}>
-              <DirectionsButtons restaurant={restaurant} compact />
-            </div>
             <span className="flex items-center gap-1 text-xs text-slate-400">
               <ClipboardList className="w-3 h-3" />
               {totalInspections} inspection{totalInspections !== 1 ? "s" : ""}
