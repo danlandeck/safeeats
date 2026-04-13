@@ -247,6 +247,7 @@ export default function About() {
 
                 <div className="flex flex-wrap gap-2 mb-5">
                   {[
+                    { icon: <Award className="w-3.5 h-3.5" />, text: "Black Belt · Okinawan Karate (Shudokan)", color: "bg-slate-900 text-white border border-slate-700" },
                     { icon: <Award className="w-3.5 h-3.5" />, text: "Blue Belt · Brazilian Jiu Jitsu", color: "bg-blue-100 text-blue-800 border border-blue-200" },
                     { icon: <Baby className="w-3.5 h-3.5" />, text: "Doting Father", color: "bg-pink-50 text-pink-700 border border-pink-200" },
                     { icon: <span className="text-xs">🎮</span>, text: "Veteran Game Developer", color: "bg-slate-100 text-slate-700 border border-slate-200" },
