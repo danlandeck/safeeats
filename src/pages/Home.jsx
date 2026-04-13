@@ -35,7 +35,7 @@ import DataVisualizations from "../components/DataVisualizations";
 
 import ComparePanel from "../components/ComparePanel";
 import HeroViolations from "../components/HeroViolations";
-import LocalAreaMap from "../components/LocalAreaMap";
+import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 
 export { getGrade };
@@ -949,79 +949,58 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Step 1 — Location */}
-          <div className="w-full max-w-2xl mx-auto mb-3">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 1 — Where are you eating?</p>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4CAF50] pointer-events-none" />
-              <input
-                value={locationQuery}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setLocationQuery(val);
-                  const key = val.toLowerCase().trim();
-                  const match = CITY_TO_COUNTY[key];
-                  if (match && REGIONS[match.region]) {
-                    setRegion(match.region);
-                    setCountyId(match.countyId);
-                  } else {
-                    setRegion("global");
-                    setCountyId("global");
-                  }
-                }}
-                placeholder="City, state, country (e.g. London, Tokyo, Sydney, Austin TX, Paris…)"
-                className="w-full pl-11 pr-4 h-14 rounded-2xl border border-white/20 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/15"
-              />
-            </div>
-            {/* Live API city quick-select */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {LIVE_API_CITIES.map((city) => {
-                const isActive = region === city.region && countyId === city.countyId;
-                return (
-                  <button
-                    key={city.countyId}
-                    onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); }}
-                    className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
-                      isActive ? "bg-[#4CAF50] text-white border-[#4CAF50]" : "bg-white/10 text-slate-300 border-white/15 hover:bg-white/20 hover:text-white"
-                    }`}
-                  >
-                    <span>{city.emoji}</span>
-                    <span>{city.label}</span>
-                    {isActive && <span className="text-[9px] bg-white/20 px-1 py-0.5 rounded-full">✓</span>}
-                  </button>
-                );
-              })}
-              <span className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-white/10 bg-white/5 min-h-[36px]">🌍 Or type any city above for AI search</span>
-            </div>
-          </div>
+          <SmartSearchPanel
+            locationQuery={locationQuery}
+            onLocationChange={(val) => {
+              setLocationQuery(val);
+              const key = val.toLowerCase().trim();
+              const match = CITY_TO_COUNTY[key];
+              if (match && REGIONS[match.region]) {
+                setRegion(match.region);
+                setCountyId(match.countyId);
+              } else {
+                setRegion("global");
+                setCountyId("global");
+              }
+            }}
+            onRegionChange={({ region: r, countyId: c, label }) => {
+              setRegion(r);
+              setCountyId(c);
+              setLocationQuery(label);
+            }}
+            onSearch={(q) => {
+              if (hasSearched) resetSearch();
+              setTimeout(() => handleSearch(q), 0);
+            }}
+            isLoading={isLoading}
+            activeRegion={region}
+            activeCounty={countyId}
+          />
 
-          {/* Step 2 — Search */}
-          <div className="w-full max-w-2xl mx-auto">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 2 — What restaurant or cuisine?</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="Search Seattle eateries, e.g. Subway, pizza, sushi…" dir={isRTL ? "rtl" : "ltr"} />
-              </div>
-              {hasSearched && (
-                <button onClick={resetSearch} title="Start a new search" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 min-w-[48px] rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors">
-                  <X className="w-5 h-5" />
-                  <span className="text-[10px] font-bold">New Search</span>
-                </button>
-              )}
-              <button onClick={() => setShowScanner(true)} title="Point your camera at a restaurant sign to identify it" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 min-w-[48px] rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
-                  <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
-                </svg>
-                <span className="text-[10px] font-bold">Scan Sign</span>
+          {!hasSearched && (
+            <div className="w-full max-w-4xl mx-auto">
+              <HeroViolations />
+            </div>
+          )}
+
+          {hasSearched && (
+            <div className="flex justify-center gap-2 mt-4">
+              <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
+                <X className="w-4 h-4" /> New Search
+              </button>
+              <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
+                📷 Scan Sign
               </button>
             </div>
-          </div>
+          )}
 
-          {/* Violations showcase */}
-          <div className="w-full max-w-4xl mx-auto">
-            <HeroViolations />
-          </div>
+          {!hasSearched && (
+            <div className="flex justify-center mt-4">
+              <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
+                📷 Scan a Restaurant Sign
+              </button>
+            </div>
+          )}
 
         </div>
       </div>
@@ -1081,18 +1060,6 @@ export default function Home() {
               <p className="text-center text-xs text-slate-500 mt-4">🌍 Any other city, country, province, or region worldwide is covered via AI-powered search of public health records.</p>
             </div>
 
-            <LocalAreaMap
-              onSearch={(label, coords, radiusMiles) => {
-                if (label) {
-                  if (coords) {
-                    setUserCoords(coords);
-                    setNearMeActive(true);
-                  }
-                  handleSearch(label);
-                }
-              }}
-              consentGiven={consentGiven}
-            />
           </div>
         )}
 
