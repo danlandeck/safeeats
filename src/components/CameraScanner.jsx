@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { X, Camera, RotateCcw, Search, Loader2, ScanLine } from "lucide-react";
+import { X, Camera, RotateCcw, Search, Loader2, ScanLine, Utensils, AlertTriangle, Leaf, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 
@@ -70,16 +70,27 @@ export default function CameraScanner({ onResult, onClose }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `This image shows a restaurant storefront, sign, menu board, or health inspection placard.
-Extract the restaurant name and address (if visible).
-If you see a health inspection score or grade placard, also extract that.
-Return ONLY a JSON object with these fields:
-- name: string (restaurant name, or null if unclear)
-- address: string (street address, or null if not visible)
-- city: string (city name, or null)
-- inspection_grade: string (e.g. "A", "B", "Pass", or null)
-- inspection_score: number (numeric score 0-100, or null)
-If you cannot identify a restaurant at all, set name to null.`,
+        prompt: `You are an expert at reading food packaging, restaurant signs, menus, and health inspection placards in ANY language including Japanese (kanji/hiragana/katakana), Chinese, Korean, and other scripts.
+
+Detect whether this image is a FOOD PRODUCT LABEL or a RESTAURANT SIGN/PLACARD, then extract:
+
+FOR RESTAURANT SIGNS / INSPECTION PLACARDS:
+- name: restaurant name (translate to English if needed)
+- address, city, inspection_grade, inspection_score
+- is_food_label: false
+
+FOR FOOD PRODUCT LABELS (Japanese konbini, supermarket, packaged food):
+- product_name in English (translate)
+- ingredients: English array (translate all)
+- allergens: flag shellfish, nuts, dairy, gluten, eggs, soy, wheat, fish. In Japan look for 特定原材料 (mandatory) and hidden shellfish in sauces (エキス = extract)
+- nutrition_per_100g: {calories, protein_g, fat_g, carbs_g, sodium_mg} — Japanese labels use per 100g
+- expiration_date: translate 賞味期限 (best before) or 消費期限 (use by), include type
+- dietary_flags: halal, vegan, vegetarian, gluten-free, organic, kosher
+- country_of_origin: translate 国産 as "Japan (domestic)"
+- warnings: any safety/allergen warnings in plain English
+- is_food_label: true
+
+Set unknown fields to null. ALWAYS translate non-English text.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
@@ -89,12 +100,21 @@ If you cannot identify a restaurant at all, set name to null.`,
             city: { type: "string" },
             inspection_grade: { type: "string" },
             inspection_score: { type: "number" },
+            is_food_label: { type: "boolean" },
+            product_name: { type: "string" },
+            ingredients: { type: "array", items: { type: "string" } },
+            allergens: { type: "array", items: { type: "string" } },
+            nutrition_per_100g: { type: "object" },
+            expiration_date: { type: "string" },
+            dietary_flags: { type: "array", items: { type: "string" } },
+            country_of_origin: { type: "string" },
+            warnings: { type: "array", items: { type: "string" } },
           },
         },
       });
 
-      if (!result?.name) {
-        setErrorMsg("Couldn't identify a restaurant in the image. Try a clearer shot of the sign or placard.");
+      if (!result?.name && !result?.product_name) {
+        setErrorMsg("Couldn't read anything useful. Try a clearer, closer shot.");
         setPhase("error");
         return;
       }
@@ -108,6 +128,7 @@ If you cannot identify a restaurant at all, set name to null.`,
   };
 
   const doSearch = () => {
+    if (extracted?.is_food_label) { onClose(); return; }
     if (!extracted?.name) return;
     const query = extracted.address
       ? `${extracted.name}, ${extracted.address}`
@@ -152,9 +173,14 @@ If you cannot identify a restaurant at all, set name to null.`,
                 </div>
               </div>
             </div>
-            <p className="absolute bottom-24 left-0 right-0 text-center text-white/70 text-xs px-8">
-              Point at a restaurant sign, storefront, or health inspection placard
-            </p>
+            <div className="absolute bottom-24 left-0 right-0 flex flex-col items-center gap-1.5 px-6">
+              <p className="text-white/90 text-sm font-semibold text-center">Point at any sign, label, or placard</p>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                {["🏪 Restaurant sign","🇯🇵 Japanese label","🧾 Inspection grade","🥫 Food packaging"].map(t => (
+                  <span key={t} className="text-[11px] bg-white/15 text-white/80 px-2 py-0.5 rounded-full">{t}</span>
+                ))}
+              </div>
+            </div>
           </>
         )}
 
@@ -163,36 +189,136 @@ If you cannot identify a restaurant at all, set name to null.`,
         )}
 
         {phase === "analyzing" && (
-          <div className="flex flex-col items-center gap-4 text-white">
-            <Loader2 className="w-12 h-12 animate-spin text-emerald-400" />
-            <p className="font-semibold text-lg">Analyzing image…</p>
-            <p className="text-sm text-white/60">Reading restaurant info with AI vision</p>
+          <div className="flex flex-col items-center gap-4 text-white px-8 text-center">
+            <div className="relative">
+              <Loader2 className="w-14 h-14 animate-spin text-emerald-400" />
+              <ScanLine className="w-6 h-6 text-white/60 absolute inset-0 m-auto" />
+            </div>
+            <p className="font-extrabold text-xl">Analyzing…</p>
+            <p className="text-sm text-white/60 max-w-xs">AI vision is reading text in any language — Japanese, English, and more</p>
           </div>
         )}
 
         {phase === "done" && extracted && (
-          <div className="flex flex-col items-center gap-4 px-8 text-white w-full max-w-sm mx-auto">
-            <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center">
-              <Search className="w-8 h-8 text-white" />
+          <div className="w-full h-full overflow-y-auto">
+            <div className="flex flex-col gap-4 px-6 py-6 text-white w-full max-w-sm mx-auto">
+
+              {extracted.is_food_label ? (
+                /* ── FOOD LABEL MODE ── */
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                      <Utensils className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-emerald-400 font-bold uppercase tracking-widest">Food Label Decoded</p>
+                      <h2 className="text-lg font-extrabold leading-tight">{extracted.product_name || "Unknown Product"}</h2>
+                    </div>
+                  </div>
+
+                  {extracted.allergens?.length > 0 && (
+                    <div className="bg-red-500/20 border border-red-400/40 rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-red-400" />
+                        <p className="text-sm font-extrabold text-red-300">Allergens Detected</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {extracted.allergens.map((a, i) => (
+                          <span key={i} className="px-2.5 py-1 bg-red-500/30 text-red-200 text-xs font-bold rounded-full border border-red-400/30">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {extracted.dietary_flags?.length > 0 && (
+                    <div className="bg-emerald-500/15 border border-emerald-400/30 rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Leaf className="w-4 h-4 text-emerald-400" />
+                        <p className="text-sm font-extrabold text-emerald-300">Dietary</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {extracted.dietary_flags.map((f, i) => (
+                          <span key={i} className="px-2.5 py-1 bg-emerald-500/25 text-emerald-200 text-xs font-bold rounded-full capitalize">{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {extracted.nutrition_per_100g && Object.keys(extracted.nutrition_per_100g).length > 0 && (
+                    <div className="bg-white/10 rounded-2xl p-4">
+                      <p className="text-xs font-extrabold text-white/60 uppercase tracking-widest mb-3">Nutrition per 100g</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {Object.entries(extracted.nutrition_per_100g).map(([k, v]) => (
+                          <div key={k} className="text-center bg-white/5 rounded-xl p-2">
+                            <p className="text-base font-extrabold text-white">{v}</p>
+                            <p className="text-[10px] text-white/50 capitalize mt-0.5">{k.replace(/_/g," ")}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {extracted.expiration_date && (
+                    <div className="flex items-center gap-3 bg-white/10 rounded-2xl px-4 py-3">
+                      <Calendar className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase tracking-widest">Expiration</p>
+                        <p className="text-sm font-bold text-yellow-300">{extracted.expiration_date}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {extracted.ingredients?.length > 0 && (
+                    <div className="bg-white/5 rounded-2xl p-4">
+                      <p className="text-xs font-extrabold text-white/50 uppercase tracking-widest mb-2">Ingredients</p>
+                      <p className="text-xs text-white/70 leading-relaxed">{extracted.ingredients.join(", ")}</p>
+                    </div>
+                  )}
+
+                  {extracted.country_of_origin && (
+                    <p className="text-xs text-white/40 text-center">Origin: {extracted.country_of_origin}</p>
+                  )}
+
+                  {extracted.warnings?.length > 0 && (
+                    <div className="bg-orange-500/15 border border-orange-400/30 rounded-2xl p-3">
+                      {extracted.warnings.map((w, i) => (
+                        <p key={i} className="text-xs text-orange-300">⚠ {w}</p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* ── RESTAURANT MODE ── */
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                      <Search className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-emerald-400 font-bold uppercase tracking-widest">Restaurant Found</p>
+                      <h2 className="text-lg font-extrabold leading-tight">{extracted.name}</h2>
+                    </div>
+                  </div>
+                  {extracted.address && <p className="text-sm text-white/60">{extracted.address}{extracted.city ? `, ${extracted.city}` : ""}</p>}
+                  {(extracted.inspection_grade || extracted.inspection_score != null) && (
+                    <div className="flex items-center gap-4 bg-white/10 rounded-2xl px-5 py-4">
+                      {extracted.inspection_grade && (
+                        <div className="text-center">
+                          <p className="text-[10px] text-white/50 uppercase tracking-widest">Grade</p>
+                          <p className="text-4xl font-extrabold text-emerald-400">{extracted.inspection_grade}</p>
+                        </div>
+                      )}
+                      {extracted.inspection_score != null && (
+                        <div className="text-center">
+                          <p className="text-[10px] text-white/50 uppercase tracking-widest">Score</p>
+                          <p className="text-4xl font-extrabold text-emerald-400">{extracted.inspection_score}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            <h2 className="text-xl font-extrabold text-center">{extracted.name}</h2>
-            {extracted.address && <p className="text-sm text-white/70 text-center">{extracted.address}{extracted.city ? `, ${extracted.city}` : ""}</p>}
-            {(extracted.inspection_grade || extracted.inspection_score != null) && (
-              <div className="flex items-center gap-3 bg-white/10 rounded-xl px-5 py-3">
-                {extracted.inspection_grade && (
-                  <div className="text-center">
-                    <p className="text-xs text-white/60">Grade</p>
-                    <p className="text-3xl font-extrabold text-emerald-400">{extracted.inspection_grade}</p>
-                  </div>
-                )}
-                {extracted.inspection_score != null && (
-                  <div className="text-center">
-                    <p className="text-xs text-white/60">Score</p>
-                    <p className="text-3xl font-extrabold text-emerald-400">{extracted.inspection_score}</p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -244,9 +370,11 @@ If you cannot identify a restaurant at all, set name to null.`,
             <Button variant="outline" onClick={retake} className="bg-white/10 border-white/20 text-white hover:bg-white/20 gap-2">
               <RotateCcw className="w-4 h-4" /> Scan Again
             </Button>
-            <Button onClick={doSearch} className="bg-emerald-500 hover:bg-emerald-400 text-white gap-2 px-6">
-              <Search className="w-4 h-4" /> Search This Restaurant
-            </Button>
+            {!extracted?.is_food_label && (
+              <Button onClick={doSearch} className="bg-emerald-500 hover:bg-emerald-400 text-white gap-2 px-6">
+                <Search className="w-4 h-4" /> Search This Restaurant
+              </Button>
+            )}
           </>
         )}
 
