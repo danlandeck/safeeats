@@ -832,7 +832,17 @@ export default function Home() {
     }
 
     setIsDetailLoading(true);
-    const cacheAndSet = (rows) => { detailCacheRef.current.set(biz.business_id, rows); setDetailRows(rows); };
+    const cacheAndSet = (rows) => {
+      detailCacheRef.current.set(biz.business_id, rows);
+      setDetailRows(rows);
+      // Compute the true unique inspection count from actual fetched rows
+      const uniqueKeys = new Set(rows.map(r => r.inspection_serial_num || `${r.inspection_date}|${r.inspection_result}`));
+      const actualCount = Math.max(uniqueKeys.size, rows.length > 0 ? 1 : 0);
+      if (actualCount > 0) {
+        setSelectedBusiness(prev => ({ ...prev, totalInspections: actualCount }));
+        setResults(prev => prev.map(r => r.business_id === biz.business_id ? { ...r, totalInspections: actualCount } : r));
+      }
+    };
 
     if (biz.source === "nyc") {
       const data = await fetch(`${NYC_API}?camis=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
