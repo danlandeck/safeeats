@@ -34,6 +34,7 @@ import FilterSortControls from "../components/FilterSortControls";
 import DataVisualizations from "../components/DataVisualizations";
 
 import ComparePanel from "../components/ComparePanel";
+import HeroViolations from "../components/HeroViolations";
 import LocalAreaMap from "../components/LocalAreaMap";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 
@@ -932,29 +933,31 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
-      <div className="bg-slate-900 text-white">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white">
         <div className="max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
           <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
+              🛡️ Real Government Data · Updated Daily
+            </div>
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
-            {t.headline1}
-            <br className="hidden sm:block" />
-            <span className="text-slate-400"> {t.headline2}</span>
+              {t.headline1}
+              <br className="hidden sm:block" />
+              <span className="text-[#4CAF50]"> {t.headline2}</span>
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-slate-400 font-medium">
-            {t.subheadline}
+            <p className="mt-4 text-base sm:text-lg text-slate-300 font-medium max-w-xl mx-auto">
+              {t.subheadline}
             </p>
           </div>
-
 
           {/* Step 1 — Location */}
           <div className="w-full max-w-2xl mx-auto mb-3">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 1 — Where are you eating?</p>
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400 pointer-events-none" />
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4CAF50] pointer-events-none" />
               <input
-              value={locationQuery}
-              onChange={(e) => {
-                const val = e.target.value;
+                value={locationQuery}
+                onChange={(e) => {
+                  const val = e.target.value;
                   setLocationQuery(val);
                   const key = val.toLowerCase().trim();
                   const match = CITY_TO_COUNTY[key];
@@ -967,7 +970,7 @@ export default function Home() {
                   }
                 }}
                 placeholder="City, state, country (e.g. London, Tokyo, Sydney, Austin TX, Paris…)"
-                className="w-full pl-11 pr-4 h-12 rounded-2xl border border-white/20 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white/15"
+                className="w-full pl-11 pr-4 h-14 rounded-2xl border border-white/20 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/15"
               />
             </div>
             {/* Live API city quick-select */}
@@ -978,8 +981,8 @@ export default function Home() {
                   <button
                     key={city.countyId}
                     onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); }}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
-                      isActive ? "bg-emerald-500 text-white border-emerald-400" : "bg-white/10 text-slate-300 border-white/15 hover:bg-white/20 hover:text-white"
+                    className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
+                      isActive ? "bg-[#4CAF50] text-white border-[#4CAF50]" : "bg-white/10 text-slate-300 border-white/15 hover:bg-white/20 hover:text-white"
                     }`}
                   >
                     <span>{city.emoji}</span>
@@ -988,7 +991,7 @@ export default function Home() {
                   </button>
                 );
               })}
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-slate-400 border border-white/10 bg-white/5">🌍 Or type any city above for AI search</span>
+              <span className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-slate-400 border border-white/10 bg-white/5 min-h-[36px]">🌍 Or type any city above for AI search</span>
             </div>
           </div>
 
@@ -997,15 +1000,15 @@ export default function Home() {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Step 2 — What restaurant or cuisine?</p>
             <div className="flex items-center gap-2">
               <div className="flex-1">
-                <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="e.g. Subway, pizza, sushi, McDonald's…" dir={isRTL ? "rtl" : "ltr"} />
+                <SearchBar onSearch={handleSearch} isLoading={isLoading} placeholder="Search Seattle eateries, e.g. Subway, pizza, sushi…" dir={isRTL ? "rtl" : "ltr"} />
               </div>
               {hasSearched && (
-                <button onClick={resetSearch} title="Start a new search" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors">
+                <button onClick={resetSearch} title="Start a new search" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 min-w-[48px] rounded-2xl bg-red-600 hover:bg-red-500 text-white transition-colors">
                   <X className="w-5 h-5" />
                   <span className="text-[10px] font-bold">New Search</span>
                 </button>
               )}
-              <button onClick={() => setShowScanner(true)} title="Point your camera at a restaurant sign to identify it" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors">
+              <button onClick={() => setShowScanner(true)} title="Point your camera at a restaurant sign to identify it" className="flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 h-14 min-w-[48px] rounded-2xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
                   <rect x="9" y="9" width="6" height="6" rx="1" strokeLinecap="round" />
@@ -1013,6 +1016,11 @@ export default function Home() {
                 <span className="text-[10px] font-bold">Scan Sign</span>
               </button>
             </div>
+          </div>
+
+          {/* Violations showcase */}
+          <div className="w-full max-w-4xl mx-auto">
+            <HeroViolations />
           </div>
 
         </div>

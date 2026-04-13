@@ -63,7 +63,7 @@ export default function SearchBar({ onSearch, isLoading, placeholder, dir }) {
         <Button
           type="submit"
           disabled={isLoading || !query.trim()}
-          className="h-14 px-8 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white font-semibold shadow-sm"
+          className="h-14 px-8 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] text-white font-bold shadow-sm min-w-[80px]"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
