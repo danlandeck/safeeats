@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { ShieldCheck, Info } from "lucide-react";
+import { ShieldCheck, Info, BarChart2 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -15,6 +15,12 @@ export default function Layout({ children, currentPageName }) {
               <span className="font-extrabold text-lg text-white tracking-tight">SafeEats</span>
             </a>
             <div className="flex items-center gap-2">
+              <Link to="/dashboard">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+                  <BarChart2 className="w-4 h-4" />
+                  Analytics
+                </button>
+              </Link>
               <Link to={createPageUrl("About")}>
                 <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
                   <Info className="w-4 h-4" />
