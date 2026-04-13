@@ -596,6 +596,7 @@ export default function Home() {
   const [showScanner, setShowScanner]         = useState(false);
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
+  const [searchError, setSearchError]           = useState("");
   const searchCacheRef                        = useRef(null);
   if (!searchCacheRef.current) {
     try {
@@ -740,6 +741,7 @@ export default function Home() {
     setViewMode("list");
     setActiveGrade(null);
     setActiveResult(null);
+    setSearchError("");
 
     const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
     if (searchCacheRef.current.has(cacheKey)) {
@@ -799,7 +801,11 @@ export default function Home() {
         setAndCache(processKingCountyResults(await safeFetch(url)));
       }
     } catch (e) {
-      if (e.name !== "AbortError") throw e;
+      if (e.name === "AbortError") return;
+      clearInterval(loadingTimerRef.current);
+      setIsLoading(false);
+      setIsAISearch(false);
+      setSearchError("Search failed. Please try again in a moment.");
       return;
     }
 
@@ -1085,7 +1091,16 @@ export default function Home() {
                         <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
                         <p className="text-sm text-slate-400">{isAISearch ? "🌍 AI is searching global health records… (may take 10-20s)" : "Searching live government database…"}</p>
                       </div>
-                    ) : results.length > 0 ? (
+                    ) : searchError ? (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-3xl">⚠️</span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-700">Search Unavailable</h3>
+                        <p className="text-sm text-slate-400 mt-1 mb-4">{searchError}</p>
+                        <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors">Try Again</button>
+                        </div>
+                        ) : results.length > 0 ? (
                       <div>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
