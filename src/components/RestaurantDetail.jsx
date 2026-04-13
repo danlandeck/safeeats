@@ -142,6 +142,36 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         <h2 className="text-lg font-bold text-slate-900 mb-4 tracking-tight">
           Food Safety Inspection History
         </h2>
+
+        {/* ── Inspection timeline index ── */}
+        {uniqueInspections.length > 1 && (
+          <div className="mb-5 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-200 bg-white">
+              <p className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">All {uniqueInspections.length} Inspections — click to jump</p>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {uniqueInspections.map((insp, idx) => {
+                const raw = insp.inspection_score !== undefined ? insp.inspection_score : insp.score;
+                const score = raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : restaurant.safetyScore;
+                const dotColor = score >= 90 ? "bg-green-500" : score >= 80 ? "bg-lime-500" : score >= 70 ? "bg-yellow-400" : score >= 60 ? "bg-orange-500" : "bg-red-500";
+                const dateStr = insp.inspection_date ? new Date(insp.inspection_date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "Unknown date";
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => document.getElementById(`insp-${idx}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white transition-colors text-left group"
+                  >
+                    <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotColor}`} />
+                    <span className="text-sm text-slate-700 font-medium flex-1">{dateStr}</span>
+                    {idx === 0 && <span className="text-[10px] font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full">Latest</span>}
+                    <span className="text-xs text-slate-400 font-semibold">{score}/100</span>
+                    <span className="text-slate-300 group-hover:text-slate-500 transition-colors text-xs">↓</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {uniqueInspections.length === 0 ? (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
             <span className="text-amber-500 text-lg mt-0.5">⚠</span>
@@ -157,6 +187,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             {uniqueInspections.map((insp, idx) => (
               <InspectionDetail
                 key={insp.inspection_serial_num}
+                id={`insp-${idx}`}
                 inspection={insp}
                 violations={insp.violations}
                 isLatest={idx === 0}
