@@ -1,5 +1,15 @@
-import React, { useState } from "react";
-import { MapPin, Search, X } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { MapPin, Search, X, Clock } from "lucide-react";
+
+// Persistent recent searches
+const RECENT_KEY = "safeeats_recent";
+function loadRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
+function saveRecent(q) {
+  const prev = loadRecent().filter(x => x !== q);
+  const next = [q, ...prev].slice(0, 6);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
 
 const QUICK_CUISINES = [
   { label: "🍕 Pizza", q: "pizza" },
@@ -26,17 +36,53 @@ export default function SmartSearchPanel({
   locationQuery, onLocationChange, onRegionChange,
   onSearch, isLoading, activeRegion, activeCounty,
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery]           = useState("");
+  const [recents, setRecents]       = useState(loadRecent);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef                 = useRef(null);
+  const inputRef                    = useRef(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (query.trim()) onSearch(query.trim());
-  };
+  // Debounced autocomplete suggestions from recents
+  const suggestions = recents.filter(r => query.length > 0 && r.toLowerCase().includes(query.toLowerCase()));
 
-  const handleCuisineClick = (q) => {
-    setQuery(q);
+  const handleSubmit = useCallback((e) => {
+    e?.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    setShowDropdown(false);
+    setRecents(saveRecent(q));
     onSearch(q);
+  }, [query, onSearch]);
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    setShowDropdown(true);
+    // Debounce: auto-trigger only for cuisine-style short queries
+    clearTimeout(debounceRef.current);
+    if (val.trim().length >= 3) {
+      debounceRef.current = setTimeout(() => {
+        // Only auto-search if it looks like a cuisine keyword (no spaces + short)
+        if (val.trim().split(" ").length === 1 && val.trim().length <= 12) {
+          // don't auto-fire full search, just keep suggestions visible
+        }
+      }, 300);
+    }
   };
+
+  const pickSuggestion = (s) => {
+    setQuery(s);
+    setShowDropdown(false);
+    setRecents(saveRecent(s));
+    onSearch(s);
+  };
+
+  const handleCuisineClick = useCallback((q) => {
+    setQuery(q);
+    setShowDropdown(false);
+    setRecents(saveRecent(q));
+    onSearch(q);
+  }, [onSearch]);
 
   const fieldClass =
     "w-full pl-11 pr-4 h-14 rounded-2xl border border-white/15 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/15 transition-all";
@@ -91,27 +137,57 @@ export default function SmartSearchPanel({
         <form onSubmit={handleSubmit}>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
               <input
+                ref={inputRef}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search Seattle eateries — e.g. Subway, pizza, sushi…"
+                onChange={handleChange}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                placeholder="e.g. Subway, pizza, sushi…"
                 className={fieldClass + " pl-11"}
+                aria-label="Search restaurants"
+                aria-autocomplete="list"
+                autoComplete="off"
+                enterKeyHint="search"
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <button type="button" onClick={() => { setQuery(""); setShowDropdown(false); inputRef.current?.focus(); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" aria-label="Clear search">
                   <X className="w-4 h-4" />
                 </button>
+              )}
+              {/* Dropdown: recent + suggestions */}
+              {showDropdown && (suggestions.length > 0 || (recents.length > 0 && !query)) && (
+                <ul
+                  role="listbox"
+                  aria-label="Search suggestions"
+                  className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-white/15 rounded-xl overflow-hidden z-50 shadow-xl"
+                >
+                  {(query ? suggestions : recents).map((s, i) => (
+                    <li key={i}>
+                      <button
+                        role="option"
+                        type="button"
+                        onMouseDown={() => pickSuggestion(s)}
+                        className="w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" aria-hidden="true" />
+                        {s}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="h-14 px-6 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[80px] transition-colors"
+              className="h-14 px-6 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[80px] transition-colors touch-manipulation"
+              aria-label="Search"
             >
               {isLoading
-                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" aria-hidden="true" />
                 : "Search"}
             </button>
           </div>
@@ -124,7 +200,7 @@ export default function SmartSearchPanel({
               key={q}
               type="button"
               onClick={() => handleCuisineClick(q)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/15 hover:bg-[#4CAF50]/20 hover:text-[#81c784] hover:border-[#4CAF50]/40 transition-all min-h-[36px]"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/15 hover:bg-[#4CAF50]/20 hover:text-[#81c784] hover:border-[#4CAF50]/40 transition-all min-h-[36px] touch-manipulation"
             >
               {label}
             </button>

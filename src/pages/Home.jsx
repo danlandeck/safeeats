@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, X, GitCompareArrows, LocateFixed, Loader2, MapPin } from "lucide-react";
 import { useLocation } from "react-router-dom";
@@ -25,18 +25,19 @@ import {
   geocodeAddress,
 } from "../utils/inspectionProcessors";
 import SearchBar, { parseLocationQuery } from "../components/SearchBar";
-import CameraScanner from "../components/CameraScanner";
 import RestaurantCard from "../components/RestaurantCard";
-import RestaurantDetail from "../components/RestaurantDetail";
-import ScoreLegend from "../components/ScoreLegend";
-import MapView from "../components/MapView";
-import FilterSortControls from "../components/FilterSortControls";
-import DataVisualizations from "../components/DataVisualizations";
-
-import ComparePanel from "../components/ComparePanel";
-import HeroViolations from "../components/HeroViolations";
 import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
+import HeroViolations from "../components/HeroViolations";
+
+// Lazy-load heavy components so initial bundle is smaller
+const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
+const RestaurantDetail   = React.lazy(() => import("../components/RestaurantDetail"));
+const MapView            = React.lazy(() => import("../components/MapView"));
+const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
+const FilterSortControls = React.lazy(() => import("../components/FilterSortControls"));
+const DataVisualizations = React.lazy(() => import("../components/DataVisualizations"));
+const ComparePanel       = React.lazy(() => import("../components/ComparePanel"));
 
 export { getGrade };
 export { getGradeColor } from "../utils/grading";
@@ -597,14 +598,18 @@ export default function Home() {
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
-  const searchCacheRef                        = useRef(null);
+  const searchCacheRef = useRef(null);
   if (!searchCacheRef.current) {
     try {
-      const stored = localStorage.getItem('safeeats_cache');
-      searchCacheRef.current = stored ? new Map(JSON.parse(stored)) : new Map();
+      const raw = localStorage.getItem('safeeats_cache');
+      // Prune stale entries older than 24 h
+      const parsed = raw ? JSON.parse(raw) : [];
+      const cutoff = Date.now() - 86_400_000;
+      const fresh  = parsed.filter(([, , ts]) => !ts || ts > cutoff);
+      searchCacheRef.current = new Map(fresh.map(([k, v]) => [k, v]));
     } catch { searchCacheRef.current = new Map(); }
   }
-  const detailCacheRef                        = useRef(new Map());
+  const detailCacheRef = useRef(new Map());
 
   const handleToggleCompare = (restaurant) => {
     setCompareList((prev) => {
@@ -757,7 +762,10 @@ export default function Home() {
     const safeFetch = (url) => fetch(url, { signal }).then(r => r.json());
     const setAndCache = (data) => {
       searchCacheRef.current.set(cacheKey, data);
-      try { localStorage.setItem('safeeats_cache', JSON.stringify([...searchCacheRef.current])); } catch {}
+      try {
+        const entries = [...searchCacheRef.current].map(([k, v]) => [k, v, Date.now()]);
+        localStorage.setItem('safeeats_cache', JSON.stringify(entries.slice(-40)));
+      } catch {}
       setResults(data);
     };
 
@@ -1078,7 +1086,9 @@ export default function Home() {
                   <p className="text-sm text-slate-400">{t.loadingDetails}</p>
                 </div>
               ) : (
-                <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
+                <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
+                  <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
+                </Suspense>
               )}
             </motion.div>
           ) : (
@@ -1132,6 +1142,7 @@ export default function Home() {
                         </div>
 
                         <div className="mb-4">
+                          <Suspense fallback={null}>
                           <FilterSortControls
                             filterResult={filterResult} onFilterChange={setFilterResult}
                             sortBy={sortBy} onSortChange={setSortBy}
@@ -1139,6 +1150,7 @@ export default function Home() {
                             dateTo={dateTo} onDateToChange={setDateTo}
                             minScore={minScore} onMinScoreChange={setMinScore}
                           />
+                          </Suspense>
                         </div>
 
                         {(activeGrade || activeResult) && (
@@ -1161,17 +1173,21 @@ export default function Home() {
                         )}
 
                         <div className="mb-6">
-                          <DataVisualizations
-                            restaurants={results}
-                            activeGrade={activeGrade}
-                            activeResult={activeResult}
-                            onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
-                            onResultClick={(r) => setActiveResult(prev => prev === r ? null : r)}
-                          />
+                          <Suspense fallback={null}>
+                            <DataVisualizations
+                              restaurants={results}
+                              activeGrade={activeGrade}
+                              activeResult={activeResult}
+                              onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
+                              onResultClick={(r) => setActiveResult(prev => prev === r ? null : r)}
+                            />
+                          </Suspense>
                         </div>
 
                         {viewMode === "map" ? (
-                          <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} />
+                          <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
+                            <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} />
+                          </Suspense>
                         ) : (
                           <div className="space-y-3">
                             {filteredAndSortedResults.map((r) => (
@@ -1209,7 +1225,7 @@ export default function Home() {
                   </div>
                   <div className="lg:col-span-1">
                     <div className="sticky top-6">
-                      <ScoreLegend />
+                      <Suspense fallback={null}><ScoreLegend /></Suspense>
                     </div>
                   </div>
                 </div>
@@ -1246,20 +1262,24 @@ export default function Home() {
       )}
 
       {showScanner && (
-        <CameraScanner
-          onResult={(query) => { handleSearch(query); }}
-          onClose={() => setShowScanner(false)}
-        />
+        <Suspense fallback={null}>
+          <CameraScanner
+            onResult={(query) => { handleSearch(query); }}
+            onClose={() => setShowScanner(false)}
+          />
+        </Suspense>
       )}
 
       <ConsentBanner onAccept={accept} onDecline={decline} />
 
       {showCompare && (
-        <ComparePanel
-          restaurants={compareList}
-          onClose={() => setShowCompare(false)}
-          onViewDetail={(r) => { setShowCompare(false); handleSelectBusiness(r); }}
-        />
+        <Suspense fallback={null}>
+          <ComparePanel
+            restaurants={compareList}
+            onClose={() => setShowCompare(false)}
+            onViewDetail={(r) => { setShowCompare(false); handleSelectBusiness(r); }}
+          />
+        </Suspense>
       )}
     </div>
   );
