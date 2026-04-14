@@ -111,7 +111,15 @@ export default function SmartSearchPanel({
               <button
                 key={city.countyId}
                 type="button"
-                onClick={() => onRegionChange(city)}
+                onClick={() => {
+                  if (isActive) {
+                    // Deselect — reset to global/freeform
+                    onLocationChange("");
+                    onRegionChange({ label: "", region: "global", countyId: "global" });
+                  } else {
+                    onRegionChange(city);
+                  }
+                }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
                   isActive
                     ? "bg-[#4CAF50] text-white border-[#4CAF50]"
@@ -119,13 +127,24 @@ export default function SmartSearchPanel({
                 }`}
               >
                 {city.emoji} {city.label}
-                {isActive && <span className="text-[9px] bg-white/25 px-1 py-0.5 rounded-full">✓</span>}
+                {isActive && <X className="w-3 h-3 ml-0.5 opacity-80" />}
               </button>
             );
           })}
-          <span className="flex items-center px-3 py-1.5 rounded-full text-xs text-slate-500 border border-white/10 min-h-[36px]">
-            🌍 Or type any city
-          </span>
+          <button
+            type="button"
+            onClick={() => {
+              onLocationChange("");
+              onRegionChange({ label: "", region: "global", countyId: "global" });
+            }}
+            className={`flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
+              activeRegion === "global"
+                ? "bg-[#4CAF50] text-white border-[#4CAF50]"
+                : "text-slate-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
+            }`}
+          >
+            🌍 Any city / country
+          </button>
         </div>
       </div>
 
