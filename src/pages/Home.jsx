@@ -7,23 +7,10 @@ import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
 import { getGrade } from "../utils/grading";
 import {
-  processKingCountyResults,
-  processNYCResults,
-  processChicagoResults,
-  processMontgomeryResults,
-  processAustinResults,
-  processSFResults,
-  processLAResults,
-  nycToDetailRows,
-  chicagoToDetailRows,
-  montgomeryToDetailRows,
-  austinToDetailRows,
-  sfToDetailRows,
-  laToDetailRows,
   llmToDetailRows,
-  buildLLMRestaurant,
   geocodeAddress,
 } from "../utils/inspectionProcessors";
+import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
 import SearchBar, { parseLocationQuery } from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
 import SmartSearchPanel from "../components/SmartSearchPanel";
@@ -42,46 +29,7 @@ const ComparePanel       = React.lazy(() => import("../components/ComparePanel")
 export { getGrade };
 export { getGradeColor } from "../utils/grading";
 
-const KING_API       = "https://data.kingcounty.gov/resource/f29f-zza5.json";
-const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
-const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
-const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
-const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
-const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
-const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
-const LLM_PROMPT = (query, countyName, regionAbbr, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${countyName}${regionAbbr && regionAbbr !== countyName ? ', ' + regionAbbr : ''}.
-
-CRITICAL RULES:
-- If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations (exact name matches only).
-- If "${query}" is a cuisine/food type, return up to 8 real restaurants of that type in the area.
-- Every record MUST be a real, verifiable business. No invented addresses. No placeholders.
-- Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
-- latest_score must be a real integer 0–100 from actual inspection history (higher = safer).
-- latest_result: use the actual outcome — Pass, Fail, Satisfactory, Unsatisfactory, Closed, Conditional Pass, etc.
-- violations: list actual violations found, not generic descriptions.
-- If you cannot find real inspection data for a restaurant, omit it entirely rather than guessing.`;
-
-const LLM_PROMPT_CITY = (query, city, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${city}.
-
-CRITICAL RULES:
-- If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations in ${city}.
-- If "${query}" is a cuisine/food type, return up to 8 real restaurants of that type in ${city}.
-- Every record MUST be a real, verifiable business with a real address in ${city}.
-- Use the local health department website, state inspection database, or Yelp health score disclosures as sources.
-- latest_score: real integer 0–100 from actual inspection history.
-- latest_result: actual inspection outcome (Pass, Fail, Satisfactory, Unsatisfactory, Closed, etc.)
-- violations: list actual violations found. Omit any restaurant you cannot verify.`;
-
-const LLM_PROMPT_GLOBAL = (query, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
-
-CRITICAL RULES:
-- If "${query}" looks like a specific restaurant name or chain, return up to 8 real locations of that exact chain.
-- If "${query}" is a cuisine/food type, return up to 8 well-known real restaurants of that cuisine worldwide.
-- Every record MUST be a real, verifiable business. No invented data.
-- Use health department databases, local government inspection sites, or Yelp disclosures as sources.
-- latest_score: real integer 0–100. latest_result: actual inspection outcome.
-- violations: real violations only. Omit any restaurant you cannot verify.`;
 
 // City aliases → { region, countyId } for all supported live API counties
 const CITY_TO_COUNTY = {
@@ -537,30 +485,7 @@ const LIVE_API_CITIES = [
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
 ];
 
-const LLM_SCHEMA = {
-  type: "object",
-  properties: {
-    restaurants: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          address: { type: "string" },
-          city: { type: "string" },
-          zip_code: { type: "string" },
-          phone: { type: "string" },
-          latest_score: { type: "number" },
-          total_violation_points: { type: "number" },
-          latest_date: { type: "string" },
-          latest_result: { type: "string" },
-          total_inspections: { type: "number" },
-          violations: { type: "array", items: { type: "string" } },
-        },
-      },
-    },
-  },
-};
+
 
 export default function Home() {
   const location = useLocation();
@@ -770,44 +695,23 @@ export default function Home() {
     };
 
     try {
-      const clean = (q) => encodeURIComponent(q.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase());
-      const liveCounties = ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"];
+      const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const locationCtx = locationQuery.trim() || currentCounty.name;
 
-      if (!liveCounties.includes(searchCounty)) {
-        // Global AI-powered search for any city, country, or region worldwide
+      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la"].includes(searchCounty)) {
         setIsAISearch(true);
-        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const locationCtx = locationQuery.trim() || currentCounty.name;
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: LLM_PROMPT_CITY(query, locationCtx, today),
-          add_context_from_internet: true,
-          response_json_schema: LLM_SCHEMA,
-          model: "gemini_3_flash",
-        });
-        setAndCache((result?.restaurants || []).map(r => buildLLMRestaurant(r)));
-      } else if (searchCounty === "nyc") {
-        const url = `${NYC_API}?$where=upper(replace(replace(dba,chr(39),''),'-','')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processNYCResults(await safeFetch(url)));
-      } else if (searchCounty === "cook") {
-        const url = `${CHICAGO_API}?$where=upper(replace(dba_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processChicagoResults(await safeFetch(url)));
-      } else if (searchCounty === "montgomery_md") {
-        const url = `${MONTGOMERY_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspectiondate DESC`;
-        setAndCache(processMontgomeryResults(await safeFetch(url)));
-      } else if (searchCounty === "travis") {
-        const url = `${AUSTIN_API}?$where=upper(replace(restaurant_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processAustinResults(await safeFetch(url)));
-      } else if (searchCounty === "sf") {
-        const url = `${SF_API}?$where=upper(replace(business_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processSFResults(await safeFetch(url)));
-      } else if (searchCounty === "la") {
-        const url = `${LA_API}?$where=upper(replace(facility_name,chr(39),'')) like '%25${clean(query)}%25'&$limit=50&$order=activity_date DESC`;
-        setAndCache(processLAResults(await safeFetch(url)));
-      } else {
-        // king (default)
-        const url = `${KING_API}?$where=upper(replace(name,chr(39),'')) like '%25${clean(query)}%25' OR upper(replace(name,'-','')) like '%25${clean(query)}%25' OR upper(address) like '%25${clean(query)}%25'&$limit=50&$order=inspection_date DESC`;
-        setAndCache(processKingCountyResults(await safeFetch(url)));
       }
+
+      const { results: fetchedResults, isAI } = await engineSearch({
+        query,
+        countyId: searchCounty,
+        locationLabel: locationCtx,
+        today,
+        signal,
+      });
+
+      setIsAISearch(isAI);
+      setAndCache(fetchedResults);
     } catch (e) {
       if (e.name === "AbortError") return;
       clearInterval(loadingTimerRef.current);
@@ -844,30 +748,8 @@ export default function Home() {
       }
     };
 
-    if (biz.source === "nyc") {
-      const data = await fetch(`${NYC_API}?camis=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
-      cacheAndSet(nycToDetailRows(Array.isArray(data) ? data : []));
-    } else if (biz.source === "chicago") {
-      const data = await fetch(`${CHICAGO_API}?license_=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
-      cacheAndSet(chicagoToDetailRows(Array.isArray(data) ? data : []));
-    } else if (biz.source === "montgomery") {
-      const data = await fetch(`${MONTGOMERY_API}?establishment_id=${biz.business_id}&$limit=500&$order=inspectiondate DESC`).then((r) => r.json());
-      cacheAndSet(montgomeryToDetailRows(Array.isArray(data) ? data : []));
-    } else if (biz.source === "austin") {
-      const data = await fetch(`${AUSTIN_API}?facility_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
-      cacheAndSet(austinToDetailRows(Array.isArray(data) ? data : []));
-    } else if (biz.source === "sf") {
-      const data = await fetch(`${SF_API}?business_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
-      cacheAndSet(sfToDetailRows(Array.isArray(data) ? data : []));
-    } else if (biz.source === "la") {
-      const data = await fetch(`${LA_API}?facility_id=${biz.business_id}&$limit=500&$order=activity_date DESC`).then((r) => r.json());
-      cacheAndSet(laToDetailRows(Array.isArray(data) ? data : []));
-    } else if (!biz.isLLMData) {
-      const data = await fetch(`${KING_API}?business_id=${biz.business_id}&$limit=500&$order=inspection_date DESC`).then((r) => r.json());
-      cacheAndSet(Array.isArray(data) ? data : []);
-    } else {
-      cacheAndSet(llmToDetailRows(biz));
-    }
+    const rows = await engineFetchDetail(biz);
+    cacheAndSet(rows);
 
     setIsDetailLoading(false);
   }, []);
