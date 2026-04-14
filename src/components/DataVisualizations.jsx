@@ -40,7 +40,21 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
 
   // ESRI diverging color ramp (green→yellow→red) matching the map heatmap
   const BAR_COLORS = ["#1a9641", "#a6d96a", "#ffffbf", "#fdae61", "#d7191c"];
-  const RESULT_COLORS = ["#1a9641", "#a6d96a", "#fdae61", "#d7191c", "#2c7bb6", "#abd9e9", "#94a3b8"];
+
+  // Semantic color map — color by meaning, not position
+  // Unknown/no data = neutral gray (never green, which implies safe)
+  const getResultColor = (name) => {
+    const n = (name || "").toLowerCase();
+    if (n === "unknown" || n === "no data" || n === "not available") return "#94a3b8"; // gray
+    if (n.includes("satisfactory") && !n.includes("not") && !n.includes("un")) return "#1a9641"; // deep green = safe
+    if (n.includes("pass") || n.includes("compliant") || n.includes("approved") || n.includes("grade a") || n.includes("excellent")) return "#1a9641";
+    if (n.includes("conditional") || n.includes("marginal") || n.includes("needs improvement") || n.includes("reinspection")) return "#fdae61"; // orange = caution
+    if (n.includes("fail") || n.includes("unsatisfactory") || n.includes("closed") || n.includes("violation") || n.includes("critical") || n.includes("red")) return "#d7191c"; // red = danger
+    if (n.includes("pending") || n.includes("scheduled") || n.includes("in progress") || n.includes("deferred")) return "#a78bfa"; // purple = pending
+    // Fallback spectrum for other named categories
+    const fallback = ["#2c7bb6", "#abd9e9", "#ffffbf", "#64748b", "#f59e0b"];
+    return fallback[0];
+  };
 
   return (
     <div className="space-y-4">
@@ -123,7 +137,7 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
                    label={false} labelLine={false} cursor="pointer"
                    onClick={(entry) => onResultClick?.(activeResult === entry?.name ? null : entry?.name)}>
                     {stats.resultsData.map((entry, i) => (
-                      <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} opacity={activeResult && activeResult !== entry.name ? 0.35 : 1} />
+                      <Cell key={i} fill={getResultColor(entry.name)} opacity={activeResult && activeResult !== entry.name ? 0.35 : 1} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }} formatter={(value, name) => [value, name]} />
@@ -134,13 +148,33 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
               {stats.resultsData.map((entry, i) => (
                 <button key={i} onClick={() => onResultClick?.(activeResult === entry.name ? null : entry.name)}
                   className={`flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition-all hover:bg-slate-100 min-h-[36px] ${activeResult === entry.name ? "ring-1 ring-slate-400 bg-slate-50" : ""}`}>
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: RESULT_COLORS[i % RESULT_COLORS.length] }} />
-                  <span className="text-[11px] text-slate-600 font-medium truncate" title={entry.name}>{entry.name}</span>
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: getResultColor(entry.name) }} />
+                  <span className="text-[11px] font-medium truncate"
+                    style={{ color: getResultColor(entry.name) === "#94a3b8" ? "#94a3b8" : "#475569" }}
+                    title={entry.name === "Unknown" ? "No official result recorded — data may be missing or pending" : entry.name}>
+                    {entry.name}
+                    {(entry.name === "Unknown" || entry.name === "No Data") && <span className="ml-1 text-[9px] text-slate-400 font-normal">(?)</span>}
+                  </span>
                   <span className="text-[11px] text-slate-400 ml-auto pl-1 flex-shrink-0">{entry.value}</span>
                 </button>
               ))}
               {activeResult && <button onClick={() => onResultClick?.(null)} className="text-xs text-blue-600 font-semibold mt-1 hover:underline text-left">Clear</button>}
             </div>
+          </div>
+          {/* Color key — always visible so users never guess */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 pt-3 border-t border-slate-100">
+            {[
+              { color: "#1a9641", label: "Safe / Pass" },
+              { color: "#fdae61", label: "Caution" },
+              { color: "#d7191c", label: "Fail / Closed" },
+              { color: "#a78bfa", label: "Pending" },
+              { color: "#94a3b8", label: "Unknown — no data recorded" },
+            ].map(({ color, label }) => (
+              <span key={label} className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full flex-shrink-0 inline-block" style={{ backgroundColor: color }} />
+                <span className="text-[10px] text-slate-500">{label}</span>
+              </span>
+            ))}
           </div>
           <SuspectList
             restaurants={restaurants}
