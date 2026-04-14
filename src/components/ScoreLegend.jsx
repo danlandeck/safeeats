@@ -1,10 +1,10 @@
 import React from "react";
 
 const levels = [
-  { range: "90-100", color: "bg-slate-900", label: "A — Excellent" },
-  { range: "80-89", color: "bg-slate-700", label: "B — Very Good" },
-  { range: "70-79", color: "bg-slate-500", label: "C — Acceptable" },
-  { range: "60-69", color: "bg-amber-500", label: "D — Below Avg" },
+  { range: "90-100", color: "bg-green-700", label: "A — Excellent" },
+  { range: "80-89", color: "bg-green-400", label: "B — Very Good" },
+  { range: "70-79", color: "bg-orange-300", label: "C — Acceptable" },
+  { range: "60-69", color: "bg-orange-500", label: "D — Below Avg" },
   { range: "0-59", color: "bg-red-600", label: "F — Critical" },
   { range: "No data", color: "bg-slate-300", label: "U — Unknown" },
 ];
