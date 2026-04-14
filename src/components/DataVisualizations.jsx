@@ -88,7 +88,10 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
           <p className="text-xs text-slate-400 mb-3">Tap a bar to see suspects</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={stats.scoreData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-              onClick={(e) => e?.activePayload && onGradeClick?.(e.activePayload[0]?.payload?.name)}>
+              onClick={(e) => {
+                    const g = e?.activePayload?.[0]?.payload?.name;
+                    if (g) onGradeClick?.(activeGrade === g ? null : g);
+                  }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
@@ -117,8 +120,8 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
               <ResponsiveContainer width="100%" height={160}>
                 <PieChart>
                   <Pie data={stats.resultsData} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-                    label={false} labelLine={false} cursor="pointer"
-                    onClick={(entry) => onResultClick?.(entry?.name)}>
+                   label={false} labelLine={false} cursor="pointer"
+                   onClick={(entry) => onResultClick?.(activeResult === entry?.name ? null : entry?.name)}>
                     {stats.resultsData.map((entry, i) => (
                       <Cell key={i} fill={RESULT_COLORS[i % RESULT_COLORS.length]} opacity={activeResult && activeResult !== entry.name ? 0.35 : 1} />
                     ))}
@@ -129,7 +132,7 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
             </div>
             <div className="flex flex-col justify-center gap-1.5 flex-shrink-0 pr-1 max-w-[130px]">
               {stats.resultsData.map((entry, i) => (
-                <button key={i} onClick={() => onResultClick?.(entry.name)}
+                <button key={i} onClick={() => onResultClick?.(activeResult === entry.name ? null : entry.name)}
                   className={`flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition-all hover:bg-slate-100 min-h-[36px] ${activeResult === entry.name ? "ring-1 ring-slate-400 bg-slate-50" : ""}`}>
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: RESULT_COLORS[i % RESULT_COLORS.length] }} />
                   <span className="text-[11px] text-slate-600 font-medium truncate" title={entry.name}>{entry.name}</span>

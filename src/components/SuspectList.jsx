@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { getGrade, getGradeColor } from "../utils/grading";
 
@@ -13,6 +13,9 @@ import { getGrade, getGradeColor } from "../utils/grading";
  */
 export default function SuspectList({ restaurants, filterType, filterValue, onSelectRestaurant }) {
   const [expanded, setExpanded] = useState(false);
+
+  // Reset expansion whenever the filter changes
+  React.useEffect(() => { setExpanded(false); }, [filterValue]);
   const INITIAL_LIMIT = 10;
 
   if (!filterValue || !restaurants?.length) return null;

@@ -1070,8 +1070,9 @@ export default function Home() {
                               restaurants={results}
                               activeGrade={activeGrade}
                               activeResult={activeResult}
-                              onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
-                              onResultClick={(r) => setActiveResult(prev => prev === r ? null : r)}
+                              onGradeClick={(g) => setActiveGrade(g)}
+
+                              onResultClick={(r) => setActiveResult(r)}
                               onSelectRestaurant={handleSelectBusiness}
                             />
                           </Suspense>
