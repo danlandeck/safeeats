@@ -797,20 +797,22 @@ export default function Home() {
     });
     if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
     if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
-    if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore >= minScore);
+    if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore >= minScore);
     if (activeGrade) {
       const gradeRanges = { "A (90-100)": [90,100], "B (80-89)": [80,89], "C (70-79)": [70,79], "D (60-69)": [60,69], "F (<60)": [0,59] };
       const [lo, hi] = gradeRanges[activeGrade] || [0, 100];
-      filtered = filtered.filter((r) => r.safetyScore >= lo && r.safetyScore <= hi);
+      filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore >= lo && r.safetyScore <= hi);
     }
     if (activeResult) filtered = filtered.filter((r) => (r.latestResult || "").toLowerCase() === activeResult.toLowerCase());
+    // null scores sort to the bottom regardless of sort direction
+    const scoreOf = (r) => r.safetyScore !== null && r.safetyScore !== undefined ? r.safetyScore : -1;
     switch (sortBy) {
-      case "score-high":   filtered.sort((a, b) => b.safetyScore - a.safetyScore || b.totalInspections - a.totalInspections); break;
-      case "score-low":    filtered.sort((a, b) => a.safetyScore - b.safetyScore || b.totalInspections - a.totalInspections); break;
-      case "inspections":  filtered.sort((a, b) => b.totalInspections - a.totalInspections || b.safetyScore - a.safetyScore); break;
+      case "score-high":   filtered.sort((a, b) => scoreOf(b) - scoreOf(a) || b.totalInspections - a.totalInspections); break;
+      case "score-low":    filtered.sort((a, b) => scoreOf(a) - scoreOf(b) || b.totalInspections - a.totalInspections); break;
+      case "inspections":  filtered.sort((a, b) => b.totalInspections - a.totalInspections || scoreOf(b) - scoreOf(a)); break;
       case "date-recent":  filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate)); break;
       case "date-oldest":  filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate)); break;
-      default:             filtered.sort((a, b) => b.safetyScore - a.safetyScore);
+      default:             filtered.sort((a, b) => scoreOf(b) - scoreOf(a));
     }
     if (nearMeActive && userCoords) {
       filtered = filtered.filter((r) => {
