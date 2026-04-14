@@ -14,19 +14,24 @@ export default function DataVisualizations({ restaurants, activeGrade, activeRes
     const resultsCount = {};
     let totalScore = 0;
 
+    let scoredCount = 0;
     restaurants.forEach((r) => {
-      const score = r.safetyScore || 0;
-      totalScore += score;
-      if (score >= 90) scoreRanges["A (90-100)"]++;
-      else if (score >= 80) scoreRanges["B (80-89)"]++;
-      else if (score >= 70) scoreRanges["C (70-79)"]++;
-      else if (score >= 60) scoreRanges["D (60-69)"]++;
-      else scoreRanges["F (<60)"]++;
+      const score = r.safetyScore;
+      const hasScore = score !== null && score !== undefined;
+      if (hasScore) {
+        totalScore += score;
+        scoredCount++;
+        if (score >= 90) scoreRanges["A (90-100)"]++;
+        else if (score >= 80) scoreRanges["B (80-89)"]++;
+        else if (score >= 70) scoreRanges["C (70-79)"]++;
+        else if (score >= 60) scoreRanges["D (60-69)"]++;
+        else scoreRanges["F (<60)"]++;
+      }
       const result = r.latestResult || "Unknown";
       resultsCount[result] = (resultsCount[result] || 0) + 1;
     });
 
-    const avgScore = Math.round(totalScore / restaurants.length);
+    const avgScore = scoredCount > 0 ? Math.round(totalScore / scoredCount) : "N/A";
     const scoreData = Object.entries(scoreRanges).map(([name, value]) => ({ name, count: value }));
     const resultsData = Object.entries(resultsCount)
       .map(([name, value]) => ({ name, value }))

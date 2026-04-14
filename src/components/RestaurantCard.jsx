@@ -8,7 +8,7 @@ import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult } = restaurant;
-  const grade = restaurant.grade || getGrade(safetyScore);
+  const grade = safetyScore === null || safetyScore === undefined ? "?" : (restaurant.grade || getGrade(safetyScore));
 
   return (
     <Card
