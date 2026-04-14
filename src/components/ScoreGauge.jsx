@@ -25,10 +25,8 @@ function getLabel(score) {
 
 export default function ScoreGauge({ score, size = "md" }) {
   const isUnknown = score === null || score === undefined;
-  const colors = isUnknown
-    ? { bg: "bg-slate-300", text: "text-slate-400", ring: "ring-slate-200", hex: "#94a3b8" }
-    : getScoreColor(score);
-  const label = isUnknown ? "No Data" : getLabel(score);
+  const colors = isUnknown ? { hex: "#94a3b8", text: "text-slate-400" } : getScoreColor(score);
+  const label = isUnknown ? "No Inspection" : getLabel(score);
 
   const sizes = {
     sm: { outer: "w-16 h-16", text: "text-lg", label: "text-[9px]" },
@@ -37,10 +35,8 @@ export default function ScoreGauge({ score, size = "md" }) {
   };
 
   const s = sizes[size] || sizes.md;
-
   const radius = size === "sm" ? 28 : size === "lg" ? 56 : 42;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = isUnknown ? circumference : circumference - (score / 100) * circumference;
   const svgSize = size === "sm" ? 64 : size === "lg" ? 128 : 96;
   const strokeWidth = size === "sm" ? 4 : size === "lg" ? 6 : 5;
 
@@ -48,17 +44,20 @@ export default function ScoreGauge({ score, size = "md" }) {
     <div className="flex flex-col items-center gap-1">
       <div className={`relative ${s.outer} flex items-center justify-center`}>
         <svg className="absolute inset-0 -rotate-90" width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-          <circle cx={svgSize / 2} cy={svgSize / 2} r={radius} fill="none" stroke="#f1f5f9" strokeWidth={strokeWidth} />
-          <circle
-            cx={svgSize / 2} cy={svgSize / 2} r={radius} fill="none"
-            stroke={isUnknown ? "#cbd5e1" : colors.hex}
-            strokeWidth={strokeWidth} strokeLinecap="round"
-            strokeDasharray={isUnknown ? `${circumference * 0.25} ${circumference * 0.75}` : circumference}
-            strokeDashoffset={strokeDashoffset}
-            style={{ transition: "stroke-dashoffset 0.8s ease-out" }}
-          />
+          <circle cx={svgSize / 2} cy={svgSize / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={strokeWidth} />
+          {!isUnknown && (
+            <circle
+              cx={svgSize / 2} cy={svgSize / 2} r={radius} fill="none"
+              stroke={colors.hex} strokeWidth={strokeWidth} strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={circumference - (score / 100) * circumference}
+              style={{ transition: "stroke-dashoffset 0.8s ease-out" }}
+            />
+          )}
         </svg>
-        <span className={`${s.text} font-bold z-10 text-slate-400`}>{isUnknown ? "?" : score}</span>
+        <span className={`${s.text} font-bold z-10 ${isUnknown ? "text-slate-400" : colors.text}`}>
+          {isUnknown ? "U" : score}
+        </span>
       </div>
       <span className={`${s.label} font-semibold uppercase tracking-wider ${colors.text}`}>{label}</span>
     </div>
