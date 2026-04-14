@@ -30,15 +30,14 @@ export function processKingCountyResults(data) {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
     const hasResult = latest?.result && latest.result.trim() !== "";
-    const hasScore = latest?.score !== undefined && latest?.score !== null && latest?.score > 0;
-    // Only compute a real score if there's actual inspection data; otherwise mark unknown
-    const safetyScore = (hasResult || hasScore)
-      ? Math.max(0, Math.min(100, 100 - (latest?.score || 0)))
+    const hasScore = latest?.score !== undefined && latest?.score !== null;
+    const safetyScore = (hasResult || hasScore) && latest
+      ? Math.max(0, Math.min(100, 100 - (latest.score || 0)))
       : null;
-    const latestResult = hasResult ? latest.result : (latest ? "No Result Recorded" : "Unknown");
+    const latestResult = hasResult ? latest.result : "Unknown";
     const rowWithCoords = biz.allRows.find((r) => r.latitude && r.longitude);
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "?",
+      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.latitude, longitude: rowWithCoords?.longitude,
@@ -82,14 +81,14 @@ export function processNYCResults(data) {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
     const hasResult = latest?.result && latest.result.trim() !== "";
-    const hasScore = latest?.score !== undefined && latest?.score !== null && latest?.score > 0;
-    const safetyScore = (hasResult || hasScore)
-      ? Math.max(0, Math.min(100, 100 - (latest?.score || 0)))
+    const hasScore = latest?.score !== undefined && latest?.score !== null;
+    const safetyScore = (hasResult || hasScore) && latest
+      ? Math.max(0, Math.min(100, 100 - (latest.score || 0)))
       : null;
-    const latestResult = hasResult ? latest.result : (latest ? "No Result Recorded" : "Unknown");
+    const latestResult = hasResult ? latest.result : "Unknown";
     const rowWithCoords = biz.allRows.find((r) => r.latitude && r.longitude);
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "?",
+      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.latitude, longitude: rowWithCoords?.longitude,

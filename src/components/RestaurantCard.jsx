@@ -8,7 +8,8 @@ import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult } = restaurant;
-  const grade = safetyScore === null || safetyScore === undefined ? "U" : (restaurant.grade || getGrade(safetyScore));
+  const isUnknown = safetyScore === null || safetyScore === undefined;
+  const grade = isUnknown ? "U" : (restaurant.grade || getGrade(safetyScore));
 
   return (
     <Card
@@ -20,7 +21,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
       <div className="flex items-center gap-5 p-5">
         <div className="flex flex-col items-center gap-1">
           <ScoreGauge score={safetyScore} size="sm" />
-          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${getGradeColor(grade)}`}>{grade}</span>
+          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${isUnknown ? "bg-slate-100 text-slate-400" : getGradeColor(grade)}`}>{grade}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
