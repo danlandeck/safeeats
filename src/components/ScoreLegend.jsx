@@ -6,6 +6,7 @@ const levels = [
   { range: "70-79", color: "bg-slate-500", label: "C — Acceptable" },
   { range: "60-69", color: "bg-amber-500", label: "D — Below Avg" },
   { range: "0-59", color: "bg-red-600", label: "F — Critical" },
+  { range: "No data", color: "bg-slate-300", label: "U — Unknown" },
 ];
 
 export default function ScoreLegend() {
