@@ -23,7 +23,7 @@ const RestaurantDetail   = React.lazy(() => import("../components/RestaurantDeta
 const MapView            = React.lazy(() => import("../components/MapView"));
 const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
 const FilterSortControls = React.lazy(() => import("../components/FilterSortControls"));
-const DataVisualizations = React.lazy(() => import("../components/DataVisualizations"));
+
 const ComparePanel       = React.lazy(() => import("../components/ComparePanel"));
 
 export { getGrade };
@@ -510,8 +510,7 @@ export default function Home() {
   const [dateFrom, setDateFrom]               = useState("");
   const [dateTo, setDateTo]                   = useState("");
   const [minScore, setMinScore]               = useState(0);
-  const [activeGrade, setActiveGrade]         = useState(null);
-  const [activeResult, setActiveResult]       = useState(null);
+
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
   const [showCompare, setShowCompare]         = useState(false);
@@ -601,8 +600,6 @@ export default function Home() {
     setViewMode("list");
     setCompareList([]);
     setShowCompare(false);
-    setActiveGrade(null);
-    setActiveResult(null);
     setFilterResult("all");
     setMinScore(0);
     setDateFrom("");
@@ -669,8 +666,6 @@ export default function Home() {
     setSearchQuery(rawQuery);
     setSelectedBusiness(null);
     setViewMode("list");
-    setActiveGrade(null);
-    setActiveResult(null);
     setSearchError("");
 
     const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
@@ -798,12 +793,6 @@ export default function Home() {
     if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
     if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
     if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore >= minScore);
-    if (activeGrade) {
-      const gradeRanges = { "A (90-100)": [90,100], "B (80-89)": [80,89], "C (70-79)": [70,79], "D (60-69)": [60,69], "F (<60)": [0,59] };
-      const [lo, hi] = gradeRanges[activeGrade] || [0, 100];
-      filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore >= lo && r.safetyScore <= hi);
-    }
-    if (activeResult) filtered = filtered.filter((r) => (r.latestResult || "").toLowerCase() === activeResult.toLowerCase());
     // null scores sort to the bottom regardless of sort direction
     const scoreOf = (r) => r.safetyScore !== null && r.safetyScore !== undefined ? r.safetyScore : -1;
     switch (sortBy) {
@@ -821,7 +810,7 @@ export default function Home() {
       });
     }
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore, activeGrade, activeResult]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -1047,38 +1036,6 @@ export default function Home() {
                           </Suspense>
                         </div>
 
-                        {(activeGrade || activeResult) && (
-                          <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-                            <span className="text-xs font-semibold text-blue-700">Filtered by:</span>
-                            {activeGrade && (
-                              <span className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-lg">
-                                {activeGrade}
-                                <button onClick={() => setActiveGrade(null)} className="ml-1 hover:text-blue-600"><X className="w-3 h-3" /></button>
-                              </span>
-                            )}
-                            {activeResult && (
-                              <span className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-lg">
-                                {activeResult}
-                                <button onClick={() => setActiveResult(null)} className="ml-1 hover:text-blue-600"><X className="w-3 h-3" /></button>
-                              </span>
-                            )}
-                            <button onClick={() => { setActiveGrade(null); setActiveResult(null); }} className="ml-auto text-xs text-blue-600 font-semibold hover:underline">Clear all</button>
-                          </div>
-                        )}
-
-                        <div className="mb-6">
-                          <Suspense fallback={null}>
-                            <DataVisualizations
-                              restaurants={results}
-                              activeGrade={activeGrade}
-                              activeResult={activeResult}
-                              onGradeClick={(g) => setActiveGrade(g)}
-
-                              onResultClick={(r) => setActiveResult(r)}
-                              onSelectRestaurant={handleSelectBusiness}
-                            />
-                          </Suspense>
-                        </div>
 
                         {viewMode === "map" ? (
                           <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
