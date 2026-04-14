@@ -70,7 +70,7 @@ Submitted from SafeEats App
               We'd Love to Hear From You
             </h1>
             <p className="mt-4 text-lg text-slate-600 max-w-xl mx-auto">
-              Your feedback helps us improve SafeEats for everyone in the Seattle Metro area.
+              Your feedback helps us improve SafeEats for food safety seekers everywhere in the world.
             </p>
           </div>
 

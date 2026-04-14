@@ -1,12 +1,13 @@
 import React from "react";
 
+// Esri diverging ramp: deep green → light green → yellow → orange → red
 const levels = [
-  { range: "90-100", color: "bg-green-700", label: "A — Excellent" },
-  { range: "80-89", color: "bg-green-400", label: "B — Very Good" },
-  { range: "70-79", color: "bg-orange-300", label: "C — Acceptable" },
-  { range: "60-69", color: "bg-orange-500", label: "D — Below Avg" },
-  { range: "0-59", color: "bg-red-600", label: "F — Critical" },
-  { range: "No data", color: "bg-slate-300", label: "U — Unknown" },
+  { range: "90-100", color: "bg-green-700",  textColor: "text-white",     label: "A — Excellent" },
+  { range: "80-89",  color: "bg-green-400",  textColor: "text-white",     label: "B — Very Good" },
+  { range: "70-79",  color: "bg-yellow-400", textColor: "text-slate-800", label: "C — Acceptable" },
+  { range: "60-69",  color: "bg-orange-400", textColor: "text-white",     label: "D — Below Avg" },
+  { range: "0-59",   color: "bg-red-600",    textColor: "text-white",     label: "F — Critical" },
+  { range: "No data",color: "bg-slate-300",  textColor: "text-slate-700", label: "U — Unknown" },
 ];
 
 export default function ScoreLegend() {
@@ -19,7 +20,7 @@ export default function ScoreLegend() {
         {levels.map((level) => (
           <div key={level.range} className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${level.color}`}>
-              <span className="text-white font-extrabold text-xs">{level.label.split(" ")[0]}</span>
+              <span className={`font-extrabold text-xs ${level.textColor}`}>{level.label.split(" ")[0]}</span>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-800">{level.label}</p>

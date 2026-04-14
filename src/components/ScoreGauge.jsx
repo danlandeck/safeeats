@@ -1,17 +1,12 @@
 import React from "react";
 
+// Esri diverging health-risk color ramp: deep green → yellow-green → yellow → orange → red
 function getScoreColor(score) {
-  // score is 0-100 where 100 = best (green), 0 = worst (red)
-  if (score >= 90) return { bg: "bg-green-600", text: "text-green-700", ring: "ring-green-200", hex: "#16a34a" };
-  if (score >= 80) return { bg: "bg-green-500", text: "text-green-700", ring: "ring-green-200", hex: "#22c55e" };
-  if (score >= 70) return { bg: "bg-lime-500", text: "text-lime-700", ring: "ring-lime-200", hex: "#84cc16" };
-  if (score >= 60) return { bg: "bg-yellow-500", text: "text-yellow-700", ring: "ring-yellow-200", hex: "#eab308" };
-  if (score >= 50) return { bg: "bg-amber-500", text: "text-amber-700", ring: "ring-amber-200", hex: "#f59e0b" };
-  if (score >= 40) return { bg: "bg-orange-500", text: "text-orange-700", ring: "ring-orange-200", hex: "#f97316" };
-  if (score >= 30) return { bg: "bg-orange-600", text: "text-orange-800", ring: "ring-orange-200", hex: "#ea580c" };
-  if (score >= 20) return { bg: "bg-red-500", text: "text-red-700", ring: "ring-red-200", hex: "#ef4444" };
-  if (score >= 10) return { bg: "bg-red-600", text: "text-red-800", ring: "ring-red-200", hex: "#dc2626" };
-  return { bg: "bg-red-700", text: "text-red-900", ring: "ring-red-300", hex: "#b91c1c" };
+  if (score >= 90) return { bg: "bg-green-700",  text: "text-green-800",  ring: "ring-green-200",  hex: "#1a9641" };
+  if (score >= 80) return { bg: "bg-green-500",  text: "text-green-700",  ring: "ring-green-200",  hex: "#a6d96a" };
+  if (score >= 70) return { bg: "bg-yellow-400", text: "text-yellow-700", ring: "ring-yellow-200", hex: "#ffffbf" };
+  if (score >= 60) return { bg: "bg-orange-400", text: "text-orange-700", ring: "ring-orange-200", hex: "#fdae61" };
+  return              { bg: "bg-red-600",    text: "text-red-700",    ring: "ring-red-200",    hex: "#d7191c" };
 }
 
 function getLabel(score) {

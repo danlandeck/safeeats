@@ -191,15 +191,15 @@ export default function About() {
             <h2 className="text-2xl font-extrabold text-slate-900 mb-5">The Grading System</h2>
             <div className="grid grid-cols-5 gap-2 mb-6">
               {[
-                { grade: "A", range: "90–100", color: "bg-green-600" },
-                { grade: "B", range: "80–89",  color: "bg-lime-500" },
-                { grade: "C", range: "70–79",  color: "bg-yellow-400" },
-                { grade: "D", range: "60–69",  color: "bg-orange-500" },
-                { grade: "F", range: "< 60",   color: "bg-red-600" },
-              ].map(({ grade, range, color }) => (
-                <div key={grade} className={`${color} rounded-2xl p-3 text-center text-white shadow-sm`}>
-                  <div className="text-2xl font-extrabold">{grade}</div>
-                  <div className="text-xs font-semibold opacity-90 mt-0.5">{range}</div>
+                { grade: "A", range: "90–100", color: "bg-green-700",  text: "text-white" },
+                { grade: "B", range: "80–89",  color: "bg-green-400",  text: "text-white" },
+                { grade: "C", range: "70–79",  color: "bg-yellow-400", text: "text-slate-800" },
+                { grade: "D", range: "60–69",  color: "bg-orange-400", text: "text-white" },
+                { grade: "F", range: "< 60",   color: "bg-red-600",    text: "text-white" },
+              ].map(({ grade, range, color, text }) => (
+                <div key={grade} className={`${color} rounded-2xl p-3 text-center shadow-sm`}>
+                  <div className={`text-2xl font-extrabold ${text}`}>{grade}</div>
+                  <div className={`text-xs font-semibold opacity-90 mt-0.5 ${text}`}>{range}</div>
                 </div>
               ))}
             </div>
@@ -243,7 +243,7 @@ export default function About() {
               <div className="flex-1">
                 <p className="text-xs font-extrabold text-[#4CAF50] uppercase tracking-widest mb-1">About the Creator</p>
                 <p className="text-2xl font-extrabold text-slate-900">Daniel Landeck</p>
-                <p className="text-slate-500 text-sm mt-0.5 mb-4">Seattle Metro Area · University of Washington Graduate</p>
+                <p className="text-slate-500 text-sm mt-0.5 mb-4">Global Citizen · University of Washington Graduate</p>
 
                 <div className="flex flex-wrap gap-2 mb-5">
                   {[
