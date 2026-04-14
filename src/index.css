@@ -88,4 +88,17 @@
     @apply bg-background text-foreground;
     font-family: 'Montserrat', sans-serif;
   }
+
+  /* No text cursor on interactive elements */
+  button, [role="button"], a, label, select,
+  [role="tab"], [role="option"], [role="menuitem"] {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS text selection flash on tap */
+  button:focus, [role="button"]:focus {
+    outline: none;
+  }
 }

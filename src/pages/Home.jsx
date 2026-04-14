@@ -1190,6 +1190,7 @@ export default function Home() {
                               activeResult={activeResult}
                               onGradeClick={(g) => setActiveGrade(prev => prev === g ? null : g)}
                               onResultClick={(r) => setActiveResult(prev => prev === r ? null : r)}
+                              onSelectRestaurant={handleSelectBusiness}
                             />
                           </Suspense>
                         </div>

@@ -3,9 +3,10 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Cell, Legend,
+  ResponsiveContainer, BarChart, Bar, Cell,
 } from "recharts";
 import { Bug, Thermometer, Sparkles, LayoutDashboard, ArrowUpDown } from "lucide-react";
+import SuspectList from "../components/SuspectList";
 
 // ── City centres + live API config ──────────────────────────────────────────
 const CITIES = [
@@ -60,6 +61,8 @@ export default function Dashboard() {
   const [sortCol, setSortCol]     = useState("score");
   const [sortDir, setSortDir]     = useState("asc");
   const [cityScores, setCityScores] = useState({});
+  const [activeGrade, setActiveGrade] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
 
   // ── Fetch King County as primary dataset ─────────────────────────────────
   useEffect(() => {
@@ -105,13 +108,10 @@ export default function Dashboard() {
 
         setRows(processed);
 
-        // City-level scores for map bubbles
+        // City-level scores for map bubbles — use real avg for king, omit others (no fake data)
+        const kingAvg = Math.round(processed.reduce((s, r) => s + r.score, 0) / (processed.length || 1));
         const scores = {};
-        CITIES.forEach(c => {
-          scores[c.id] = c.id === "king"
-            ? Math.round(processed.reduce((s, r) => s + r.score, 0) / (processed.length || 1))
-            : 70 + Math.floor(Math.random() * 20); // placeholder for other cities
-        });
+        CITIES.forEach(c => { scores[c.id] = c.id === "king" ? kingAvg : null; });
         setCityScores(scores);
       } catch (e) {
         console.error(e);
@@ -139,10 +139,12 @@ export default function Dashboard() {
   }, [rows, showBadOnly, tab, sortCol, sortDir]);
 
   const gradeDist = useMemo(() => {
+    // Always compute from full rows for overview accuracy
+    const source = tab === "overview" ? rows : filtered;
     const counts = { A:0, B:0, C:0, D:0, F:0 };
-    filtered.forEach(r => counts[r.grade]++);
+    source.forEach(r => counts[r.grade]++);
     return Object.entries(counts).map(([grade, count]) => ({ grade, count }));
-  }, [filtered]);
+  }, [rows, filtered, tab]);
 
   // Trend: last 12 months average scores from raw inspections
   const trendData = useMemo(() => {
@@ -260,7 +262,8 @@ export default function Dashboard() {
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
                   />
                   {CITIES.map(city => {
-                    const score = cityScores[city.id] || 75;
+                    const score = cityScores[city.id];
+                    if (!score) return null;
                     const color = score >= 90 ? "#1a9641" : score >= 80 ? "#a6d96a" : score >= 70 ? "#fdae61" : "#d7191c";
                     return (
                       <CircleMarker
@@ -276,7 +279,7 @@ export default function Dashboard() {
                           <div className="text-center p-1">
                             <p className="font-extrabold text-slate-900">{city.label}</p>
                             <p className="text-2xl font-extrabold mt-1" style={{ color }}>{score}</p>
-                            <p className="text-xs text-slate-500">Avg Safety Score</p>
+                            <p className="text-xs text-slate-500">Avg Safety Score (live data)</p>
                           </div>
                         </Popup>
                       </CircleMarker>
@@ -304,35 +307,92 @@ export default function Dashboard() {
 
               {/* Grade distribution */}
               <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <h2 className="font-extrabold text-slate-900 text-base mb-4">Grade Distribution</h2>
+                <h2 className="font-extrabold text-slate-900 text-base mb-1">Grade Distribution</h2>
+                <p className="text-xs text-slate-400 mb-3">Tap a bar to see suspects</p>
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={gradeDist}>
+                  <BarChart data={gradeDist} onClick={(e) => {
+                    const g = e?.activePayload?.[0]?.payload?.grade;
+                    if (g) setActiveGrade(prev => prev === g ? null : g);
+                  }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="grade" tick={{ fontSize:13, fontWeight:700, fill:"#334155" }} />
                     <YAxis tick={{ fontSize:11, fill:"#64748b" }} />
                     <Tooltip contentStyle={{ borderRadius:8, fontSize:12 }} />
-                    <Bar dataKey="count" radius={[6,6,0,0]} name="Establishments">
+                    <Bar dataKey="count" radius={[6,6,0,0]} name="Establishments" cursor="pointer">
                       {gradeDist.map(({ grade }) => (
-                        <Cell key={grade} fill={getGradeColor(grade)} />
+                        <Cell key={grade} fill={getGradeColor(grade)} opacity={activeGrade && activeGrade !== grade ? 0.35 : 1} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                {activeGrade && <button onClick={() => setActiveGrade(null)} className="text-xs text-blue-600 font-semibold mt-1 hover:underline">Clear filter</button>}
+                <SuspectList
+                  restaurants={rows.map(r => ({ ...r, safetyScore: r.score, latestResult: r.result, business_id: r.name + r.address }))}
+                  filterType="grade"
+                  filterValue={activeGrade ? { A: "A (90-100)", B: "B (80-89)", C: "C (70-79)", D: "D (60-69)", F: "F (<60)" }[activeGrade] : null}
+                  onSelectRestaurant={null}
+                />
               </div>
             </div>
 
             {/* Violation category bar */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <h2 className="font-extrabold text-slate-900 text-base mb-4">Violation Categories</h2>
+              <h2 className="font-extrabold text-slate-900 text-base mb-1">Violation Categories</h2>
+              <p className="text-xs text-slate-400 mb-3">Tap a bar to see suspects</p>
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={categoryViolationData} layout="vertical">
+                <BarChart data={categoryViolationData} layout="vertical"
+                  onClick={(e) => {
+                    const cat = e?.activePayload?.[0]?.payload?.cat;
+                    if (cat) setActiveCategory(prev => prev === cat ? null : cat);
+                  }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis type="number" tick={{ fontSize:11, fill:"#64748b" }} />
                   <YAxis type="category" dataKey="cat" tick={{ fontSize:12, fill:"#334155" }} width={130} />
                   <Tooltip contentStyle={{ borderRadius:8, fontSize:12 }} />
-                  <Bar dataKey="count" fill="#2196F3" radius={[0,6,6,0]} name="Violations" />
+                  <Bar dataKey="count" fill="#2196F3" radius={[0,6,6,0]} name="Violations" cursor="pointer">
+                    {categoryViolationData.map(({ cat }) => (
+                      <Cell key={cat} opacity={activeCategory && activeCategory !== cat ? 0.35 : 1} fill="#2196F3" />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              {activeCategory && (
+                <>
+                  <button onClick={() => setActiveCategory(null)} className="text-xs text-blue-600 font-semibold mt-1 hover:underline">Clear filter</button>
+                  <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 overflow-hidden">
+                    <div className="px-4 py-2 bg-blue-100 border-b border-blue-200">
+                      <span className="text-xs font-extrabold uppercase tracking-widest text-blue-700">
+                        Top offenders — {activeCategory}
+                      </span>
+                    </div>
+                    {rows
+                      .filter(r => {
+                        if (activeCategory.includes("Pest")) return r.pestCount > 0;
+                        if (activeCategory.includes("Temp")) return r.tempCount > 0;
+                        return r.cleanCount > 0;
+                      })
+                      .sort((a, b) => {
+                        const getCount = r => activeCategory.includes("Pest") ? r.pestCount : activeCategory.includes("Temp") ? r.tempCount : r.cleanCount;
+                        return getCount(b) - getCount(a);
+                      })
+                      .slice(0, 10)
+                      .map((r, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 last:border-0 bg-white">
+                          <span className="text-xs font-extrabold text-blue-700 flex-shrink-0">
+                            #{activeCategory.includes("Pest") ? r.pestCount : activeCategory.includes("Temp") ? r.tempCount : r.cleanCount}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">{r.name}</p>
+                            <p className="text-xs text-slate-400 truncate">{r.address}</p>
+                          </div>
+                          <span className="text-xs font-extrabold px-2 py-0.5 rounded-md flex-shrink-0"
+                            style={{ background: getGradeColor(r.grade), color: "#fff" }}>{r.grade}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -365,13 +425,45 @@ export default function Dashboard() {
 
         {/* SORTABLE TABLE (all tabs) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-extrabold text-slate-900 text-base">Inspection Scores Table</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{filtered.length} establishments · Click column header to sort</p>
+              <h2 className="font-extrabold text-slate-900 text-base">Inspection Scores</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{filtered.length} establishments · Tap header to sort</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: "score", label: "Score" },
+                { key: "name",  label: "Name" },
+                { key: "date",  label: "Date" },
+              ].map(({ key, label }) => (
+                <button key={key} onClick={() => toggleSort(key)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${sortCol === key ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
+                  {label} <ArrowUpDown className="w-3 h-3 opacity-60" />
+                </button>
+              ))}
             </div>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile cards */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {filtered.map((r, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white font-extrabold text-sm flex-shrink-0"
+                  style={{ background: getGradeColor(r.grade) }}>{r.grade}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{r.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{r.result} · {r.date}</p>
+                </div>
+                <span className="text-sm font-extrabold text-slate-900 flex-shrink-0">{r.score}</span>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-center py-10 text-slate-400 text-sm">No establishments match the current filters.</p>
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm" role="grid" aria-label="Inspection scores table">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
@@ -382,16 +474,11 @@ export default function Dashboard() {
                     { key: "result", label: "Result" },
                     { key: "date",   label: "Last Inspected" },
                   ].map(({ key, label }) => (
-                    <th
-                      key={key}
-                      onClick={() => toggleSort(key)}
-                      scope="col"
+                    <th key={key} onClick={() => toggleSort(key)} scope="col"
                       aria-sort={sortCol === key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
-                      className="text-left px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wide cursor-pointer hover:text-slate-900 select-none whitespace-nowrap"
-                    >
+                      className="text-left px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wide hover:text-slate-900 select-none whitespace-nowrap">
                       <span className="flex items-center gap-1">
-                        {label}
-                        <ArrowUpDown className="w-3 h-3 opacity-50" aria-hidden="true" />
+                        {label} <ArrowUpDown className="w-3 h-3 opacity-50" />
                       </span>
                     </th>
                   ))}
@@ -403,32 +490,22 @@ export default function Dashboard() {
                     <td className="px-4 py-3 font-semibold text-slate-900 max-w-[200px] truncate">{r.name}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-2.5 rounded-full bg-slate-100 overflow-hidden" aria-hidden="true">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${r.score}%`, background: getGradeColor(r.grade) }}
-                          />
+                        <div className="w-20 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${r.score}%`, background: getGradeColor(r.grade) }} />
                         </div>
                         <span className="font-extrabold text-slate-900 text-sm">{r.score}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white font-extrabold text-sm"
-                        style={{ background: getGradeColor(r.grade) }}
-                        aria-label={`Grade ${r.grade}`}
-                      >
-                        {r.grade}
-                      </span>
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white font-extrabold text-sm"
+                        style={{ background: getGradeColor(r.grade) }}>{r.grade}</span>
                     </td>
                     <td className="px-4 py-3 text-slate-600 text-xs max-w-[140px] truncate">{r.result}</td>
                     <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{r.date}</td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center py-12 text-slate-400 text-sm">No establishments match the current filters.</td>
-                  </tr>
+                  <tr><td colSpan={5} className="text-center py-12 text-slate-400 text-sm">No establishments match the current filters.</td></tr>
                 )}
               </tbody>
             </table>
