@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell,
 } from "recharts";
-import { Bug, Thermometer, Sparkles, LayoutDashboard, ArrowUpDown } from "lucide-react";
+import { Bug, Thermometer, Sparkles, LayoutDashboard, ArrowUpDown, LocateFixed, Loader2 } from "lucide-react";
 import SuspectList from "../components/SuspectList";
 
 // ── City centres + live API config ──────────────────────────────────────────
@@ -63,6 +63,8 @@ export default function Dashboard() {
   const [cityScores, setCityScores] = useState({});
   const [activeGrade, setActiveGrade] = useState(null);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [userLocation, setUserLocation] = useState(null); // { lat, lng, label, cityId }
+  const [geoLoading, setGeoLoading] = useState(false);
 
   // ── Fetch King County as primary dataset ─────────────────────────────────
   useEffect(() => {
@@ -119,6 +121,40 @@ export default function Dashboard() {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // ── Silently try to get user location (no prompt if not granted yet) ─────
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.permissions?.query({ name: "geolocation" }).then((result) => {
+      if (result.state === "granted") {
+        setGeoLoading(true);
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          // Reverse-geocode to get city label
+          let label = "Your Location";
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+            const data = await res.json();
+            const a = data.address || {};
+            const city = a.city || a.town || a.village || a.suburb || "";
+            const state = a.state || "";
+            label = `${city}${state ? ", " + state : ""}`;
+          } catch {}
+          // Find nearest known city for the bubble highlight
+          let nearestCityId = null;
+          let minDist = Infinity;
+          CITIES.forEach(c => {
+            const d = Math.sqrt((c.lat - lat) ** 2 + (c.lng - lng) ** 2);
+            if (d < minDist) { minDist = d; nearestCityId = c.id; }
+          });
+          // Only highlight a known city if within ~2° (~140 miles)
+          if (minDist > 2) nearestCityId = null;
+          setUserLocation({ lat, lng, label, cityId: nearestCityId });
+          setGeoLoading(false);
+        }, () => setGeoLoading(false));
+      }
+    }).catch(() => {});
   }, []);
 
   // ── Derived data ─────────────────────────────────────────────────────────
@@ -250,44 +286,99 @@ export default function Dashboard() {
             </div>
 
             {/* Map */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 pt-5 pb-3">
-                <h2 className="font-extrabold text-slate-900 text-base">City Safety Heat Map</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Bubble size = relative risk · Click for score</p>
-              </div>
-              <div style={{ height: 360 }}>
-                <MapContainer center={[39, -98]} zoom={4} style={{ height:"100%", width:"100%" }} scrollWheelZoom={false}>
-                  <TileLayer
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-                  />
-                  {CITIES.map(city => {
-                    const score = cityScores[city.id];
-                    if (!score) return null;
-                    const color = score >= 90 ? "#1a9641" : score >= 80 ? "#a6d96a" : score >= 70 ? "#fdae61" : "#d7191c";
-                    return (
-                      <CircleMarker
-                        key={city.id}
-                        center={[city.lat, city.lng]}
-                        radius={Math.max(12, (100 - score) * 0.7)}
-                        fillColor={color}
-                        color="#fff"
-                        weight={2}
-                        fillOpacity={0.8}
-                      >
-                        <Popup>
-                          <div className="text-center p-1">
-                            <p className="font-extrabold text-slate-900">{city.label}</p>
-                            <p className="text-2xl font-extrabold mt-1" style={{ color }}>{score}</p>
-                            <p className="text-xs text-slate-500">Avg Safety Score (live data)</p>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
-                    );
-                  })}
-                </MapContainer>
-              </div>
-            </div>
+            {(() => {
+              // Determine map center & zoom based on user location or default to Seattle
+              const defaultCity = CITIES.find(c => c.id === "king"); // Seattle default
+              const focusCity = userLocation?.cityId ? CITIES.find(c => c.id === userLocation.cityId) : null;
+              const mapCenter = userLocation
+                ? [userLocation.lat, userLocation.lng]
+                : [defaultCity.lat, defaultCity.lng];
+              const mapZoom = userLocation ? 11 : 11;
+              const locationLabel = userLocation
+                ? userLocation.label || "Your Location"
+                : "Seattle, WA (default)";
+              const isDefault = !userLocation;
+
+              return (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-5 pt-5 pb-3">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <h2 className="font-extrabold text-slate-900 text-base">City Safety Heat Map</h2>
+                        <p className="text-xs mt-0.5 flex items-center gap-1.5">
+                          {geoLoading ? (
+                            <span className="text-slate-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Detecting your location…</span>
+                          ) : isDefault ? (
+                            <span className="text-amber-600 font-semibold">📍 Defaulting to Seattle — allow location access to see your city</span>
+                          ) : (
+                            <span className="text-emerald-700 font-semibold flex items-center gap-1"><LocateFixed className="w-3 h-3" /> Focused on your location: {locationLabel}</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">Bubble size = relative risk · Click for score</p>
+                  </div>
+                  <div style={{ height: 360 }}>
+                    <MapContainer
+                      key={`${mapCenter[0]}-${mapCenter[1]}`}
+                      center={mapCenter}
+                      zoom={mapZoom}
+                      style={{ height:"100%", width:"100%" }}
+                      scrollWheelZoom={false}
+                    >
+                      <TileLayer
+                        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                      />
+                      {CITIES.map(city => {
+                        const score = cityScores[city.id];
+                        if (!score) return null;
+                        const color = score >= 90 ? "#1a9641" : score >= 80 ? "#a6d96a" : score >= 70 ? "#fdae61" : "#d7191c";
+                        const isHighlighted = focusCity?.id === city.id || (!focusCity && city.id === "king");
+                        return (
+                          <CircleMarker
+                            key={city.id}
+                            center={[city.lat, city.lng]}
+                            radius={isHighlighted ? Math.max(16, (100 - score) * 0.9) : Math.max(10, (100 - score) * 0.5)}
+                            fillColor={color}
+                            color={isHighlighted ? "#fff" : "#ccc"}
+                            weight={isHighlighted ? 3 : 1}
+                            fillOpacity={isHighlighted ? 0.9 : 0.4}
+                          >
+                            <Popup>
+                              <div className="text-center p-1">
+                                <p className="font-extrabold text-slate-900">{city.label}</p>
+                                <p className="text-2xl font-extrabold mt-1" style={{ color }}>{score}</p>
+                                <p className="text-xs text-slate-500">Avg Safety Score (live data)</p>
+                              </div>
+                            </Popup>
+                          </CircleMarker>
+                        );
+                      })}
+                      {/* User location marker if not a known city */}
+                      {userLocation && !focusCity && (
+                        <CircleMarker
+                          center={[userLocation.lat, userLocation.lng]}
+                          radius={14}
+                          fillColor="#3b82f6"
+                          color="#fff"
+                          weight={3}
+                          fillOpacity={0.85}
+                        >
+                          <Popup>
+                            <div className="text-center p-1">
+                              <p className="font-extrabold text-slate-900">📍 {locationLabel}</p>
+                              <p className="text-xs text-slate-500 mt-1">Your current location</p>
+                              <p className="text-xs text-slate-400 mt-0.5">No live API data for this city yet</p>
+                            </div>
+                          </Popup>
+                        </CircleMarker>
+                      )}
+                    </MapContainer>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Charts row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
