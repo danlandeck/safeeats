@@ -11,6 +11,8 @@ import {
 import ScoreGauge from "./ScoreGauge";
 import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
+import FailRiskBadge from "./FailRiskBadge";
+import ReportIssueButton from "./ReportIssueButton";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
@@ -196,6 +198,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                   <Award className="w-3.5 h-3.5" /> Consistent Performer
                 </span>
               )}
+              <FailRiskBadge inspections={uniqueInspections} size="lg" />
             </div>
 
             {/* Quick stats */}
@@ -313,8 +316,13 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         </div>
       </div>
 
-      {/* ── Directions ── */}
-      <DirectionsButtons restaurant={restaurant} />
+      {/* ── Directions + Report ── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <DirectionsButtons restaurant={restaurant} />
+        </div>
+        <ReportIssueButton restaurant={restaurant} />
+      </div>
 
       {/* ── Trend chart (only if multiple inspections) ── */}
       {uniqueInspections.length > 1 && (

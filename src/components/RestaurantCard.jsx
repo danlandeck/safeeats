@@ -3,12 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
+import FailRiskBadge from "./FailRiskBadge";
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
-  const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult } = restaurant;
+  const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
   const grade = isUnknown ? "U" : (restaurant.grade || getGrade(safetyScore));
   const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
@@ -73,6 +74,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
                 {latestResult}
               </Badge>
             )}
+            {inspectionHistory && <FailRiskBadge inspections={inspectionHistory} />}
             <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
               <ClipboardList className="w-2.5 h-2.5" />
               {totalInspections} inspection{totalInspections !== 1 ? "s" : ""}

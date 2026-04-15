@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Search, X, Clock } from "lucide-react";
+import React, { useState, useRef, useCallback } from "react";
+import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
 
 // Persistent recent searches
 const RECENT_KEY = "safeeats_recent";
@@ -35,12 +35,15 @@ const LIVE_API_CITIES = [
 export default function SmartSearchPanel({
   locationQuery, onLocationChange, onRegionChange,
   onSearch, isLoading, activeRegion, activeCounty,
+  onNearMe,
 }) {
-  const [query, setQuery]           = useState("");
-  const [recents, setRecents]       = useState(loadRecent);
+  const [query, setQuery]               = useState("");
+  const [recents, setRecents]           = useState(loadRecent);
   const [showDropdown, setShowDropdown] = useState(false);
-  const debounceRef                 = useRef(null);
-  const inputRef                    = useRef(null);
+  const [geoLoading, setGeoLoading]     = useState(false);
+  const [geoError, setGeoError]         = useState("");
+  const debounceRef                     = useRef(null);
+  const inputRef                        = useRef(null);
 
   // Debounced autocomplete suggestions from recents
   const suggestions = recents.filter(r => query.length > 0 && r.toLowerCase().includes(query.toLowerCase()));
@@ -84,26 +87,58 @@ export default function SmartSearchPanel({
     onSearch(q);
   }, [onSearch]);
 
+  const handleNearMe = useCallback(() => {
+    setGeoError("");
+    if (!navigator.geolocation) { setGeoError("Geolocation not supported"); return; }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLoading(false);
+        onNearMe?.({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => { setGeoLoading(false); setGeoError("Location access denied"); },
+      { timeout: 8000 }
+    );
+  }, [onNearMe]);
+
   const fieldClass =
-    "w-full pl-11 pr-4 h-14 rounded-2xl border border-white/15 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/15 transition-all";
+    "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/12 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-3">
+    <div className="w-full max-w-3xl mx-auto space-y-3">
 
       {/* Location field */}
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-4">
-        <p className="text-[11px] font-extrabold text-[#81c784] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5" /> Where are you eating?
+      <div className="bg-white/8 border border-white/15 rounded-3xl p-5">
+        <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+          <MapPin className="w-4 h-4" aria-hidden="true" /> Where are you eating?
         </p>
-        <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4CAF50] pointer-events-none" />
-          <input
-            value={locationQuery}
-            onChange={(e) => onLocationChange(e.target.value)}
-            placeholder="City, state or country — e.g. Seattle, Tokyo, London…"
-            className={fieldClass}
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
+            <input
+              value={locationQuery}
+              onChange={(e) => onLocationChange(e.target.value)}
+              placeholder="City, state or country — e.g. Seattle, Tokyo, London…"
+              className={fieldClass}
+              aria-label="Location"
+            />
+          </div>
+          {/* ── Near Me ── */}
+          <button
+            type="button"
+            onClick={handleNearMe}
+            disabled={geoLoading}
+            aria-label="Use my current location"
+            title="Find restaurants near me"
+            className="h-16 px-4 rounded-2xl bg-[#2196F3] hover:bg-[#1e88e5] disabled:opacity-60 text-white font-bold flex items-center gap-2 flex-shrink-0 transition-colors min-w-[120px] justify-center touch-manipulation"
+          >
+            {geoLoading
+              ? <><Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" /><span className="text-sm">Locating…</span></>
+              : <><LocateFixed className="w-5 h-5" aria-hidden="true" /><span className="text-sm font-bold">Near Me</span></>
+            }
+          </button>
         </div>
+        {geoError && <p className="text-xs text-red-300 mt-2" role="alert">{geoError}</p>}
         <div className="flex flex-wrap gap-1.5 mt-2.5">
           {LIVE_API_CITIES.map((city) => {
             const isActive = activeRegion === city.region && activeCounty === city.countyId;
@@ -149,22 +184,22 @@ export default function SmartSearchPanel({
       </div>
 
       {/* Search field */}
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-4">
-        <p className="text-[11px] font-extrabold text-[#81c784] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-          <Search className="w-3.5 h-3.5" /> Which restaurant or food type?
+      <div className="bg-white/8 border border-white/15 rounded-3xl p-5">
+        <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+          <Search className="w-4 h-4" aria-hidden="true" /> Which restaurant or food type?
         </p>
         <form onSubmit={handleSubmit}>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" aria-hidden="true" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={handleChange}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder="e.g. Subway, pizza, sushi…"
-                className={fieldClass + " pl-11"}
+                placeholder="Restaurant name, cuisine, or zip code…"
+                className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
                 autoComplete="off"
@@ -202,7 +237,7 @@ export default function SmartSearchPanel({
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="h-14 px-6 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[80px] transition-colors touch-manipulation"
+              className="h-16 px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[90px] transition-colors touch-manipulation text-base"
               aria-label="Search"
             >
               {isLoading

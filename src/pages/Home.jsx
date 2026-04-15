@@ -16,6 +16,7 @@ import RestaurantCard from "../components/RestaurantCard";
 import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
+import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
@@ -522,6 +523,7 @@ export default function Home() {
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
+  const [persistentFilters, setPersistentFilters] = useState({});
   const searchCacheRef = useRef(null);
   if (!searchCacheRef.current) {
     try {
@@ -809,8 +811,10 @@ export default function Home() {
         return haversineMiles(userCoords.lat, userCoords.lng, parseFloat(r.latitude), parseFloat(r.longitude)) <= 5;
       });
     }
+    // Apply persistent filters (fails only, recent 30 days, allergens)
+    filtered = applyPersistentFilters(filtered, persistentFilters);
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore, persistentFilters]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -830,7 +834,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white" role="banner">
         <div className="max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
@@ -872,6 +876,10 @@ export default function Home() {
             isLoading={isLoading}
             activeRegion={region}
             activeCounty={countyId}
+            onNearMe={(coords) => {
+              setUserCoords(coords);
+              setNearMeActive(true);
+            }}
           />
 
           {!hasSearched && (
@@ -903,7 +911,7 @@ export default function Home() {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 pb-20 pt-8">
+      <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
         {!hasSearched && (
           <div className="space-y-10 mb-10">
 
@@ -1024,6 +1032,12 @@ export default function Home() {
                           </div>
                         </div>
 
+                        {/* Persistent quick-filter bar */}
+                        <div className="mb-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Quick Filters</p>
+                          <PersistentFilterBar onChange={setPersistentFilters} />
+                        </div>
+
                         <div className="mb-4">
                           <Suspense fallback={null}>
                           <FilterSortControls
@@ -1134,6 +1148,7 @@ export default function Home() {
           />
         </Suspense>
       )}
+    </main>
     </div>
   );
 }
