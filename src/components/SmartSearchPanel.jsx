@@ -36,8 +36,8 @@ export default function SmartSearchPanel({
   locationQuery, onLocationChange, onRegionChange,
   onSearch, isLoading, activeRegion, activeCounty,
   onNearMe,
+  query, onQueryChange,
 }) {
-  const [query, setQuery]               = useState("");
   const [recents, setRecents]           = useState(loadRecent);
   const [showDropdown, setShowDropdown] = useState(false);
   const [geoLoading, setGeoLoading]     = useState(false);
@@ -46,7 +46,8 @@ export default function SmartSearchPanel({
   const inputRef                        = useRef(null);
 
   // Debounced autocomplete suggestions from recents
-  const suggestions = recents.filter(r => query.length > 0 && r.toLowerCase().includes(query.toLowerCase()));
+  const safeQuery = query || "";
+  const suggestions = recents.filter(r => safeQuery.length > 0 && r.toLowerCase().includes(safeQuery.toLowerCase()));
 
   const handleSubmit = useCallback((e) => {
     e?.preventDefault();
@@ -59,7 +60,7 @@ export default function SmartSearchPanel({
 
   const handleChange = (e) => {
     const val = e.target.value;
-    setQuery(val);
+    onQueryChange(val);
     setShowDropdown(true);
     // Debounce: auto-trigger only for cuisine-style short queries
     clearTimeout(debounceRef.current);
@@ -212,13 +213,13 @@ export default function SmartSearchPanel({
                 </button>
               )}
               {/* Dropdown: recent + suggestions */}
-              {showDropdown && (suggestions.length > 0 || (recents.length > 0 && !query)) && (
+              {showDropdown && (suggestions.length > 0 || (recents.length > 0 && !safeQuery)) && (
                 <ul
                   role="listbox"
                   aria-label="Search suggestions"
                   className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-white/15 rounded-xl overflow-hidden z-50 shadow-xl"
                 >
-                  {(query ? suggestions : recents).map((s, i) => (
+                  {(safeQuery ? suggestions : recents).map((s, i) => (
                     <li key={i}>
                       <button
                         role="option"

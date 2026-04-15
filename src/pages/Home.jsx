@@ -505,6 +505,7 @@ export default function Home() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [hasSearched, setHasSearched]         = useState(false);
   const [searchQuery, setSearchQuery]         = useState("");
+  const [searchBarQuery, setSearchBarQuery]   = useState("");
   const [viewMode, setViewMode]               = useState("list");
   const [filterResult, setFilterResult]       = useState("all");
   const [sortBy, setSortBy]                   = useState("score-high");
@@ -851,6 +852,8 @@ export default function Home() {
           </div>
 
           <SmartSearchPanel
+            query={searchBarQuery}
+            onQueryChange={setSearchBarQuery}
             locationQuery={locationQuery}
             onLocationChange={(val) => {
               setLocationQuery(val);
