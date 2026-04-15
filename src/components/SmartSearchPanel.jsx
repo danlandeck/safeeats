@@ -103,13 +103,13 @@ export default function SmartSearchPanel({
   }, [onNearMe]);
 
   const fieldClass =
-    "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/12 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
+    "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/10 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-3">
 
       {/* Location field */}
-      <div className="bg-white/8 border border-white/15 rounded-3xl p-5">
+      <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
           <MapPin className="w-4 h-4" aria-hidden="true" /> Where are you eating?
         </p>
@@ -185,7 +185,7 @@ export default function SmartSearchPanel({
       </div>
 
       {/* Search field */}
-      <div className="bg-white/8 border border-white/15 rounded-3xl p-5">
+      <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
           <Search className="w-4 h-4" aria-hidden="true" /> Which restaurant or food type?
         </p>
