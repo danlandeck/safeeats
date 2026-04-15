@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -54,6 +55,30 @@ const TABS = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const handleGoToRestaurant = (r) => {
+    navigate("/", {
+      state: {
+        restaurant: {
+          business_id: r.name + r.address,
+          name: r.name,
+          address: r.address,
+          city: r.city || "Seattle",
+          safetyScore: r.score,
+          grade: r.grade,
+          totalInspections: r.inspections?.length || 1,
+          latestResult: r.result,
+          latestDate: r.date,
+          source: "king",
+          county_id: "king",
+        },
+        region: "washington",
+        county: "king",
+      },
+    });
+  };
+
   const [tab, setTab]             = useState("overview");
   const [rows, setRows]           = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -102,6 +127,7 @@ export default function Dashboard() {
             result: latest?.result || "",
             date: latest?.date || "",
             violations: allViolations,
+            inspections: b.inspections,
             pestCount:  allViolations.filter(v => classify(v) === "pests").length,
             tempCount:  allViolations.filter(v => classify(v) === "temps").length,
             cleanCount: allViolations.filter(v => classify(v) === "cleanliness").length,
@@ -468,17 +494,17 @@ export default function Dashboard() {
                       })
                       .slice(0, 10)
                       .map((r, i) => (
-                        <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 last:border-0 bg-white">
-                          <span className="text-xs font-extrabold text-blue-700 flex-shrink-0">
-                            #{activeCategory.includes("Pest") ? r.pestCount : activeCategory.includes("Temp") ? r.tempCount : r.cleanCount}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{r.name}</p>
-                            <p className="text-xs text-slate-400 truncate">{r.address}</p>
-                          </div>
-                          <span className="text-xs font-extrabold px-2 py-0.5 rounded-md flex-shrink-0"
-                            style={{ background: getGradeColor(r.grade), color: "#fff" }}>{r.grade}</span>
-                        </div>
+                       <button key={i} onClick={() => handleGoToRestaurant(r)} className="w-full flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 last:border-0 bg-white hover:bg-slate-50 transition-colors text-left">
+                         <span className="text-xs font-extrabold text-blue-700 flex-shrink-0">
+                           #{activeCategory.includes("Pest") ? r.pestCount : activeCategory.includes("Temp") ? r.tempCount : r.cleanCount}
+                         </span>
+                         <div className="flex-1 min-w-0">
+                           <p className="text-sm font-semibold text-slate-900 truncate">{r.name}</p>
+                           <p className="text-xs text-slate-400 truncate">{r.address}</p>
+                         </div>
+                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-md flex-shrink-0"
+                           style={{ background: getGradeColor(r.grade), color: "#fff" }}>{r.grade}</span>
+                       </button>
                       ))
                     }
                   </div>
@@ -538,7 +564,7 @@ export default function Dashboard() {
           {/* Mobile cards */}
           <div className="sm:hidden divide-y divide-slate-100">
             {filtered.map((r, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
+              <button key={i} onClick={() => handleGoToRestaurant(r)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left">
                 <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white font-extrabold text-sm flex-shrink-0"
                   style={{ background: getGradeColor(r.grade) }}>{r.grade}</span>
                 <div className="flex-1 min-w-0">
@@ -546,7 +572,7 @@ export default function Dashboard() {
                   <p className="text-xs text-slate-400 truncate">{r.result} · {r.date}</p>
                 </div>
                 <span className="text-sm font-extrabold text-slate-900 flex-shrink-0">{r.score}</span>
-              </div>
+              </button>
             ))}
             {filtered.length === 0 && (
               <p className="text-center py-10 text-slate-400 text-sm">No establishments match the current filters.</p>
@@ -577,7 +603,7 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {filtered.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <tr key={i} onClick={() => handleGoToRestaurant(r)} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
                     <td className="px-4 py-3 font-semibold text-slate-900 max-w-[200px] truncate">{r.name}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
