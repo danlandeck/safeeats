@@ -1100,7 +1100,7 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
 
       {/* Compare floating bar */}
       {compareList.length >= 2 && (
@@ -1148,7 +1148,6 @@ export default function Home() {
           />
         </Suspense>
       )}
-    </main>
     </div>
   );
 }
