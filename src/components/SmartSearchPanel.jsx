@@ -75,14 +75,14 @@ export default function SmartSearchPanel({
   };
 
   const pickSuggestion = (s) => {
-    setQuery(s);
+    onQueryChange(s);
     setShowDropdown(false);
     setRecents(saveRecent(s));
     onSearch(s);
   };
 
   const handleCuisineClick = useCallback((q) => {
-    setQuery(q);
+    onQueryChange(q);
     setShowDropdown(false);
     setRecents(saveRecent(q));
     onSearch(q);
@@ -207,7 +207,7 @@ export default function SmartSearchPanel({
                 enterKeyHint="search"
               />
               {query && (
-                <button type="button" onClick={() => { setQuery(""); setShowDropdown(false); inputRef.current?.focus(); }}
+                <button type="button" onClick={() => { onQueryChange(""); setShowDropdown(false); inputRef.current?.focus(); }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" aria-label="Clear search">
                   <X className="w-4 h-4" />
                 </button>
