@@ -13,6 +13,7 @@ import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
+import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
@@ -239,6 +240,11 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               <p className="text-sm font-bold">{familySummary.headline}</p>
               <p className="text-xs mt-0.5 leading-relaxed opacity-80">{familySummary.body}</p>
             </div>
+          </div>
+
+          {/* ADA Accessibility */}
+          <div className="mt-5">
+            <ADAAccessibilityBadge restaurant={restaurant} />
           </div>
 
           {/* Contact + directions */}
