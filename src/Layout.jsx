@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { ShieldCheck, Info, BarChart2, Code2 } from "lucide-react";
+import KofiButton from "./components/KofiButton";
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -59,11 +60,12 @@ export default function Layout({ children, currentPageName }) {
                 Empowering informed dining decisions through transparency
               </p>
             </div>
-            <div className="text-center md:text-right">
+            <div className="text-center md:text-right space-y-2">
+              <KofiButton context="footer" />
               <p className="text-xs text-slate-500">
                 © {new Date().getFullYear()} SafeEats. All rights reserved.
               </p>
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-slate-600">
                 Patent Pending | Multi-jurisdiction health data
               </p>
             </div>

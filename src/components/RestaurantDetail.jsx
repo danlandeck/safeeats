@@ -14,6 +14,7 @@ import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
+import KofiButton from "./KofiButton";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
@@ -319,6 +320,24 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+      </div>
+
+      {/* ── Ko-fi support button ── */}
+      <div className={`flex items-start gap-3 p-4 rounded-2xl border ${
+        (restaurant.safetyScore !== null && restaurant.safetyScore < 70)
+          ? "bg-red-50 border-red-200"
+          : "bg-amber-50 border-amber-200"
+      }`}>
+        <span className="text-xl flex-shrink-0">☕</span>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-slate-700">
+            {(restaurant.safetyScore !== null && restaurant.safetyScore < 70)
+              ? "Glad we warned you? Help keep SafeEats free!"
+              : "Find SafeEats useful? Help keep it running!"}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5 mb-3">100% free, no ads — powered by your support.</p>
+          <KofiButton context={restaurant.safetyScore < 70 ? "bad_score" : "default"} />
         </div>
       </div>
 
