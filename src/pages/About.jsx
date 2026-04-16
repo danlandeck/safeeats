@@ -42,67 +42,6 @@ export default function About() {
             </p>
           </div>
 
-          {/* ── Disclaimer ── */}
-          <Section className="border-2 border-red-300 bg-red-50 shadow-none">
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                <AlertTriangle className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-lg font-extrabold text-red-900 mb-3">Important Disclaimer</h2>
-                <div className="space-y-2 text-sm text-red-800 leading-relaxed">
-                  <p><strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency or official inspection authority.</p>
-                  <p><strong>Data accuracy is not guaranteed.</strong> Scores come from government open-data APIs or AI-assisted lookups of public records. Both may contain errors, omissions, or outdated entries.</p>
-                  <p><strong>AI-estimated scores carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by AI reading publicly available sources — <em>not official government records</em>.</p>
-                  <p className="font-bold text-red-900 border-t border-red-200 pt-3">
-                    Always consult your local health department for authoritative records. By using SafeEats you acknowledge data may be incomplete and you are solely responsible for decisions made based on it.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ── Japan / Scanning story ── */}
-          <Section className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 text-7xl opacity-10 select-none pointer-events-none leading-none pr-4 pt-2">🇯🇵</div>
-            <div className="flex gap-4 items-start">
-              <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Camera className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <h2 className="text-xl font-extrabold text-slate-900">Built for the American in Japan</h2>
-                  <Pill color="bg-blue-600 text-white">Scan Any Language</Pill>
-                </div>
-                <p className="text-slate-600 leading-relaxed text-sm mb-4">
-                  Imagine arriving at a Tokyo konbini or a Osaka izakaya — menus entirely in kanji, ingredient labels in fine-print kana, and a health inspection placard you can't read. As a parent, an allergy sufferer, or anyone navigating a foreign food system, this is genuinely stressful.
-                </p>
-                <div className="bg-white rounded-2xl border border-blue-200 p-5 mb-4 shadow-sm">
-                  <p className="text-xs font-extrabold text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                    <Languages className="w-3.5 h-3.5" /> Real Pitfalls SafeEats Helps You Avoid
-                  </p>
-                  <ul className="space-y-2.5 text-sm text-slate-700">
-                    {[
-                      { flag: "🦐", text: "Hidden shellfish — Japanese sauces often contain エキス (extract) from shrimp or crab. SafeEats flags these from the ingredient list even when buried in kanji." },
-                      { flag: "📅", text: "Expiration labels — 賞味期限 (best before) vs 消費期限 (use by) look identical to untrained eyes. SafeEats translates both and explains the difference." },
-                      { flag: "🥛", text: "\"Domestic\" labeling — 国産 means \"Product of Japan\" not \"dairy-free.\" SafeEats reads country-of-origin and surfaces it clearly." },
-                      { flag: "📊", text: "Nutrition per 100g — Japan doesn't use US-style \"per serving\" sizing. SafeEats converts and displays calories, fat, sodium in the format you understand." },
-                      { flag: "🕌", text: "Halal & vegan flags — Japan's labeling standards differ from Western ones. SafeEats checks ingredient lists, not just packaging claims." },
-                    ].map(({ flag, text }) => (
-                      <li key={flag} className="flex gap-3 items-start">
-                        <span className="text-lg leading-none mt-0.5">{flag}</span>
-                        <span className="text-slate-600 leading-relaxed">{text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <p className="text-sm text-slate-500 italic">
-                  Point SafeEats' camera at any sign, label, or menu in any language — it reads, translates, and surfaces what matters most in seconds.
-                </p>
-              </div>
-            </div>
-          </Section>
-
           {/* ── Mission ── */}
           <Section>
             <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
@@ -153,6 +92,28 @@ export default function About() {
                 </div>
               </div>
             </div>
+          </Section>
+
+          {/* ── Grading ── */}
+          <Section>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-5">The Grading System</h2>
+            <div className="grid grid-cols-5 gap-2 mb-6">
+              {[
+                { grade: "A", range: "90–100", color: "bg-green-700",  text: "text-white" },
+                { grade: "B", range: "80–89",  color: "bg-green-400",  text: "text-white" },
+                { grade: "C", range: "70–79",  color: "bg-yellow-400", text: "text-slate-800" },
+                { grade: "D", range: "60–69",  color: "bg-orange-400", text: "text-white" },
+                { grade: "F", range: "< 60",   color: "bg-red-600",    text: "text-white" },
+              ].map(({ grade, range, color, text }) => (
+                <div key={grade} className={`${color} rounded-2xl p-3 text-center shadow-sm`}>
+                  <div className={`text-2xl font-extrabold ${text}`}>{grade}</div>
+                  <div className={`text-xs font-semibold opacity-90 mt-0.5 ${text}`}>{range}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
+            </p>
           </Section>
 
           {/* ── Data Sources ── */}
@@ -227,26 +188,45 @@ export default function About() {
             </div>
           </Section>
 
-          {/* ── Grading ── */}
-          <Section>
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-5">The Grading System</h2>
-            <div className="grid grid-cols-5 gap-2 mb-6">
-              {[
-                { grade: "A", range: "90–100", color: "bg-green-700",  text: "text-white" },
-                { grade: "B", range: "80–89",  color: "bg-green-400",  text: "text-white" },
-                { grade: "C", range: "70–79",  color: "bg-yellow-400", text: "text-slate-800" },
-                { grade: "D", range: "60–69",  color: "bg-orange-400", text: "text-white" },
-                { grade: "F", range: "< 60",   color: "bg-red-600",    text: "text-white" },
-              ].map(({ grade, range, color, text }) => (
-                <div key={grade} className={`${color} rounded-2xl p-3 text-center shadow-sm`}>
-                  <div className={`text-2xl font-extrabold ${text}`}>{grade}</div>
-                  <div className={`text-xs font-semibold opacity-90 mt-0.5 ${text}`}>{range}</div>
+          {/* ── Japan / Scanning story ── */}
+          <Section className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 text-7xl opacity-10 select-none pointer-events-none leading-none pr-4 pt-2">🇯🇵</div>
+            <div className="flex gap-4 items-start">
+              <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <h2 className="text-xl font-extrabold text-slate-900">Built for the American in Japan</h2>
+                  <Pill color="bg-blue-600 text-white">Scan Any Language</Pill>
                 </div>
-              ))}
+                <p className="text-slate-600 leading-relaxed text-sm mb-4">
+                  Imagine arriving at a Tokyo konbini or a Osaka izakaya — menus entirely in kanji, ingredient labels in fine-print kana, and a health inspection placard you can't read. As a parent, an allergy sufferer, or anyone navigating a foreign food system, this is genuinely stressful.
+                </p>
+                <div className="bg-white rounded-2xl border border-blue-200 p-5 mb-4 shadow-sm">
+                  <p className="text-xs font-extrabold text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <Languages className="w-3.5 h-3.5" /> Real Pitfalls SafeEats Helps You Avoid
+                  </p>
+                  <ul className="space-y-2.5 text-sm text-slate-700">
+                    {[
+                      { flag: "🦐", text: "Hidden shellfish — Japanese sauces often contain エキス (extract) from shrimp or crab. SafeEats flags these from the ingredient list even when buried in kanji." },
+                      { flag: "📅", text: "Expiration labels — 賞味期限 (best before) vs 消費期限 (use by) look identical to untrained eyes. SafeEats translates both and explains the difference." },
+                      { flag: "🥛", text: "\"Domestic\" labeling — 国産 means \"Product of Japan\" not \"dairy-free.\" SafeEats reads country-of-origin and surfaces it clearly." },
+                      { flag: "📊", text: "Nutrition per 100g — Japan doesn't use US-style \"per serving\" sizing. SafeEats converts and displays calories, fat, sodium in the format you understand." },
+                      { flag: "🕌", text: "Halal & vegan flags — Japan's labeling standards differ from Western ones. SafeEats checks ingredient lists, not just packaging claims." },
+                    ].map(({ flag, text }) => (
+                      <li key={flag} className="flex gap-3 items-start">
+                        <span className="text-lg leading-none mt-0.5">{flag}</span>
+                        <span className="text-slate-600 leading-relaxed">{text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <p className="text-sm text-slate-500 italic">
+                  Point SafeEats' camera at any sign, label, or menu in any language — it reads, translates, and surfaces what matters most in seconds.
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
-            </p>
           </Section>
 
           {/* ── Esri ── */}
@@ -271,6 +251,26 @@ export default function About() {
                 >
                   Learn more about Esri →
                 </a>
+              </div>
+            </div>
+          </Section>
+
+          {/* ── Disclaimer ── */}
+          <Section className="border-2 border-red-300 bg-red-50 shadow-none">
+            <div className="flex gap-4 items-start">
+              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-extrabold text-red-900 mb-3">Important Disclaimer</h2>
+                <div className="space-y-2 text-sm text-red-800 leading-relaxed">
+                  <p><strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency or official inspection authority.</p>
+                  <p><strong>Data accuracy is not guaranteed.</strong> Scores come from government open-data APIs or AI-assisted lookups of public records. Both may contain errors, omissions, or outdated entries.</p>
+                  <p><strong>AI-estimated scores carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by AI reading publicly available sources — <em>not official government records</em>.</p>
+                  <p className="font-bold text-red-900 border-t border-red-200 pt-3">
+                    Always consult your local health department for authoritative records. By using SafeEats you acknowledge data may be incomplete and you are solely responsible for decisions made based on it.
+                  </p>
+                </div>
               </div>
             </div>
           </Section>
