@@ -925,13 +925,24 @@ export default function Home() {
         {!hasSearched && (
           <div className="space-y-10 mb-10">
 
+            {/* ADA callout banner */}
+            <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+              <span className="text-3xl flex-shrink-0">♿</span>
+              <div>
+                <p className="text-white font-extrabold text-sm">ADA Accessibility Info on Every Restaurant</p>
+                <p className="text-emerald-100 text-xs mt-0.5 leading-relaxed">
+                  SafeEats checks wheelchair access, accessible restrooms, and parking for every US restaurant — because accessibility matters as much as food safety.
+                </p>
+              </div>
+            </div>
+
             {/* Stats strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { value: "180+", label: "Countries & regions" },
                 { value: "50K+", label: "Restaurants tracked" },
                 { value: "100%", label: "Free & public data" },
-                { value: "A–F", label: "Universal grading scale" },
+                { value: "♿ ADA", label: "Accessibility checked" },
               ].map(({ value, label }) => (
                 <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
                   <p className="text-2xl font-extrabold text-slate-900">{value}</p>

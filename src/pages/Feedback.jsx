@@ -157,6 +157,22 @@ Submitted from SafeEats App
             </form>
           </Card>
 
+          {/* ADA Complaints */}
+          <Card className="p-6 border-2 border-emerald-300 bg-emerald-50">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl flex-shrink-0">♿</span>
+              <div>
+                <h3 className="text-sm font-extrabold text-emerald-900 mb-1">Report Incorrect ADA / Accessibility Info</h3>
+                <p className="text-sm text-emerald-800 leading-relaxed mb-2">
+                  Accessibility matters deeply to us. If SafeEats shows incorrect ADA or wheelchair accessibility information for any restaurant, <strong>please report it here</strong>. Daniel personally follows up with businesses where accessibility data is wrong — because every guest deserves accurate info before they arrive.
+                </p>
+                <p className="text-xs text-emerald-700 font-semibold">
+                  📧 Start your message with <span className="bg-emerald-100 px-1.5 py-0.5 rounded font-mono">ADA COMPLAINT:</span> so it gets prioritized.
+                </p>
+              </div>
+            </div>
+          </Card>
+
           {/* Additional Info */}
           <Card className="p-6 border-slate-200 bg-slate-50">
             <h3 className="text-sm font-semibold text-slate-900 mb-2">What kind of feedback can I share?</h3>
@@ -165,6 +181,7 @@ Submitted from SafeEats App
               <li>• Suggest new features or improvements</li>
               <li>• Share your experience using SafeEats</li>
               <li>• Report incorrect or outdated information</li>
+              <li>♿ Report wrong ADA / accessibility info (we follow up with businesses!)</li>
               <li>• General questions or comments</li>
             </ul>
           </Card>
