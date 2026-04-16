@@ -28,12 +28,6 @@ export default function Layout({ children, currentPageName }) {
                   About
                 </button>
               </Link>
-              <Link to="/embed">
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
-                  <Code2 className="w-4 h-4" />
-                  Embed
-                </button>
-              </Link>
               <Link to={createPageUrl("Feedback")}>
                 <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
                   Feedback

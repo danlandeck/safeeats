@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Accessibility, CheckCircle2, XCircle, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 const ADA_CACHE_KEY = "safeeats_ada_cache";
 
@@ -11,12 +11,24 @@ function saveCache(cache) {
   try { localStorage.setItem(ADA_CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
 
+const FeatureRow = ({ label, icon, value }) => {
+  if (value === null || value === undefined) return null;
+  return (
+    <div className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-center ${value ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
+      <span className="text-xl">{icon}</span>
+      {value
+        ? <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        : <XCircle className="w-4 h-4 text-red-400" />}
+      <span className={`text-[11px] font-bold leading-tight ${value ? "text-emerald-800" : "text-red-700"}`}>{label}</span>
+    </div>
+  );
+};
+
 export default function ADAAccessibilityBadge({ restaurant }) {
-  const [status, setStatus] = useState("idle"); // idle | loading | done | error
+  const [status, setStatus] = useState("idle");
   const [data, setData] = useState(null);
   const [expanded, setExpanded] = useState(false);
 
-  // Only show for US restaurants
   const isUS = !restaurant.country || restaurant.country === "US" ||
     ["washington", "new_york", "illinois", "maryland", "texas", "california"].includes(restaurant.source) ||
     ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"].includes(restaurant.county_id);
@@ -80,84 +92,109 @@ If you cannot find specific info, use "unknown" for accessible and "low" for con
 
   if (!isUS) return null;
 
-  const getIcon = () => {
-    if (status === "loading") return <Loader2 className="w-4 h-4 animate-spin text-slate-400" />;
-    if (status === "error") return <HelpCircle className="w-4 h-4 text-slate-400" />;
-    if (!data) return <Accessibility className="w-4 h-4 text-slate-400" />;
-    if (data.accessible === true) return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
-    if (data.accessible === false) return <XCircle className="w-4 h-4 text-red-500" />;
-    return <HelpCircle className="w-4 h-4 text-slate-400" />;
-  };
+  const isAccessible = data?.accessible === true;
+  const isNotAccessible = data?.accessible === false;
 
-  const getBgColor = () => {
-    if (!data || status !== "done") return "bg-slate-50 border-slate-200";
-    if (data.accessible === true) return "bg-emerald-50 border-emerald-200";
-    if (data.accessible === false) return "bg-red-50 border-red-200";
-    return "bg-slate-50 border-slate-200";
-  };
+  const headerBg = isAccessible
+    ? "bg-gradient-to-r from-emerald-600 to-emerald-500"
+    : isNotAccessible
+    ? "bg-gradient-to-r from-red-500 to-orange-500"
+    : "bg-gradient-to-r from-slate-600 to-slate-500";
 
-  const getHeadline = () => {
-    if (status === "loading") return "Checking ADA accessibility…";
-    if (status === "error") return "ADA info unavailable";
-    if (!data) return "ADA accessibility unknown";
-    if (data.accessible === true) return "Likely ADA accessible";
-    if (data.accessible === false) return "May not be fully ADA accessible";
-    return "ADA accessibility unclear";
-  };
+  const wrapperBorder = isAccessible
+    ? "border-emerald-300"
+    : isNotAccessible
+    ? "border-red-200"
+    : "border-slate-200";
 
-  const featureRow = (label, value) => {
-    if (value === null || value === undefined) return null;
-    return (
-      <div className="flex items-center gap-2 text-xs">
-        {value === true
-          ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-          : <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />}
-        <span className={value ? "text-slate-700" : "text-slate-500"}>{label}</span>
-      </div>
-    );
-  };
+  const headline = status === "loading"
+    ? "Checking ADA accessibility…"
+    : status === "error"
+    ? "ADA info unavailable"
+    : isAccessible
+    ? "♿ ADA Accessible"
+    : isNotAccessible
+    ? "⚠️ Limited ADA Accessibility"
+    : "♿ ADA Accessibility Unknown";
+
+  const subtext = status === "loading"
+    ? "Searching public records…"
+    : isAccessible
+    ? "This restaurant appears to accommodate guests with disabilities."
+    : isNotAccessible
+    ? "This location may have limited accessibility features."
+    : "We couldn't confirm specific accessibility details for this location.";
 
   const hasFeatures = data && (data.entrance !== null || data.restroom !== null || data.parking !== null);
 
   return (
-    <div className={`rounded-2xl border p-4 ${getBgColor()} transition-all`}>
-      <button
-        onClick={() => status === "done" && data && setExpanded(v => !v)}
-        className="w-full flex items-center gap-3 text-left"
-        disabled={status !== "done" || !data}
-      >
-        <div className="flex-shrink-0">{getIcon()}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">♿ ADA Accessibility</span>
-            {data?.confidence === "low" && (
-              <span className="text-[10px] text-slate-400 font-medium">(low confidence)</span>
-            )}
+    <div className={`rounded-2xl border-2 overflow-hidden shadow-sm ${wrapperBorder}`}>
+      {/* Header bar */}
+      <div className={`${headerBg} px-5 py-3 flex items-center justify-between`}>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">♿</span>
+          <div>
+            <p className="text-white font-extrabold text-sm tracking-tight">{headline}</p>
+            <p className="text-white/80 text-xs mt-0.5">{subtext}</p>
           </div>
-          <p className="text-sm font-semibold text-slate-800 mt-0.5">{getHeadline()}</p>
         </div>
-        {status === "done" && data && (hasFeatures || data.summary) && (
-          expanded ? <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        )}
-      </button>
+        <div className="flex items-center gap-2">
+          {status === "loading" && <Loader2 className="w-5 h-5 text-white animate-spin" />}
+          {status === "done" && isAccessible && <CheckCircle2 className="w-6 h-6 text-white fill-white/20" />}
+          {status === "done" && isNotAccessible && <XCircle className="w-6 h-6 text-white fill-white/20" />}
+          {status === "done" && !isAccessible && !isNotAccessible && <HelpCircle className="w-6 h-6 text-white/70" />}
+        </div>
+      </div>
 
-      {expanded && data && (
-        <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
-          {data.summary && (
-            <p className="text-xs text-slate-600 leading-relaxed">{data.summary}</p>
-          )}
-          {hasFeatures && (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {featureRow("Accessible entrance", data.entrance)}
-              {featureRow("Accessible restroom", data.restroom)}
-              {featureRow("Accessible parking", data.parking)}
-            </div>
-          )}
-          <p className="text-[10px] text-slate-400 mt-2">
-            ⓘ ADA info sourced via public web data. Verify with the restaurant directly for the most accurate information.
+      {/* Body */}
+      <div className="bg-white px-5 py-4">
+        {/* Mission statement */}
+        <div className="flex items-start gap-2 mb-4">
+          <span className="text-lg flex-shrink-0">❤️</span>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            <span className="font-bold text-slate-800">Accessibility matters.</span> SafeEats is committed to helping everyone — including guests with disabilities — make informed dining choices. We surface ADA accessibility info alongside health scores so no one is left behind.
           </p>
         </div>
-      )}
+
+        {/* Feature grid */}
+        {status === "done" && hasFeatures && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <FeatureRow label="Accessible Entrance" icon="🚪" value={data.entrance} />
+            <FeatureRow label="Accessible Restroom" icon="🚻" value={data.restroom} />
+            <FeatureRow label="Accessible Parking" icon="🅿️" value={data.parking} />
+          </div>
+        )}
+
+        {/* Expandable summary */}
+        {status === "done" && data?.summary && (
+          <div>
+            <button
+              onClick={() => setExpanded(v => !v)}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+            >
+              {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              {expanded ? "Hide details" : "View source details"}
+            </button>
+            {expanded && (
+              <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <p className="text-xs text-slate-600 leading-relaxed">{data.summary}</p>
+                {data.confidence && (
+                  <p className="text-[10px] text-slate-400 mt-1.5">
+                    Confidence: <span className="font-semibold capitalize">{data.confidence}</span> · Sourced via public web data. Always verify directly with the restaurant.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {status === "loading" && (
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Checking public accessibility records…
+          </div>
+        )}
+      </div>
     </div>
   );
 }
