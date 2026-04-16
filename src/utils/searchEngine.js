@@ -96,9 +96,10 @@ const LLM_SCHEMA = {
  * @param {string}  opts.locationLabel – human-readable city label for AI prompt
  * @param {string}  opts.today         – formatted date string for AI prompt
  * @param {AbortSignal} [opts.signal]  – optional AbortController signal
- * @returns {Promise<{ results: object[], isAI: boolean }>}
+ * @param {function} [opts.onFastResults] – called with fast/preliminary results before accurate ones arrive
+ * @returns {Promise<{ results: object[], isAI: boolean, isAccurate: boolean }>}
  */
-export async function search({ query, countyId, locationLabel, today, signal }) {
+export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
   const safeFetch = (url) => fetch(url, signal ? { signal } : {}).then((r) => r.json());
 
   // ── Live government API ───────────────────────────────────────────────────
@@ -107,7 +108,7 @@ export async function search({ query, countyId, locationLabel, today, signal }) 
     const proc  = PROCESSORS[countyId];
     const url   = buildSearchUrl(entry, query);
     const raw   = await safeFetch(url);
-    return { results: proc.process(Array.isArray(raw) ? raw : []), isAI: false };
+    return { results: proc.process(Array.isArray(raw) ? raw : []), isAI: false, isAccurate: true };
   }
 
   // ── AI-assisted search (any city/country not covered by live API) ─────────
@@ -115,18 +116,47 @@ export async function search({ query, countyId, locationLabel, today, signal }) 
     ? locationLabel
     : null;
 
-  const prompt = location ? promptFor(query, location, today) : promptGlobal(query, today);
-  const result = await base44.integrations.Core.InvokeLLM({
+  const prompt         = location ? promptFor(query, location, today) : promptGlobal(query, today);
+  const fastPrompt     = location
+    ? `List up to 8 real restaurants matching "${query}" in ${location}. Use your training data only — no web search. Include any known health inspection scores/grades if you have them. Be concise.`
+    : `List up to 8 real restaurants matching "${query}" anywhere in the world. Use your training data only. Include any known health inspection scores/grades if you have them.`;
+
+  // Fire both in parallel: fast (no internet) and accurate (with internet)
+  const fastCall = base44.integrations.Core.InvokeLLM({
+    prompt: fastPrompt,
+    add_context_from_internet: false,
+    response_json_schema: LLM_SCHEMA,
+  });
+
+  const accurateCall = base44.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: true,
     response_json_schema: LLM_SCHEMA,
     model: "gemini_3_flash",
   });
 
+  // Whichever resolves first gets surfaced — fast call delivers preliminary results
+  let fastDelivered = false;
+
+  fastCall.then((fastResult) => {
+    if (fastDelivered) return;
+    const fast = (fastResult?.restaurants || []).map((r, i) =>
+      buildLLMRestaurant(r, i, countyId, location || "", null)
+    );
+    if (fast.length > 0 && onFastResults) {
+      fastDelivered = true;
+      onFastResults(fast);
+    }
+  }).catch(() => {});
+
+  // Always wait for accurate results
+  const result = await accurateCall;
+  fastDelivered = true; // suppress fast delivery once accurate arrives
+
   const restaurants = (result?.restaurants || []).map((r, i) =>
     buildLLMRestaurant(r, i, countyId, location || "", null)
   );
-  return { results: restaurants, isAI: true };
+  return { results: restaurants, isAI: true, isAccurate: true };
 }
 
 // ── Detail fetcher ────────────────────────────────────────────────────────────

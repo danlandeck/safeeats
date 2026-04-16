@@ -17,6 +17,7 @@ import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
+import AISearchStatus from "../components/AISearchStatus";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
@@ -525,6 +526,7 @@ export default function Home() {
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
   const [persistentFilters, setPersistentFilters] = useState({});
+  const [fastResults, setFastResults] = useState(null); // preliminary AI results
   const searchCacheRef = useRef(null);
   if (!searchCacheRef.current) {
     try {
@@ -599,6 +601,7 @@ export default function Home() {
     setResults([]);
     setHasSearched(false);
     setSelectedBusiness(null);
+    setFastResults(null);
     window.history.pushState({}, '', window.location.pathname);
     setViewMode("list");
     setCompareList([]);
@@ -664,6 +667,7 @@ export default function Home() {
 
     setIsLoading(true);
     setLoadingSeconds(0);
+    setFastResults(null);
     loadingTimerRef.current = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
     setHasSearched(true);
     setSearchQuery(rawQuery);
@@ -706,6 +710,9 @@ export default function Home() {
         locationLabel: locationCtx,
         today,
         signal,
+        onFastResults: (fast) => {
+          setFastResults(fast);
+        },
       });
 
       setIsAISearch(isAI);
@@ -991,10 +998,29 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
                     {isLoading ? (
-                      <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm text-slate-400">{isAISearch ? "🌍 AI is searching global health records… (may take 10-20s)" : "Searching live government database…"}</p>
-                      </div>
+                      isAISearch ? (
+                        <AISearchStatus
+                          hasFastResults={fastResults !== null && fastResults.length > 0}
+                          onAcceptFast={() => {
+                            clearInterval(loadingTimerRef.current);
+                            if (abortRef.current) abortRef.current.abort();
+                            setResults(fastResults);
+                            setFastResults(null);
+                            setIsLoading(false);
+                          }}
+                          onCancel={() => {
+                            clearInterval(loadingTimerRef.current);
+                            if (abortRef.current) abortRef.current.abort();
+                            setIsLoading(false);
+                            setFastResults(null);
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20">
+                          <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
+                          <p className="text-sm text-slate-400">Searching live government database…</p>
+                        </div>
+                      )
                     ) : searchError ? (
                       <div className="flex flex-col items-center justify-center py-16">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
