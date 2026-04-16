@@ -58,18 +58,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const handleGoToRestaurant = (r) => {
+    const score = r.score ?? r.safetyScore;
     navigate("/", {
       state: {
         restaurant: {
-          business_id: r.name + r.address,
+          business_id: r.business_id || (r.name + r.address),
           name: r.name,
           address: r.address,
           city: r.city || "Seattle",
-          safetyScore: r.score,
+          safetyScore: score,
           grade: r.grade,
           totalInspections: r.inspections?.length || 1,
-          latestResult: r.result,
-          latestDate: r.date,
+          latestResult: r.result || r.latestResult,
+          latestDate: r.date || r.latestDate,
           source: "king",
           county_id: "king",
         },
@@ -447,7 +448,7 @@ export default function Dashboard() {
                   restaurants={rows.map(r => ({ ...r, safetyScore: r.score, latestResult: r.result, business_id: r.name + r.address }))}
                   filterType="grade"
                   filterValue={activeGrade ? { A: "A (90-100)", B: "B (80-89)", C: "C (70-79)", D: "D (60-69)", F: "F (<60)" }[activeGrade] : null}
-                  onSelectRestaurant={null}
+                  onSelectRestaurant={(r) => handleGoToRestaurant(r)}
                 />
               </div>
             </div>
