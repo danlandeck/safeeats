@@ -66,6 +66,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
 
+  // Scroll-to helpers for stat boxes
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   // ── Group inspections ──────────────────────────────────────────────────────
   const uniqueInspections = useMemo(() => {
     const map = {};
@@ -203,34 +206,38 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               <FailRiskBadge inspections={uniqueInspections} size="lg" />
             </div>
 
-            {/* Quick stats */}
+            {/* Quick stats — each taps to the relevant section */}
             <div className="flex-1 grid grid-cols-2 gap-3 w-full sm:w-auto">
-              <div className="bg-slate-50 rounded-2xl p-3 text-center">
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 rounded-2xl p-3 text-center hover:bg-slate-100 transition-colors cursor-pointer group">
                 <p className="text-xl font-extrabold text-slate-900">{uniqueInspections.length}</p>
                 <p className="text-xs text-slate-500 mt-0.5">Inspections on record</p>
-              </div>
-              <div className="bg-slate-50 rounded-2xl p-3 text-center">
+                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+              </button>
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 rounded-2xl p-3 text-center hover:bg-slate-100 transition-colors cursor-pointer group">
                 <p className="text-xl font-extrabold text-slate-900">
                   {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">Last inspected</p>
-              </div>
-              <div className={`rounded-2xl p-3 text-center ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`}>
+                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+              </button>
+              <button onClick={() => scrollTo("inspection-history")} className={`rounded-2xl p-3 text-center hover:opacity-80 transition-opacity cursor-pointer group ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`}>
                 <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`}>
                   {totalRepeatCount}
                 </p>
                 <p className={`text-xs mt-0.5 ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`}>
                   Repeat issue{totalRepeatCount !== 1 ? "s" : ""}
                 </p>
-              </div>
-              <div className={`rounded-2xl p-3 text-center ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`}>
+                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+              </button>
+              <button onClick={() => scrollTo("score-trend")} className={`rounded-2xl p-3 text-center hover:opacity-80 transition-opacity cursor-pointer group ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`}>
                 <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`}>
                   {cleanStreak}
                 </p>
                 <p className={`text-xs mt-0.5 ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`}>
                   Clean in a row
                 </p>
-              </div>
+                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+              </button>
             </div>
           </div>
 
@@ -351,11 +358,13 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
       {/* ── Trend chart (only if multiple inspections) ── */}
       {uniqueInspections.length > 1 && (
-        <InspectionTrendChart inspections={uniqueInspections} />
+        <div id="score-trend" className="scroll-mt-4">
+          <InspectionTrendChart inspections={uniqueInspections} />
+        </div>
       )}
 
       {/* ── Inspection History ── */}
-      <div>
+      <div id="inspection-history" className="scroll-mt-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
             Inspection History

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
+import { getGrade, getGradeColor } from "../utils/grading";
 
 export default function InspectionTrendChart({ inspections }) {
   const data = [...inspections]
@@ -22,9 +23,16 @@ export default function InspectionTrendChart({ inspections }) {
   if (data.length < 2) return null;
 
   const validScores = data.map((d) => d.score).filter((s) => s > 0);
+
+  // Current grade = most recent inspection (last item, since data is oldest→newest)
+  const currentScore = data[data.length - 1]?.score;
+  const currentGrade = currentScore != null ? getGrade(currentScore) : "?";
+
+  // Legacy grade = all-time average across all inspections
   const avgScore = validScores.length > 0
     ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
     : null;
+  const legacyGrade = avgScore != null ? getGrade(avgScore) : "?";
 
   // Trend: compare first half avg vs second half avg
   const firstHalf = data.slice(0, Math.floor(data.length / 2));
@@ -42,22 +50,51 @@ export default function InspectionTrendChart({ inspections }) {
 
   return (
     <Card className="p-6 border-slate-200 bg-white">
-      <div className="flex items-center justify-between mb-5">
+      {/* Header row */}
+      <div className="flex items-start justify-between mb-5 gap-4 flex-wrap">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Safety Score Trend</h3>
-          <p className="text-xs text-slate-400 mt-0.5">{data.length} inspections over time</p>
+          <h3 className="text-sm font-bold text-slate-900">Safety Score History</h3>
+          <p className="text-xs text-slate-400 mt-0.5">{data.length} inspections on record</p>
         </div>
-        <div className="flex items-center gap-3">
-          {avgScore !== null && (
-            <span className="text-xs text-slate-500">Avg: <strong className="text-slate-700">{avgScore}</strong></span>
-          )}
-          <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${trendBg}`}>
-            <TrendIcon className="w-3.5 h-3.5" />
-            {trendLabel}
-            {Math.abs(delta) >= 3 && <span className="font-extrabold">{delta > 0 ? `+${delta}` : delta} pts</span>}
-          </span>
+        <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${trendBg}`}>
+          <TrendIcon className="w-3.5 h-3.5" />
+          {trendLabel}
+          {Math.abs(delta) >= 3 && <span className="font-extrabold">{delta > 0 ? `+${delta}` : delta} pts</span>}
+        </span>
+      </div>
+
+      {/* Current grade vs Legacy grade */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Current Grade</p>
+          <div className="flex flex-col items-center gap-1">
+            <span className={`text-4xl font-extrabold px-4 py-1 rounded-xl ${getGradeColor(currentGrade)}`}>
+              {currentGrade}
+            </span>
+            <p className="text-xs text-slate-500 font-semibold mt-1">{currentScore} / 100 · Most Recent</p>
+          </div>
+        </div>
+        <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Legacy Grade</p>
+          <div className="flex flex-col items-center gap-1">
+            <span className={`text-4xl font-extrabold px-4 py-1 rounded-xl ${getGradeColor(legacyGrade)}`}>
+              {legacyGrade}
+            </span>
+            <p className="text-xs text-slate-500 font-semibold mt-1">{avgScore} / 100 · All-Time Avg</p>
+          </div>
         </div>
       </div>
+
+      {/* Context blurb if grades differ */}
+      {currentGrade !== legacyGrade && (
+        <div className="mb-4 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-600 leading-relaxed">
+          {currentGrade < legacyGrade
+            ? `⚠️ This restaurant's most recent grade (${currentGrade}) is lower than its long-term average (${legacyGrade}). A recent decline in safety standards.`
+            : `✅ Recent performance (${currentGrade}) is better than the historical average (${legacyGrade}). The establishment appears to be improving.`}
+        </div>
+      )}
+
+      {/* Area chart */}
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <defs>
@@ -71,10 +108,7 @@ export default function InspectionTrendChart({ inspections }) {
           <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#64748b" }} />
           <Tooltip
             contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "12px" }}
-            formatter={(val, name, props) => [
-              <span style={{ fontWeight: 700 }}>{val} / 100</span>,
-              "Safety Score"
-            ]}
+            formatter={(val) => [<span style={{ fontWeight: 700 }}>{val} / 100</span>, "Safety Score"]}
             labelStyle={{ fontWeight: 600, color: "#334155", marginBottom: 2 }}
           />
           <ReferenceLine y={90} stroke="#16a34a" strokeDasharray="4 3" strokeOpacity={0.4} label={{ value: "A", position: "insideLeft", fontSize: 10, fill: "#16a34a" }} />

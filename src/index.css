@@ -101,4 +101,25 @@
   button:focus, [role="button"]:focus {
     outline: none;
   }
+
+  /* Suppress blinking text cursor everywhere except actual inputs/textareas */
+  *:not(input):not(textarea):not([contenteditable]) {
+    cursor: default;
+    caret-color: transparent;
+  }
+
+  /* Restore pointer cursor on interactive elements */
+  button, [role="button"], a, label, select,
+  [role="tab"], [role="option"], [role="menuitem"],
+  [role="gridcell"], [role="row"],
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+
+  /* Restore text cursor inside inputs/textareas */
+  input, textarea, [contenteditable] {
+    cursor: text !important;
+    caret-color: auto;
+    user-select: text;
+  }
 }
