@@ -949,14 +949,14 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 sm:pt-14 sm:pb-10">
           <div className="text-center mb-7">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
-              🛡️ Real Government Data · Updated Daily
+              🛡️ #1 Global Food Safety Platform · 195+ Countries
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
               Is your restaurant
               <span className="text-[#4CAF50]"> safe to eat at?</span>
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-300 font-medium max-w-lg mx-auto">
-              Search any restaurant, anywhere in the world. See real health inspection grades, violations, and history — in plain English.
+              The world's most comprehensive food safety intelligence platform. Real health inspection records from every corner of the globe — in plain English.
             </p>
 
             {/* Grade scale — immediately visible on landing */}
@@ -1059,8 +1059,8 @@ export default function Home() {
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "180+", label: "Countries & regions", emoji: "🌍" },
-                { value: "50K+", label: "Restaurants tracked", emoji: "🍽️" },
+                { value: "195+", label: "Countries covered", emoji: "🌍" },
+                { value: "1M+", label: "Establishments tracked", emoji: "🍽️" },
                 { value: "100%", label: "Free, always", emoji: "✅" },
                 { value: "♿", label: "ADA accessibility checked", emoji: "" },
               ].map(({ value, label, emoji }) => (

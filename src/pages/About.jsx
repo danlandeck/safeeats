@@ -34,11 +34,11 @@ export default function About() {
               About SafeEats
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Your Food Safety<br />
-              <span className="text-[#4CAF50]">Companion Worldwide</span>
+              The World's Source of Truth<br />
+              <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              Real inspection data. Instant translation. No third-party redirects. No angry Yelp reviews.
+              195+ countries. 1M+ establishments. Real government inspection data — unified, normalized, and in plain English. SafeEats is the definitive global arbiter of safe eating.
             </p>
           </div>
 
@@ -46,10 +46,13 @@ export default function About() {
           <Section>
             <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments worldwide and presents them through a single, consistent interface with a universal A–F grading system.
+              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments across every country on earth and presents them through a single, consistent interface with a universal A–F grading system.
+            </p>
+            <p className="text-slate-600 leading-relaxed mb-3">
+              Every jurisdiction grades differently. A "Pass" in Chicago, 94 penalty points in LA, a letter grade in NYC, a score in Tokyo, a compliance rating in London — they all mean different things. SafeEats normalizes everything to a 0–100 scale so you're always comparing apples to apples, whether you're in Austin or Auckland.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Every jurisdiction grades differently. A "Pass" in Chicago, 94 penalty points in LA, and a letter grade in NYC all mean different things. SafeEats normalizes everything to a 0–100 scale so you're always comparing apples to apples.
+              SafeEats is the world's definitive source of truth for restaurant and food establishment safety — the global standard for consumers, travelers, parents, and anyone who refuses to gamble with what goes into their body.
             </p>
           </Section>
 
