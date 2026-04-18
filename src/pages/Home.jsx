@@ -968,6 +968,7 @@ export default function Home() {
                   { g: "C", color: "bg-yellow-400 text-slate-800", tip: "Okay" },
                   { g: "D", color: "bg-orange-400 text-white", tip: "Poor" },
                   { g: "F", color: "bg-red-600 text-white", tip: "Critical" },
+                  { g: "U", color: "bg-slate-400 text-white", tip: "Unknown" },
                 ].map(({ g, color, tip }) => (
                   <div key={g} className="flex flex-col items-center gap-0.5">
                     <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-base shadow-sm ${color}`}>{g}</span>
