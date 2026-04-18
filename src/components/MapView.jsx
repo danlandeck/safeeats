@@ -60,38 +60,53 @@ function createColoredIcon(score) {
   });
 }
 
-// Auto-pans/zooms map when results or user location changes
-function MapController({ center, zoom }) {
+// Fits the map to the bounds of all valid markers, fires only when the set of coords changes
+function MapController({ validRestaurants, userCoords }) {
   const map = useMap();
+  const prevKeyRef = useRef(null);
+
   useEffect(() => {
-    if (center) map.flyTo(center, zoom, { duration: 1.2 });
-  }, [center[0], center[1], zoom]);
+    const key = validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|");
+    if (key === prevKeyRef.current) return; // same set — don't reset view
+    prevKeyRef.current = key;
+
+    if (validRestaurants.length > 0) {
+      const bounds = L.latLngBounds(
+        validRestaurants.map(r => [parseFloat(r.latitude), parseFloat(r.longitude)])
+      );
+      map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 16, duration: 1.2 });
+    } else if (userCoords) {
+      map.flyTo([userCoords.lat, userCoords.lng], 12, { duration: 1.2 });
+    }
+  }, [validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|")]);
+
   return null;
 }
 
 export default function MapView({ restaurants, onSelectRestaurant, userCoords }) {
-  const { center, zoom } = useMemo(() => {
+  // Initial center: computed once from the first batch of valid coords (or Seattle fallback)
+  const initialCenter = useMemo(() => {
     const valid = restaurants.filter(r => r.latitude && r.longitude);
     if (valid.length > 0) {
       const avgLat = valid.reduce((s, r) => s + parseFloat(r.latitude), 0) / valid.length;
       const avgLon = valid.reduce((s, r) => s + parseFloat(r.longitude), 0) / valid.length;
-      return { center: [avgLat, avgLon], zoom: valid.length === 1 ? 15 : 13 };
+      return [avgLat, avgLon];
     }
-    if (userCoords) return { center: [userCoords.lat, userCoords.lng], zoom: 12 };
-    return { center: [47.6062, -122.3321], zoom: 11 }; // Seattle default
-  }, [restaurants, userCoords]);
+    if (userCoords) return [userCoords.lat, userCoords.lng];
+    return [47.6062, -122.3321]; // Seattle fallback only when truly nothing
+  }, []); // intentionally empty — only for initial mount
 
   const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
 
   return (
     <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
       <MapContainer
-        center={center}
-        zoom={zoom}
+        center={initialCenter}
+        zoom={13}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
       >
-        <MapController center={center} zoom={zoom} />
+        <MapController validRestaurants={validRestaurants} userCoords={userCoords} />
         <TileLayer
           attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin, FAO, NOAA, USGS'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
