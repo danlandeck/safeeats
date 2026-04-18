@@ -189,6 +189,7 @@ export default function Dashboard() {
   const filtered = useMemo(() => {
     let r = [...rows];
     if (showBadOnly) r = r.filter(x => x.score < 80);
+    if (activeGrade) r = r.filter(x => x.grade === activeGrade);
     if (tab === "pests")       r = r.filter(x => x.pestCount > 0);
     if (tab === "temps")       r = r.filter(x => x.tempCount > 0);
     if (tab === "cleanliness") r = r.filter(x => x.cleanCount > 0);
@@ -457,7 +458,7 @@ export default function Dashboard() {
                 <SuspectList
                   restaurants={rows.map(r => ({ ...r, safetyScore: r.score, latestResult: r.result, business_id: r.name + r.address }))}
                   filterType="grade"
-                  filterValue={activeGrade ? { A: "A (90-100)", B: "B (80-89)", C: "C (70-79)", D: "D (60-69)", F: "F (<60)" }[activeGrade] : null}
+                  filterValue={activeGrade || null}
                   onSelectRestaurant={(r) => handleGoToRestaurant(r)}
                 />
               </div>
@@ -555,8 +556,10 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-extrabold text-slate-900 text-base">Inspection Scores</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{filtered.length} establishments · Tap header to sort</p>
+              <h2 className="font-extrabold text-slate-900 text-base">
+                Inspection Scores {activeGrade && <span className="ml-2 text-sm font-bold px-2 py-0.5 rounded-lg text-white" style={{ background: getGradeColor(activeGrade) }}>Grade {activeGrade}</span>}
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">{filtered.length} establishments · Tap header to sort{activeGrade ? ` · filtered to Grade ${activeGrade}` : ""}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {[

@@ -23,15 +23,23 @@ export default function SuspectList({ restaurants, filterType, filterValue, onSe
   // Filter matching restaurants
   const matches = restaurants.filter((r) => {
     if (filterType === "grade") {
+      // Support both plain grade letters ("A") and label strings ("A (90-100)")
       const gradeRanges = {
-        "A (90-100)": [90, 100],
-        "B (80-89)": [80, 89],
-        "C (70-79)": [70, 79],
-        "D (60-69)": [60, 69],
-        "F (<60)": [0, 59],
+        "A": [90, 100], "A (90-100)": [90, 100],
+        "B": [80, 89],  "B (80-89)": [80, 89],
+        "C": [70, 79],  "C (70-79)": [70, 79],
+        "D": [60, 69],  "D (60-69)": [60, 69],
+        "F": [0, 59],   "F (<60)": [0, 59],
+        "U": null,
       };
-      const [lo, hi] = gradeRanges[filterValue] || [0, 100];
-      return (r.safetyScore ?? r.score ?? 0) >= lo && (r.safetyScore ?? r.score ?? 0) <= hi;
+      if (filterValue === "U" || filterValue === "Unknown") {
+        return r.safetyScore === null || r.safetyScore === undefined;
+      }
+      const range = gradeRanges[filterValue];
+      if (!range) return false;
+      const [lo, hi] = range;
+      const score = r.safetyScore ?? r.score;
+      return score !== null && score !== undefined && score >= lo && score <= hi;
     }
     if (filterType === "result") {
       return (r.latestResult || r.result || "").toLowerCase() === filterValue.toLowerCase();
