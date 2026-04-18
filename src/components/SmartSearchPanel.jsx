@@ -199,7 +199,7 @@ export default function SmartSearchPanel({
                 onChange={handleChange}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder='Restaurant name, cuisine type, or zip — e.g. "McDonald\'s" or "sushi"'
+                placeholder={`Restaurant name, cuisine type, or zip — e.g. "McDonald's" or "sushi"`}
                 className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
