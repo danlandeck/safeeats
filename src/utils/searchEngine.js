@@ -50,10 +50,13 @@ const LLM_SCHEMA = {
 };
 
 const PROMPT_LOCATION = (query, location, today) =>
-  `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location}.
-CRITICAL: ALL results MUST be in ${location} only. No invented data. city field must be a real city in ${location}.
-latest_score: 0–100. latest_result: actual inspection outcome. violations: real only.
-NEVER return results from any other country or region.`;
+  `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location} ONLY.
+STRICT RULES:
+1. EVERY result MUST have city="${location}" or a city name that starts with the same word as "${location}".
+2. city field MUST match the requested location. If unsure, OMIT the result.
+3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
+4. NEVER return results from outside ${location}.
+5. Better to return 3 verified results than 10 with any location mismatch.`;
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
@@ -61,21 +64,23 @@ Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–
 
 const PROMPT_DUBAI = (query, today) =>
   `Today is ${today}. Find ONLY real food safety inspection records for "${query}" that are PHYSICALLY LOCATED IN DUBAI, UAE.
-ABSOLUTE RULES — FAILURE TO FOLLOW ANY RULE IS UNACCEPTABLE:
-1. EVERY single result MUST be a real restaurant/establishment with a physical address IN DUBAI, UAE.
-2. Do NOT return any result from Boston, London, New York, Abu Dhabi, or ANY non-Dubai location.
-3. If you cannot verify a business is actually IN DUBAI with a real Dubai address, OMIT IT.
-4. city MUST be "Dubai" for every result. country MUST be "UAE".
-5. Address MUST include a real Dubai location (e.g. "Sheikh Zayed Rd, DIFC", "JBR Walk, Jumeirah", "Deira", "Downtown Dubai", "Business Bay", "Dubai Marina", "Palm Jumeirah").
-6. Do NOT include any result from another country under any circumstance.
-7. Return up to 10 real, verifiable Dubai establishments only.`;
+ABSOLUTE RULES — IF YOU VIOLATE EVEN ONE, YOUR RESPONSE WILL BE REJECTED:
+1. EVERY single result MUST be physically located IN DUBAI, UAE — ZERO exceptions.
+2. BLOCK LIST: Do NOT return ANYTHING from Boston, London, New York, Abu Dhabi, Paris, Tokyo, Chicago, Los Angeles, San Francisco, Austin, or ANY city outside UAE.
+3. WHITELIST: Address MUST mention Dubai or a Dubai neighborhood: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm Jumeirah, Sheikh Zayed Rd, etc.
+4. city field MUST be "Dubai" for EVERY result. country field MUST be "UAE".
+5. If you are unsure whether a business is in Dubai, OMIT IT. Better to return 2 verified results than 10 with 1 wrong city.
+6. Return up to 8 real, verifiable Dubai establishments only.`;
 
 const FAST_PROMPT = (query, location) => location
   ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
   : `List up to 8 real restaurants matching "${query}" worldwide. Training data only.`;
 
 const FAST_PROMPT_DUBAI = (query) =>
-  `DUBAI ONLY. List up to 8 real restaurants matching "${query}" that are PHYSICALLY IN DUBAI, UAE. NO Boston, NO London, NO other countries. city="Dubai". Address must be in Dubai.`;
+  `DUBAI ONLY — BLOCK: Boston, London, New York, Abu Dhabi, Paris, Tokyo, or ANY non-UAE city.
+List up to 8 REAL restaurants matching "${query}" PHYSICALLY IN DUBAI, UAE.
+city="Dubai" for ALL results. Address must mention Dubai or: Jumeirah, Deira, Marina, Downtown, JBR, DIFC, Business Bay, Palm.
+If unsure, OMIT. Better to return 5 verified than 8 with errors.`;
 
 function llmCall(prompt, internet = false) {
   return base44.integrations.Core.InvokeLLM({
@@ -86,18 +91,42 @@ function llmCall(prompt, internet = false) {
   });
 }
 
+const FORBIDDEN_CITIES = ["boston", "london", "new york", "abu dhabi", "paris", "tokyo", "chicago", "los angeles", "san francisco", "austin"];
+const DUBAI_AREAS = ["dubai", "jumeirah", "deira", "bur dubai", "marina", "downtown", "jbr", "difc", "business bay", "palm"];
+
+function isForbiddenLocation(city, address) {
+  const cityLower = (city || "").toLowerCase();
+  const addressLower = (address || "").toLowerCase();
+  return FORBIDDEN_CITIES.some(c => cityLower.includes(c) || addressLower.includes(c));
+}
+
+function isDubaiLocation(city, address) {
+  const cityLower = (city || "").toLowerCase();
+  const addressLower = (address || "").toLowerCase();
+  // Must have Dubai-ness in city OR address, AND no forbidden cities
+  const hasDubaiIndicator = DUBAI_AREAS.some(area => cityLower.includes(area) || addressLower.includes(area));
+  const hasForbidden = isForbiddenLocation(city, address);
+  return hasDubaiIndicator && !hasForbidden;
+}
+
 function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
-  const resultCity = (r.city || "").toLowerCase().trim();
-  const expectedCityLower = (expectedCity || "").toLowerCase().trim();
+  let isWrongLocation = false;
   
-  // Strict city match: if result city doesn't match expected city, filter it out
-  const isWrongLocation = expectedCityLower && expectedCityLower !== "worldwide (ai search)" && 
-                         !resultCity.includes(expectedCityLower.split(/[\s,]+/)[0]);
+  if (countyId === "dubai") {
+    // Dubai: STRICT validation — must have Dubai markers, zero forbidden cities
+    isWrongLocation = !isDubaiLocation(r.city, r.address);
+  } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
+    // Other cities: result city must contain first word of expected city
+    const resultCityLower = (r.city || "").toLowerCase().trim();
+    const expectedLower = expectedCity.toLowerCase().trim();
+    const firstWord = expectedLower.split(/[\s,]+/)[0];
+    isWrongLocation = firstWord.length > 2 && !resultCityLower.includes(firstWord);
+  }
   
   const built = countyId === "dubai"
     ? {
         ...buildLLMRestaurant(r, i, countyId, location, null),
-        city: expectedCity,
+        city: "Dubai",
         region: "uae",
         country: "UAE",
       }
