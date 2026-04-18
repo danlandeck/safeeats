@@ -772,7 +772,9 @@ export default function Home() {
     if (nearMeActive) { setNearMeActive(false); setUserCoords(null); setNearMeError(""); return; }
     setNearMeError("");
     setIsGeolocating(true);
-    const abbr = REGIONS[region].abbr;
+    // Use locationQuery (user-typed location like "Tokyo" or "Japan") for geocoding context
+    // Fall back to region abbreviation for US live-API counties, or empty string globally
+    const geoContext = locationQuery.trim() || REGIONS[region]?.abbr || "";
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -780,7 +782,7 @@ export default function Home() {
         // Geocode any results missing coords
         const missing = results.filter((r) => !r.latitude || !r.longitude);
         await Promise.all(missing.map(async (r) => {
-          const gc = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
+          const gc = await geocodeAddress(r.address, r.city, geoContext).catch(() => null);
           if (gc) setResults((prev) => prev.map((p) => p.business_id === r.business_id ? { ...p, ...gc } : p));
         }));
         setNearMeActive(true);
@@ -788,7 +790,7 @@ export default function Home() {
       },
       () => { setNearMeError("Location access denied."); setIsGeolocating(false); }
     );
-  }, [nearMeActive, region, results]);
+  }, [nearMeActive, region, locationQuery, results]);
 
   const filteredAndSortedResults = useMemo(() => {
     let filtered = filterResult === "all" ? [...results] : results.filter((r) => {
@@ -829,16 +831,17 @@ export default function Home() {
     const MAP_LIMIT = 10;
     const topResults = sortedResults.slice(0, MAP_LIMIT);
     if (!topResults.some((r) => !r.latitude)) return;
-    const abbr = REGIONS[region].abbr;
+    // Use the user-typed location for geocoding context — works globally
+    const geoContext = locationQuery.trim() || REGIONS[region]?.abbr || "";
     // Geocode each in background — map shows immediately, markers pop in as resolved
     topResults.forEach(async (r) => {
       if (r.latitude && r.longitude) return;
-      const coords = await geocodeAddress(r.address, r.city, abbr).catch(() => null);
+      const coords = await geocodeAddress(r.address, r.city, geoContext).catch(() => null);
       if (coords) {
         setResults((prev) => prev.map((p) => p.business_id === r.business_id ? { ...p, ...coords } : p));
       }
     });
-  }, [region]);
+  }, [region, locationQuery]);
 
   return (
     <div className="min-h-screen bg-slate-50">

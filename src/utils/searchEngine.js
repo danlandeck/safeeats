@@ -45,13 +45,15 @@ const PROCESSORS = {
 // ── LLM prompt templates ──────────────────────────────────────────────────────
 const promptFor = (query, location, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location}.
 
-CRITICAL RULES:
+CRITICAL RULES — READ CAREFULLY:
+- ALL results MUST be located in ${location}. Do NOT return restaurants from any other country, city, or region.
 - If "${query}" looks like a specific restaurant name, return ONLY that restaurant's locations in ${location}.
-- If "${query}" is a cuisine/food type, return up to 8 real restaurants of that type in ${location}.
-- Every record MUST be a real, verifiable business. No invented data.
-- Use local health department websites, state inspection databases, or Yelp health score disclosures.
+- If "${query}" is a cuisine/food type (e.g. pizza, sushi, ramen), return up to 8 real restaurants of that type IN ${location}. Do not return restaurants from other countries.
+- Every record MUST be a real, verifiable business located in ${location}. No invented data.
+- The city field in each result MUST be a real city in ${location}.
 - latest_score: real integer 0–100. latest_result: actual inspection outcome.
-- violations: real violations only. Omit any restaurant you cannot verify.`;
+- violations: real violations only. Omit any restaurant you cannot verify.
+- NEVER return results from South Africa, the US, or any other region when the user asked for ${location}.`;
 
 const promptGlobal = (query, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
 
@@ -112,13 +114,15 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   }
 
   // ── AI-assisted search (any city/country not covered by live API) ─────────
-  const location = locationLabel && locationLabel !== "Worldwide (AI Search)"
-    ? locationLabel
+  // Always use the location if provided — never fall back to "anywhere in the world"
+  // when the user has specified a location. Only use global prompt if truly no location given.
+  const location = locationLabel && locationLabel.trim() !== "" && locationLabel !== "Worldwide (AI Search)"
+    ? locationLabel.trim()
     : null;
 
   const prompt         = location ? promptFor(query, location, today) : promptGlobal(query, today);
   const fastPrompt     = location
-    ? `List up to 8 real restaurants matching "${query}" in ${location}. Use your training data only — no web search. Include any known health inspection scores/grades if you have them. Be concise.`
+    ? `List up to 8 real restaurants matching "${query}" located in ${location}. IMPORTANT: Only return restaurants physically located in ${location} — not from any other country or region. Use your training data only — no web search. Include any known health inspection scores/grades if you have them. Be concise.`
     : `List up to 8 real restaurants matching "${query}" anywhere in the world. Use your training data only. Include any known health inspection scores/grades if you have them.`;
 
   // Fire both in parallel: fast (no internet) and accurate (with internet)
