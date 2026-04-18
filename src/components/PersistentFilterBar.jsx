@@ -73,23 +73,19 @@ export function applyPersistentFilters(restaurants, activeFilters) {
   const glutenKeywords = ["gluten", "wheat", "cross-contamin", "contamination"];
   const dairyKeywords = ["dairy", "milk", "lactose", "cheese", "cream"];
 
+  const getViolationText = (r) => {
+    const violations = r.violations || r.inspectionHistory?.flatMap(i => i.violations || []) || [];
+    return ((r.latestResult || "") + " " + violations.join(" ")).toLowerCase();
+  };
+
   if (activeFilters.allergen_nuts) {
-    results = results.filter((r) => {
-      const text = ((r.latestResult || "") + (r.name || "")).toLowerCase();
-      return nutKeywords.some((k) => text.includes(k));
-    });
+    results = results.filter((r) => nutKeywords.some((k) => getViolationText(r).includes(k)));
   }
   if (activeFilters.allergen_gluten) {
-    results = results.filter((r) => {
-      const text = ((r.latestResult || "") + (r.name || "")).toLowerCase();
-      return glutenKeywords.some((k) => text.includes(k));
-    });
+    results = results.filter((r) => glutenKeywords.some((k) => getViolationText(r).includes(k)));
   }
   if (activeFilters.allergen_dairy) {
-    results = results.filter((r) => {
-      const text = ((r.latestResult || "") + (r.name || "")).toLowerCase();
-      return dairyKeywords.some((k) => text.includes(k));
-    });
+    results = results.filter((r) => dairyKeywords.some((k) => getViolationText(r).includes(k)));
   }
 
   return results;
