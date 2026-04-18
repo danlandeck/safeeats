@@ -63,24 +63,22 @@ const PROMPT_GLOBAL = (query, today) =>
 Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.`;
 
 const PROMPT_DUBAI = (query, today) =>
-  `Today is ${today}. Find ONLY real food safety inspection records for "${query}" that are PHYSICALLY LOCATED IN DUBAI, UAE.
-ABSOLUTE RULES — IF YOU VIOLATE EVEN ONE, YOUR RESPONSE WILL BE REJECTED:
-1. EVERY single result MUST be physically located IN DUBAI, UAE — ZERO exceptions.
-2. BLOCK LIST: Do NOT return ANYTHING from Boston, London, New York, Abu Dhabi, Paris, Tokyo, Chicago, Los Angeles, San Francisco, Austin, or ANY city outside UAE.
-3. WHITELIST: Address MUST mention Dubai or a Dubai neighborhood: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm Jumeirah, Sheikh Zayed Rd, etc.
-4. city field MUST be "Dubai" for EVERY result. country field MUST be "UAE".
-5. If you are unsure whether a business is in Dubai, OMIT IT. Better to return 2 verified results than 10 with 1 wrong city.
-6. Return up to 8 real, verifiable Dubai establishments only.`;
+  `Today is ${today}. Find ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE.
+ZERO TOLERANCE RULES:
+1. BLOCK EVERYTHING: Miami, New York, Boston, Chicago, Los Angeles, San Francisco, Austin, London, Paris, Tokyo, Abu Dhabi, Sharjah — ANY US city or non-UAE location = REJECTED.
+2. city MUST be exactly "Dubai" for EVERY result.
+3. Address MUST include: Jumeirah, Deira, Bur Dubai, Marina, Downtown Dubai, JBR, DIFC, Business Bay, Palm Jumeirah, Sheikh Zayed, or "Dubai, UAE".
+4. Verify EVERY result is actually in Dubai before returning it. If unsure = OMIT.
+5. Return max 8 real verified Dubai restaurants only. ZERO results from outside Dubai.`;
 
 const FAST_PROMPT = (query, location) => location
   ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
   : `List up to 8 real restaurants matching "${query}" worldwide. Training data only.`;
 
 const FAST_PROMPT_DUBAI = (query) =>
-  `DUBAI ONLY — BLOCK: Boston, London, New York, Abu Dhabi, Paris, Tokyo, or ANY non-UAE city.
-List up to 8 REAL restaurants matching "${query}" PHYSICALLY IN DUBAI, UAE.
-city="Dubai" for ALL results. Address must mention Dubai or: Jumeirah, Deira, Marina, Downtown, JBR, DIFC, Business Bay, Palm.
-If unsure, OMIT. Better to return 5 verified than 8 with errors.`;
+  `DUBAI ONLY. REJECT: Miami, Boston, New York, Chicago, LA, SF, Austin, London, Paris, Tokyo, Abu Dhabi, any US city.
+List ONLY restaurants in DUBAI, UAE. city="Dubai" ALWAYS. Address: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, Dubai.
+Return max 8. If unsure = OMIT. ZERO non-Dubai results.`;
 
 function llmCall(prompt, internet = false) {
   return base44.integrations.Core.InvokeLLM({
@@ -91,22 +89,26 @@ function llmCall(prompt, internet = false) {
   });
 }
 
-const FORBIDDEN_CITIES = ["boston", "london", "new york", "abu dhabi", "paris", "tokyo", "chicago", "los angeles", "san francisco", "austin"];
-const DUBAI_AREAS = ["dubai", "jumeirah", "deira", "bur dubai", "marina", "downtown", "jbr", "difc", "business bay", "palm"];
-
-function isForbiddenLocation(city, address) {
-  const cityLower = (city || "").toLowerCase();
-  const addressLower = (address || "").toLowerCase();
-  return FORBIDDEN_CITIES.some(c => cityLower.includes(c) || addressLower.includes(c));
-}
+// EXHAUSTIVE forbidden locations
+const US_CITIES = ["miami", "new york", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia", "washington"];
+const US_STATES = ["florida", "new york", "massachusetts", "illinois", "california", "texas", "colorado", "georgia", "nevada", "pennsylvania", "dc"];
+const NON_DUBAI = ["london", "paris", "tokyo", "abu dhabi", "dubai creek", "ras al khaimah", "fujairah", "umm al quwain", "ajman", "sharjah"];
+const ALL_FORBIDDEN = [...US_CITIES, ...US_STATES, ...NON_DUBAI];
 
 function isDubaiLocation(city, address) {
-  const cityLower = (city || "").toLowerCase();
+  const cityLower = (city || "").toLowerCase().trim();
   const addressLower = (address || "").toLowerCase();
-  // Must have Dubai-ness in city OR address, AND no forbidden cities
-  const hasDubaiIndicator = DUBAI_AREAS.some(area => cityLower.includes(area) || addressLower.includes(area));
-  const hasForbidden = isForbiddenLocation(city, address);
-  return hasDubaiIndicator && !hasForbidden;
+  
+  // REJECT if any forbidden location found
+  if (ALL_FORBIDDEN.some(f => cityLower.includes(f) || addressLower.includes(f))) {
+    return false;
+  }
+  
+  // ACCEPT only if city is "dubai" AND address has Dubai marker
+  const isDubaiCity = cityLower === "dubai" || cityLower.startsWith("dubai,");
+  const hasDubaiAddress = ["jumeirah", "deira", "bur dubai", "marina", "downtown dubai", "jbr", "difc", "business bay", "palm jumeirah", "sheikh zayed", "dubai", "uae"].some(m => addressLower.includes(m));
+  
+  return isDubaiCity && hasDubaiAddress;
 }
 
 function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
