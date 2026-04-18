@@ -114,7 +114,10 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
     return s >= 85;
   }));
 
-  const grade = restaurant.grade || getGrade(restaurant.safetyScore);
+  const hasInspections = uniqueInspections.length > 0;
+  const grade = (!hasInspections || restaurant.safetyScore === null || restaurant.safetyScore === undefined)
+    ? "U"
+    : (restaurant.grade || getGrade(restaurant.safetyScore));
   const latestDate = uniqueInspections[0]?.inspection_date;
   const totalRepeatCount = repeatCategories.size;
   const familySummary = getFamilySummary(restaurant.safetyScore, grade, totalRepeatCount, cleanStreak);
@@ -196,7 +199,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex flex-col items-center gap-3">
               <ScoreGauge score={restaurant.safetyScore} size="lg" animate={true} />
               <span className={`text-base font-extrabold px-4 py-1.5 rounded-xl ${getGradeColor(grade)}`}>
-                Grade {grade}
+                {grade === "U" ? "Unknown" : `Grade ${grade}`}
               </span>
               {isConsistentPerformer && (
                 <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
