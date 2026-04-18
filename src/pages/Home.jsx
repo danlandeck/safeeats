@@ -464,6 +464,90 @@ const CITY_TO_COUNTY = {
   "palms": { region: "california", countyId: "la" },
   "sawtelle": { region: "california", countyId: "la" },
   "century city": { region: "california", countyId: "la" },
+  // Canada — country level
+  "canada": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
+  "canadian": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
+  // Ontario
+  "ontario": { region: "canada", countyId: "toronto", locationLabel: "Ontario, Canada" },
+  "toronto": { region: "canada", countyId: "toronto", locationLabel: "Toronto, Ontario, Canada" },
+  "ottawa": { region: "canada", countyId: "ottawa", locationLabel: "Ottawa, Ontario, Canada" },
+  "hamilton ontario": { region: "canada", countyId: "hamilton_on", locationLabel: "Hamilton, Ontario, Canada" },
+  "mississauga": { region: "canada", countyId: "mississauga", locationLabel: "Mississauga, Ontario, Canada" },
+  "brampton": { region: "canada", countyId: "brampton", locationLabel: "Brampton, Ontario, Canada" },
+  "london ontario": { region: "canada", countyId: "london_on", locationLabel: "London, Ontario, Canada" },
+  "kitchener": { region: "canada", countyId: "kitchener", locationLabel: "Kitchener, Ontario, Canada" },
+  "waterloo ontario": { region: "canada", countyId: "kitchener", locationLabel: "Waterloo, Ontario, Canada" },
+  "guelph": { region: "canada", countyId: "kitchener", locationLabel: "Guelph, Ontario, Canada" },
+  "windsor ontario": { region: "canada", countyId: "toronto", locationLabel: "Windsor, Ontario, Canada" },
+  "barrie": { region: "canada", countyId: "toronto", locationLabel: "Barrie, Ontario, Canada" },
+  // British Columbia
+  "british columbia": { region: "canada", countyId: "vancouver", locationLabel: "British Columbia, Canada" },
+  "bc": { region: "canada", countyId: "vancouver", locationLabel: "British Columbia, Canada" },
+  "vancouver": { region: "canada", countyId: "vancouver", locationLabel: "Vancouver, British Columbia, Canada" },
+  "surrey bc": { region: "canada", countyId: "surrey", locationLabel: "Surrey, British Columbia, Canada" },
+  "burnaby": { region: "canada", countyId: "burnaby", locationLabel: "Burnaby, British Columbia, Canada" },
+  "richmond bc": { region: "canada", countyId: "richmond_bc", locationLabel: "Richmond, British Columbia, Canada" },
+  "victoria bc": { region: "canada", countyId: "victoria_bc", locationLabel: "Victoria, British Columbia, Canada" },
+  "victoria british columbia": { region: "canada", countyId: "victoria_bc", locationLabel: "Victoria, British Columbia, Canada" },
+  "kelowna": { region: "canada", countyId: "kelowna", locationLabel: "Kelowna, British Columbia, Canada" },
+  "abbotsford": { region: "canada", countyId: "vancouver", locationLabel: "Abbotsford, British Columbia, Canada" },
+  "langley": { region: "canada", countyId: "vancouver", locationLabel: "Langley, British Columbia, Canada" },
+  "north vancouver": { region: "canada", countyId: "vancouver", locationLabel: "North Vancouver, British Columbia, Canada" },
+  "west vancouver": { region: "canada", countyId: "vancouver", locationLabel: "West Vancouver, British Columbia, Canada" },
+  "coquitlam": { region: "canada", countyId: "burnaby", locationLabel: "Coquitlam, British Columbia, Canada" },
+  "delta bc": { region: "canada", countyId: "surrey", locationLabel: "Delta, British Columbia, Canada" },
+  "new westminster": { region: "canada", countyId: "burnaby", locationLabel: "New Westminster, British Columbia, Canada" },
+  "nanaimo": { region: "canada", countyId: "victoria_bc", locationLabel: "Nanaimo, British Columbia, Canada" },
+  "kamloops": { region: "canada", countyId: "kelowna", locationLabel: "Kamloops, British Columbia, Canada" },
+  "prince george bc": { region: "canada", countyId: "kelowna", locationLabel: "Prince George, British Columbia, Canada" },
+  // Québec
+  "quebec": { region: "canada", countyId: "montreal", locationLabel: "Québec, Canada" },
+  "québec": { region: "canada", countyId: "montreal", locationLabel: "Québec, Canada" },
+  "montreal": { region: "canada", countyId: "montreal", locationLabel: "Montréal, Québec, Canada" },
+  "montréal": { region: "canada", countyId: "montreal", locationLabel: "Montréal, Québec, Canada" },
+  "quebec city": { region: "canada", countyId: "quebec_city", locationLabel: "Québec City, Québec, Canada" },
+  "québec city": { region: "canada", countyId: "quebec_city", locationLabel: "Québec City, Québec, Canada" },
+  "laval": { region: "canada", countyId: "laval", locationLabel: "Laval, Québec, Canada" },
+  "gatineau": { region: "canada", countyId: "gatineau", locationLabel: "Gatineau, Québec, Canada" },
+  "longueuil": { region: "canada", countyId: "montreal", locationLabel: "Longueuil, Québec, Canada" },
+  "sherbrooke": { region: "canada", countyId: "quebec_city", locationLabel: "Sherbrooke, Québec, Canada" },
+  "saguenay": { region: "canada", countyId: "quebec_city", locationLabel: "Saguenay, Québec, Canada" },
+  "trois-rivieres": { region: "canada", countyId: "quebec_city", locationLabel: "Trois-Rivières, Québec, Canada" },
+  // Alberta
+  "alberta": { region: "canada", countyId: "calgary", locationLabel: "Alberta, Canada" },
+  "calgary": { region: "canada", countyId: "calgary", locationLabel: "Calgary, Alberta, Canada" },
+  "edmonton": { region: "canada", countyId: "edmonton", locationLabel: "Edmonton, Alberta, Canada" },
+  "red deer": { region: "canada", countyId: "red_deer", locationLabel: "Red Deer, Alberta, Canada" },
+  "lethbridge": { region: "canada", countyId: "lethbridge", locationLabel: "Lethbridge, Alberta, Canada" },
+  "medicine hat": { region: "canada", countyId: "lethbridge", locationLabel: "Medicine Hat, Alberta, Canada" },
+  "fort mcmurray": { region: "canada", countyId: "edmonton", locationLabel: "Fort McMurray, Alberta, Canada" },
+  "airdrie": { region: "canada", countyId: "calgary", locationLabel: "Airdrie, Alberta, Canada" },
+  "grande prairie": { region: "canada", countyId: "edmonton", locationLabel: "Grande Prairie, Alberta, Canada" },
+  // Manitoba
+  "manitoba": { region: "canada", countyId: "winnipeg", locationLabel: "Manitoba, Canada" },
+  "winnipeg": { region: "canada", countyId: "winnipeg", locationLabel: "Winnipeg, Manitoba, Canada" },
+  "brandon mb": { region: "canada", countyId: "winnipeg", locationLabel: "Brandon, Manitoba, Canada" },
+  // Nova Scotia
+  "nova scotia": { region: "canada", countyId: "halifax", locationLabel: "Nova Scotia, Canada" },
+  "halifax": { region: "canada", countyId: "halifax", locationLabel: "Halifax, Nova Scotia, Canada" },
+  // Saskatchewan
+  "saskatchewan": { region: "canada", countyId: "saskatoon", locationLabel: "Saskatchewan, Canada" },
+  "saskatoon": { region: "canada", countyId: "saskatoon", locationLabel: "Saskatoon, Saskatchewan, Canada" },
+  "regina": { region: "canada", countyId: "regina", locationLabel: "Regina, Saskatchewan, Canada" },
+  // Newfoundland
+  "newfoundland": { region: "canada", countyId: "st_johns_nl", locationLabel: "Newfoundland, Canada" },
+  "st. john's": { region: "canada", countyId: "st_johns_nl", locationLabel: "St. John's, Newfoundland, Canada" },
+  "st johns": { region: "canada", countyId: "st_johns_nl", locationLabel: "St. John's, Newfoundland, Canada" },
+  // New Brunswick
+  "new brunswick": { region: "canada", countyId: "moncton", locationLabel: "New Brunswick, Canada" },
+  "moncton": { region: "canada", countyId: "moncton", locationLabel: "Moncton, New Brunswick, Canada" },
+  "fredericton": { region: "canada", countyId: "moncton", locationLabel: "Fredericton, New Brunswick, Canada" },
+  "saint john nb": { region: "canada", countyId: "moncton", locationLabel: "Saint John, New Brunswick, Canada" },
+  // PEI
+  "prince edward island": { region: "canada", countyId: "moncton", locationLabel: "Prince Edward Island, Canada" },
+  "pei": { region: "canada", countyId: "moncton", locationLabel: "Prince Edward Island, Canada" },
+  "charlottetown": { region: "canada", countyId: "moncton", locationLabel: "Charlottetown, Prince Edward Island, Canada" },
+
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -636,14 +720,25 @@ export default function Home() {
         searchCounty = aliasMatch.countyId;
         setRegion(searchRegion);
         setCountyId(searchCounty);
+        // If the alias has a rich locationLabel (e.g. "Vancouver, British Columbia, Canada"), use it
+        if (aliasMatch.locationLabel) {
+          setLocationQuery(aliasMatch.locationLabel);
+        }
       } else {
         // City not in live-API alias map — use LLM city search if we have a city
         if (parsed.city) {
           useLLMCity = true;
         } else if (parsed.state) {
-          // Only a state was given, map to that state's first county
+          // Only a state/country code was given — match to a region by abbr
+          // US states only (2-letter): skip international codes that overlap (e.g. CAN for Canada)
           const stateToMatch = parsed.state.toUpperCase();
-          const matchedRegionEntry = Object.entries(REGIONS).find(([, r]) => r.abbr?.toUpperCase() === stateToMatch);
+          const matchedRegionEntry = Object.entries(REGIONS).find(([key, r]) => {
+            // Only match US regions by abbr to avoid confusing CA=California vs Canada (now CAN)
+            const isUSRegion = !["canada","uk","mexico","australia","france","germany","spain","italy",
+              "japan","brazil","india","south_korea","china","uae","singapore","netherlands",
+              "portugal","new_zealand","argentina","thailand","greece","turkey","south_africa","global"].includes(key);
+            return isUSRegion && r.abbr?.toUpperCase() === stateToMatch;
+          });
           if (matchedRegionEntry) {
             searchRegion = matchedRegionEntry[0];
             searchCounty = matchedRegionEntry[1].counties[0].id;
@@ -694,7 +789,11 @@ export default function Home() {
 
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-      const locationCtx = locationQuery.trim() || currentCounty.name;
+      // For Canada and other international matches, prefer the enriched locationLabel from the alias map
+      // Otherwise fall back to what the user typed, then the county name
+      const cityKey2 = (parsed?.city || "").toLowerCase().trim();
+      const aliasLabel = cityKey2 ? CITY_TO_COUNTY[cityKey2]?.locationLabel : null;
+      const locationCtx = aliasLabel || locationQuery.trim() || currentCounty.name;
 
       if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la"].includes(searchCounty)) {
         setIsAISearch(true);
@@ -873,6 +972,8 @@ export default function Home() {
               if (match && REGIONS[match.region]) {
                 setRegion(match.region);
                 setCountyId(match.countyId);
+                // Use enriched label (e.g. "Vancouver, British Columbia, Canada") if available
+                if (match.locationLabel) setLocationQuery(match.locationLabel);
               } else {
                 setRegion("global");
                 setCountyId("global");

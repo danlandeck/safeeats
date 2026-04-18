@@ -356,17 +356,39 @@ export const REGIONS = {
 
   // ── INTERNATIONAL ────────────────────────────────────────────────────────────
 
-  canada: { name: "Canada", abbr: "CA", counties: [
+  canada: { name: "Canada", abbr: "CAN", counties: [
+    // Ontario
     { id: "toronto", name: "Toronto, Ontario", city: "Toronto", hasPublicApi: true },
+    { id: "ottawa", name: "Ottawa, Ontario", city: "Ottawa", hasPublicApi: true },
+    { id: "hamilton_on", name: "Hamilton, Ontario", city: "Hamilton", hasPublicApi: true },
+    { id: "mississauga", name: "Mississauga, Ontario", city: "Mississauga", hasPublicApi: true },
+    { id: "brampton", name: "Brampton, Ontario", city: "Brampton", hasPublicApi: true },
+    { id: "london_on", name: "London, Ontario", city: "London", hasPublicApi: true },
+    { id: "kitchener", name: "Kitchener, Ontario", city: "Kitchener", hasPublicApi: true },
+    // British Columbia
     { id: "vancouver", name: "Vancouver, British Columbia", city: "Vancouver", hasPublicApi: true },
+    { id: "surrey", name: "Surrey, British Columbia", city: "Surrey", hasPublicApi: true },
+    { id: "burnaby", name: "Burnaby, British Columbia", city: "Burnaby", hasPublicApi: true },
+    { id: "richmond_bc", name: "Richmond, British Columbia", city: "Richmond", hasPublicApi: true },
+    { id: "victoria_bc", name: "Victoria, British Columbia", city: "Victoria", hasPublicApi: true },
+    { id: "kelowna", name: "Kelowna, British Columbia", city: "Kelowna", hasPublicApi: true },
+    // Québec
     { id: "montreal", name: "Montréal, Québec", city: "Montréal", hasPublicApi: true },
+    { id: "quebec_city", name: "Québec City, Québec", city: "Québec City", hasPublicApi: true },
+    { id: "laval", name: "Laval, Québec", city: "Laval", hasPublicApi: true },
+    { id: "gatineau", name: "Gatineau, Québec", city: "Gatineau", hasPublicApi: true },
+    // Alberta
     { id: "calgary", name: "Calgary, Alberta", city: "Calgary", hasPublicApi: true },
     { id: "edmonton", name: "Edmonton, Alberta", city: "Edmonton", hasPublicApi: true },
-    { id: "ottawa", name: "Ottawa, Ontario", city: "Ottawa", hasPublicApi: true },
+    { id: "red_deer", name: "Red Deer, Alberta", city: "Red Deer", hasPublicApi: true },
+    { id: "lethbridge", name: "Lethbridge, Alberta", city: "Lethbridge", hasPublicApi: true },
+    // Other provinces
     { id: "winnipeg", name: "Winnipeg, Manitoba", city: "Winnipeg", hasPublicApi: true },
-    { id: "quebec_city", name: "Québec City, Québec", city: "Québec City", hasPublicApi: true },
-    { id: "hamilton_on", name: "Hamilton, Ontario", city: "Hamilton", hasPublicApi: true },
     { id: "halifax", name: "Halifax, Nova Scotia", city: "Halifax", hasPublicApi: true },
+    { id: "saskatoon", name: "Saskatoon, Saskatchewan", city: "Saskatoon", hasPublicApi: true },
+    { id: "regina", name: "Regina, Saskatchewan", city: "Regina", hasPublicApi: true },
+    { id: "st_johns_nl", name: "St. John's, Newfoundland", city: "St. John's", hasPublicApi: true },
+    { id: "moncton", name: "Moncton, New Brunswick", city: "Moncton", hasPublicApi: true },
   ]},
 
   uk: { name: "United Kingdom", abbr: "UK", counties: [
