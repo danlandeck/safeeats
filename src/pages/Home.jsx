@@ -18,6 +18,7 @@ import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 import AISearchStatus from "../components/AISearchStatus";
+import DubaiSpotlight from "../components/DubaiSpotlight";
 
 import RestaurantDetail from "../components/RestaurantDetail";
 
@@ -549,6 +550,20 @@ const CITY_TO_COUNTY = {
   "pei": { region: "canada", countyId: "moncton", locationLabel: "Prince Edward Island, Canada" },
   "charlottetown": { region: "canada", countyId: "moncton", locationLabel: "Charlottetown, Prince Edward Island, Canada" },
 
+  // UAE / Dubai
+  "dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "uae": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "united arab emirates": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "abu dhabi": { region: "uae", countyId: "dubai", locationLabel: "Abu Dhabi, UAE" },
+  "sharjah": { region: "uae", countyId: "dubai", locationLabel: "Sharjah, UAE" },
+  "jbr": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "difc": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "downtown dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "palm jumeirah": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "marina dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "deira": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "bur dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  "jumeirah": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -561,7 +576,7 @@ const CITY_TO_COUNTY = {
   "montgomery county md": { region: "maryland", countyId: "montgomery_md" },
 };
 
-// The 7 cities with live government inspection APIs
+// Cities with live government inspection APIs (or featured AI-data cities)
 const LIVE_API_CITIES = [
   { label: "Seattle / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
@@ -570,6 +585,7 @@ const LIVE_API_CITIES = [
   { label: "Austin TX", region: "texas", countyId: "travis", emoji: "🤠", example: "tacos" },
   { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉", example: "sushi" },
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
+  { label: "Dubai 🇦🇪", region: "uae", countyId: "dubai", emoji: "🏙️", example: "restaurant", locationLabel: "Dubai, UAE" },
 ];
 
 
@@ -1072,11 +1088,20 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Dubai Spotlight */}
+            <DubaiSpotlight onSearchDubai={(q) => {
+              setRegion("uae");
+              setCountyId("dubai");
+              setLocationQuery("Dubai, UAE");
+              setSearchBarQuery(q);
+              setTimeout(() => handleSearch(q), 0);
+            }} />
+
             {/* Live data sources */}
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA"].map(src => (
+                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🇦🇪 Dubai, UAE"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
                     {src}
                   </span>
@@ -1227,7 +1252,7 @@ export default function Home() {
                           <div className="flex flex-wrap justify-center gap-2">
                             {LIVE_API_CITIES.map(city => (
                               <button key={city.countyId}
-                                onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); resetSearch(); }}
+                                onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.locationLabel || city.label); resetSearch(); }}
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
                                 {city.emoji} {city.label}
                               </button>

@@ -43,6 +43,19 @@ const PROCESSORS = {
 };
 
 // ── LLM prompt templates ──────────────────────────────────────────────────────
+// Dubai-specific prompt — maximizes known Dubai establishment data
+const promptDubai = (query, today) => `Today is ${today}. Search the web for real food safety inspection records for "${query}" in Dubai, UAE.
+
+CRITICAL RULES:
+- ALL results MUST be physically located in Dubai, UAE. Zero exceptions.
+- Dubai Municipality conducts food safety inspections. Use Dubai Pulse / dm.gov.ae / Dubai Municipality open data as primary source.
+- Return up to 10 real, verifiable restaurants/food establishments in Dubai matching "${query}".
+- latest_score: integer 0–100 (100 = perfect). latest_result: "Compliant", "Non-Compliant", "Pass", or "Approved" as used by Dubai Municipality.
+- violations: use the Dubai Municipality violation categories (food temperature, hygiene, storage, pest control, labeling, staff hygiene).
+- total_inspections: how many Dubai Municipality inspections are on record.
+- Include district/area in the address (e.g. "Sheikh Zayed Rd, DIFC", "JBR Walk, Jumeirah Beach Residence", "The Palm Jumeirah").
+- Do NOT return results from Abu Dhabi, Sharjah, or any other emirate unless explicitly asked.`;
+
 const promptFor = (query, location, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location}.
 
 CRITICAL RULES — READ CAREFULLY:
@@ -120,7 +133,11 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     ? locationLabel.trim()
     : null;
 
-  const prompt         = location ? promptFor(query, location, today) : promptGlobal(query, today);
+  // Dubai gets a dedicated high-quality prompt with Dubai Municipality context
+  const isDubai = location && /dubai/i.test(location);
+  const prompt = isDubai
+    ? promptDubai(query, today)
+    : location ? promptFor(query, location, today) : promptGlobal(query, today);
   const fastPrompt     = location
     ? `List up to 8 real restaurants matching "${query}" located in ${location}. IMPORTANT: Only return restaurants physically located in ${location} — not from any other country or region. Use your training data only — no web search. Include any known health inspection scores/grades if you have them. Be concise.`
     : `List up to 8 real restaurants matching "${query}" anywhere in the world. Use your training data only. Include any known health inspection scores/grades if you have them.`;
