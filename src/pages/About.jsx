@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility } from "lucide-react";
+import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -151,7 +151,7 @@ export default function About() {
                   bg: "bg-emerald-600",
                   title: "Live Government APIs",
                   pill: { text: "REAL-TIME", color: "bg-emerald-500 text-white" },
-                  body: "For jurisdictions that publish open-data APIs — including Los Angeles, New York City, Chicago, San Francisco, King County (Seattle), Austin, and Montgomery County MD — SafeEats queries the official database directly. Data is current as of the moment you search.",
+                  body: "For jurisdictions that publish open-data APIs — including Los Angeles, New York City, Chicago, San Francisco, King County (Seattle), Austin, Montgomery County MD, and Dubai Municipality via Dubai Pulse — SafeEats queries the official database directly. Data is current as of the moment you search.",
                 },
                 {
                   icon: <Search className="w-5 h-5 text-white" />,
@@ -206,6 +206,50 @@ export default function About() {
                   </p>
                   <p className="text-red-100 font-semibold text-sm">
                     SafeEats is just the facts. Inspector-issued scores. Violation codes. Official records. Did the health department pass this restaurant or not?
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* ── UAE / Dubai spotlight ── */}
+          <Section className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-green-50 overflow-hidden relative">
+            <div className="absolute top-0 right-0 text-7xl opacity-10 select-none pointer-events-none leading-none pr-4 pt-2">🇦🇪</div>
+            <div className="flex gap-4 items-start">
+              <div className="w-11 h-11 bg-gradient-to-br from-green-700 to-red-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <h2 className="text-xl font-extrabold text-slate-900">UAE & Dubai — A World Leader in Food Safety</h2>
+                  <Pill color="bg-green-700 text-white">LIVE DATA</Pill>
+                </div>
+                <p className="text-slate-600 leading-relaxed text-sm mb-4">
+                  Dubai Municipality is one of the most digitally advanced food safety authorities on the planet. Their open-data platform — <strong>Dubai Pulse</strong> — publishes real-time food establishment inspection records publicly via API, making Dubai one of only a handful of cities in the world to proactively expose this data at scale.
+                </p>
+                <div className="bg-white rounded-2xl border border-yellow-200 p-5 mb-4 shadow-sm">
+                  <p className="text-xs font-extrabold text-green-700 uppercase tracking-widest mb-3">What SafeEats Covers for the UAE</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { icon: "🏙️", title: "Dubai Municipality", desc: "Live inspection data via Dubai Pulse open API — real-time compliance ratings for every licensed food establishment in Dubai." },
+                      { icon: "📊", title: "Normalized A–F Grading", desc: "Dubai's High/Medium/Low risk matrix and compliance outcomes are normalized to SafeEats' universal 0–100 score and A–F grade." },
+                      { icon: "🕌", title: "Halal Verification Flags", desc: "SafeEats surfaces halal certification status where published, critical for dining decisions across the UAE." },
+                      { icon: "🌍", title: "All Seven Emirates", desc: "Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain — covered via AI-assisted research where live APIs don't yet exist." },
+                    ].map(({ icon, title, desc }) => (
+                      <div key={title} className="flex gap-3 items-start p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+                        <span className="text-xl leading-none mt-0.5">{icon}</span>
+                        <div>
+                          <p className="text-xs font-extrabold text-slate-800">{title}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-slate-900 rounded-2xl p-4 text-white">
+                  <p className="text-sm font-bold mb-1">🏆 Why Dubai Is a Model for the World</p>
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    Dubai's approach to open food safety data is a global benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats is proud to integrate this data and extend it to a global audience — putting Dubai's safety record on the same screen as New York, London, and Tokyo.
                   </p>
                 </div>
               </div>
