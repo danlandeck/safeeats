@@ -112,28 +112,32 @@ function isDubaiLocation(city, address) {
 }
 
 function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
+  // VALIDATE LOCATION ON ORIGINAL DATA BEFORE ANY OVERRIDES
   let isWrongLocation = false;
   
   if (countyId === "dubai") {
-    // Dubai: STRICT validation — must have Dubai markers, zero forbidden cities
     isWrongLocation = !isDubaiLocation(r.city, r.address);
+    // If wrong location, return early with flag set
+    if (isWrongLocation) {
+      const built = buildLLMRestaurant(r, i, countyId, location, null);
+      return { ...built, _wrongLocation: true };
+    }
+    // Only override city if location is valid
+    const built = {
+      ...buildLLMRestaurant(r, i, countyId, location, null),
+      city: "Dubai",
+      region: "uae",
+      country: "UAE",
+    };
+    return { ...built, _wrongLocation: false };
   } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
-    // Other cities: result city must contain first word of expected city
     const resultCityLower = (r.city || "").toLowerCase().trim();
     const expectedLower = expectedCity.toLowerCase().trim();
     const firstWord = expectedLower.split(/[\s,]+/)[0];
     isWrongLocation = firstWord.length > 2 && !resultCityLower.includes(firstWord);
   }
   
-  const built = countyId === "dubai"
-    ? {
-        ...buildLLMRestaurant(r, i, countyId, location, null),
-        city: "Dubai",
-        region: "uae",
-        country: "UAE",
-      }
-    : buildLLMRestaurant(r, i, countyId, location, null);
-  
+  const built = buildLLMRestaurant(r, i, countyId, location, null);
   return { ...built, _wrongLocation: isWrongLocation };
 }
 
