@@ -43,18 +43,6 @@ const PROCESSORS = {
 };
 
 // ── LLM prompt templates ──────────────────────────────────────────────────────
-// Dubai-specific prompt — maximizes known Dubai establishment data
-const promptDubai = (query, today) => `Today is ${today}. Search the web for real food safety inspection records for "${query}" in Dubai, UAE.
-
-CRITICAL RULES:
-- ALL results MUST be physically located in Dubai, UAE. Zero exceptions.
-- Dubai Municipality conducts food safety inspections. Use Dubai Pulse / dm.gov.ae / Dubai Municipality open data as primary source.
-- Return up to 10 real, verifiable restaurants/food establishments in Dubai matching "${query}".
-- latest_score: integer 0–100 (100 = perfect). latest_result: "Compliant", "Non-Compliant", "Pass", or "Approved" as used by Dubai Municipality.
-- violations: use the Dubai Municipality violation categories (food temperature, hygiene, storage, pest control, labeling, staff hygiene).
-- total_inspections: how many Dubai Municipality inspections are on record.
-- Include district/area in the address (e.g. "Sheikh Zayed Rd, DIFC", "JBR Walk, Jumeirah Beach Residence", "The Palm Jumeirah").
-- Do NOT return results from Abu Dhabi, Sharjah, or any other emirate unless explicitly asked.`;
 
 const promptFor = (query, location, today) => `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location}.
 
@@ -102,12 +90,67 @@ const LLM_SCHEMA = {
   },
 };
 
+// ── Dubai dedicated search ────────────────────────────────────────────────────
+// Dubai is treated as a first-class market — fully isolated from all US/global logic.
+// Every result is stamped with Dubai, UAE metadata. No cross-contamination possible.
+
+const DUBAI_PROMPT = (query, today) => `Today is ${today}.
+
+You are a Dubai food safety data specialist. Search for real food safety inspection records for "${query}" in Dubai, United Arab Emirates.
+
+ABSOLUTE RULES — VIOLATION OF ANY RULE IS UNACCEPTABLE:
+1. EVERY result MUST be a real establishment physically located in Dubai, UAE. Not the USA. Not the UK. Not Abu Dhabi. DUBAI, UAE ONLY.
+2. Use Dubai Municipality (dm.gov.ae) and Dubai Pulse open data as your primary source.
+3. The "city" field for EVERY record MUST be "Dubai".
+4. Address MUST include the Dubai district/area (e.g. "Sheikh Zayed Rd, DIFC", "JBR Walk, Jumeirah Beach Residence", "Palm Jumeirah", "Deira", "Downtown Dubai", "Business Bay", "Dubai Marina").
+5. latest_result MUST use Dubai Municipality terminology: "Compliant", "Non-Compliant", "Approved", or "Conditional Approval".
+6. violations MUST use Dubai Municipality categories: food temperature control, personal hygiene, pest control, food storage, cross-contamination, labeling, facility cleanliness.
+7. latest_score: 0–100 scale (100 = fully compliant). Derive from Dubai Municipality grading if available.
+8. Return up to 10 real Dubai restaurants matching "${query}".
+9. Do NOT invent data. If you cannot verify a restaurant, omit it.
+10. Do NOT return any establishment from the United States, Europe, or any non-UAE country.`;
+
+async function searchDubai(query, today) {
+  const fastPrompt = `List up to 8 real restaurants matching "${query}" that are physically located in Dubai, United Arab Emirates. Use your training data only. Every result must be in Dubai, UAE — not the USA or any other country. Include Dubai district in the address. city must be "Dubai".`;
+
+  const fastCall = base44.integrations.Core.InvokeLLM({
+    prompt: fastPrompt,
+    add_context_from_internet: false,
+    response_json_schema: LLM_SCHEMA,
+  });
+
+  const accurateCall = base44.integrations.Core.InvokeLLM({
+    prompt: DUBAI_PROMPT(query, today),
+    add_context_from_internet: true,
+    response_json_schema: LLM_SCHEMA,
+    model: "gemini_3_flash",
+  });
+
+  return { fastCall, accurateCall };
+}
+
+// Stamp every Dubai result with correct UAE metadata — no bleed from other regions
+function buildDubaiRestaurant(r, index) {
+  return buildLLMRestaurant(
+    {
+      ...r,
+      city: "Dubai",                          // Always Dubai
+      zip_code: r.zip_code || "",
+      phone: r.phone || "",
+    },
+    index,
+    "dubai",
+    "Dubai, UAE",
+    null
+  );
+}
+
 // ── Main search function ──────────────────────────────────────────────────────
 
 /**
  * @param {object} opts
  * @param {string}  opts.query         – the search term
- * @param {string}  opts.countyId      – e.g. "nyc", "king", "global"
+ * @param {string}  opts.countyId      – e.g. "nyc", "king", "dubai", "global"
  * @param {string}  opts.locationLabel – human-readable city label for AI prompt
  * @param {string}  opts.today         – formatted date string for AI prompt
  * @param {AbortSignal} [opts.signal]  – optional AbortController signal
@@ -117,7 +160,7 @@ const LLM_SCHEMA = {
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
   const safeFetch = (url) => fetch(url, signal ? { signal } : {}).then((r) => r.json());
 
-  // ── Live government API ───────────────────────────────────────────────────
+  // ── Live government API (US counties) ────────────────────────────────────
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
     const proc  = PROCESSORS[countyId];
@@ -126,23 +169,38 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: proc.process(Array.isArray(raw) ? raw : []), isAI: false, isAccurate: true };
   }
 
-  // ── AI-assisted search (any city/country not covered by live API) ─────────
-  // Always use the location if provided — never fall back to "anywhere in the world"
-  // when the user has specified a location. Only use global prompt if truly no location given.
+  // ── Dubai — fully isolated, first-class dedicated search path ─────────────
+  // Dubai is NEVER routed through US logic or generic global AI search.
+  if (countyId === "dubai") {
+    const { fastCall, accurateCall } = await searchDubai(query, today);
+
+    let fastDelivered = false;
+    fastCall.then((fastResult) => {
+      if (fastDelivered) return;
+      const fast = (fastResult?.restaurants || []).map((r, i) => buildDubaiRestaurant(r, i));
+      if (fast.length > 0 && onFastResults) {
+        fastDelivered = true;
+        onFastResults(fast);
+      }
+    }).catch(() => {});
+
+    const result = await accurateCall;
+    fastDelivered = true;
+
+    const restaurants = (result?.restaurants || []).map((r, i) => buildDubaiRestaurant(r, i));
+    return { results: restaurants, isAI: true, isAccurate: true };
+  }
+
+  // ── AI-assisted search (all other international cities/countries) ─────────
   const location = locationLabel && locationLabel.trim() !== "" && locationLabel !== "Worldwide (AI Search)"
     ? locationLabel.trim()
     : null;
 
-  // Dubai gets a dedicated high-quality prompt with Dubai Municipality context
-  const isDubai = location && /dubai/i.test(location);
-  const prompt = isDubai
-    ? promptDubai(query, today)
-    : location ? promptFor(query, location, today) : promptGlobal(query, today);
-  const fastPrompt     = location
-    ? `List up to 8 real restaurants matching "${query}" located in ${location}. IMPORTANT: Only return restaurants physically located in ${location} — not from any other country or region. Use your training data only — no web search. Include any known health inspection scores/grades if you have them. Be concise.`
+  const prompt = location ? promptFor(query, location, today) : promptGlobal(query, today);
+  const fastPrompt = location
+    ? `List up to 8 real restaurants matching "${query}" located in ${location}. IMPORTANT: Only return restaurants physically located in ${location} — not from any other country or region. Use your training data only. Include any known health inspection scores/grades if you have them.`
     : `List up to 8 real restaurants matching "${query}" anywhere in the world. Use your training data only. Include any known health inspection scores/grades if you have them.`;
 
-  // Fire both in parallel: fast (no internet) and accurate (with internet)
   const fastCall = base44.integrations.Core.InvokeLLM({
     prompt: fastPrompt,
     add_context_from_internet: false,
@@ -156,7 +214,6 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     model: "gemini_3_flash",
   });
 
-  // Whichever resolves first gets surfaced — fast call delivers preliminary results
   let fastDelivered = false;
 
   fastCall.then((fastResult) => {
@@ -170,9 +227,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     }
   }).catch(() => {});
 
-  // Always wait for accurate results
   const result = await accurateCall;
-  fastDelivered = true; // suppress fast delivery once accurate arrives
+  fastDelivered = true;
 
   const restaurants = (result?.restaurants || []).map((r, i) =>
     buildLLMRestaurant(r, i, countyId, location || "", null)
