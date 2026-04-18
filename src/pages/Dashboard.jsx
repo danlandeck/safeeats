@@ -360,24 +360,33 @@ export default function Dashboard() {
                       />
                       {CITIES.map(city => {
                         const score = cityScores[city.id];
-                        if (!score) return null;
-                        const color = score >= 90 ? "#1a9641" : score >= 80 ? "#a6d96a" : score >= 70 ? "#fdae61" : "#d7191c";
+                        const hasLiveData = score !== null && score !== undefined;
+                        const displayScore = hasLiveData ? score : 75; // fallback for bubble sizing
+                        const color = hasLiveData
+                          ? (score >= 90 ? "#1a9641" : score >= 80 ? "#a6d96a" : score >= 70 ? "#fdae61" : "#d7191c")
+                          : city.color;
                         const isHighlighted = focusCity?.id === city.id || (!focusCity && city.id === "king");
                         return (
                           <CircleMarker
                             key={city.id}
                             center={[city.lat, city.lng]}
-                            radius={isHighlighted ? Math.max(16, (100 - score) * 0.9) : Math.max(10, (100 - score) * 0.5)}
+                            radius={isHighlighted ? Math.max(16, (100 - displayScore) * 0.9) : Math.max(10, (100 - displayScore) * 0.5)}
                             fillColor={color}
                             color={isHighlighted ? "#fff" : "#ccc"}
                             weight={isHighlighted ? 3 : 1}
-                            fillOpacity={isHighlighted ? 0.9 : 0.4}
+                            fillOpacity={isHighlighted ? 0.9 : hasLiveData ? 0.75 : 0.4}
                           >
                             <Popup>
                               <div className="text-center p-1">
                                 <p className="font-extrabold text-slate-900">{city.label}</p>
-                                <p className="text-2xl font-extrabold mt-1" style={{ color }}>{score}</p>
-                                <p className="text-xs text-slate-500">Avg Safety Score (live data)</p>
+                                {hasLiveData ? (
+                                  <>
+                                    <p className="text-2xl font-extrabold mt-1" style={{ color }}>{score}</p>
+                                    <p className="text-xs text-slate-500">Avg Safety Score (live data)</p>
+                                  </>
+                                ) : (
+                                  <p className="text-xs text-slate-400 mt-1">No live data yet</p>
+                                )}
                               </div>
                             </Popup>
                           </CircleMarker>
