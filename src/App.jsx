@@ -6,6 +6,7 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import CountyDrillDown from './pages/CountyDrillDown';
+import CountryCodes from './pages/CountryCodes';
 import Widget from './pages/Widget';
 import EmbedGenerator from './pages/EmbedGenerator';
 import Dashboard from './pages/Dashboard';
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
       <Route path="/dashboard" element={<LayoutWrapper currentPageName="Dashboard"><Dashboard /></LayoutWrapper>} />
       <Route path="/widget" element={<Widget />} />
       <Route path="/embed" element={<LayoutWrapper currentPageName="EmbedGenerator"><EmbedGenerator /></LayoutWrapper>} />
+      <Route path="/country-codes" element={<LayoutWrapper currentPageName="CountryCodes"><CountryCodes /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

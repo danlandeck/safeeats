@@ -1,4 +1,5 @@
 export function getGrade(score) {
+  if (score === null || score === undefined) return "U";
   if (score >= 90) return "A";
   if (score >= 80) return "B";
   if (score >= 70) return "C";
