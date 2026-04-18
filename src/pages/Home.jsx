@@ -946,19 +946,37 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white" role="banner">
-        <div className="max-w-5xl mx-auto px-4 pt-12 pb-10 sm:pt-16 sm:pb-12">
-          <div className="text-center mb-8">
+        <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 sm:pt-14 sm:pb-10">
+          <div className="text-center mb-7">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
               🛡️ Real Government Data · Updated Daily
             </div>
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
-              {t.headline1}
-              <br className="hidden sm:block" />
-              <span className="text-[#4CAF50]"> {t.headline2}</span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
+              Is your restaurant
+              <span className="text-[#4CAF50]"> safe to eat at?</span>
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-slate-300 font-medium max-w-xl mx-auto">
-              {t.subheadline}
+            <p className="mt-3 text-base sm:text-lg text-slate-300 font-medium max-w-lg mx-auto">
+              Search any restaurant, anywhere in the world. See real health inspection grades, violations, and history — in plain English.
             </p>
+
+            {/* Grade scale — immediately visible on landing */}
+            {!hasSearched && (
+              <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
+                {[
+                  { g: "A", color: "bg-green-700 text-white", tip: "Excellent" },
+                  { g: "B", color: "bg-green-400 text-white", tip: "Good" },
+                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: "Okay" },
+                  { g: "D", color: "bg-orange-400 text-white", tip: "Poor" },
+                  { g: "F", color: "bg-red-600 text-white", tip: "Critical" },
+                ].map(({ g, color, tip }) => (
+                  <div key={g} className="flex flex-col items-center gap-0.5">
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-base shadow-sm ${color}`}>{g}</span>
+                    <span className="text-[9px] text-slate-400 font-semibold">{tip}</span>
+                  </div>
+                ))}
+                <span className="text-slate-500 text-xs ml-1">← grades explained</span>
+              </div>
+            )}
           </div>
 
           <SmartSearchPanel
@@ -972,7 +990,6 @@ export default function Home() {
               if (match && REGIONS[match.region]) {
                 setRegion(match.region);
                 setCountyId(match.countyId);
-                // Use enriched label (e.g. "Vancouver, British Columbia, Canada") if available
                 if (match.locationLabel) setLocationQuery(match.locationLabel);
               } else {
                 setRegion("global");
@@ -997,98 +1014,73 @@ export default function Home() {
             }}
           />
 
-          {!hasSearched && (
-            <div className="w-full max-w-4xl mx-auto">
-              <HeroViolations />
-            </div>
-          )}
-
-          {hasSearched && (
-            <div className="flex justify-center gap-2 mt-4">
+          <div className="flex justify-center gap-2 mt-4">
+            {hasSearched && (
               <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
                 <X className="w-4 h-4" /> New Search
               </button>
-              <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-                📷 Scan Sign
-              </button>
-            </div>
-          )}
+            )}
+            <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
+              📷 {hasSearched ? "Scan Sign" : "Scan a Restaurant Sign"}
+            </button>
+          </div>
 
           {!hasSearched && (
-            <div className="flex justify-center mt-4">
-              <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-                📷 Scan a Restaurant Sign
-              </button>
+            <div className="w-full max-w-4xl mx-auto mt-4">
+              <HeroViolations />
             </div>
           )}
-
         </div>
       </div>
 
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
         {!hasSearched && (
-          <div className="space-y-10 mb-10">
+          <div className="space-y-8 mb-10">
 
-            {/* ADA callout banner */}
-            <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-              <span className="text-3xl flex-shrink-0">♿</span>
-              <div>
-                <p className="text-white font-extrabold text-sm">ADA Accessibility Info on Every Restaurant</p>
-                <p className="text-emerald-100 text-xs mt-0.5 leading-relaxed">
-                  SafeEats checks wheelchair access, accessible restrooms, and parking for every US restaurant — because accessibility matters as much as food safety.
-                </p>
-              </div>
+            {/* Quick explainer */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { emoji: "🔍", title: "Search any restaurant", desc: "Type a name, a food type like \"pizza\", or your city. Works worldwide." },
+                { emoji: "📋", title: "See the real grade", desc: "We pull actual government health inspection records — the same ones the inspector files." },
+                { emoji: "🛡️", title: "Eat with confidence", desc: "A–F grades, plain-English summaries, and full violation history for every restaurant." },
+              ].map(({ emoji, title, desc }) => (
+                <div key={title} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex gap-4 items-start">
+                  <span className="text-3xl flex-shrink-0">{emoji}</span>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-sm mb-1">{title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Stats strip */}
+            {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "180+", label: "Countries & regions" },
-                { value: "50K+", label: "Restaurants tracked" },
-                { value: "100%", label: "Free & public data" },
-                { value: "♿ ADA", label: "Accessibility checked" },
-              ].map(({ value, label }) => (
+                { value: "180+", label: "Countries & regions", emoji: "🌍" },
+                { value: "50K+", label: "Restaurants tracked", emoji: "🍽️" },
+                { value: "100%", label: "Free, always", emoji: "✅" },
+                { value: "♿", label: "ADA accessibility checked", emoji: "" },
+              ].map(({ value, label, emoji }) => (
                 <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+                  <p className="text-2xl font-extrabold text-slate-900">{emoji} {value}</p>
                   <p className="text-xs text-slate-500 mt-0.5 font-medium">{label}</p>
                 </div>
               ))}
             </div>
 
-            {/* How it works */}
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-800 mb-4 text-center">How SafeEats Works</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { step: "1", icon: "🔍", title: "Search Any Restaurant", desc: "Type a name, cuisine, or location. We search live government health databases and AI sources instantly." },
-                  { step: "2", icon: "📋", title: "See Real Inspection Data", desc: "Get the actual health inspection scores, violations, and pass/fail results — the same records inspectors file." },
-                  { step: "3", icon: "🛡️", title: "Make an Informed Choice", desc: "Our A–F grading normalizes scores across cities so you can compare any restaurant, anywhere." },
-                ].map(({ step, icon, title, desc }) => (
-                  <div key={step} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-sm font-extrabold flex items-center justify-center flex-shrink-0">{step}</div>
-                      <span className="text-2xl">{icon}</span>
-                    </div>
-                    <h3 className="font-extrabold text-slate-900 text-sm mb-1">{title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Live data sources */}
             <div className="bg-slate-900 rounded-2xl p-5">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-4">Live Government Data Sources</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {["King County, WA", "New York City, NY", "Chicago, IL", "Montgomery Co., MD", "Austin, TX", "San Francisco, CA", "Los Angeles, CA"].map(src => (
-                  <span key={src} className="flex items-center gap-1.5 bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA"].map(src => (
+                  <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
                     {src}
                   </span>
                 ))}
               </div>
-              <p className="text-center text-xs text-slate-500 mt-4">🌍 Any other city, country, province, or region worldwide is covered via AI-powered search of public health records.</p>
+              <p className="text-center text-xs text-slate-500 mt-3">🌍 Everywhere else is covered by AI-powered search of public health records. Just type any city or country!</p>
             </div>
 
           </div>
@@ -1148,15 +1140,20 @@ export default function Home() {
                         </div>
                         ) : results.length > 0 ? (
                       <div>
+                        {/* Results header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
-                            <p className="text-sm font-bold text-slate-700">
-                              {t.resultsFor(filteredAndSortedResults.length, results.length, searchQuery)}
-                              {nearMeActive && <span className="ml-1 text-blue-600">{t.withinDist}</span>}
-                              {gradeFilter && <span className="ml-1 text-slate-500 font-normal">· Grade {gradeFilter} filter active</span>}
+                            <p className="text-sm font-extrabold text-slate-800">
+                              Found {filteredAndSortedResults.length} restaurant{filteredAndSortedResults.length !== 1 ? "s" : ""}
+                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""} 
+                              {searchQuery ? ` for "${searchQuery}"` : ""}
+                              {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
-                            <p className="text-xs text-slate-400 mt-0.5">Sorted by safety score · click any card for full inspection history</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {gradeFilter ? `Showing Grade ${gradeFilter} only · ` : ""}
+                              Sorted by safety score — tap any restaurant to see its full history
+                            </p>
                           </div>
                           <div className="flex gap-2 flex-wrap justify-end">
                             <button
@@ -1167,7 +1164,7 @@ export default function Home() {
                               }`}
                             >
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
-                              {nearMeActive ? "📍 Near Me (ON)" : "📍 Near Me"}
+                              {nearMeActive ? "📍 Near Me ON" : "📍 Near Me"}
                             </button>
                             <button onClick={() => setViewMode("list")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               📋 List
@@ -1214,21 +1211,28 @@ export default function Home() {
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-16">
-                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-3xl">🌍</span>
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-700">No results found for "{searchQuery}"</h3>
-                        <p className="text-sm text-slate-400 mt-1 mb-4">Try a different spelling or a broader term like "pizza" or "burger".</p>
-                        <p className="text-xs text-slate-500 mb-6">Location searched: <span className="font-semibold text-slate-700">{locationQuery}</span></p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {LIVE_API_CITIES.map(city => (
-                            <button key={city.countyId}
-                              onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); resetSearch(); }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
-                              {city.emoji} {city.label}
-                            </button>
-                          ))}
+                      <div className="text-center py-14 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <span className="text-5xl">🤷</span>
+                        <h3 className="text-lg font-extrabold text-slate-800 mt-4">Nothing found for "{searchQuery}"</h3>
+                        <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">
+                          Try a different spelling, a broader word (like "pizza" or "chicken"), or make sure your location is right.
+                        </p>
+                        {locationQuery && (
+                          <p className="text-xs text-slate-400 mt-2">
+                            📍 You searched in: <span className="font-bold text-slate-600">{locationQuery}</span>
+                          </p>
+                        )}
+                        <div className="mt-6">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Try one of these cities with live data:</p>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {LIVE_API_CITIES.map(city => (
+                              <button key={city.countyId}
+                                onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.label); resetSearch(); }}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
+                                {city.emoji} {city.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}

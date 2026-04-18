@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
-  ExternalLink, Award, Users
+  ExternalLink, Award, Users, TrendingUp
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
+import GradeBadge from "./GradeBadge";
+import SafetySnapshot from "./SafetySnapshot";
 import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
@@ -22,29 +24,6 @@ import { translateViolation } from "../utils/violationTranslator";
 function buildViolationKey(desc) {
   const { category } = translateViolation(desc);
   return category;
-}
-
-// ── Family-friendly verdict copy ─────────────────────────────────────────────
-function getFamilySummary(score, grade, repeatCount, cleanStreak) {
-  if (score === null || score === undefined) {
-    return { emoji: "❓", headline: "No inspection data available", body: "We couldn't find official records for this location. Use extra caution.", color: "bg-slate-50 border-slate-200 text-slate-700" };
-  }
-  if (cleanStreak >= 3) {
-    return { emoji: "⭐", headline: "Consistently clean — great for families", body: "This place has passed multiple inspections in a row with no issues.", color: "bg-green-50 border-green-200 text-green-800" };
-  }
-  if (score >= 90) {
-    return { emoji: "✅", headline: "Excellent food safety record", body: "Very low risk. Inspectors found no significant issues.", color: "bg-green-50 border-green-200 text-green-800" };
-  }
-  if (score >= 80) {
-    return { emoji: "👍", headline: "Good safety record", body: "Minor issues noted, but nothing serious. Generally safe.", color: "bg-green-50 border-green-200 text-green-800" };
-  }
-  if (score >= 70) {
-    return { emoji: "⚠️", headline: "Some concerns — proceed with care", body: "A few issues were found. Worth keeping an eye on repeat violations.", color: "bg-yellow-50 border-yellow-200 text-yellow-800" };
-  }
-  if (repeatCount >= 2) {
-    return { emoji: "🔴", headline: "Ongoing safety issues", body: "This restaurant has repeat violations across multiple inspections. Families with young children or immunocompromised members should be cautious.", color: "bg-red-50 border-red-200 text-red-800" };
-  }
-  return { emoji: "⚠️", headline: "Below-average safety record", body: "Significant issues were found. The restaurant may have addressed them — check the most recent inspection.", color: "bg-orange-50 border-orange-200 text-orange-800" };
 }
 
 // ── Data source registry ──────────────────────────────────────────────────────
@@ -119,7 +98,6 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
     : (restaurant.grade || getGrade(restaurant.safetyScore));
   const latestDate = uniqueInspections[0]?.inspection_date;
   const totalRepeatCount = repeatCategories.size;
-  const familySummary = getFamilySummary(restaurant.safetyScore, grade, totalRepeatCount, cleanStreak);
 
   // ── Source info ────────────────────────────────────────────────────────────
   const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source];
@@ -157,12 +135,12 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
       {/* ── HERO CARD ── */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        {/* Top accent strip showing grade color */}
-        <div className={`h-1.5 w-full ${getGradeColor(grade).split(" ")[0]}`} />
+        {/* Grade color top bar */}
+        <div className={`h-2 w-full ${getGradeColor(grade).split(" ")[0]}`} />
 
-        <div className="p-6 md:p-8">
+        <div className="p-5 md:p-7">
           {/* Name + actions row */}
-          <div className="flex items-start justify-between gap-3 mb-6">
+          <div className="flex items-start justify-between gap-3 mb-5">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 {restaurant.name}
@@ -170,6 +148,23 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               <div className="flex items-center gap-1.5 mt-1.5 text-sm text-slate-500">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{restaurant.address}, {restaurant.city} {restaurant.zip_code}</span>
+              </div>
+              {/* Contact row */}
+              <div className="flex flex-wrap gap-3 mt-2">
+                {restaurant.phone && (
+                  <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}
+                    className="flex items-center gap-1 text-sm text-emerald-700 font-semibold hover:underline">
+                    <Phone className="w-3.5 h-3.5" />{restaurant.phone}
+                  </a>
+                )}
+                <a
+                  href={restaurant.website?.startsWith("http") ? restaurant.website : `https://www.google.com/search?q=${encodeURIComponent(restaurant.name + " " + (restaurant.city || "") + " restaurant")}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-sm text-blue-600 font-semibold hover:underline"
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  {restaurant.website ? "Visit website" : "Find online"}
+                </a>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -187,92 +182,75 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               >
                 <Share2 className="w-4 h-4" />
               </button>
-              {shareMsg && (
-                <span className="text-xs text-green-600 font-semibold">{shareMsg}</span>
-              )}
+              {shareMsg && <span className="text-xs text-green-600 font-semibold">{shareMsg}</span>}
             </div>
           </div>
 
-          {/* GAUGE — hero element */}
-          <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
-            <div className="flex flex-col items-center gap-3">
-              <ScoreGauge score={hasInspections ? restaurant.safetyScore : null} size="lg" animate={true} />
-              <span className={`text-base font-extrabold px-4 py-1.5 rounded-xl ${getGradeColor(grade)}`}>
-                {grade === "U" ? "Unknown" : `Grade ${grade}`}
-              </span>
-              {isConsistentPerformer && (
-                <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                  <Award className="w-3.5 h-3.5" /> Consistent Performer
+          {/* Grade + Score + Stats row */}
+          <div className="flex flex-col sm:flex-row items-start gap-5">
+            {/* Left: Big grade + gauge */}
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="flex flex-col items-center gap-1">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-5xl font-black shadow-md ${getGradeColor(grade)}`}>
+                  {grade}
+                </div>
+                <span className="text-xs font-bold text-slate-500 mt-1">
+                  {grade === "U" ? "No data" : `${hasInspections ? restaurant.safetyScore : "??"}/100`}
                 </span>
-              )}
-              <FailRiskBadge inspections={uniqueInspections} size="lg" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {isConsistentPerformer && (
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                    <Award className="w-3 h-3" /> Consistent Performer
+                  </span>
+                )}
+                <FailRiskBadge inspections={uniqueInspections} size="lg" />
+              </div>
             </div>
 
-            {/* Quick stats — each taps to the relevant section */}
-            <div className="flex-1 grid grid-cols-2 gap-3 w-full sm:w-auto">
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 rounded-2xl p-3 text-center hover:bg-slate-100 transition-colors cursor-pointer group">
+            {/* Right: Quick stat boxes */}
+            <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group">
                 <p className="text-xl font-extrabold text-slate-900">{uniqueInspections.length}</p>
-                <p className="text-xs text-slate-500 mt-0.5">Inspections on record</p>
-                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+                <p className="text-xs text-slate-500 leading-tight">Total inspections</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View history ↓</p>
               </button>
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 rounded-2xl p-3 text-center hover:bg-slate-100 transition-colors cursor-pointer group">
-                <p className="text-xl font-extrabold text-slate-900">
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group">
+                <p className="text-lg font-extrabold text-slate-900 leading-tight">
                   {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">Last inspected</p>
-                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+                <p className="text-xs text-slate-500">Last inspected</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View history ↓</p>
               </button>
-              <button onClick={() => scrollTo("inspection-history")} className={`rounded-2xl p-3 text-center hover:opacity-80 transition-opacity cursor-pointer group ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`}>
-                <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`}>
-                  {totalRepeatCount}
+              <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`}>
+                <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`}>{totalRepeatCount}</p>
+                <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`}>
+                  Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
                 </p>
-                <p className={`text-xs mt-0.5 ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`}>
-                  Repeat issue{totalRepeatCount !== 1 ? "s" : ""}
-                </p>
-                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">What's this? ↓</p>
               </button>
-              <button onClick={() => scrollTo("score-trend")} className={`rounded-2xl p-3 text-center hover:opacity-80 transition-opacity cursor-pointer group ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`}>
-                <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`}>
-                  {cleanStreak}
-                </p>
-                <p className={`text-xs mt-0.5 ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`}>
-                  Clean in a row
-                </p>
-                <p className="text-[10px] text-blue-500 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Tap to view ↓</p>
+              <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`}>
+                <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`}>{cleanStreak}</p>
+                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`}>Clean streak</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View trend ↓</p>
               </button>
             </div>
           </div>
 
-          {/* Family-friendly summary */}
-          <div className={`mt-5 flex items-start gap-3 p-4 rounded-2xl border ${familySummary.color}`}>
-            <span className="text-xl flex-shrink-0">{familySummary.emoji}</span>
-            <div>
-              <p className="text-sm font-bold">{familySummary.headline}</p>
-              <p className="text-xs mt-0.5 leading-relaxed opacity-80">{familySummary.body}</p>
-            </div>
+          {/* Plain-English safety summary */}
+          <div className="mt-5">
+            <SafetySnapshot
+              score={restaurant.safetyScore}
+              grade={grade}
+              cleanStreak={cleanStreak}
+              repeatCount={totalRepeatCount}
+              totalInspections={uniqueInspections.length}
+            />
           </div>
 
           {/* ADA Accessibility */}
-          <div className="mt-5">
+          <div className="mt-4">
             <ADAAccessibilityBadge restaurant={restaurant} />
-          </div>
-
-          {/* Contact + directions */}
-          <div className="flex flex-wrap gap-3 mt-5">
-            {restaurant.phone && (
-              <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}
-                className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:underline">
-                <Phone className="w-4 h-4" />{restaurant.phone}
-              </a>
-            )}
-            <a
-              href={restaurant.website?.startsWith("http") ? restaurant.website : `https://www.google.com/search?q=${encodeURIComponent(restaurant.name + " " + (restaurant.city || "") + " restaurant")}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-blue-600 font-medium hover:underline"
-            >
-              <Globe className="w-4 h-4" />
-              {restaurant.website ? "Website" : "Find online"}
-            </a>
           </div>
         </div>
 
@@ -333,20 +311,12 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       </div>
 
       {/* ── Ko-fi support button ── */}
-      <div className={`flex items-start gap-3 p-4 rounded-2xl border ${
-        (restaurant.safetyScore !== null && restaurant.safetyScore < 70)
-          ? "bg-red-50 border-red-200"
-          : "bg-amber-50 border-amber-200"
-      }`}>
+      <div className="flex items-start gap-3 p-4 rounded-2xl border bg-amber-50 border-amber-200">
         <span className="text-xl flex-shrink-0">☕</span>
         <div className="flex-1">
-          <p className="text-sm font-bold text-slate-700">
-            {(restaurant.safetyScore !== null && restaurant.safetyScore < 70)
-              ? "Glad we warned you? Help keep SafeEats free!"
-              : "Find SafeEats useful? Help keep it running!"}
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5 mb-3">100% free, no ads — powered by your support.</p>
-          <KofiButton context={restaurant.safetyScore < 70 ? "bad_score" : "default"} />
+          <p className="text-sm font-bold text-slate-700">SafeEats is 100% free — no ads, no paywalls</p>
+          <p className="text-xs text-slate-500 mt-0.5 mb-3">If this helped you make a better dining decision, consider buying us a coffee.</p>
+          <KofiButton context={restaurant.safetyScore !== null && restaurant.safetyScore < 70 ? "bad_score" : "default"} />
         </div>
       </div>
 
@@ -361,23 +331,35 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       {/* ── Trend chart (only if multiple inspections) ── */}
       {uniqueInspections.length > 1 && (
         <div id="score-trend" className="scroll-mt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-4 h-4 text-slate-500" />
+            <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Score Over Time</h2>
+            <span className="text-xs text-slate-400">— is it getting better or worse?</span>
+          </div>
           <InspectionTrendChart inspections={uniqueInspections} />
         </div>
       )}
 
       {/* ── Inspection History ── */}
       <div id="inspection-history" className="scroll-mt-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
-            Inspection History
-          </h2>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+              📋 Inspection History
+            </h2>
+            {uniqueInspections.length > 0 && (
+              <p className="text-xs text-slate-400 mt-0.5">
+                Each card = one visit from a health inspector. Tap to expand violations.
+              </p>
+            )}
+          </div>
           {uniqueInspections.length > 0 && (
             <button
               onClick={() => setShowRawData((v) => !v)}
               className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 font-semibold border border-slate-200 px-3 py-1.5 rounded-lg bg-white transition-colors"
             >
               <Users className="w-3.5 h-3.5" />
-              {showRawData ? "Simple view" : "Power user view"}
+              {showRawData ? "Simple view" : "Raw data"}
             </button>
           )}
         </div>
@@ -386,9 +368,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3">
             <span className="text-amber-500 text-lg mt-0.5">⚠</span>
             <div>
-              <p className="text-sm font-semibold text-amber-800">No official inspection records found</p>
+              <p className="text-sm font-bold text-amber-800">No official inspection records in our database</p>
               <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                The safety score shown is an AI estimate based on publicly available sources. It is not from a live government database and may not reflect the most recent inspection.
+                The score shown is an AI estimate from public sources — not a live government record. It may be outdated. Always call the restaurant or check your local health department's website to verify.
               </p>
             </div>
           </div>

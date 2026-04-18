@@ -1,32 +1,33 @@
 import React from "react";
 
 const TOP_VIOLATIONS = [
-  { emoji: "🐀", label: "Rodents / Pests", count: "2,341", color: "bg-red-50 border-red-200 text-red-700" },
-  { emoji: "🌡️", label: "Temperature Abuse", count: "3,812", color: "bg-orange-50 border-orange-200 text-orange-700" },
-  { emoji: "🙌", label: "Poor Hand Hygiene", count: "1,994", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-  { emoji: "🧹", label: "Unclean Surfaces", count: "2,670", color: "bg-blue-50 border-blue-200 text-blue-700" },
-  { emoji: "🥩", label: "Cross-Contamination", count: "1,587", color: "bg-purple-50 border-purple-200 text-purple-700" },
+  { label: "Rodents & Pests", count: "18,400+", emoji: "🐀", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  { label: "Improper Temps", count: "31,200+", emoji: "🌡️", bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+  { label: "Poor Handwashing", count: "22,800+", emoji: "🧼", bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200" },
+  { label: "Cross-Contamination", count: "14,500+", emoji: "🦠", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
 ];
 
 export default function HeroViolations() {
   return (
-    <div className="mt-8">
-      <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-        Most Common Violations in Our Database
+    <div className="mt-6">
+      <p className="text-center text-xs text-slate-400 font-semibold uppercase tracking-widest mb-3">
+        Most common violations found in our database
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        {TOP_VIOLATIONS.map(({ emoji, label, count, color }) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {TOP_VIOLATIONS.map(({ label, count, emoji, bg, text, border }) => (
           <div
             key={label}
-            className={`flex flex-col items-center gap-1.5 border rounded-2xl px-3 py-4 ${color} transition-transform hover:scale-105`}
+            className={`${bg} ${border} border rounded-xl px-3 py-2.5 text-center`}
           >
-            <span className="text-3xl" role="img" aria-label={label}>{emoji}</span>
-            <span className="text-xs font-bold text-center leading-tight">{label}</span>
-            <span className="text-lg font-extrabold">{count}</span>
-            <span className="text-[10px] font-medium opacity-70">violations</span>
+            <div className="text-2xl mb-1">{emoji}</div>
+            <p className={`text-xs font-extrabold ${text}`}>{count}</p>
+            <p className={`text-[10px] font-semibold ${text} opacity-80 mt-0.5 leading-tight`}>{label}</p>
           </div>
         ))}
       </div>
+      <p className="text-center text-[11px] text-slate-400 mt-2">
+        These are real violations recorded by health inspectors — search any restaurant to see theirs
+      </p>
     </div>
   );
 }

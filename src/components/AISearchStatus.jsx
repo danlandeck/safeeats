@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Loader2, Zap, ShieldCheck, X } from "lucide-react";
 
 const MESSAGES = [
-  "🔍 Scanning global health databases…",
-  "🌐 Cross-referencing government inspection records…",
-  "🧠 AI is verifying real violations and scores…",
-  "📋 Compiling inspection history from public sources…",
-  "🛡️ Almost there — accuracy check in progress…",
+  "🔍 Searching health department records…",
+  "🌐 Looking up real government inspection data…",
+  "🧠 Double-checking scores and violations…",
+  "📋 Pulling full inspection history…",
+  "🛡️ Almost done — running final accuracy check…",
 ];
 
 export default function AISearchStatus({ hasFastResults, onAcceptFast, onCancel }) {
@@ -39,10 +39,9 @@ export default function AISearchStatus({ hasFastResults, onAcceptFast, onCancel 
 
       {/* Accuracy notice */}
       <div className="mt-5 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 max-w-sm text-center">
-        <p className="text-xs font-bold text-amber-800 mb-0.5">⏳ Why does this take time?</p>
+        <p className="text-xs font-bold text-amber-800 mb-0.5">⏳ Why does this take a moment?</p>
         <p className="text-xs text-amber-700 leading-relaxed">
-          SafeEats searches <strong>real government health records</strong> from NYC to Tokyo, Cape Town to Anchorage.
-          Web-verified data takes 15–25s. It's worth it.
+          We're pulling <strong>real government health records</strong> from public databases worldwide — not just cached data. This takes 15–25 seconds but gives you actual verified results.
         </p>
       </div>
 

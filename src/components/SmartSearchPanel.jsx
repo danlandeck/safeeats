@@ -111,7 +111,7 @@ export default function SmartSearchPanel({
       {/* Location field */}
       <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
-          <MapPin className="w-4 h-4" aria-hidden="true" /> Where are you eating?
+          <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
         </p>
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -119,7 +119,7 @@ export default function SmartSearchPanel({
             <input
               value={locationQuery}
               onChange={(e) => onLocationChange(e.target.value)}
-              placeholder="City, state or country — e.g. Seattle, Tokyo, London…"
+              placeholder="City, state, or country — e.g. New York, Tokyo, London…"
               className={fieldClass}
               aria-label="Location"
             />
@@ -187,7 +187,7 @@ export default function SmartSearchPanel({
       {/* Search field */}
       <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
-          <Search className="w-4 h-4" aria-hidden="true" /> Which restaurant or food type?
+          <Search className="w-4 h-4" aria-hidden="true" /> Step 2 — Search restaurant or food type
         </p>
         <form onSubmit={handleSubmit}>
           <div className="flex gap-2">
@@ -199,7 +199,7 @@ export default function SmartSearchPanel({
                 onChange={handleChange}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder="Restaurant name, cuisine, or zip code…"
+                placeholder='Restaurant name, cuisine type, or zip — e.g. "McDonald\'s" or "sushi"'
                 className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
