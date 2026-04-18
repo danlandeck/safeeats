@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, X, GitCompareArrows, LocateFixed, Loader2, MapPin } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
@@ -975,7 +975,7 @@ export default function Home() {
                     <span className="text-[9px] text-slate-400 font-semibold">{tip}</span>
                   </div>
                 ))}
-                <span className="text-slate-500 text-xs ml-1">← grades explained</span>
+                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors">← grades explained</Link>
               </div>
             )}
           </div>

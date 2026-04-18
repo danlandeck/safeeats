@@ -95,26 +95,47 @@ export default function About() {
           </Section>
 
           {/* ── Grading ── */}
+          <div id="grading" className="scroll-mt-6">
           <Section>
             <h2 className="text-2xl font-extrabold text-slate-900 mb-5">The Grading System</h2>
-            <div className="grid grid-cols-5 gap-2 mb-6">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
               {[
-                { grade: "A", range: "90–100", color: "bg-green-700",  text: "text-white" },
-                { grade: "B", range: "80–89",  color: "bg-green-400",  text: "text-white" },
-                { grade: "C", range: "70–79",  color: "bg-yellow-400", text: "text-slate-800" },
-                { grade: "D", range: "60–69",  color: "bg-orange-400", text: "text-white" },
-                { grade: "F", range: "< 60",   color: "bg-red-600",    text: "text-white" },
-              ].map(({ grade, range, color, text }) => (
+                { grade: "A", range: "90–100", color: "bg-green-700",  text: "text-white",     label: "Excellent" },
+                { grade: "B", range: "80–89",  color: "bg-green-400",  text: "text-white",     label: "Good" },
+                { grade: "C", range: "70–79",  color: "bg-yellow-400", text: "text-slate-800", label: "Okay" },
+                { grade: "D", range: "60–69",  color: "bg-orange-400", text: "text-white",     label: "Poor" },
+                { grade: "F", range: "< 60",   color: "bg-red-600",    text: "text-white",     label: "Critical" },
+                { grade: "U", range: "No data",color: "bg-slate-400",  text: "text-white",     label: "Unknown" },
+              ].map(({ grade, range, color, text, label }) => (
                 <div key={grade} className={`${color} rounded-2xl p-3 text-center shadow-sm`}>
                   <div className={`text-2xl font-extrabold ${text}`}>{grade}</div>
-                  <div className={`text-xs font-semibold opacity-90 mt-0.5 ${text}`}>{range}</div>
+                  <div className={`text-xs font-bold mt-0.5 ${text}`}>{label}</div>
+                  <div className={`text-[10px] font-semibold opacity-80 mt-0.5 ${text}`}>{range}</div>
                 </div>
               ))}
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-600 leading-relaxed mb-4">
               Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
             </p>
+            {/* U grade callout */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex gap-3 items-start">
+              <div className="w-10 h-10 rounded-xl bg-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <span className="text-white font-black text-lg">U</span>
+              </div>
+              <div>
+                <p className="font-extrabold text-slate-800 text-sm mb-1">Unknown — What does this mean?</p>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  A <strong>U grade</strong> means we found this establishment but have <strong>no official inspection records</strong> on file. This is more common than you might think — many restaurants, food trucks, and pop-ups have never been inspected, or their records aren't publicly available yet.
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-slate-500">
+                  <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> If past inspections exist, you'll see their full history and trend chart on the detail page — even if a current score can't be calculated.</li>
+                  <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> If no inspections exist at all, the listing shows a clear "No official records found" notice — not a fabricated score.</li>
+                  <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> A U grade is <strong>not necessarily bad</strong> — but it means you should call ahead or check with your local health department before dining.</li>
+                </ul>
+              </div>
+            </div>
           </Section>
+          </div>
 
           {/* ── Data Sources ── */}
           <Section>
