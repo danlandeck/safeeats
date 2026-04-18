@@ -27,6 +27,14 @@ export default function DubaiSpotlight({ onSearchDubai }) {
       <div className="h-1 w-full bg-gradient-to-r from-[#c9a227] via-[#f0d060] to-[#c9a227]" />
 
       <div className="px-5 pt-5 pb-4">
+        {/* Partnership banner */}
+        <div className="flex items-center gap-2 mb-4 bg-[#c9a227]/10 border border-[#c9a227]/25 rounded-xl px-3 py-2">
+          <span className="text-lg flex-shrink-0">🤝</span>
+          <p className="text-xs text-[#f0d060] font-semibold leading-snug">
+            <span className="font-extrabold">Featured Partner Market</span> — showcased through our proud partnership with friends in Dubai, UAE
+          </p>
+        </div>
+
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
