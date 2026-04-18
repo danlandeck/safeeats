@@ -429,16 +429,16 @@ export default function Dashboard() {
                 <h2 className="font-extrabold text-slate-900 text-base mb-1">Grade Distribution</h2>
                 <p className="text-xs text-slate-400 mb-3">Tap a bar to see suspects</p>
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={gradeDist} onClick={(e) => {
+                  <BarChart data={gradeDist.filter(d => d.count > 0)} onClick={(e) => {
                     const g = e?.activePayload?.[0]?.payload?.grade;
                     if (g) setActiveGrade(prev => prev === g ? null : g);
                   }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="grade" tick={{ fontSize:13, fontWeight:700, fill:"#334155" }} />
-                    <YAxis tick={{ fontSize:11, fill:"#64748b" }} />
-                    <Tooltip contentStyle={{ borderRadius:8, fontSize:12 }} />
-                    <Bar dataKey="count" radius={[6,6,0,0]} name="Establishments" cursor="pointer">
-                      {gradeDist.map(({ grade }) => (
+                    <YAxis tick={{ fontSize:11, fill:"#64748b" }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ borderRadius:8, fontSize:12 }} formatter={(value, name, props) => [value, `Grade ${props.payload.grade}`]} />
+                    <Bar dataKey="count" radius={[6,6,0,0]} name="Establishments" cursor="pointer" minPointSize={4}>
+                      {gradeDist.filter(d => d.count > 0).map(({ grade }) => (
                         <Cell key={grade} fill={getGradeColor(grade)} opacity={activeGrade && activeGrade !== grade ? 0.35 : 1} />
                       ))}
                     </Bar>
