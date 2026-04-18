@@ -86,34 +86,36 @@ function llmCall(prompt, internet = false) {
   });
 }
 
-function buildDubaiRestaurant(r, i) {
-  // STRICT: Filter out any non-Dubai results that LLM may have returned
-  const city = (r.city || "").toLowerCase().trim();
-  const address = (r.address || "").toLowerCase();
-  const isForeignCity = ["boston", "london", "new york", "abu dhabi", "paris", "tokyo"].some(c => city.includes(c) || address.includes(c));
+function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
+  const resultCity = (r.city || "").toLowerCase().trim();
+  const expectedCityLower = (expectedCity || "").toLowerCase().trim();
   
-  return {
-    ...buildLLMRestaurant(r, i, "dubai", "Dubai", null),
-    city: "Dubai",
-    zip_code: r.zip_code || "",
-    source: "dubai",
-    county_id: "dubai",
-    region: "uae",
-    country: "UAE",
-    _isForeignFiltered: isForeignCity, // internal flag for debugging
-  };
+  // Strict city match: if result city doesn't match expected city, filter it out
+  const isWrongLocation = expectedCityLower && expectedCityLower !== "worldwide (ai search)" && 
+                         !resultCity.includes(expectedCityLower.split(/[\s,]+/)[0]);
+  
+  const built = countyId === "dubai"
+    ? {
+        ...buildLLMRestaurant(r, i, countyId, location, null),
+        city: expectedCity,
+        region: "uae",
+        country: "UAE",
+      }
+    : buildLLMRestaurant(r, i, countyId, location, null);
+  
+  return { ...built, _wrongLocation: isWrongLocation };
 }
 
 async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastResults) {
   let fastDelivered = false;
   fastPromise.then((res) => {
     if (fastDelivered) return;
-    const fast = (res?.restaurants || []).map(buildFn);
+    const fast = (res?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
     if (fast.length > 0 && onFastResults) { fastDelivered = true; onFastResults(fast); }
   }).catch(() => {});
   const result = await accuratePromise;
   fastDelivered = true;
-  return (result?.restaurants || []).map(buildFn);
+  return (result?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
 }
 
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
@@ -129,12 +131,10 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const restaurants = await runWithFastResults(
       llmCall(FAST_PROMPT_DUBAI(query), false),
       llmCall(PROMPT_DUBAI(query, today), true),
-      (r, i) => buildDubaiRestaurant(r, i),
+      (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
       onFastResults
     );
-    // FINAL FILTER: Remove any non-Dubai establishments that slipped through
-    const filtered = restaurants.filter(r => !r._isForeignFiltered);
-    return { results: filtered.length > 0 ? filtered : restaurants, isAI: true };
+    return { results: restaurants, isAI: true };
   }
 
   // AI global/location search
@@ -142,7 +142,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   const restaurants = await runWithFastResults(
     llmCall(FAST_PROMPT(query, location), false),
     llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
-    (r, i) => buildLLMRestaurant(r, i, countyId, location || "", null),
+    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
     onFastResults
   );
   return { results: restaurants, isAI: true };
