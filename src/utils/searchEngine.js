@@ -129,20 +129,19 @@ async function searchDubai(query, today) {
   return { fastCall, accurateCall };
 }
 
-// Stamp every Dubai result with correct UAE metadata — no bleed from other regions
+// Stamp every Dubai result with correct UAE metadata — hard override, no bleed possible
 function buildDubaiRestaurant(r, index) {
-  return buildLLMRestaurant(
-    {
-      ...r,
-      city: "Dubai",                          // Always Dubai
-      zip_code: r.zip_code || "",
-      phone: r.phone || "",
-    },
-    index,
-    "dubai",
-    "Dubai, UAE",
-    null
-  );
+  const base = buildLLMRestaurant(r, index, "dubai", "Dubai", null);
+  // Force-override every location field — no US city can ever appear
+  return {
+    ...base,
+    city: "Dubai",
+    zip_code: r.zip_code || "",
+    source: "dubai",
+    county_id: "dubai",
+    region: "uae",
+    country: "UAE",
+  };
 }
 
 // ── Main search function ──────────────────────────────────────────────────────
@@ -246,8 +245,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 export async function fetchDetail(restaurant) {
   const { source, business_id, isLLMData } = restaurant;
 
-  // LLM / AI data — build rows from embedded data
-  if (isLLMData) return llmToDetailRows(restaurant);
+  // Dubai and all AI/LLM data — build rows from embedded data, never hit a US API
+  if (isLLMData || source === "dubai" || source === "llm") return llmToDetailRows(restaurant);
 
   const countyId = sourceToCountyId(source);
   const entry    = API_REGISTRY[countyId];
@@ -272,6 +271,8 @@ function sourceToCountyId(source) {
     king: "king", nyc: "nyc", chicago: "cook",
     montgomery: "montgomery_md", austin: "travis",
     sf: "sf", la: "la",
+    dubai: "dubai",
+    llm: "llm",
   };
   return map[source] || source;
 }

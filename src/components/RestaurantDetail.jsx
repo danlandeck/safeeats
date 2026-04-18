@@ -35,6 +35,7 @@ const SOURCE_REGISTRY = {
   travis:         { name: "Austin / Travis County Health Services",    url: "https://www.austintexas.gov/department/food-establishments" },
   sf:             { name: "SF Dept. of Public Health — EHS",           url: "https://www.sf.gov/departments/department-public-health/environmental-health" },
   la:             { name: "LA County Dept. of Public Health",          url: "http://ehservices.publichealth.lacounty.gov/" },
+  dubai:          { name: "Dubai Municipality — Food Safety Department", url: "https://www.dm.gov.ae/en/business/food-safety" },
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
@@ -100,7 +101,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const totalRepeatCount = repeatCategories.size;
 
   // ── Source info ────────────────────────────────────────────────────────────
-  const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source];
+  const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source] || SOURCE_REGISTRY[restaurant.region === "uae" ? "dubai" : null];
 
   // ── Share handler ──────────────────────────────────────────────────────────
   const handleShare = async () => {
