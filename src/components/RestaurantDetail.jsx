@@ -2,11 +2,10 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
-  ExternalLink, Award, RefreshCw, Users
+  ExternalLink, Award, Users
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import ViolationItem from "./ViolationItem";
