@@ -19,9 +19,10 @@ import HeroViolations from "../components/HeroViolations";
 import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 import AISearchStatus from "../components/AISearchStatus";
 
+import RestaurantDetail from "../components/RestaurantDetail";
+
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
-const RestaurantDetail   = React.lazy(() => import("../components/RestaurantDetail"));
 const MapView            = React.lazy(() => import("../components/MapView"));
 const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
 const FilterSortControls = React.lazy(() => import("../components/FilterSortControls"));
@@ -1096,9 +1097,7 @@ export default function Home() {
                   <p className="text-sm text-slate-400">{t.loadingDetails}</p>
                 </div>
               ) : (
-                <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
-                  <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
-                </Suspense>
+                <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
               )}
             </motion.div>
           ) : (
