@@ -1,9 +1,8 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, ArrowUpDown, Calendar, ShieldCheck } from "lucide-react";
-import { getGrade } from "../utils/grading";
+import { Filter, ArrowUpDown } from "lucide-react";
 
-export default function FilterSortControls({ filterResult, onFilterChange, sortBy, onSortChange, dateFrom, onDateFromChange, dateTo, onDateToChange, minScore, onMinScoreChange }) {
+export default function FilterSortControls({ filterResult, onFilterChange, sortBy, onSortChange }) {
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
       <div className="flex items-center gap-2">
@@ -24,54 +23,6 @@ export default function FilterSortControls({ filterResult, onFilterChange, sortB
             <SelectItem value="Incomplete">Incomplete</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="h-4 w-px bg-slate-200" />
-
-      <div className="flex items-center gap-2">
-        <Calendar className="w-4 h-4 text-slate-400" />
-        <span className="text-xs font-medium text-slate-600">Inspected:</span>
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => onDateFromChange(e.target.value)}
-          className="h-8 px-2 text-xs border border-slate-200 rounded-md bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-400"
-          title="From date"
-        />
-        <span className="text-xs text-slate-400">–</span>
-        <input
-          type="date"
-          value={dateTo}
-          onChange={(e) => onDateToChange(e.target.value)}
-          className="h-8 px-2 text-xs border border-slate-200 rounded-md bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-400"
-          title="To date"
-        />
-        {(dateFrom || dateTo) && (
-          <button
-            onClick={() => { onDateFromChange(""); onDateToChange(""); }}
-            className="text-xs text-slate-400 hover:text-slate-700 font-semibold"
-          >✕</button>
-        )}
-      </div>
-
-      <div className="h-4 w-px bg-slate-200" />
-
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-slate-400" />
-        <span className="text-xs font-medium text-slate-600">Min Score:</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={minScore}
-          onChange={(e) => onMinScoreChange(Number(e.target.value))}
-          className="w-24 accent-slate-700"
-        />
-        <span className="text-xs font-bold text-slate-700 w-16">{minScore}+ ({getGrade(minScore)})</span>
-        {minScore > 0 && (
-          <button onClick={() => onMinScoreChange(0)} className="text-xs text-slate-400 hover:text-slate-700 font-semibold">✕</button>
-        )}
       </div>
 
       <div className="h-4 w-px bg-slate-200" />

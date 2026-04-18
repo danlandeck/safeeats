@@ -510,9 +510,7 @@ export default function Home() {
   const [viewMode, setViewMode]               = useState("list");
   const [filterResult, setFilterResult]       = useState("all");
   const [sortBy, setSortBy]                   = useState("score-high");
-  const [dateFrom, setDateFrom]               = useState("");
-  const [dateTo, setDateTo]                   = useState("");
-  const [minScore, setMinScore]               = useState(0);
+  const [gradeFilter, setGradeFilter]         = useState(null);
 
   const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
   const [compareList, setCompareList]         = useState([]);
@@ -607,9 +605,7 @@ export default function Home() {
     setCompareList([]);
     setShowCompare(false);
     setFilterResult("all");
-    setMinScore(0);
-    setDateFrom("");
-    setDateTo("");
+    setGradeFilter(null);
   };
 
   const handleRegionChange = (newRegion) => {
@@ -800,10 +796,15 @@ export default function Home() {
       const fv = filterResult.toLowerCase();
       return rv === fv || rv.includes(fv);
     });
-    if (dateFrom) filtered = filtered.filter((r) => r.latestDate && r.latestDate >= dateFrom);
-    if (dateTo)   filtered = filtered.filter((r) => r.latestDate && r.latestDate <= dateTo);
-    if (minScore > 0) filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore >= minScore);
-    // null scores sort to the bottom regardless of sort direction
+    if (gradeFilter) {
+      const gradeRanges = { A: [90, 100], B: [80, 89], C: [70, 79], D: [60, 69], F: [0, 59] };
+      if (gradeFilter === "U") {
+        filtered = filtered.filter((r) => r.safetyScore === null || r.safetyScore === undefined || r.totalInspections === 0);
+      } else {
+        const [lo, hi] = gradeRanges[gradeFilter] || [0, 100];
+        filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore !== undefined && r.safetyScore >= lo && r.safetyScore <= hi);
+      }
+    }
     const scoreOf = (r) => r.safetyScore !== null && r.safetyScore !== undefined ? r.safetyScore : -1;
     switch (sortBy) {
       case "score-high":   filtered.sort((a, b) => scoreOf(b) - scoreOf(a) || b.totalInspections - a.totalInspections); break;
@@ -822,7 +823,7 @@ export default function Home() {
     // Apply persistent filters (fails only, recent 30 days, allergens)
     filtered = applyPersistentFilters(filtered, persistentFilters);
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, dateFrom, dateTo, minScore, persistentFilters]);
+  }, [results, filterResult, sortBy, nearMeActive, userCoords, gradeFilter, persistentFilters]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
@@ -1048,6 +1049,7 @@ export default function Home() {
                             <p className="text-sm font-bold text-slate-700">
                               {t.resultsFor(filteredAndSortedResults.length, results.length, searchQuery)}
                               {nearMeActive && <span className="ml-1 text-blue-600">{t.withinDist}</span>}
+                              {gradeFilter && <span className="ml-1 text-slate-500 font-normal">· Grade {gradeFilter} filter active</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">Sorted by safety score · click any card for full inspection history</p>
@@ -1083,9 +1085,6 @@ export default function Home() {
                           <FilterSortControls
                             filterResult={filterResult} onFilterChange={setFilterResult}
                             sortBy={sortBy} onSortChange={setSortBy}
-                            dateFrom={dateFrom} onDateFromChange={setDateFrom}
-                            dateTo={dateTo} onDateToChange={setDateTo}
-                            minScore={minScore} onMinScoreChange={setMinScore}
                           />
                           </Suspense>
                         </div>
@@ -1131,8 +1130,19 @@ export default function Home() {
                     )}
                   </div>
                   <div className="lg:col-span-1">
-                    <div className="sticky top-6">
-                      <Suspense fallback={null}><ScoreLegend /></Suspense>
+                    <div className="sticky top-6 space-y-3">
+                      <Suspense fallback={null}>
+                        <ScoreLegend
+                          activeGrade={gradeFilter}
+                          onGradeFilter={(g) => setGradeFilter(g)}
+                        />
+                      </Suspense>
+                      {gradeFilter && (
+                        <div className="bg-slate-100 rounded-xl px-3 py-2 text-xs text-slate-600 font-semibold flex items-center justify-between">
+                          <span>Showing Grade {gradeFilter} only</span>
+                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">Clear</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
