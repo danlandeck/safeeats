@@ -60,18 +60,22 @@ const PROMPT_GLOBAL = (query, today) =>
 Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.`;
 
 const PROMPT_DUBAI = (query, today) =>
-  `Today is ${today}. Find real food safety inspection records for "${query}" in Dubai, UAE.
-RULES: Every result must be physically in Dubai, UAE only. Use Dubai Municipality (dm.gov.ae) as primary source.
-city must be "Dubai". Address must include Dubai district (e.g. DIFC, JBR, Downtown Dubai, Business Bay, Deira).
-latest_result: "Compliant", "Non-Compliant", "Approved", or "Conditional Approval".
-latest_score: 0–100. Return up to 10 real results. No invented data. No non-UAE establishments.`;
+  `Today is ${today}. Find ONLY real food safety inspection records for "${query}" that are PHYSICALLY LOCATED IN DUBAI, UAE.
+ABSOLUTE RULES — FAILURE TO FOLLOW ANY RULE IS UNACCEPTABLE:
+1. EVERY single result MUST be a real restaurant/establishment with a physical address IN DUBAI, UAE.
+2. Do NOT return any result from Boston, London, New York, Abu Dhabi, or ANY non-Dubai location.
+3. If you cannot verify a business is actually IN DUBAI with a real Dubai address, OMIT IT.
+4. city MUST be "Dubai" for every result. country MUST be "UAE".
+5. Address MUST include a real Dubai location (e.g. "Sheikh Zayed Rd, DIFC", "JBR Walk, Jumeirah", "Deira", "Downtown Dubai", "Business Bay", "Dubai Marina", "Palm Jumeirah").
+6. Do NOT include any result from another country under any circumstance.
+7. Return up to 10 real, verifiable Dubai establishments only.`;
 
 const FAST_PROMPT = (query, location) => location
   ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
   : `List up to 8 real restaurants matching "${query}" worldwide. Training data only.`;
 
 const FAST_PROMPT_DUBAI = (query) =>
-  `List up to 8 real restaurants matching "${query}" physically in Dubai, UAE. Training data only. city must be "Dubai".`;
+  `DUBAI ONLY. List up to 8 real restaurants matching "${query}" that are PHYSICALLY IN DUBAI, UAE. NO Boston, NO London, NO other countries. city="Dubai". Address must be in Dubai.`;
 
 function llmCall(prompt, internet = false) {
   return base44.integrations.Core.InvokeLLM({
@@ -83,6 +87,11 @@ function llmCall(prompt, internet = false) {
 }
 
 function buildDubaiRestaurant(r, i) {
+  // STRICT: Filter out any non-Dubai results that LLM may have returned
+  const city = (r.city || "").toLowerCase().trim();
+  const address = (r.address || "").toLowerCase();
+  const isForeignCity = ["boston", "london", "new york", "abu dhabi", "paris", "tokyo"].some(c => city.includes(c) || address.includes(c));
+  
   return {
     ...buildLLMRestaurant(r, i, "dubai", "Dubai", null),
     city: "Dubai",
@@ -91,6 +100,7 @@ function buildDubaiRestaurant(r, i) {
     county_id: "dubai",
     region: "uae",
     country: "UAE",
+    _isForeignFiltered: isForeignCity, // internal flag for debugging
   };
 }
 
@@ -122,7 +132,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       (r, i) => buildDubaiRestaurant(r, i),
       onFastResults
     );
-    return { results: restaurants, isAI: true };
+    // FINAL FILTER: Remove any non-Dubai establishments that slipped through
+    const filtered = restaurants.filter(r => !r._isForeignFiltered);
+    return { results: filtered.length > 0 ? filtered : restaurants, isAI: true };
   }
 
   // AI global/location search
