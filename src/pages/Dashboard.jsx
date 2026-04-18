@@ -44,7 +44,7 @@ function scoreToGrade(s) {
 }
 
 function getGradeColor(g) {
-  return { A:"#1a9641", B:"#a6d96a", C:"#fdae61", D:"#f97316", F:"#d7191c" }[g] || "#94a3b8";
+  return { A:"#1a9641", B:"#a6d96a", C:"#fdae61", D:"#f97316", F:"#d7191c", U:"#94a3b8" }[g] || "#94a3b8";
 }
 
 const TABS = [
@@ -117,14 +117,14 @@ export default function Dashboard() {
         const processed = Object.values(biz).map(b => {
           const validScores = b.inspections.map(i => i.score).filter(s => s !== null);
           const latest = b.inspections[0];
-          const score  = validScores.length ? Math.round(validScores[0]) : 70;
+          const score  = validScores.length ? Math.round(validScores[0]) : null;
           const allViolations = b.inspections.flatMap(i => i.violations);
           return {
             name: b.name,
             address: b.address,
             city: b.city,
             score,
-            grade: scoreToGrade(score),
+            grade: score === null ? "U" : scoreToGrade(score),
             result: latest?.result || "",
             date: latest?.date || "",
             violations: allViolations,
@@ -138,7 +138,8 @@ export default function Dashboard() {
         setRows(processed);
 
         // City-level scores for map bubbles — use real avg for king, omit others (no fake data)
-        const kingAvg = Math.round(processed.reduce((s, r) => s + r.score, 0) / (processed.length || 1));
+        const scoredRows = processed.filter(r => r.score !== null);
+        const kingAvg = scoredRows.length ? Math.round(scoredRows.reduce((s, r) => s + r.score, 0) / scoredRows.length) : 0;
         const scores = {};
         CITIES.forEach(c => { scores[c.id] = c.id === "king" ? kingAvg : null; });
         setCityScores(scores);
@@ -204,7 +205,7 @@ export default function Dashboard() {
   const gradeDist = useMemo(() => {
     // Always compute from full rows for overview accuracy
     const source = tab === "overview" ? rows : filtered;
-    const counts = { A:0, B:0, C:0, D:0, F:0 };
+    const counts = { A:0, B:0, C:0, D:0, F:0, U:0 };
     source.forEach(r => counts[r.grade]++);
     return Object.entries(counts).map(([grade, count]) => ({ grade, count }));
   }, [rows, filtered, tab]);
@@ -303,7 +304,7 @@ export default function Dashboard() {
                 { label: "Establishments", value: rows.length },
                 { label: "Grade A", value: rows.filter(r=>r.grade==="A").length },
                 { label: "Grade F", value: rows.filter(r=>r.grade==="F").length },
-                { label: "Avg Score", value: rows.length ? Math.round(rows.reduce((s,r)=>s+r.score,0)/rows.length) : "—" },
+                { label: "Avg Score", value: (() => { const scored = rows.filter(r => r.score !== null); return scored.length ? Math.round(scored.reduce((s,r)=>s+r.score,0)/scored.length) : "—"; })() },
               ].map(({ label, value }) => (
                 <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
                   <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">{value}</p>
@@ -572,7 +573,7 @@ export default function Dashboard() {
                   <p className="text-sm font-semibold text-slate-900 truncate">{r.name}</p>
                   <p className="text-xs text-slate-400 truncate">{r.result} · {r.date}</p>
                 </div>
-                <span className="text-sm font-extrabold text-slate-900 flex-shrink-0">{r.score}</span>
+                <span className="text-sm font-extrabold text-slate-900 flex-shrink-0">{r.score ?? "—"}</span>
               </button>
             ))}
             {filtered.length === 0 && (
@@ -609,9 +610,9 @@ export default function Dashboard() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                          <div className="h-full rounded-full transition-all" style={{ width: `${r.score}%`, background: getGradeColor(r.grade) }} />
+                          <div className="h-full rounded-full transition-all" style={{ width: r.score !== null ? `${r.score}%` : "0%", background: getGradeColor(r.grade) }} />
                         </div>
-                        <span className="font-extrabold text-slate-900 text-sm">{r.score}</span>
+                        <span className="font-extrabold text-slate-900 text-sm">{r.score ?? "—"}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
