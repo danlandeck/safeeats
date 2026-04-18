@@ -18,7 +18,7 @@ import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 import AISearchStatus from "../components/AISearchStatus";
-import DubaiSpotlight from "../components/DubaiSpotlight";
+
 
 import RestaurantDetail from "../components/RestaurantDetail";
 
@@ -1088,14 +1088,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Dubai Spotlight */}
-            <DubaiSpotlight onSearchDubai={(q) => {
-              setRegion("uae");
-              setCountyId("dubai");
-              setLocationQuery("Dubai, UAE");
-              setSearchBarQuery(q);
-              setTimeout(() => handleSearch(q), 0);
-            }} />
+
 
             {/* Live data sources */}
             <div className="bg-slate-900 rounded-2xl p-5">
