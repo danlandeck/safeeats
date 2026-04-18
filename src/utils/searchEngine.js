@@ -137,16 +137,23 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
   return { ...built, _wrongLocation: isWrongLocation };
 }
 
-async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastResults) {
+async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastResults, isDubaiSearch = false) {
   let fastDelivered = false;
   fastPromise.then((res) => {
     if (fastDelivered) return;
-    const fast = (res?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+    let fast = (res?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+    if (isDubaiSearch) {
+      fast = fast.filter(r => isDubaiLocation(r.city, r.address));
+    }
     if (fast.length > 0 && onFastResults) { fastDelivered = true; onFastResults(fast); }
   }).catch(() => {});
   const result = await accuratePromise;
   fastDelivered = true;
-  return (result?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  let restaurants = (result?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  if (isDubaiSearch) {
+    restaurants = restaurants.filter(r => isDubaiLocation(r.city, r.address));
+  }
+  return restaurants;
 }
 
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
@@ -163,7 +170,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       llmCall(FAST_PROMPT_DUBAI(query), false),
       llmCall(PROMPT_DUBAI(query, today), true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
-      onFastResults
+      onFastResults,
+      true  // isDubaiSearch flag for aggressive filtering
     );
     return { results: restaurants, isAI: true };
   }
