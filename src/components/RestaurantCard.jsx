@@ -11,7 +11,7 @@ import { isFavorite, toggleFavorite } from "../utils/favorites";
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined || totalInspections === 0;
-  const grade = isUnknown ? "U" : (restaurant.grade || getGrade(safetyScore));
+  const grade = isUnknown ? "U" : getGrade(safetyScore);
   const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
 
   const handleFav = (e) => {
