@@ -33,7 +33,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
       )}
       <div className="flex items-center gap-4 p-4 pl-5">
         <div className="flex flex-col items-center gap-1 flex-shrink-0">
-          <ScoreGauge score={safetyScore} size="sm" animate={false} />
+          <ScoreGauge score={isUnknown ? null : safetyScore} size="sm" animate={false} />
           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${isUnknown ? "bg-slate-100 text-slate-400" : getGradeColor(grade)}`}>
             {grade}
           </span>

@@ -197,7 +197,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* GAUGE — hero element */}
           <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
             <div className="flex flex-col items-center gap-3">
-              <ScoreGauge score={restaurant.safetyScore} size="lg" animate={true} />
+              <ScoreGauge score={hasInspections ? restaurant.safetyScore : null} size="lg" animate={true} />
               <span className={`text-base font-extrabold px-4 py-1.5 rounded-xl ${getGradeColor(grade)}`}>
                 {grade === "U" ? "Unknown" : `Grade ${grade}`}
               </span>
