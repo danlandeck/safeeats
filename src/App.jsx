@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import CountyDrillDown from './pages/CountyDrillDown';
 import CountryCodes from './pages/CountryCodes';
+import GlobalCoverage from './pages/GlobalCoverage';
 import Widget from './pages/Widget';
 import EmbedGenerator from './pages/EmbedGenerator';
 import Dashboard from './pages/Dashboard';
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
       <Route path="/widget" element={<Widget />} />
       <Route path="/embed" element={<LayoutWrapper currentPageName="EmbedGenerator"><EmbedGenerator /></LayoutWrapper>} />
       <Route path="/country-codes" element={<LayoutWrapper currentPageName="CountryCodes"><CountryCodes /></LayoutWrapper>} />
+      <Route path="/global-coverage" element={<LayoutWrapper currentPageName="GlobalCoverage"><GlobalCoverage /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
