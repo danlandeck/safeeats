@@ -240,21 +240,27 @@ export function llmToDetailRows(restaurant) {
 }
 
 export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore) {
-  let safetyScore;
-  if (r.total_violation_points !== undefined && r.total_violation_points !== null) {
+  // Determine if we actually have a real score from the LLM
+  const hasViolationPoints = r.total_violation_points !== undefined && r.total_violation_points !== null;
+  const hasLatestScore = r.latest_score !== undefined && r.latest_score !== null && Number(r.latest_score) > 0;
+
+  let safetyScore = null;
+  if (hasViolationPoints) {
     safetyScore = Math.max(0, Math.min(100, 100 - Number(r.total_violation_points)));
-  } else {
-    safetyScore = Math.max(0, Math.min(100, Number(r.latest_score) || fallbackScore || 0));
+  } else if (hasLatestScore) {
+    safetyScore = Math.max(0, Math.min(100, Number(r.latest_score)));
+    // Only use passing-result inference if we truly have zero score but a clear pass result
     const isPassing = r.latest_result && /pass|satisf|complian|approved|ok/i.test(r.latest_result);
     if (isPassing && safetyScore < 75) safetyScore = 85;
   }
+  // If neither is present, safetyScore stays null → shows as "U" / Unknown
 
   const history = r.inspection_history?.length > 0
     ? r.inspection_history
-    : [{ date: r.latest_date, total_violation_points: r.total_violation_points, result: r.latest_result, violations: r.violations }];
+    : (r.latest_date ? [{ date: r.latest_date, total_violation_points: r.total_violation_points, result: r.latest_result, violations: r.violations }] : []);
 
   const allInspections = history.map((h, hi) => {
-    const pts = h.total_violation_points != null ? Number(h.total_violation_points) : Math.max(0, 100 - safetyScore);
+    const pts = h.total_violation_points != null ? Number(h.total_violation_points) : (safetyScore !== null ? Math.max(0, 100 - safetyScore) : 0);
     return {
       date: h.date || "",
       score: Math.max(0, Math.min(100, 100 - pts)),
@@ -265,12 +271,15 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
     };
   });
 
+  const totalInspections = r.total_inspections || allInspections.length;
+
   return {
     business_id: `${countyId}-${index}-${r.name}`,
     name: r.name, address: r.address || "", city: r.city || countyCity,
     zip_code: r.zip_code || "", phone: r.phone || "", website: "", description: "",
-    safetyScore, grade: getGrade(safetyScore),
-    totalInspections: Math.max(r.total_inspections || 1, allInspections.length),
+    safetyScore,
+    grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+    totalInspections,
     latestDate: r.latest_date || "", latestResult: r.latest_result || "",
     latitude: null, longitude: null,
     isLLMData: true, source: "llm",
