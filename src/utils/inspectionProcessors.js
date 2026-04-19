@@ -537,6 +537,252 @@ export function ukFSAToDetailRows(restaurant) {
   return violations.map((v) => ({ ...row, ...v }));
 }
 
+// ── Delaware ─────────────────────────────────────────────────────────────────
+export function processDelawareResults(data) {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const businesses = {};
+  data.forEach((row) => {
+    const key = `${(row.restname || "").trim()}-${(row.restaddress || "").trim()}`;
+    if (!key || key === "-") return;
+    if (!businesses[key]) {
+      businesses[key] = {
+        business_id: key,
+        name: (row.restname || "").trim(),
+        address: (row.restaddress || "").trim(),
+        city: (row.restcity || "").trim(),
+        zip_code: (row.restzip || "").trim(),
+        phone: "", description: "",
+        inspections: [], allRows: [],
+      };
+    }
+    businesses[key].allRows.push(row);
+    const dateKey = `${row.insp_date}-${row.insp_type}`;
+    if (!businesses[key].inspections.find((i) => i.serial === dateKey)) {
+      businesses[key].inspections.push({
+        serial: dateKey,
+        date: row.insp_date ? row.insp_date.split("T")[0] : "",
+        violation: row.violation || "",
+        type: row.insp_type || "",
+      });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Group by inspection date to count violations per inspection
+    const inspGroups = {};
+    biz.allRows.forEach((r) => {
+      const dk = `${r.insp_date}-${r.insp_type}`;
+      if (!inspGroups[dk]) inspGroups[dk] = { date: r.insp_date ? r.insp_date.split("T")[0] : "", violations: 0 };
+      if (r.violation && r.violation.trim()) inspGroups[dk].violations++;
+    });
+    const groups = Object.values(inspGroups).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = groups[0];
+    const violationCount = latest?.violations || 0;
+    const safetyScore = violationCount === 0 ? 95 : violationCount <= 2 ? 80 : violationCount <= 5 ? 65 : violationCount <= 10 ? 50 : 30;
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: groups.length,
+      latestDate: latest?.date,
+      latestResult: violationCount === 0 ? "Pass" : "Violations Found",
+      latitude: null, longitude: null, isLLMData: false, source: "delaware",
+    };
+  });
+}
+
+export function delawareToDetailRows(data) {
+  const inspMap = {};
+  data.forEach((row) => {
+    const dateKey = `${row.insp_date}-${row.insp_type}`;
+    const date = row.insp_date ? row.insp_date.split("T")[0] : "";
+    if (!inspMap[dateKey]) {
+      inspMap[dateKey] = { date, type: row.insp_type || "", violations: [] };
+    }
+    if (row.violation && row.violation.trim()) {
+      inspMap[dateKey].violations.push(row.violation.trim());
+    }
+  });
+  const rows = [];
+  Object.entries(inspMap).forEach(([key, insp]) => {
+    const violCount = insp.violations.length;
+    const score = violCount === 0 ? 95 : violCount <= 2 ? 80 : violCount <= 5 ? 65 : 50;
+    if (insp.violations.length === 0) {
+      rows.push({ inspection_serial_num: key, inspection_date: insp.date, inspection_score: "0", inspection_result: "Pass", inspection_type: insp.type, violation_description: "", violation_type: "", violation_points: "0" });
+    } else {
+      insp.violations.forEach((v) => {
+        rows.push({ inspection_serial_num: key, inspection_date: insp.date, inspection_score: String(100 - score), inspection_result: "Violations Found", inspection_type: insp.type, violation_description: v, violation_type: "BLUE", violation_points: "0" });
+      });
+    }
+  });
+  return rows;
+}
+
+// ── New York State ────────────────────────────────────────────────────────────
+export function processNYStateResults(data) {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const businesses = {};
+  data.forEach((row) => {
+    const id = row.nys_health_operation_id;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: id,
+        name: (row.facility || row.operation_name || "").trim(),
+        address: (row.facility_address || row.address || "").trim(),
+        city: (row.city || row.municipality || "").trim(),
+        zip_code: (row.zip_code || "").trim(),
+        phone: "", description: (row.description || "").trim(),
+        inspections: [], allRows: [],
+      };
+    }
+    businesses[id].allRows.push(row);
+    const dateKey = row.date ? row.date.split("T")[0] : "";
+    if (dateKey && !businesses[id].inspections.find((i) => i.serial === dateKey)) {
+      const criticals = parseInt(row.total_critical_violations) || 0;
+      const nonCriticals = parseInt(row.total_noncritical_violations) || 0;
+      businesses[id].inspections.push({ serial: dateKey, date: dateKey, criticals, nonCriticals, type: row.inspection_type || "" });
+    }
+    // Update coords if available
+    if (row.location1?.latitude && !businesses[id].latitude) {
+      businesses[id].latitude = row.location1.latitude;
+      businesses[id].longitude = row.location1.longitude;
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const c = latest?.criticals || 0;
+    const nc = latest?.nonCriticals || 0;
+    const pts = c * 7 + nc * 2; // weight criticals more
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date,
+      latestResult: c === 0 && nc === 0 ? "Pass" : c > 0 ? `${c} critical violation${c !== 1 ? "s" : ""}` : "Violations Found",
+      isLLMData: false, source: "ny_state",
+    };
+  });
+}
+
+export function nyStateToDetailRows(data) {
+  const inspMap = {};
+  data.forEach((row) => {
+    const dateKey = row.date ? row.date.split("T")[0] : "unknown";
+    if (!inspMap[dateKey]) {
+      const c = parseInt(row.total_critical_violations) || 0;
+      const nc = parseInt(row.total_noncritical_violations) || 0;
+      const pts = c * 7 + nc * 2;
+      inspMap[dateKey] = {
+        inspection_serial_num: dateKey,
+        inspection_date: dateKey,
+        inspection_score: String(pts),
+        inspection_result: c === 0 && nc === 0 ? "Pass" : `${c} critical, ${nc} non-critical violations`,
+        inspection_type: row.inspection_type || "",
+        violations: (row.violations || "").split(";").map((v) => v.trim()).filter(Boolean),
+      };
+    }
+  });
+  const rows = [];
+  Object.values(inspMap).forEach((insp) => {
+    if (insp.violations.length === 0) {
+      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+    } else {
+      insp.violations.forEach((v) => {
+        rows.push({ ...insp, violation_description: v, violation_type: "BLUE", violation_points: "0" });
+      });
+    }
+  });
+  return rows;
+}
+
+// ── Toronto DineSafe (CKAN) ───────────────────────────────────────────────────
+export function processTorontoResults(records) {
+  if (!Array.isArray(records) || records.length === 0) return [];
+  const businesses = {};
+  records.forEach((row) => {
+    const id = row["Establishment ID"];
+    if (!id) return;
+    if (!businesses[id]) {
+      const addrRaw = row["Establishment Address"] || "";
+      // Address format: "321 CARLAW AVE, Unit-103 None M4M 2S1" — extract postal code
+      const postalMatch = addrRaw.match(/([A-Z]\d[A-Z]\s?\d[A-Z]\d)\s*$/);
+      const postal = postalMatch ? postalMatch[1] : "";
+      const address = addrRaw.replace(postalMatch?.[0] || "", "").replace(/None\s*$/, "").replace(/,\s*$/, "").trim();
+      businesses[id] = {
+        business_id: id,
+        name: (row["Establishment Name"] || "").trim(),
+        address, city: "Toronto", zip_code: postal,
+        phone: "", description: row["Establishment Type"] || "",
+        inspections: [], allRows: [],
+        latitude: row.Latitude || null,
+        longitude: row.Longitude || null,
+      };
+    }
+    businesses[id].allRows.push(row);
+    const dateKey = row["Inspection Date"] || "";
+    if (dateKey && !businesses[id].inspections.find((i) => i.serial === dateKey)) {
+      businesses[id].inspections.push({
+        serial: dateKey, date: dateKey,
+        severity: row.Severity || "", action: row.Action || "",
+      });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Count violations: C-Crucial, S-Significant, M-Minor
+    const crucials = biz.allRows.filter((r) => (r.Severity || "").startsWith("C")).length;
+    const significants = biz.allRows.filter((r) => (r.Severity || "").startsWith("S")).length;
+    const minors = biz.allRows.filter((r) => (r.Severity || "").startsWith("M")).length;
+    const pts = crucials * 10 + significants * 5 + minors * 2;
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
+    const latest = biz.inspections[0];
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: new Set(biz.inspections.map((i) => i.date)).size,
+      latestDate: latest?.date,
+      latestResult: crucials > 0 ? "Crucial Infractions" : significants > 0 ? "Significant Infractions" : minors > 0 ? "Minor Infractions" : "Pass",
+      isLLMData: false, source: "toronto",
+    };
+  });
+}
+
+export function torontoToDetailRows(records) {
+  const inspMap = {};
+  records.forEach((row) => {
+    const dateKey = row["Inspection Date"] || "unknown";
+    if (!inspMap[dateKey]) {
+      inspMap[dateKey] = {
+        inspection_serial_num: `toronto-${dateKey}`,
+        inspection_date: dateKey,
+        inspection_score: "0",
+        inspection_result: row.Action || "",
+        inspection_type: "DineSafe Inspection",
+        violations: [],
+      };
+    }
+    const infraction = (row["Infraction Details"] || "").trim();
+    const severity = (row.Severity || "").trim();
+    if (infraction && infraction.toLowerCase() !== "fail to ensure") {
+      inspMap[dateKey].violations.push({ description: infraction, severity });
+    }
+  });
+  const rows = [];
+  Object.values(inspMap).forEach((insp) => {
+    const crucials = insp.violations.filter((v) => v.severity.startsWith("C")).length;
+    const significants = insp.violations.filter((v) => v.severity.startsWith("S")).length;
+    const pts = crucials * 10 + significants * 5;
+    insp.inspection_score = String(pts);
+    if (insp.violations.length === 0) {
+      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+    } else {
+      insp.violations.forEach((v) => {
+        rows.push({ ...insp, violation_description: `${v.severity}: ${v.description}`, violation_type: v.severity.startsWith("C") ? "RED" : "BLUE", violation_points: v.severity.startsWith("C") ? "10" : v.severity.startsWith("S") ? "5" : "2" });
+      });
+    }
+  });
+  return rows;
+}
+
 // ── Geocoding ─────────────────────────────────────────────────────────────────
 // Works globally — stateOrCountry can be a US state abbr, country name, or city
 export async function geocodeAddress(address, city, stateOrCountry) {

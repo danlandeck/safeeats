@@ -86,6 +86,26 @@ export const API_REGISTRY = {
     limit: 50,
     source: "la",
   },
+  delaware: {
+    id: "delaware",
+    name: "Delaware",
+    endpoint: "https://data.delaware.gov/resource/384s-wygj.json",
+    searchField: "restname",
+    idField: "restname", // group by name+address for detail
+    dateField: "insp_date",
+    limit: 100,
+    source: "delaware",
+  },
+  ny_state: {
+    id: "ny_state",
+    name: "New York State",
+    endpoint: "https://health.data.ny.gov/resource/cnih-y5dw.json",
+    searchField: "facility",
+    idField: "nys_health_operation_id",
+    dateField: "date",
+    limit: 50,
+    source: "ny_state",
+  },
 };
 
 /** IDs of counties that have a live government API */

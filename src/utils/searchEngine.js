@@ -7,6 +7,9 @@ import {
   austinToDetailRows, sfToDetailRows, laToDetailRows,
   llmToDetailRows, buildLLMRestaurant,
   processUKFSAResults, ukFSAToDetailRows,
+  processDelawareResults, delawareToDetailRows,
+  processNYStateResults, nyStateToDetailRows,
+  processTorontoResults, torontoToDetailRows,
 } from "./inspectionProcessors";
 
 const PROCESSORS = {
@@ -17,13 +20,17 @@ const PROCESSORS = {
   travis:        { process: processAustinResults,      toDetailRows: austinToDetailRows },
   sf:            { process: processSFResults,          toDetailRows: sfToDetailRows },
   la:            { process: processLAResults,          toDetailRows: laToDetailRows },
+  delaware:      { process: processDelawareResults,    toDetailRows: delawareToDetailRows },
+  ny_state:      { process: processNYStateResults,     toDetailRows: nyStateToDetailRows },
+  toronto:       { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
 };
 
 const SOURCE_TO_COUNTY = {
   king: "king", nyc: "nyc", chicago: "cook",
   montgomery: "montgomery_md", austin: "travis",
   sf: "sf", la: "la", dubai: "dubai", llm: "llm",
-  uk_fsa: "uk_fsa",
+  uk_fsa: "uk_fsa", delaware: "delaware",
+  ny_state: "ny_state", toronto: "toronto",
 };
 
 const LLM_SCHEMA = {
@@ -170,6 +177,13 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: processUKFSAResults(establishments), isAI: false };
   }
 
+  // Toronto DineSafe (CKAN — needs backend proxy)
+  if (countyId === "toronto") {
+    const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
+    const records = res.data?.records || [];
+    return { results: processTorontoResults(records), isAI: false };
+  }
+
   // Live government API
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
@@ -204,6 +218,15 @@ export async function fetchDetail(restaurant) {
   const { source, business_id, isLLMData } = restaurant;
   if (isLLMData || source === "dubai" || source === "llm") return llmToDetailRows(restaurant);
 
+  // Toronto DineSafe — CKAN detail fetch
+  if (source === "toronto") {
+    try {
+      const res = await base44.functions.invoke("torontoDineSafe", { action: "detail", establishmentId: business_id });
+      const records = res.data?.records || [];
+      return torontoToDetailRows(records);
+    } catch { return []; }
+  }
+
   // UK FSA — use score descriptor endpoint
   if (source === "uk_fsa") {
     try {
@@ -229,6 +252,15 @@ export async function fetchDetail(restaurant) {
   const countyId = SOURCE_TO_COUNTY[source] || source;
   const entry = API_REGISTRY[countyId];
   if (!entry) return [];
+
+  // Delaware: business_id is "name-address", need to split and query
+  if (countyId === "delaware") {
+    const [restname, ...addrParts] = business_id.split("-");
+    const restaddress = addrParts.join("-");
+    const url = `${entry.endpoint}?$where=upper(restname)='${encodeURIComponent((restname || "").toUpperCase())}' AND upper(restaddress)='${encodeURIComponent((restaddress || "").toUpperCase())}'&$limit=500&$order=${entry.dateField} DESC`;
+    const data = await fetch(url).then(r => r.json());
+    return delawareToDetailRows(Array.isArray(data) ? data : []);
+  }
 
   const data = await fetch(buildDetailUrl(entry, business_id)).then(r => r.json());
   const rows = Array.isArray(data) ? data : [];

@@ -37,6 +37,9 @@ const SOURCE_REGISTRY = {
   la:             { name: "LA County Dept. of Public Health",          url: "http://ehservices.publichealth.lacounty.gov/" },
   dubai:          { name: "Dubai Municipality — Food Safety Department", url: "https://www.dm.gov.ae/en/business/food-safety" },
   uk_fsa:         { name: "UK Food Standards Agency — Food Hygiene Rating Scheme", url: "https://ratings.food.gov.uk/" },
+  delaware:       { name: "Delaware Division of Public Health — Office of Food Protection", url: "https://www.dhss.delaware.gov/dph/hsp/hspfoodborneil.html" },
+  ny_state:       { name: "New York State Dept. of Health — Food Service Establishments", url: "https://health.data.ny.gov/Health/Food-Service-Establishment-Last-Inspection/cnih-y5dw" },
+  toronto:        { name: "Toronto Public Health — DineSafe", url: "https://www.toronto.ca/community-people/health-wellness-care/health-programs-advice/food-safety/dinesafe/" },
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {

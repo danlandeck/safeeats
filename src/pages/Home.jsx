@@ -471,7 +471,7 @@ const CITY_TO_COUNTY = {
   "canadian": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
   // Ontario
   "ontario": { region: "canada", countyId: "toronto", locationLabel: "Ontario, Canada" },
-  "toronto": { region: "canada", countyId: "toronto", locationLabel: "Toronto, Ontario, Canada" },
+  "toronto": { region: "canada", countyId: "toronto", locationLabel: "Toronto, Ontario, Canada" }, // routes to live DineSafe API
   "ottawa": { region: "canada", countyId: "ottawa", locationLabel: "Ottawa, Ontario, Canada" },
   "hamilton ontario": { region: "canada", countyId: "hamilton_on", locationLabel: "Hamilton, Ontario, Canada" },
   "mississauga": { region: "canada", countyId: "mississauga", locationLabel: "Mississauga, Ontario, Canada" },
@@ -686,17 +686,49 @@ const CITY_TO_COUNTY = {
   "potomac": { region: "maryland", countyId: "montgomery_md" },
   "montgomery county": { region: "maryland", countyId: "montgomery_md" },
   "montgomery county md": { region: "maryland", countyId: "montgomery_md" },
+  // Delaware — all cities and towns
+  "delaware": { region: "delaware", countyId: "delaware", locationLabel: "Delaware" },
+  "wilmington": { region: "delaware", countyId: "delaware", locationLabel: "Wilmington, Delaware" },
+  "dover": { region: "delaware", countyId: "delaware", locationLabel: "Dover, Delaware" },
+  "newark de": { region: "delaware", countyId: "delaware", locationLabel: "Newark, Delaware" },
+  "middletown de": { region: "delaware", countyId: "delaware", locationLabel: "Middletown, Delaware" },
+  "rehoboth beach": { region: "delaware", countyId: "delaware", locationLabel: "Rehoboth Beach, Delaware" },
+  "lewes": { region: "delaware", countyId: "delaware", locationLabel: "Lewes, Delaware" },
+  "hockessin": { region: "delaware", countyId: "delaware", locationLabel: "Hockessin, Delaware" },
+  "claymont": { region: "delaware", countyId: "delaware", locationLabel: "Claymont, Delaware" },
+  // New York State (outside NYC) — major cities
+  "buffalo": { region: "new_york", countyId: "ny_state", locationLabel: "Buffalo, New York" },
+  "rochester ny": { region: "new_york", countyId: "ny_state", locationLabel: "Rochester, New York" },
+  "rochester new york": { region: "new_york", countyId: "ny_state", locationLabel: "Rochester, New York" },
+  "syracuse": { region: "new_york", countyId: "ny_state", locationLabel: "Syracuse, New York" },
+  "albany": { region: "new_york", countyId: "ny_state", locationLabel: "Albany, New York" },
+  "yonkers": { region: "new_york", countyId: "ny_state", locationLabel: "Yonkers, New York" },
+  "new rochelle": { region: "new_york", countyId: "ny_state", locationLabel: "New Rochelle, New York" },
+  "white plains": { region: "new_york", countyId: "ny_state", locationLabel: "White Plains, New York" },
+  "utica": { region: "new_york", countyId: "ny_state", locationLabel: "Utica, New York" },
+  "schenectady": { region: "new_york", countyId: "ny_state", locationLabel: "Schenectady, New York" },
+  "binghamton": { region: "new_york", countyId: "ny_state", locationLabel: "Binghamton, New York" },
+  "long island": { region: "new_york", countyId: "ny_state", locationLabel: "Long Island, New York" },
+  "nassau county": { region: "new_york", countyId: "ny_state", locationLabel: "Nassau County, New York" },
+  "westchester county": { region: "new_york", countyId: "ny_state", locationLabel: "Westchester County, New York" },
+  "ithaca": { region: "new_york", countyId: "ny_state", locationLabel: "Ithaca, New York" },
+  "saratoga springs": { region: "new_york", countyId: "ny_state", locationLabel: "Saratoga Springs, New York" },
+  "poughkeepsie": { region: "new_york", countyId: "ny_state", locationLabel: "Poughkeepsie, New York" },
+  "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
 };
 
 // Cities with live government inspection APIs (or featured AI-data cities)
 const LIVE_API_CITIES = [
   { label: "Seattle / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
+  { label: "NY State (Buffalo, Albany…)", region: "new_york", countyId: "ny_state", emoji: "🏔️", example: "pizza", locationLabel: "New York State" },
   { label: "Chicago", region: "illinois", countyId: "cook", emoji: "🏙️", example: "pizza" },
   { label: "Montgomery Co. MD", region: "maryland", countyId: "montgomery_md", emoji: "🏛️", example: "Chipotle" },
   { label: "Austin TX", region: "texas", countyId: "travis", emoji: "🤠", example: "tacos" },
   { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉", example: "sushi" },
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
+  { label: "Toronto 🇨🇦", region: "canada", countyId: "toronto", emoji: "🍁", example: "restaurant", locationLabel: "Toronto, Ontario, Canada" },
+  { label: "Delaware", region: "delaware", countyId: "delaware", emoji: "🦅", example: "Subway", locationLabel: "Delaware" },
   { label: "Dubai 🇦🇪", region: "uae", countyId: "dubai", emoji: "🏙️", example: "restaurant", locationLabel: "Dubai, UAE" },
   { label: "United Kingdom 🇬🇧", region: "uk", countyId: "uk_fsa", emoji: "🇬🇧", example: "fish and chips", locationLabel: "United Kingdom" },
 ];
@@ -925,7 +957,7 @@ export default function Home() {
       const aliasLabel = cityKey2 ? CITY_TO_COUNTY[cityKey2]?.locationLabel : null;
       const locationCtx = aliasLabel || locationQuery.trim() || currentCounty.name;
 
-      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa"].includes(searchCounty)) {
+      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
         setIsAISearch(true);
       }
 
@@ -1207,7 +1239,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 King County, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
                     {src}
                   </span>
