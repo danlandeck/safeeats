@@ -564,6 +564,118 @@ const CITY_TO_COUNTY = {
   "deira": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   "bur dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   "jumeirah": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
+  // UK — England, Scotland, Wales, Northern Ireland (all route to UK FSA live API)
+  "uk": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
+  "united kingdom": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
+  "great britain": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
+  "britain": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
+  "england": { region: "uk", countyId: "uk_fsa", locationLabel: "England, UK" },
+  "scotland": { region: "uk", countyId: "uk_fsa", locationLabel: "Scotland, UK" },
+  "wales": { region: "uk", countyId: "uk_fsa", locationLabel: "Wales, UK" },
+  "northern ireland": { region: "uk", countyId: "uk_fsa", locationLabel: "Northern Ireland, UK" },
+  // England — major cities
+  "london": { region: "uk", countyId: "uk_fsa", locationLabel: "London, England, UK" },
+  "birmingham": { region: "uk", countyId: "uk_fsa", locationLabel: "Birmingham, England, UK" },
+  "manchester": { region: "uk", countyId: "uk_fsa", locationLabel: "Manchester, England, UK" },
+  "leeds": { region: "uk", countyId: "uk_fsa", locationLabel: "Leeds, England, UK" },
+  "liverpool": { region: "uk", countyId: "uk_fsa", locationLabel: "Liverpool, England, UK" },
+  "sheffield": { region: "uk", countyId: "uk_fsa", locationLabel: "Sheffield, England, UK" },
+  "bristol": { region: "uk", countyId: "uk_fsa", locationLabel: "Bristol, England, UK" },
+  "newcastle": { region: "uk", countyId: "uk_fsa", locationLabel: "Newcastle, England, UK" },
+  "nottingham": { region: "uk", countyId: "uk_fsa", locationLabel: "Nottingham, England, UK" },
+  "leicester": { region: "uk", countyId: "uk_fsa", locationLabel: "Leicester, England, UK" },
+  "coventry": { region: "uk", countyId: "uk_fsa", locationLabel: "Coventry, England, UK" },
+  "bradford": { region: "uk", countyId: "uk_fsa", locationLabel: "Bradford, England, UK" },
+  "brighton": { region: "uk", countyId: "uk_fsa", locationLabel: "Brighton, England, UK" },
+  "southampton": { region: "uk", countyId: "uk_fsa", locationLabel: "Southampton, England, UK" },
+  "portsmouth": { region: "uk", countyId: "uk_fsa", locationLabel: "Portsmouth, England, UK" },
+  "oxford": { region: "uk", countyId: "uk_fsa", locationLabel: "Oxford, England, UK" },
+  "cambridge": { region: "uk", countyId: "uk_fsa", locationLabel: "Cambridge, England, UK" },
+  "york": { region: "uk", countyId: "uk_fsa", locationLabel: "York, England, UK" },
+  "bath": { region: "uk", countyId: "uk_fsa", locationLabel: "Bath, England, UK" },
+  "exeter": { region: "uk", countyId: "uk_fsa", locationLabel: "Exeter, England, UK" },
+  "norwich": { region: "uk", countyId: "uk_fsa", locationLabel: "Norwich, England, UK" },
+  "derby": { region: "uk", countyId: "uk_fsa", locationLabel: "Derby, England, UK" },
+  "stoke": { region: "uk", countyId: "uk_fsa", locationLabel: "Stoke-on-Trent, England, UK" },
+  "stoke-on-trent": { region: "uk", countyId: "uk_fsa", locationLabel: "Stoke-on-Trent, England, UK" },
+  "wolverhampton": { region: "uk", countyId: "uk_fsa", locationLabel: "Wolverhampton, England, UK" },
+  "hull": { region: "uk", countyId: "uk_fsa", locationLabel: "Hull, England, UK" },
+  "kingston upon hull": { region: "uk", countyId: "uk_fsa", locationLabel: "Hull, England, UK" },
+  "middlesbrough": { region: "uk", countyId: "uk_fsa", locationLabel: "Middlesbrough, England, UK" },
+  "sunderland": { region: "uk", countyId: "uk_fsa", locationLabel: "Sunderland, England, UK" },
+  "reading": { region: "uk", countyId: "uk_fsa", locationLabel: "Reading, England, UK" },
+  "blackpool": { region: "uk", countyId: "uk_fsa", locationLabel: "Blackpool, England, UK" },
+  "bolton": { region: "uk", countyId: "uk_fsa", locationLabel: "Bolton, England, UK" },
+  "salford": { region: "uk", countyId: "uk_fsa", locationLabel: "Salford, England, UK" },
+  "wigan": { region: "uk", countyId: "uk_fsa", locationLabel: "Wigan, England, UK" },
+  "stockport": { region: "uk", countyId: "uk_fsa", locationLabel: "Stockport, England, UK" },
+  "oldham": { region: "uk", countyId: "uk_fsa", locationLabel: "Oldham, England, UK" },
+  "ipswich": { region: "uk", countyId: "uk_fsa", locationLabel: "Ipswich, England, UK" },
+  "peterborough": { region: "uk", countyId: "uk_fsa", locationLabel: "Peterborough, England, UK" },
+  "luton": { region: "uk", countyId: "uk_fsa", locationLabel: "Luton, England, UK" },
+  "milton keynes": { region: "uk", countyId: "uk_fsa", locationLabel: "Milton Keynes, England, UK" },
+  "watford": { region: "uk", countyId: "uk_fsa", locationLabel: "Watford, England, UK" },
+  "gloucester": { region: "uk", countyId: "uk_fsa", locationLabel: "Gloucester, England, UK" },
+  "cheltenham": { region: "uk", countyId: "uk_fsa", locationLabel: "Cheltenham, England, UK" },
+  "worcester": { region: "uk", countyId: "uk_fsa", locationLabel: "Worcester, England, UK" },
+  "lincoln": { region: "uk", countyId: "uk_fsa", locationLabel: "Lincoln, England, UK" },
+  "chester": { region: "uk", countyId: "uk_fsa", locationLabel: "Chester, England, UK" },
+  "canterbury": { region: "uk", countyId: "uk_fsa", locationLabel: "Canterbury, England, UK" },
+  "winchester": { region: "uk", countyId: "uk_fsa", locationLabel: "Winchester, England, UK" },
+  "salisbury": { region: "uk", countyId: "uk_fsa", locationLabel: "Salisbury, England, UK" },
+  "guildford": { region: "uk", countyId: "uk_fsa", locationLabel: "Guildford, England, UK" },
+  "surrey": { region: "uk", countyId: "uk_fsa", locationLabel: "Surrey, England, UK" },
+  "kent england": { region: "uk", countyId: "uk_fsa", locationLabel: "Kent, England, UK" },
+  "kent uk": { region: "uk", countyId: "uk_fsa", locationLabel: "Kent, England, UK" },
+  "essex": { region: "uk", countyId: "uk_fsa", locationLabel: "Essex, England, UK" },
+  "hertfordshire": { region: "uk", countyId: "uk_fsa", locationLabel: "Hertfordshire, England, UK" },
+  "west yorkshire": { region: "uk", countyId: "uk_fsa", locationLabel: "West Yorkshire, England, UK" },
+  "south yorkshire": { region: "uk", countyId: "uk_fsa", locationLabel: "South Yorkshire, England, UK" },
+  "lancashire": { region: "uk", countyId: "uk_fsa", locationLabel: "Lancashire, England, UK" },
+  "cornwall": { region: "uk", countyId: "uk_fsa", locationLabel: "Cornwall, England, UK" },
+  "devon": { region: "uk", countyId: "uk_fsa", locationLabel: "Devon, England, UK" },
+  "suffolk": { region: "uk", countyId: "uk_fsa", locationLabel: "Suffolk, England, UK" },
+  "norfolk": { region: "uk", countyId: "uk_fsa", locationLabel: "Norfolk, England, UK" },
+  // London boroughs
+  "westminster": { region: "uk", countyId: "uk_fsa", locationLabel: "Westminster, London, UK" },
+  "shoreditch": { region: "uk", countyId: "uk_fsa", locationLabel: "Shoreditch, London, UK" },
+  "soho london": { region: "uk", countyId: "uk_fsa", locationLabel: "Soho, London, UK" },
+  "canary wharf": { region: "uk", countyId: "uk_fsa", locationLabel: "Canary Wharf, London, UK" },
+  "covent garden": { region: "uk", countyId: "uk_fsa", locationLabel: "Covent Garden, London, UK" },
+  "notting hill": { region: "uk", countyId: "uk_fsa", locationLabel: "Notting Hill, London, UK" },
+  "camden": { region: "uk", countyId: "uk_fsa", locationLabel: "Camden, London, UK" },
+  "islington": { region: "uk", countyId: "uk_fsa", locationLabel: "Islington, London, UK" },
+  "hackney": { region: "uk", countyId: "uk_fsa", locationLabel: "Hackney, London, UK" },
+  "brixton": { region: "uk", countyId: "uk_fsa", locationLabel: "Brixton, London, UK" },
+  "peckham": { region: "uk", countyId: "uk_fsa", locationLabel: "Peckham, London, UK" },
+  "greenwich": { region: "uk", countyId: "uk_fsa", locationLabel: "Greenwich, London, UK" },
+  "croydon": { region: "uk", countyId: "uk_fsa", locationLabel: "Croydon, London, UK" },
+  "wimbledon": { region: "uk", countyId: "uk_fsa", locationLabel: "Wimbledon, London, UK" },
+  "richmond london": { region: "uk", countyId: "uk_fsa", locationLabel: "Richmond, London, UK" },
+  "chelsea london": { region: "uk", countyId: "uk_fsa", locationLabel: "Chelsea, London, UK" },
+  "kensington": { region: "uk", countyId: "uk_fsa", locationLabel: "Kensington, London, UK" },
+  "hammersmith": { region: "uk", countyId: "uk_fsa", locationLabel: "Hammersmith, London, UK" },
+  "ealing": { region: "uk", countyId: "uk_fsa", locationLabel: "Ealing, London, UK" },
+  "stratford": { region: "uk", countyId: "uk_fsa", locationLabel: "Stratford, London, UK" },
+  // Scotland — major cities and regions
+  "edinburgh": { region: "uk", countyId: "uk_fsa", locationLabel: "Edinburgh, Scotland, UK" },
+  "glasgow": { region: "uk", countyId: "uk_fsa", locationLabel: "Glasgow, Scotland, UK" },
+  "aberdeen": { region: "uk", countyId: "uk_fsa", locationLabel: "Aberdeen, Scotland, UK" },
+  "dundee": { region: "uk", countyId: "uk_fsa", locationLabel: "Dundee, Scotland, UK" },
+  "inverness": { region: "uk", countyId: "uk_fsa", locationLabel: "Inverness, Scotland, UK" },
+  "stirling": { region: "uk", countyId: "uk_fsa", locationLabel: "Stirling, Scotland, UK" },
+  "st andrews": { region: "uk", countyId: "uk_fsa", locationLabel: "St Andrews, Scotland, UK" },
+  "highlands": { region: "uk", countyId: "uk_fsa", locationLabel: "Highlands, Scotland, UK" },
+  // Wales — major cities and regions
+  "cardiff": { region: "uk", countyId: "uk_fsa", locationLabel: "Cardiff, Wales, UK" },
+  "swansea": { region: "uk", countyId: "uk_fsa", locationLabel: "Swansea, Wales, UK" },
+  "newport wales": { region: "uk", countyId: "uk_fsa", locationLabel: "Newport, Wales, UK" },
+  "wrexham": { region: "uk", countyId: "uk_fsa", locationLabel: "Wrexham, Wales, UK" },
+  // Northern Ireland
+  "belfast": { region: "uk", countyId: "uk_fsa", locationLabel: "Belfast, Northern Ireland, UK" },
+  "derry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
+  "londonderry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
+
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -586,6 +698,7 @@ const LIVE_API_CITIES = [
   { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉", example: "sushi" },
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
   { label: "Dubai 🇦🇪", region: "uae", countyId: "dubai", emoji: "🏙️", example: "restaurant", locationLabel: "Dubai, UAE" },
+  { label: "United Kingdom 🇬🇧", region: "uk", countyId: "uk_fsa", emoji: "🇬🇧", example: "fish and chips", locationLabel: "United Kingdom" },
 ];
 
 
@@ -812,7 +925,7 @@ export default function Home() {
       const aliasLabel = cityKey2 ? CITY_TO_COUNTY[cityKey2]?.locationLabel : null;
       const locationCtx = aliasLabel || locationQuery.trim() || currentCounty.name;
 
-      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la"].includes(searchCounty)) {
+      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa"].includes(searchCounty)) {
         setIsAISearch(true);
       }
 
@@ -1094,7 +1207,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🇦🇪 Dubai, UAE"].map(src => (
+                {["🌲 King County, WA", "🗽 New York City, NY", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
                     {src}
                   </span>

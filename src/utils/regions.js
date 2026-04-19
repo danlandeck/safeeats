@@ -392,6 +392,7 @@ export const REGIONS = {
   ]},
 
   uk: { name: "United Kingdom", abbr: "UK", counties: [
+    { id: "uk_fsa", name: "United Kingdom (FSA)", city: "United Kingdom", hasPublicApi: true },
     { id: "london", name: "London, England", city: "London", hasPublicApi: true },
     { id: "birmingham", name: "Birmingham, England", city: "Birmingham", hasPublicApi: true },
     { id: "manchester", name: "Manchester, England", city: "Manchester", hasPublicApi: true },

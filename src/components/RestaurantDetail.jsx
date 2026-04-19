@@ -36,6 +36,7 @@ const SOURCE_REGISTRY = {
   sf:             { name: "SF Dept. of Public Health — EHS",           url: "https://www.sf.gov/departments/department-public-health/environmental-health" },
   la:             { name: "LA County Dept. of Public Health",          url: "http://ehservices.publichealth.lacounty.gov/" },
   dubai:          { name: "Dubai Municipality — Food Safety Department", url: "https://www.dm.gov.ae/en/business/food-safety" },
+  uk_fsa:         { name: "UK Food Standards Agency — Food Hygiene Rating Scheme", url: "https://ratings.food.gov.uk/" },
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {

@@ -6,6 +6,7 @@ import {
   nycToDetailRows, chicagoToDetailRows, montgomeryToDetailRows,
   austinToDetailRows, sfToDetailRows, laToDetailRows,
   llmToDetailRows, buildLLMRestaurant,
+  processUKFSAResults, ukFSAToDetailRows,
 } from "./inspectionProcessors";
 
 const PROCESSORS = {
@@ -22,6 +23,7 @@ const SOURCE_TO_COUNTY = {
   king: "king", nyc: "nyc", chicago: "cook",
   montgomery: "montgomery_md", austin: "travis",
   sf: "sf", la: "la", dubai: "dubai", llm: "llm",
+  uk_fsa: "uk_fsa",
 };
 
 const LLM_SCHEMA = {
@@ -161,6 +163,13 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastR
 }
 
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
+  // UK FSA live API (requires backend proxy for header injection)
+  if (countyId === "uk_fsa") {
+    const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
+    const establishments = res.data?.establishments || [];
+    return { results: processUKFSAResults(establishments), isAI: false };
+  }
+
   // Live government API
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
@@ -194,6 +203,28 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 export async function fetchDetail(restaurant) {
   const { source, business_id, isLLMData } = restaurant;
   if (isLLMData || source === "dubai" || source === "llm") return llmToDetailRows(restaurant);
+
+  // UK FSA — use score descriptor endpoint
+  if (source === "uk_fsa") {
+    try {
+      const res = await base44.functions.invoke("ukFoodRatings", { action: "detail", fhrsId: restaurant.fhrsId });
+      const descriptors = res.data?.scoreDescriptors || [];
+      // Build detail rows from score descriptors
+      if (descriptors.length > 0) {
+        return descriptors.map((d, i) => ({
+          inspection_serial_num: `uk-${restaurant.fhrsId}-${i}`,
+          inspection_date: restaurant.latestDate,
+          inspection_score: String(d.Score || 0),
+          inspection_result: restaurant.latestResult || "",
+          inspection_type: "Food Hygiene Rating (FSA)",
+          violation_description: d.Score > 0 ? `${d.ScoreCategory}: ${d.Description || "Improvement required"}` : `${d.ScoreCategory}: ${d.Description || "Very good"}`,
+          violation_type: d.Score > 15 ? "RED" : "BLUE",
+          violation_points: String(d.Score || 0),
+        }));
+      }
+    } catch {}
+    return ukFSAToDetailRows(restaurant);
+  }
 
   const countyId = SOURCE_TO_COUNTY[source] || source;
   const entry = API_REGISTRY[countyId];

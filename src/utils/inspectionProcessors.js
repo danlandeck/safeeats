@@ -445,6 +445,98 @@ export function sfToDetailRows(data) {
   return rows;
 }
 
+// ── UK Food Standards Agency (FHRS) ──────────────────────────────────────────
+// RatingValue: 0-5 (5=best). Scotland uses Pass/Improvement Required/Awaiting inspection.
+// scores object: Hygiene (0=best,25=worst), Structural (0-25), ConfidenceInManagement (0-30)
+// Total penalty = Hygiene + Structural + ConfidenceInManagement (max ~80)
+// We convert to 0-100 safety score: 100 - (totalPenalty / 80 * 100), clamped.
+
+function fhrsRatingToScore(est) {
+  const rv = est.RatingValue;
+  // Scotland/Wales use Pass/Improvement Required etc — map directly
+  if (typeof rv === "string" && isNaN(parseInt(rv))) {
+    if (/^pass/i.test(rv)) return 92;
+    if (/improvement required/i.test(rv)) return 55;
+    if (/awaiting/i.test(rv)) return null;
+    return null;
+  }
+  const rating = parseInt(rv);
+  if (isNaN(rating)) return null;
+  // Use component scores if available (more precise)
+  const h = est.scores?.Hygiene ?? null;
+  const s = est.scores?.Structural ?? null;
+  const c = est.scores?.ConfidenceInManagement ?? null;
+  if (h !== null && s !== null && c !== null) {
+    const penalty = h + s + c; // max ~80
+    return Math.max(0, Math.min(100, Math.round(100 - (penalty / 80) * 100)));
+  }
+  // Fallback: map 0-5 star rating
+  const starToScore = { 5: 95, 4: 82, 3: 68, 2: 52, 1: 35, 0: 15 };
+  return starToScore[rating] ?? null;
+}
+
+export function processUKFSAResults(establishments) {
+  if (!Array.isArray(establishments) || establishments.length === 0) return [];
+  return establishments.map((est, i) => {
+    const safetyScore = fhrsRatingToScore(est);
+    const addr = [est.AddressLine1, est.AddressLine2].filter(Boolean).join(", ");
+    const city = est.AddressLine3 || est.AddressLine4 || est.LocalAuthorityName || "UK";
+    const ratingValue = est.RatingValue;
+    const ratingLabel = isNaN(parseInt(ratingValue))
+      ? ratingValue
+      : `${ratingValue}/5 stars`;
+    return {
+      business_id: `uk-${est.FHRSID}`,
+      name: est.BusinessName,
+      address: addr,
+      city,
+      zip_code: est.PostCode || "",
+      phone: est.Phone || "",
+      website: "",
+      description: est.BusinessType || "",
+      safetyScore,
+      grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      totalInspections: est.RatingDate ? 1 : 0,
+      latestDate: est.RatingDate ? est.RatingDate.split("T")[0] : "",
+      latestResult: ratingLabel,
+      latitude: est.geocode?.latitude || null,
+      longitude: est.geocode?.longitude || null,
+      isLLMData: false,
+      source: "uk_fsa",
+      county_id: "uk_fsa",
+      fhrsId: est.FHRSID,
+      localAuthority: est.LocalAuthorityName || "",
+      newRatingPending: est.NewRatingPending,
+      schemeType: est.SchemeType,
+    };
+  });
+}
+
+export function ukFSAToDetailRows(restaurant) {
+  if (!restaurant.fhrsId) return [];
+  // Build a synthetic inspection row from the data we have
+  const h = restaurant._scores?.Hygiene;
+  const s = restaurant._scores?.Structural;
+  const c = restaurant._scores?.ConfidenceInManagement;
+  const violations = [];
+  if (h > 0) violations.push({ violation_description: `Hygiene: ${h > 15 ? "Major improvement necessary" : h > 5 ? "Some improvement necessary" : "Generally satisfactory"}`, violation_type: h > 15 ? "RED" : "BLUE", violation_points: String(h) });
+  if (s > 0) violations.push({ violation_description: `Structural: ${s > 15 ? "Major improvement necessary" : s > 5 ? "Some improvement necessary" : "Generally satisfactory"}`, violation_type: s > 15 ? "RED" : "BLUE", violation_points: String(s) });
+  if (c > 0) violations.push({ violation_description: `Confidence in Management: ${c > 20 ? "Major improvement necessary" : c > 10 ? "Some improvement necessary" : "Generally satisfactory"}`, violation_type: c > 20 ? "RED" : "BLUE", violation_points: String(c) });
+
+  const row = {
+    inspection_serial_num: `uk-${restaurant.fhrsId}`,
+    inspection_date: restaurant.latestDate,
+    inspection_score: String(Math.max(0, 100 - (restaurant.safetyScore || 0))),
+    inspection_result: restaurant.latestResult || "",
+    inspection_type: "Food Hygiene Rating (FSA)",
+  };
+
+  if (violations.length === 0) {
+    return [{ ...row, violation_description: "", violation_type: "", violation_points: "0" }];
+  }
+  return violations.map((v) => ({ ...row, ...v }));
+}
+
 // ── Geocoding ─────────────────────────────────────────────────────────────────
 // Works globally — stateOrCountry can be a US state abbr, country name, or city
 export async function geocodeAddress(address, city, stateOrCountry) {
