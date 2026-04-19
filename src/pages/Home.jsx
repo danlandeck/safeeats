@@ -1,25 +1,18 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, X, GitCompareArrows, LocateFixed, Loader2, MapPin } from "lucide-react";
+import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
-import { getGrade } from "../utils/grading";
-import {
-  llmToDetailRows,
-  geocodeAddress,
-} from "../utils/inspectionProcessors";
+import { llmToDetailRows, geocodeAddress } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
-import SearchBar, { parseLocationQuery } from "../components/SearchBar";
+import { parseLocationQuery } from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
 import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 import AISearchStatus from "../components/AISearchStatus";
-
-
 import RestaurantDetail from "../components/RestaurantDetail";
 
 // Lazy-load heavy components so initial bundle is smaller
@@ -27,10 +20,9 @@ const CameraScanner      = React.lazy(() => import("../components/CameraScanner"
 const MapView            = React.lazy(() => import("../components/MapView"));
 const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
 const FilterSortControls = React.lazy(() => import("../components/FilterSortControls"));
-
 const ComparePanel       = React.lazy(() => import("../components/ComparePanel"));
 
-export { getGrade };
+export { getGrade } from "../utils/grading";
 export { getGradeColor } from "../utils/grading";
 
 
@@ -268,7 +260,6 @@ const CITY_TO_COUNTY = {
   "uptown": { region: "illinois", countyId: "cook" },
   "ravenswood": { region: "illinois", countyId: "cook" },
   "lincoln square": { region: "illinois", countyId: "cook" },
-  // Montgomery County, MD
   // Austin / Travis County — city + neighborhoods + surrounding cities
   "austin": { region: "texas", countyId: "travis" },
   "travis county": { region: "texas", countyId: "travis" },
@@ -735,54 +726,49 @@ const LIVE_API_CITIES = [
 
 
 
+function initSearchCache() {
+  try {
+    const raw = localStorage.getItem('safeeats_cache');
+    const parsed = raw ? JSON.parse(raw) : [];
+    const cutoff = Date.now() - 86_400_000; // 24h TTL
+    const fresh = parsed.filter(([, , ts]) => !ts || ts > cutoff);
+    return new Map(fresh.map(([k, v]) => [k, v]));
+  } catch { return new Map(); }
+}
+
 export default function Home() {
   const location = useLocation();
-  const { consent, accept, decline } = useConsent();
-  const consentGiven = consent?.location === true;
-  const [region, setRegion]                   = useState("global");
-  const [countyId, setCountyId]               = useState("global");
-  const pendingSearchRef                      = useRef(null);
-  const [results, setResults]                 = useState([]);
+  const { accept, decline } = useConsent();
+  const [region, setRegion]                     = useState("global");
+  const [countyId, setCountyId]                 = useState("global");
+  const pendingSearchRef                        = useRef(null);
+  const [results, setResults]                   = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [detailRows, setDetailRows]           = useState([]);
-  const [isLoading, setIsLoading]             = useState(false);
-  const [loadingSeconds, setLoadingSeconds]   = useState(0);
-  const loadingTimerRef                       = useRef(null);
-  const abortRef                              = useRef(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
-  const [hasSearched, setHasSearched]         = useState(false);
-  const [searchQuery, setSearchQuery]         = useState("");
-  const [searchBarQuery, setSearchBarQuery]   = useState("");
-  const [viewMode, setViewMode]               = useState("list");
-  const [filterResult, setFilterResult]       = useState("all");
-  const [sortBy, setSortBy]                   = useState("score-high");
-  const [gradeFilter, setGradeFilter]         = useState(null);
-
-  const [isGeocodingMap, setIsGeocodingMap]   = useState(false);
-  const [compareList, setCompareList]         = useState([]);
-  const [showCompare, setShowCompare]         = useState(false);
-  const [nearMeActive, setNearMeActive]       = useState(false);
-  const [userCoords, setUserCoords]           = useState(null);
-  const [isGeolocating, setIsGeolocating]     = useState(false);
-  const [nearMeError, setNearMeError]         = useState("");
-  const [showScanner, setShowScanner]         = useState(false);
+  const [detailRows, setDetailRows]             = useState([]);
+  const [isLoading, setIsLoading]               = useState(false);
+  const abortRef                                = useRef(null);
+  const [isDetailLoading, setIsDetailLoading]   = useState(false);
+  const [hasSearched, setHasSearched]           = useState(false);
+  const [searchQuery, setSearchQuery]           = useState("");
+  const [searchBarQuery, setSearchBarQuery]     = useState("");
+  const [viewMode, setViewMode]                 = useState("list");
+  const [filterResult, setFilterResult]         = useState("all");
+  const [sortBy, setSortBy]                     = useState("score-high");
+  const [gradeFilter, setGradeFilter]           = useState(null);
+  const [compareList, setCompareList]           = useState([]);
+  const [showCompare, setShowCompare]           = useState(false);
+  const [nearMeActive, setNearMeActive]         = useState(false);
+  const [userCoords, setUserCoords]             = useState(null);
+  const [isGeolocating, setIsGeolocating]       = useState(false);
+  const [nearMeError, setNearMeError]           = useState("");
+  const [showScanner, setShowScanner]           = useState(false);
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
   const [persistentFilters, setPersistentFilters] = useState({});
-  const [fastResults, setFastResults] = useState(null); // preliminary AI results
-  const searchCacheRef = useRef(null);
-  if (!searchCacheRef.current) {
-    try {
-      const raw = localStorage.getItem('safeeats_cache');
-      // Prune stale entries older than 24 h
-      const parsed = raw ? JSON.parse(raw) : [];
-      const cutoff = Date.now() - 86_400_000;
-      const fresh  = parsed.filter(([, , ts]) => !ts || ts > cutoff);
-      searchCacheRef.current = new Map(fresh.map(([k, v]) => [k, v]));
-    } catch { searchCacheRef.current = new Map(); }
-  }
-  const detailCacheRef = useRef(new Map());
+  const [fastResults, setFastResults]           = useState(null);
+  const searchCacheRef                          = useRef(initSearchCache());
+  const detailCacheRef                          = useRef(new Map());
 
   const handleToggleCompare = (restaurant) => {
     setCompareList((prev) => {
@@ -854,27 +840,16 @@ export default function Home() {
     setGradeFilter(null);
   };
 
-  const handleRegionChange = (newRegion) => {
-    const targetRegion = REGIONS[newRegion] || REGIONS["global"];
-    setRegion(newRegion);
-    setCountyId(targetRegion.counties[0].id);
-    resetSearch();
-  };
-
   const handleSearch = useCallback(async (rawQuery) => {
-    // Detect location-aware queries like "Subway, Seattle WA"
     let query = rawQuery;
     let searchRegion = region;
     let searchCounty = countyId;
 
     const parsed = parseLocationQuery(rawQuery);
-    const hasLocationHint = !!parsed;
-    let useLLMCity = false; // will be set if city is known but not a live-API county
 
     if (parsed) {
       query = parsed.name || parsed.zip || parsed.city || rawQuery;
 
-      // First: check city alias map for known county-level API cities
       const cityKey = (parsed.city || "").toLowerCase().trim();
       const aliasMatch = cityKey ? CITY_TO_COUNTY[cityKey] : null;
       if (aliasMatch && REGIONS[aliasMatch.region]) {
@@ -882,31 +857,21 @@ export default function Home() {
         searchCounty = aliasMatch.countyId;
         setRegion(searchRegion);
         setCountyId(searchCounty);
-        // If the alias has a rich locationLabel (e.g. "Vancouver, British Columbia, Canada"), use it
-        if (aliasMatch.locationLabel) {
-          setLocationQuery(aliasMatch.locationLabel);
-        }
-      } else {
-        // City not in live-API alias map — use LLM city search if we have a city
-        if (parsed.city) {
-          useLLMCity = true;
-        } else if (parsed.state) {
-          // Only a state/country code was given — match to a region by abbr
-          // US states only (2-letter): skip international codes that overlap (e.g. CAN for Canada)
-          const stateToMatch = parsed.state.toUpperCase();
-          const matchedRegionEntry = Object.entries(REGIONS).find(([key, r]) => {
-            // Only match US regions by abbr to avoid confusing CA=California vs Canada (now CAN)
-            const isUSRegion = !["canada","uk","mexico","australia","france","germany","spain","italy",
-              "japan","brazil","india","south_korea","china","uae","singapore","netherlands",
-              "portugal","new_zealand","argentina","thailand","greece","turkey","south_africa","global"].includes(key);
-            return isUSRegion && r.abbr?.toUpperCase() === stateToMatch;
-          });
-          if (matchedRegionEntry) {
-            searchRegion = matchedRegionEntry[0];
-            searchCounty = matchedRegionEntry[1].counties[0].id;
-            setRegion(searchRegion);
-            setCountyId(searchCounty);
-          }
+        if (aliasMatch.locationLabel) setLocationQuery(aliasMatch.locationLabel);
+      } else if (parsed.state) {
+        // Match a US state abbreviation to a region
+        const stateToMatch = parsed.state.toUpperCase();
+        const NON_US = new Set(["canada","uk","mexico","australia","france","germany","spain","italy",
+          "japan","brazil","india","south_korea","china","uae","singapore","netherlands",
+          "portugal","new_zealand","argentina","thailand","greece","turkey","south_africa","global"]);
+        const matchedRegionEntry = Object.entries(REGIONS).find(([key, r]) =>
+          !NON_US.has(key) && r.abbr?.toUpperCase() === stateToMatch
+        );
+        if (matchedRegionEntry) {
+          searchRegion = matchedRegionEntry[0];
+          searchCounty = matchedRegionEntry[1].counties[0].id;
+          setRegion(searchRegion);
+          setCountyId(searchCounty);
         }
       }
 
@@ -919,9 +884,7 @@ export default function Home() {
     const signal = controller.signal;
 
     setIsLoading(true);
-    setLoadingSeconds(0);
     setFastResults(null);
-    loadingTimerRef.current = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
     setHasSearched(true);
     setSearchQuery(rawQuery);
     setSelectedBusiness(null);
@@ -930,16 +893,12 @@ export default function Home() {
 
     const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
     if (searchCacheRef.current.has(cacheKey)) {
-      clearInterval(loadingTimerRef.current);
       setResults(searchCacheRef.current.get(cacheKey));
       setIsLoading(false);
       return;
     }
 
-    const currentRegion = REGIONS[searchRegion];
-    const currentCounty = currentRegion.counties.find((c) => c.id === searchCounty) || currentRegion.counties[0];
-    const encode = (s) => encodeURIComponent(s.toUpperCase());
-    const safeFetch = (url) => fetch(url, { signal }).then(r => r.json());
+    const currentCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
     const setAndCache = (data) => {
       searchCacheRef.current.set(cacheKey, data);
       try {
@@ -976,14 +935,12 @@ export default function Home() {
       setAndCache(fetchedResults);
     } catch (e) {
       if (e.name === "AbortError") return;
-      clearInterval(loadingTimerRef.current);
       setIsLoading(false);
       setIsAISearch(false);
       setSearchError("Search failed. Please try again in a moment.");
       return;
     }
 
-    clearInterval(loadingTimerRef.current);
     setIsLoading(false);
     setIsAISearch(false);
   }, [region, countyId, locationQuery]);
@@ -1273,14 +1230,12 @@ export default function Home() {
                         <AISearchStatus
                           hasFastResults={fastResults !== null && fastResults.length > 0}
                           onAcceptFast={() => {
-                            clearInterval(loadingTimerRef.current);
                             if (abortRef.current) abortRef.current.abort();
                             setResults(fastResults);
                             setFastResults(null);
                             setIsLoading(false);
                           }}
                           onCancel={() => {
-                            clearInterval(loadingTimerRef.current);
                             if (abortRef.current) abortRef.current.abort();
                             setIsLoading(false);
                             setFastResults(null);
