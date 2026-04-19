@@ -23,7 +23,7 @@ export const API_REGISTRY = {
     searchField: "name",
     idField: "business_id",
     dateField: "inspection_date",
-    limit: 50,
+    limit: 1000,
     source: "king",
   },
   nyc: {
@@ -33,7 +33,7 @@ export const API_REGISTRY = {
     searchField: "dba",
     idField: "camis",
     dateField: "inspection_date",
-    limit: 50,
+    limit: 1000,
     source: "nyc",
   },
   cook: {
@@ -43,7 +43,7 @@ export const API_REGISTRY = {
     searchField: "dba_name",
     idField: "license_",
     dateField: "inspection_date",
-    limit: 50,
+    limit: 1000,
     source: "chicago",
   },
   montgomery_md: {
@@ -53,7 +53,7 @@ export const API_REGISTRY = {
     searchField: "name",
     idField: "establishment_id",
     dateField: "inspectiondate",
-    limit: 50,
+    limit: 1000,
     source: "montgomery",
   },
   travis: {
@@ -63,7 +63,7 @@ export const API_REGISTRY = {
     searchField: "restaurant_name",
     idField: "facility_id",
     dateField: "inspection_date",
-    limit: 50,
+    limit: 1000,
     source: "austin",
   },
   sf: {
@@ -73,7 +73,7 @@ export const API_REGISTRY = {
     searchField: "business_name",
     idField: "business_id",
     dateField: "inspection_date",
-    limit: 50,
+    limit: 1000,
     source: "sf",
   },
   la: {
@@ -83,7 +83,7 @@ export const API_REGISTRY = {
     searchField: "facility_name",
     idField: "facility_id",
     dateField: "activity_date",
-    limit: 50,
+    limit: 1000,
     source: "la",
   },
   delaware: {
@@ -93,7 +93,7 @@ export const API_REGISTRY = {
     searchField: "restname",
     idField: "restname", // group by name+address for detail
     dateField: "insp_date",
-    limit: 100,
+    limit: 1000,
     source: "delaware",
   },
   ny_state: {
@@ -103,7 +103,7 @@ export const API_REGISTRY = {
     searchField: "facility",
     idField: "nys_health_operation_id",
     dateField: "date",
-    limit: 50,
+    limit: 1000,
     source: "ny_state",
   },
 };
