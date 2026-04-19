@@ -7,25 +7,17 @@ import { Search, X, MapPin } from "lucide-react";
 export function parseLocationQuery(raw) {
   const trimmed = raw.trim();
 
-  // ZIP-only: "92101"
-  const zipOnly = trimmed.match(/^(\d{5})$/);
-  if (zipOnly) return { name: "", city: "", state: "", zip: zipOnly[1] };
-
-  // "Name 92101" or "Name, 92101"
-  const nameZip = trimmed.match(/^(.+?)[,\s]+(\d{5})$/);
-  if (nameZip) return { name: nameZip[1].trim(), city: "", state: "", zip: nameZip[2] };
-
-  // "Name, City ST ZIP" or "Name, City ST" or "Name, City, ST"
-  const withName = trimmed.match(/^(.+?),\s*([^,]+?)\s+([A-Z]{2})\s*(\d{5})?$/i);
-  if (withName) return { name: withName[1].trim(), city: withName[2].trim(), state: withName[3].toUpperCase(), zip: withName[4] || null };
+  // "Name, City ST" or "Name, City, ST"
+  const withName = trimmed.match(/^(.+?),\s*([^,]+?)\s+([A-Z]{2})$/i);
+  if (withName) return { name: withName[1].trim(), city: withName[2].trim(), state: withName[3].toUpperCase() };
 
   // "City, ST" or "City ST" standalone (no restaurant name)
   const locationOnly = trimmed.match(/^([A-Za-z\s]+),?\s+([A-Z]{2})$/i);
-  if (locationOnly) return { name: "", city: locationOnly[1].trim(), state: locationOnly[2].toUpperCase(), zip: null };
+  if (locationOnly) return { name: "", city: locationOnly[1].trim(), state: locationOnly[2].toUpperCase() };
 
   // "Name, City" or just "City" (no state)
   const nameCity = trimmed.match(/^(.+?),\s*([A-Za-z][A-Za-z\s]+)$/);
-  if (nameCity) return { name: nameCity[1].trim(), city: nameCity[2].trim(), state: null, zip: null };
+  if (nameCity) return { name: nameCity[1].trim(), city: nameCity[2].trim(), state: null };
 
   return null;
 }
@@ -46,7 +38,7 @@ export default function SearchBar({ onSearch, isLoading, placeholder, dir }) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={placeholder || "Try: Subway, San Diego CA · 92101 · Taco Bell 98101"}
+            placeholder={placeholder || "Try: Subway, San Diego CA · pizza Seattle · tacos Austin TX"}
             dir={dir || "ltr"}
             className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-300 whitespace-nowrap overflow-x-auto"
           />

@@ -851,11 +851,6 @@ export default function Home() {
       // zip is a location identifier, not a search term — use name or city as the query
       query = parsed.name || parsed.city || rawQuery;
 
-      // If only a zip was given (no city/name), surface it as the location context
-      if (parsed.zip && !parsed.city && !parsed.name) {
-        setLocationQuery(parsed.zip);
-      }
-
       const cityKey = (parsed.city || "").toLowerCase().trim();
       const aliasMatch = cityKey ? CITY_TO_COUNTY[cityKey] : null;
       if (aliasMatch && REGIONS[aliasMatch.region]) {
