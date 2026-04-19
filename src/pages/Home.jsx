@@ -964,13 +964,62 @@ export default function Home() {
     const cacheAndSet = (rows) => {
       detailCacheRef.current.set(biz.business_id, rows);
       setDetailRows(rows);
-      // Compute the true unique inspection count from actual fetched rows
-      const uniqueKeys = new Set(rows.map(r => r.inspection_serial_num || `${r.inspection_date}|${r.inspection_result}`));
-      const actualCount = Math.max(uniqueKeys.size, rows.length > 0 ? 1 : 0);
-      if (actualCount > 0) {
-        setSelectedBusiness(prev => ({ ...prev, totalInspections: actualCount }));
-        setResults(prev => prev.map(r => r.business_id === biz.business_id ? { ...r, totalInspections: actualCount } : r));
+
+      if (rows.length === 0) return;
+
+      // Compute authoritative stats directly from the fetched inspection rows
+      const uniqueMap = {};
+      rows.forEach(row => {
+        const key = row.inspection_serial_num || `${row.inspection_date}|${row.inspection_result}`;
+        if (!uniqueMap[key]) uniqueMap[key] = row;
+      });
+      const uniqueRows = Object.values(uniqueMap);
+
+      // True inspection count
+      const actualCount = uniqueRows.length;
+
+      // Latest date from actual data
+      const sortedDates = uniqueRows
+        .map(r => r.inspection_date)
+        .filter(Boolean)
+        .sort((a, b) => new Date(b) - new Date(a));
+      const trueLatestDate = sortedDates[0] || biz.latestDate;
+
+      // Latest result from most recent inspection
+      const mostRecent = uniqueRows.find(r => r.inspection_date === trueLatestDate) || uniqueRows[0];
+      const trueLatestResult = mostRecent?.inspection_result || biz.latestResult;
+
+      // Recompute safety score from fetched rows if source has numeric scores
+      let trueSafetyScore = biz.safetyScore;
+      const scoresFromRows = uniqueRows
+        .map(r => {
+          const raw = r.inspection_score !== undefined ? r.inspection_score : r.score;
+          return raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : null;
+        })
+        .filter(s => s !== null && !isNaN(s));
+      if (scoresFromRows.length > 0) {
+        // Use the score from the most recent inspection as the authoritative score
+        const latestScoreRaw = (mostRecent?.inspection_score !== undefined ? mostRecent.inspection_score : mostRecent?.score);
+        if (latestScoreRaw !== undefined && latestScoreRaw !== null) {
+          trueSafetyScore = Math.max(0, Math.min(100, 100 - parseInt(latestScoreRaw)));
+        }
       }
+
+      // Enrich selectedBusiness with authoritative data from the detail fetch
+      const enriched = {
+        ...biz,
+        totalInspections: actualCount,
+        latestDate: trueLatestDate,
+        latestResult: trueLatestResult,
+        safetyScore: trueSafetyScore,
+        inspectionHistory: uniqueRows,
+      };
+      setSelectedBusiness(enriched);
+      setResults(prev => prev.map(r =>
+        r.business_id === biz.business_id
+          ? { ...r, totalInspections: actualCount, latestDate: trueLatestDate, latestResult: trueLatestResult, safetyScore: trueSafetyScore }
+          : r
+      ));
     };
 
     const rows = await engineFetchDetail(biz);
