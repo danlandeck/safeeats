@@ -930,6 +930,11 @@ export default function Home() {
         onFastResults: (fast) => {
           setFastResults(fast);
         },
+        onCountUpdate: (bizId, trueCount) => {
+          setResults(prev => prev.map(r =>
+            r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
+          ));
+        },
       });
 
       setIsAISearch(isAI);

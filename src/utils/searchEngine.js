@@ -169,7 +169,7 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastR
   return restaurants;
 }
 
-export async function search({ query, countyId, locationLabel, today, signal, onFastResults }) {
+export async function search({ query, countyId, locationLabel, today, signal, onFastResults, onCountUpdate }) {
   // UK FSA live API (requires backend proxy for header injection)
   if (countyId === "uk_fsa") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
@@ -188,7 +188,28 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
     const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
-    return { results: PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []), isAI: false };
+    const results = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+
+    // Background-fetch true inspection counts and fire onCountUpdate per business
+    if (onCountUpdate && countyId !== "delaware") {
+      results.forEach(async (biz) => {
+        try {
+          const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
+          const rows = await fetch(countUrl).then(r => r.json());
+          if (!Array.isArray(rows) || rows.length === 0) return;
+          const keys = new Set(rows.map(row => {
+            const v = row[entry.dateField];
+            return v ? v.split("T")[0] : null;
+          }).filter(Boolean));
+          const trueCount = keys.size;
+          if (trueCount > biz.totalInspections) {
+            onCountUpdate(biz.business_id, trueCount);
+          }
+        } catch {}
+      });
+    }
+
+    return { results, isAI: false };
   }
 
   // Dubai — fully isolated path
