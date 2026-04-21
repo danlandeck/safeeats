@@ -4,14 +4,24 @@ module.exports = {
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			nunito: ['Nunito', 'Montserrat', 'sans-serif'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			sm: 'calc(var(--radius) - 4px)',
+  			'4xl': '2rem',
+  			'5xl': '2.5rem',
   		},
   		colors: {
   			'brand-green': '#4CAF50',
   			'brand-blue': '#2196F3',
+  			'cartoon-yellow': '#FFE44D',
+  			'cartoon-orange': '#FF8C42',
+  			'cartoon-pink': '#FF6B9D',
+  			'cartoon-purple': '#A855F7',
+  			'cartoon-teal': '#14B8A6',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

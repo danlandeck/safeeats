@@ -1125,31 +1125,31 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
               🛡️ #1 Global Food Safety Platform · 195+ Countries
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"}>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
               Is your restaurant
-              <span className="text-[#4CAF50]"> safe to eat at?</span>
+              <span className="text-[#4CAF50]"> safe to eat at? 🍽️</span>
             </h1>
-            <p className="mt-3 text-base sm:text-lg text-slate-300 font-medium max-w-lg mx-auto">
-              The world's most comprehensive food safety intelligence platform. Real health inspection records from every corner of the globe — in plain English.
+            <p className="mt-3 text-base sm:text-lg text-slate-300 font-bold max-w-lg mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+              Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️
             </p>
 
             {/* Grade scale — immediately visible on landing */}
             {!hasSearched && (
-              <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
+              <div className="flex items-center justify-center gap-2 mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
                 {[
-                  { g: "A", color: "bg-green-700 text-white", tip: "Excellent" },
-                  { g: "B", color: "bg-green-400 text-white", tip: "Good" },
-                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: "Okay" },
-                  { g: "D", color: "bg-orange-400 text-white", tip: "Poor" },
-                  { g: "F", color: "bg-red-600 text-white", tip: "Critical" },
-                  { g: "U", color: "bg-slate-400 text-white", tip: "Unknown" },
+                  { g: "A", color: "bg-green-600 text-white", tip: "🌟 Amazing!" },
+                  { g: "B", color: "bg-lime-500 text-white", tip: "😊 Great!" },
+                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: "🤔 Okay" },
+                  { g: "D", color: "bg-orange-500 text-white", tip: "⚠️ Uh-oh" },
+                  { g: "F", color: "bg-red-600 text-white", tip: "🚨 Yikes!" },
+                  { g: "U", color: "bg-slate-400 text-white", tip: "❓ Unknown" },
                 ].map(({ g, color, tip }) => (
-                  <div key={g} className="flex flex-col items-center gap-0.5">
-                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-base shadow-sm ${color}`}>{g}</span>
-                    <span className="text-[9px] text-slate-400 font-semibold">{tip}</span>
+                  <div key={g} className="flex flex-col items-center gap-1">
+                    <span className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2 border-white/30 ${color}`}>{g}</span>
+                    <span className="text-[10px] text-slate-300 font-extrabold">{tip}</span>
                   </div>
                 ))}
-                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors">← grades explained</Link>
+                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">← how grades work</Link>
               </div>
             )}
           </div>
@@ -1214,17 +1214,17 @@ export default function Home() {
           <div className="space-y-8 mb-10">
 
             {/* Quick explainer */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ fontFamily: "Nunito, sans-serif" }}>
               {[
-                { emoji: "🔍", title: "Search any restaurant", desc: "Type a name, a food type like \"pizza\", or your city. Works worldwide." },
-                { emoji: "📋", title: "See the real grade", desc: "We pull actual government health inspection records — the same ones the inspector files." },
-                { emoji: "🛡️", title: "Eat with confidence", desc: "A–F grades, plain-English summaries, and full violation history for every restaurant." },
+                { emoji: "🔍", title: "Search any restaurant!", desc: "Type a name, like \"McDonald's\" or just \"pizza\". It works anywhere in the world!" },
+                { emoji: "📋", title: "See the real grade", desc: "We grab actual health inspector reports — the same ones the inspectors write down." },
+                { emoji: "🛡️", title: "Eat with confidence!", desc: "Get A–F grades in plain English, plus the full list of what inspectors found." },
               ].map(({ emoji, title, desc }) => (
-                <div key={title} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex gap-4 items-start">
-                  <span className="text-3xl flex-shrink-0">{emoji}</span>
+                <div key={title} className="bg-white rounded-3xl border-2 border-slate-200 p-5 shadow-sm flex gap-4 items-start hover:border-[#4CAF50] hover:shadow-md transition-all">
+                  <span className="text-4xl flex-shrink-0">{emoji}</span>
                   <div>
-                    <h3 className="font-extrabold text-slate-900 text-sm mb-1">{title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                    <h3 className="font-black text-slate-900 text-sm mb-1">{title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -1366,7 +1366,7 @@ export default function Home() {
 
                         {viewMode === "map" ? (
                           <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
-                            <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} />
+                            <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} selectedId={selectedBusiness?.business_id} />
                           </Suspense>
                         ) : (
                           <div className="space-y-3">

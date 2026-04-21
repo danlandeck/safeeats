@@ -1,14 +1,11 @@
 import React, { useMemo, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
-import { getScoreColor } from "./ScoreGauge";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix default marker icon issue with webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -16,8 +13,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// ESRI diverging color ramp (matches NationalHeatMap)
+// ESRI diverging color ramp
 function getEsriColor(score) {
+  if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
   if (score >= 80) return "#a6d96a";
   if (score >= 70) return "#ffffbf";
@@ -26,132 +24,199 @@ function getEsriColor(score) {
 }
 
 function getTextColor(score) {
+  if (score === null || score === undefined) return "#fff";
   return score >= 70 && score < 80 ? "#555" : "#fff";
 }
 
-function createColoredIcon(score) {
+function getGradeLetter(score) {
+  if (score === null || score === undefined) return "?";
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
+
+function createColoredIcon(score, isSelected = false) {
   const bg = getEsriColor(score);
   const text = getTextColor(score);
+  const grade = getGradeLetter(score);
+  const size = isSelected ? 48 : 38;
+  const borderWidth = isSelected ? 4 : 3;
+  const fontSize = isSelected ? 16 : 13;
+  const pulseRing = isSelected
+    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:3px solid ${bg};opacity:0.5;animation:marker-pulse 1.8s infinite ease-in-out;"></div>`
+    : "";
+
   return L.divIcon({
     className: "custom-marker",
-    html: `<div style="
-      width: 36px;
-      height: 36px;
-      border-radius: 50% 50% 50% 0;
-      background: ${bg};
-      transform: rotate(-45deg);
-      border: 3px solid white;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    ">
+    html: `<div style="position:relative;width:${size}px;height:${size}px;">
+      ${pulseRing}
       <div style="
-        transform: rotate(45deg);
-        color: ${text};
-        font-weight: 800;
-        font-size: 11px;
-        letter-spacing: -0.5px;
-      ">${score}</div>
+        width:${size}px;height:${size}px;
+        border-radius:50% 50% 50% 0;
+        background:${bg};
+        transform:rotate(-45deg);
+        border:${borderWidth}px solid white;
+        box-shadow:0 4px 14px rgba(0,0,0,0.4);
+        display:flex;align-items:center;justify-content:center;
+      ">
+        <div style="transform:rotate(45deg);color:${text};font-weight:900;font-size:${fontSize}px;font-family:Nunito,sans-serif;">
+          ${grade}
+        </div>
+      </div>
     </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -(size + 4)],
   });
 }
 
-// Fits the map to the bounds of all valid markers, fires only when the set of coords changes
-function MapController({ validRestaurants, userCoords }) {
+function createUserIcon() {
+  return L.divIcon({
+    className: "user-location-marker",
+    html: `<div style="position:relative;width:28px;height:28px;">
+      <div style="
+        position:absolute;inset:-8px;border-radius:50%;
+        background:rgba(33,150,243,0.2);
+        animation:marker-pulse 2s infinite ease-in-out;
+      "></div>
+      <div style="
+        width:28px;height:28px;border-radius:50%;
+        background:#2196F3;border:4px solid white;
+        box-shadow:0 3px 12px rgba(33,150,243,0.6);
+      "></div>
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+}
+
+// Auto-fits bounds to all markers; also pans to userCoords when no restaurants
+function MapController({ validRestaurants, userCoords, selectedId }) {
   const map = useMap();
   const prevKeyRef = useRef(null);
 
   useEffect(() => {
     const key = validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|");
-    if (key === prevKeyRef.current) return; // same set — don't reset view
+    if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
 
     if (validRestaurants.length > 0) {
       const bounds = L.latLngBounds(
         validRestaurants.map(r => [parseFloat(r.latitude), parseFloat(r.longitude)])
       );
-      map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 16, duration: 1.2 });
+      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 16, duration: 1.2 });
     } else if (userCoords) {
-      map.flyTo([userCoords.lat, userCoords.lng], 12, { duration: 1.2 });
+      map.flyTo([userCoords.lat, userCoords.lng], 13, { duration: 1.0 });
     }
   }, [validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|")]);
+
+  // Pan to selected restaurant
+  useEffect(() => {
+    if (!selectedId) return;
+    const r = validRestaurants.find(x => x.business_id === selectedId);
+    if (r?.latitude && r?.longitude) {
+      map.flyTo([parseFloat(r.latitude), parseFloat(r.longitude)], 16, { duration: 0.8 });
+    }
+  }, [selectedId]);
 
   return null;
 }
 
-export default function MapView({ restaurants, onSelectRestaurant, userCoords }) {
-  // Initial center: computed once from the first batch of valid coords (or Seattle fallback)
+export default function MapView({ restaurants, onSelectRestaurant, userCoords, selectedId }) {
   const initialCenter = useMemo(() => {
+    if (userCoords) return [userCoords.lat, userCoords.lng];
     const valid = restaurants.filter(r => r.latitude && r.longitude);
     if (valid.length > 0) {
       const avgLat = valid.reduce((s, r) => s + parseFloat(r.latitude), 0) / valid.length;
       const avgLon = valid.reduce((s, r) => s + parseFloat(r.longitude), 0) / valid.length;
       return [avgLat, avgLon];
     }
-    if (userCoords) return [userCoords.lat, userCoords.lng];
-    return [47.6062, -122.3321]; // Seattle fallback only when truly nothing
-  }, []); // intentionally empty — only for initial mount
+    return [47.6062, -122.3321];
+  }, []);
 
   const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
+  const userIcon = useMemo(() => createUserIcon(), []);
 
   return (
-    <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+    <div className="rounded-3xl overflow-hidden border-2 border-slate-200 shadow-lg" style={{ height: 520 }}>
       <MapContainer
         center={initialCenter}
         zoom={13}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
       >
-        <MapController validRestaurants={validRestaurants} userCoords={userCoords} />
+        <MapController validRestaurants={validRestaurants} userCoords={userCoords} selectedId={selectedId} />
+
+        {/* ESRI World Street Map tile layer */}
         <TileLayer
-          attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin, FAO, NOAA, USGS'
+          attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
         />
-        {validRestaurants.map((restaurant) => (
-          <Marker
-            key={`${restaurant.business_id}-${restaurant.latitude}`}
-            position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
-            icon={createColoredIcon(restaurant.safetyScore)}
-          >
-            <Popup maxWidth={300}>
-              <div className="p-2">
-                <div className="flex items-start gap-3 mb-3">
-                  <ScoreGauge score={restaurant.safetyScore} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-slate-900 leading-tight">
-                      {restaurant.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {restaurant.address}
-                    </p>
+
+        {/* User location marker with accuracy circle */}
+        {userCoords && (
+          <>
+            <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
+            <Circle
+              center={[userCoords.lat, userCoords.lng]}
+              radius={400}
+              pathOptions={{ color: "#2196F3", fillColor: "#2196F3", fillOpacity: 0.08, weight: 1.5, dashArray: "6 4" }}
+            />
+          </>
+        )}
+
+        {validRestaurants.map((restaurant) => {
+          const isSelected = restaurant.business_id === selectedId;
+          return (
+            <Marker
+              key={`${restaurant.business_id}-${restaurant.latitude}`}
+              position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
+              icon={createColoredIcon(restaurant.safetyScore, isSelected)}
+              zIndexOffset={isSelected ? 1000 : 0}
+            >
+              <Popup maxWidth={280} className="cartoon-popup">
+                <div style={{ fontFamily: "Nunito, sans-serif", padding: "6px 2px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                      background: getEsriColor(restaurant.safetyScore),
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontWeight: 900, fontSize: 20, color: getTextColor(restaurant.safetyScore),
+                      border: "2px solid #1a1a1a",
+                    }}>
+                      {getGradeLetter(restaurant.safetyScore)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a", lineHeight: 1.3 }}>
+                        {restaurant.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                        📍 {restaurant.address}
+                      </div>
+                    </div>
                   </div>
+                  <div style={{ fontSize: 11, color: "#475569", marginBottom: 10 }}>
+                    🔍 {restaurant.totalInspections} inspection{restaurant.totalInspections !== 1 ? "s" : ""}
+                    {restaurant.latestDate ? ` · Last: ${new Date(restaurant.latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}` : ""}
+                  </div>
+                  <button
+                    onClick={() => onSelectRestaurant(restaurant)}
+                    style={{
+                      width: "100%", padding: "8px 0", borderRadius: 12,
+                      background: "#4CAF50", color: "white", fontWeight: 800,
+                      fontSize: 13, border: "none", cursor: "pointer",
+                      fontFamily: "Nunito, sans-serif",
+                    }}
+                  >
+                    See Full Report 🔍
+                  </button>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
-                  {restaurant.latestResult && (
-                    <Badge variant="outline" className="text-[10px]">
-                      {restaurant.latestResult}
-                    </Badge>
-                  )}
-                  <span className="text-[10px] text-slate-400">
-                    {restaurant.totalInspections} inspection{restaurant.totalInspections !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => onSelectRestaurant(restaurant)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs"
-                >
-                  View Details
-                  <ExternalLink className="w-3 h-3 ml-1.5" />
-                </Button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );
