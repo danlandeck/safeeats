@@ -783,6 +783,27 @@ export function torontoToDetailRows(records) {
   return rows;
 }
 
+// ── Reverse Geocoding ─────────────────────────────────────────────────────────
+// Given lat/lng, returns { city, county, state, country } using Nominatim
+export async function reverseGeocode(lat, lng) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`;
+    const res = await fetch(url, { headers: { "User-Agent": "SafeEats/1.0" } });
+    const data = await res.json();
+    const addr = data.address || {};
+    return {
+      city: addr.city || addr.town || addr.village || addr.suburb || "",
+      county: addr.county || "",
+      state: addr.state || "",
+      country: addr.country || "",
+      countryCode: (addr.country_code || "").toUpperCase(),
+      displayName: data.display_name || "",
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Geocoding ─────────────────────────────────────────────────────────────────
 // Works globally — stateOrCountry can be a US state abbr, country name, or city
 export async function geocodeAddress(address, city, stateOrCountry) {

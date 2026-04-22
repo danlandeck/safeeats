@@ -4,7 +4,7 @@ import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
-import { llmToDetailRows, geocodeAddress } from "../utils/inspectionProcessors";
+import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
 import { parseLocationQuery } from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
@@ -844,6 +844,7 @@ export default function Home() {
     let query = rawQuery;
     let searchRegion = region;
     let searchCounty = countyId;
+    let autoDetectedLocation = false;
 
     const parsed = parseLocationQuery(rawQuery);
 
@@ -877,6 +878,54 @@ export default function Home() {
       }
 
       if (!parsed.name) query = rawQuery;
+    }
+
+    // --- Auto-detect location from query words if still on global ---
+    if (searchRegion === "global" || searchCounty === "global") {
+      const queryWords = rawQuery.toLowerCase().trim();
+      // Try matching any word/phrase in the query against CITY_TO_COUNTY
+      let matched = null;
+      // Try longest matches first (multi-word cities like "mercer island")
+      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        if (queryWords.includes(key)) {
+          matched = CITY_TO_COUNTY[key];
+          // Strip the city name from the query to get just the food/restaurant term
+          query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          break;
+        }
+      }
+      if (matched && REGIONS[matched.region]) {
+        searchRegion = matched.region;
+        searchCounty = matched.countyId;
+        setRegion(searchRegion);
+        setCountyId(searchCounty);
+        if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+        autoDetectedLocation = true;
+      }
+    }
+
+    // --- Auto-detect location from userCoords if still on global ---
+    if ((searchRegion === "global" || searchCounty === "global") && userCoords && !locationQuery.trim()) {
+      const geo = await reverseGeocode(userCoords.lat, userCoords.lng);
+      if (geo) {
+        const cityKey = (geo.city || "").toLowerCase().trim();
+        const countyKey = (geo.county || "").toLowerCase().trim();
+        const aliasMatch = CITY_TO_COUNTY[cityKey] || CITY_TO_COUNTY[countyKey];
+        if (aliasMatch && REGIONS[aliasMatch.region]) {
+          searchRegion = aliasMatch.region;
+          searchCounty = aliasMatch.countyId;
+          setRegion(searchRegion);
+          setCountyId(searchCounty);
+          const label = aliasMatch.locationLabel || geo.city || geo.county || "";
+          if (label) setLocationQuery(label);
+          autoDetectedLocation = true;
+        } else {
+          // Use the city/state as a location label for AI search context even without a live API
+          const label = [geo.city, geo.state, geo.country].filter(Boolean).join(", ");
+          if (label) setLocationQuery(label);
+        }
+      }
     }
 
     if (abortRef.current) abortRef.current.abort();
@@ -949,7 +998,7 @@ export default function Home() {
 
     setIsLoading(false);
     setIsAISearch(false);
-  }, [region, countyId, locationQuery]);
+  }, [region, countyId, locationQuery, userCoords]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setSelectedBusiness(biz);
