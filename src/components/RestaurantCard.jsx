@@ -36,7 +36,7 @@ function WaterMini({ restaurant }) {
 
   useEffect(() => {
     if (!city || !state) return;
-    base44.functions.invoke("getWaterQuality", { city, state, country: "US" })
+    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id })
       .then(res => { if (res.data?.available) setWaterGrade(res.data.grade); })
       .catch(() => {});
   }, [city, state]);

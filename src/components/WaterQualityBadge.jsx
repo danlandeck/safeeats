@@ -46,7 +46,7 @@ export default function WaterQualityBadge({ restaurant }) {
     if (!city || !state) { setLoading(false); return; }
 
     setLoading(true);
-    base44.functions.invoke("getWaterQuality", { city, state, country: "US" })
+    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id })
       .then(res => setData(res.data))
       .catch(() => setData({ available: false, reason: "Unable to fetch water data." }))
       .finally(() => setLoading(false));
@@ -127,10 +127,10 @@ export default function WaterQualityBadge({ restaurant }) {
               </span>
             )}
             {data.isFallback && (
-              <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-semibold">
-                ⚠ State-level estimate
-              </span>
-            )}
+                  <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-semibold">
+                    ⚠ {data.fallbackLevel === "county" ? "County-level estimate" : "State-level estimate"}
+                  </span>
+                )}
           </div>
 
           {data.violations?.length > 0 && (
