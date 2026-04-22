@@ -1,0 +1,171 @@
+{
+  "name": "Restaurant",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Unique identifier from source API (varies by source)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Restaurant name"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "city": {
+      "type": "string",
+      "description": "City name"
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "Postal code"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "website": {
+      "type": "string",
+      "description": "Website URL"
+    },
+    "description": {
+      "type": "string",
+      "description": "Facility type or cuisine description"
+    },
+    "county_id": {
+      "type": "string",
+      "description": "County identifier (king, nyc, cook, etc.)"
+    },
+    "source": {
+      "type": "string",
+      "description": "Data source (king, nyc, cook, montgomery_md, travis, sf, la, uk_fsa, delaware, ny_state, toronto, dubai, llm)"
+    },
+    "safetyScore": {
+      "type": "number",
+      "description": "Safety score 0-100, null if unknown"
+    },
+    "grade": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "F",
+        "U"
+      ],
+      "description": "Letter grade (U = unknown)"
+    },
+    "totalInspections": {
+      "type": "number",
+      "description": "Count of historical inspections"
+    },
+    "latestDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Most recent inspection date"
+    },
+    "latestResult": {
+      "type": "string",
+      "description": "Latest inspection outcome"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Geographic latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Geographic longitude"
+    },
+    "isLLMData": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if data is AI-generated"
+    },
+    "ada_compliance": {
+      "type": "string",
+      "enum": [
+        "accessible",
+        "partially_accessible",
+        "not_accessible",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "ADA accessibility status"
+    },
+    "epa_air_quality_index": {
+      "type": "number",
+      "description": "EPA air quality index (0-500), null if unavailable"
+    },
+    "epa_water_violations": {
+      "type": "number",
+      "description": "Count of EPA water quality violations"
+    },
+    "epa_hazardous_waste_score": {
+      "type": "number",
+      "description": "EPA hazardous waste risk score"
+    },
+    "epa_facility_id": {
+      "type": "string",
+      "description": "EPA facility registry ID"
+    },
+    "epa_fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last EPA data fetch"
+    },
+    "cuisine": {
+      "type": "string",
+      "description": "Cuisine type"
+    },
+    "is_vegan_friendly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Vegan options available"
+    },
+    "is_vegetarian_friendly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Vegetarian options available"
+    },
+    "is_kosher": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kosher certified"
+    },
+    "is_halal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Halal certified"
+    },
+    "is_gluten_free_options": {
+      "type": "boolean",
+      "default": false,
+      "description": "Gluten-free options available"
+    },
+    "dietary_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of dietary preference labels"
+    },
+    "cached_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When restaurant was cached/last updated"
+    },
+    "last_api_check": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When source API was last checked"
+    }
+  },
+  "required": [
+    "business_id",
+    "name",
+    "source"
+  ]
+}

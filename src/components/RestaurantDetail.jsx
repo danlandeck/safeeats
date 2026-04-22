@@ -55,17 +55,37 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [epaData, setEpaData] = useState(null);
   const [epaLoading, setEpaLoading] = useState(true);
 
-  // Fetch EPA data on mount
+  // Fetch EPA data on mount and sync to cache
   useEffect(() => {
-    const fetchEPA = async () => {
+    const fetchAndCacheEPA = async () => {
       try {
+        // First check cache
+        const cacheRes = await base44.functions.invoke("getRestaurantFromCache", {
+          business_id: restaurant.business_id,
+          source: restaurant.source,
+        });
+
+        if (cacheRes.data?.cached_restaurant?.epa_data) {
+          setEpaData(cacheRes.data.cached_restaurant.epa_data);
+          setEpaLoading(false);
+          return;
+        }
+
+        // Not in cache, fetch from EPA
         const address = `${restaurant.address}, ${restaurant.city}, ${restaurant.zip_code}`;
-        const res = await base44.functions.invoke("getEPAData", {
+        const epaRes = await base44.functions.invoke("getEPAData", {
           address,
           business_id: restaurant.business_id,
         });
-        if (res.data?.epa_data) {
-          setEpaData(res.data.epa_data);
+
+        if (epaRes.data?.epa_data) {
+          setEpaData(epaRes.data.epa_data);
+
+          // Sync to cache for future use
+          await base44.functions.invoke("syncRestaurantCache", {
+            restaurant,
+            epa_data: epaRes.data.epa_data,
+          }).catch(() => null);
         }
       } catch (error) {
         console.error("Error fetching EPA data:", error);
@@ -73,8 +93,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         setEpaLoading(false);
       }
     };
-    fetchEPA();
-  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code]);
+    fetchAndCacheEPA();
+  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code, restaurant.source]);
 
   // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
