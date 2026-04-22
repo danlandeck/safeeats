@@ -5,8 +5,7 @@ const ENVIROFACTS_BASE = "https://data.epa.gov/efservice";
 // Map county_id → county name for EPA lookup
 const COUNTY_ID_TO_NAME = {
   king: "King",
-  nyc: "New York",
-  ny_state: null,
+  nyc: null, // NYC uses a direct PWSID lookup below
   cook: "Cook",
   montgomery_md: "Montgomery",
   travis: "Travis",
@@ -15,11 +14,266 @@ const COUNTY_ID_TO_NAME = {
   delaware: null,
 };
 
+// Some jurisdictions are best looked up by a known PWSID directly
+// (used when city/county name lookups are ambiguous in the EPA DB)
+const COUNTY_ID_TO_PWSID = {}; // reserved for future use
+
+// Many neighborhoods/suburbs are served by their parent city's water utility.
+// Map any known alias → the city name the EPA uses for that water system.
+const CITY_ALIAS_MAP = {
+  // Seattle metro — all served by Seattle Public Utilities or their own system
+  "capitol hill": "seattle",
+  "ballard": "seattle",
+  "fremont": "seattle",
+  "queen anne": "seattle",
+  "south lake union": "seattle",
+  "pioneer square": "seattle",
+  "chinatown": "seattle",
+  "international district": "seattle",
+  "belltown": "seattle",
+  "west seattle": "seattle",
+  "columbia city": "seattle",
+  "rainier valley": "seattle",
+  "u district": "seattle",
+  "university district": "seattle",
+  "greenwood": "seattle",
+  "phinney ridge": "seattle",
+  "wallingford": "seattle",
+  "eastlake": "seattle",
+  "madison park": "seattle",
+  "montlake": "seattle",
+  "madrona": "seattle",
+  "beacon hill": "seattle",
+  "georgetown": "seattle",
+  "sodo": "seattle",
+  "interbay": "seattle",
+  "magnolia": "seattle",
+  "crown hill": "seattle",
+  "bitter lake": "seattle",
+  "northgate": "seattle",
+  "lake city": "seattle",
+  "wedgwood": "seattle",
+  "ravenna": "seattle",
+  "green lake": "seattle",
+  "laurelhurst": "seattle",
+  "leschi": "seattle",
+  "mt baker": "seattle",
+  "mount baker": "seattle",
+  "seward park": "seattle",
+  "delridge": "seattle",
+  "highland park": "seattle",
+  "south park": "seattle",
+  "alki": "seattle",
+  "admiral": "seattle",
+  "white center": "seattle",
+  "seatac": "seatac",
+  "sea-tac": "seatac",
+  "tukwila": "tukwila",
+  "renton": "renton",
+  "burien": "burien",
+  "kent": "kent",
+  "auburn": "auburn",
+  "federal way": "federal way",
+  "des moines": "des moines",
+  "normandy park": "normandy park",
+  "shoreline": "shoreline",
+  "lake forest park": "lake forest park",
+  "kenmore": "kenmore",
+  "bothell": "bothell",
+  "woodinville": "woodinville",
+  "kirkland": "kirkland",
+  "redmond": "redmond",
+  "bellevue": "bellevue",
+  "newcastle": "newcastle",
+  "issaquah": "issaquah",
+  "sammamish": "sammamish",
+  "mercer island": "mercer island",
+  "covington": "covington",
+  "maple valley": "maple valley",
+  "black diamond": "black diamond",
+  "enumclaw": "enumclaw",
+  "snoqualmie": "snoqualmie",
+  "north bend": "north bend",
+  "medina": "medina",
+  "clyde hill": "clyde hill",
+  "beaux arts": "beaux arts",
+  // NYC — boroughs all served by NYC DEP, EPA stores as "NEW YORK"
+  "manhattan": "new york",
+  "brooklyn": "new york",
+  "queens": "new york",
+  "bronx": "new york",
+  "the bronx": "new york",
+  "staten island": "new york",
+  "new york city": "new york",
+  "harlem": "new york",
+  "upper east side": "new york",
+  "upper west side": "new york",
+  "midtown": "new york",
+  "chelsea": "new york",
+  "lower east side": "new york",
+  "east village": "new york",
+  "west village": "new york",
+  "greenwich village": "new york",
+  "soho": "new york",
+  "tribeca": "new york",
+  "financial district": "new york",
+  "little italy": "new york",
+  "williamsburg": "new york",
+  "bushwick": "new york",
+  "bed stuy": "new york",
+  "bedford stuyvesant": "new york",
+  "park slope": "new york",
+  "crown heights": "new york",
+  "flatbush": "new york",
+  "astoria": "new york",
+  "flushing": "new york",
+  "jackson heights": "new york",
+  "jamaica": "new york",
+  "long island city": "new york",
+  "forest hills": "new york",
+  "ridgewood": "new york",
+  "bayside": "new york",
+  // Chicago — all neighborhoods served by City of Chicago Water
+  "wicker park": "chicago",
+  "logan square": "chicago",
+  "bucktown": "chicago",
+  "pilsen": "chicago",
+  "wrigleyville": "chicago",
+  "lincoln park": "chicago",
+  "lakeview": "chicago",
+  "andersonville": "chicago",
+  "rogers park": "chicago",
+  "hyde park": "chicago",
+  "bronzeville": "chicago",
+  "bridgeport": "chicago",
+  "river north": "chicago",
+  "gold coast": "chicago",
+  "streeterville": "chicago",
+  "south loop": "chicago",
+  "west loop": "chicago",
+  "greektown": "chicago",
+  "avondale": "chicago",
+  "edgewater": "chicago",
+  "uptown": "chicago",
+  "ravenswood": "chicago",
+  "lincoln square": "chicago",
+  // SF — all neighborhoods served by SFPUC
+  "mission district": "san francisco",
+  "the mission": "san francisco",
+  "castro": "san francisco",
+  "haight ashbury": "san francisco",
+  "haight-ashbury": "san francisco",
+  "tenderloin": "san francisco",
+  "soma": "san francisco",
+  "south of market": "san francisco",
+  "north beach": "san francisco",
+  "nob hill": "san francisco",
+  "russian hill": "san francisco",
+  "pacific heights": "san francisco",
+  "marina district": "san francisco",
+  "richmond district": "san francisco",
+  "sunset district": "san francisco",
+  "excelsior": "san francisco",
+  "bernal heights": "san francisco",
+  "potrero hill": "san francisco",
+  "dogpatch": "san francisco",
+  "bayview": "san francisco",
+  "glen park": "san francisco",
+  "noe valley": "san francisco",
+  "hayes valley": "san francisco",
+  "western addition": "san francisco",
+  "fillmore": "san francisco",
+  "japantown": "san francisco",
+  "lower haight": "san francisco",
+  "upper haight": "san francisco",
+  "alamo square": "san francisco",
+  "twin peaks": "san francisco",
+  "west portal": "san francisco",
+  "duboce triangle": "san francisco",
+  "fishermans wharf": "san francisco",
+  // LA neighborhoods → Los Angeles
+  "hollywood": "los angeles",
+  "koreatown": "los angeles",
+  "silver lake": "los angeles",
+  "echo park": "los angeles",
+  "los feliz": "los angeles",
+  "atwater village": "los angeles",
+  "glassell park": "los angeles",
+  "eagle rock": "los angeles",
+  "boyle heights": "los angeles",
+  "downtown la": "los angeles",
+  "dtla": "los angeles",
+  "little tokyo": "los angeles",
+  "arts district": "los angeles",
+  "venice": "los angeles",
+  "mar vista": "los angeles",
+  "westwood": "los angeles",
+  "brentwood": "los angeles",
+  "pacific palisades": "los angeles",
+  "playa del rey": "los angeles",
+  "westchester": "los angeles",
+  "ladera heights": "los angeles",
+  "leimert park": "los angeles",
+  "crenshaw": "los angeles",
+  "mid city": "los angeles",
+  "palms": "los angeles",
+  "sawtelle": "los angeles",
+  "century city": "los angeles",
+  "north hollywood": "los angeles",
+  "studio city": "los angeles",
+  "sherman oaks": "los angeles",
+  "van nuys": "los angeles",
+  "reseda": "los angeles",
+  "canoga park": "los angeles",
+  "chatsworth": "los angeles",
+  "northridge": "los angeles",
+  "granada hills": "los angeles",
+  "encino": "los angeles",
+  "tarzana": "los angeles",
+  "woodland hills": "los angeles",
+  "west hills": "los angeles",
+  "winnetka": "los angeles",
+  "east los angeles": "los angeles",
+  "east la": "los angeles",
+  "sylmar": "los angeles",
+  "pacoima": "los angeles",
+  "sun valley": "los angeles",
+  "porter ranch": "los angeles",
+  // Austin neighborhoods
+  "south congress": "austin",
+  "east austin": "austin",
+  "zilker": "austin",
+  "bouldin creek": "austin",
+  "travis heights": "austin",
+  "clarksville": "austin",
+  "mueller": "austin",
+  "cherrywood": "austin",
+  "crestview": "austin",
+  "allandale": "austin",
+  "rosedale": "austin",
+  "tarrytown": "austin",
+  // Montgomery County MD cities
+  "rockville": "rockville",
+  "bethesda": "bethesda",
+  "silver spring": "silver spring",
+  "gaithersburg": "gaithersburg",
+  "germantown": "germantown",
+  "chevy chase": "chevy chase",
+  "potomac": "potomac",
+};
+
+function normalizeCity(city) {
+  if (!city) return null;
+  const key = city.toLowerCase().trim();
+  return CITY_ALIAS_MAP[key] || key;
+}
+
 async function findWaterSystemByCity(city, state) {
   const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
-  const cityUpper = (city || "").toUpperCase().trim();
-  if (!stateUpper || !cityUpper) return null;
+  const normalized = normalizeCity(city);
+  if (!stateUpper || !normalized) return null;
 
+  const cityUpper = normalized.toUpperCase();
   const url = `${ENVIROFACTS_BASE}/WATER_SYSTEM/PRIMACY_AGENCY_CODE/${stateUpper}/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/CITY_NAME/${encodeURIComponent(cityUpper)}/JSON`;
   const res = await fetch(url);
   if (!res.ok) return null;
@@ -123,11 +377,11 @@ Deno.serve(async (req) => {
 
     const stateUpper = state.toUpperCase().trim().slice(0, 2);
 
-    // 1️⃣ Try city-level lookup
+    // 1️⃣ City-level (with neighborhood → city normalization)
     let system = city ? await findWaterSystemByCity(city, state) : null;
     let fallbackLevel = system ? "city" : null;
 
-    // 2️⃣ Try county-level lookup
+    // 2️⃣ County-level
     if (!system && county_id) {
       const countyName = COUNTY_ID_TO_NAME[county_id];
       if (countyName) {
@@ -136,7 +390,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3️⃣ Fall back to state-level lookup
+    // 3️⃣ State-level
     if (!system) {
       system = await findWaterSystemByState(state);
       if (system) fallbackLevel = "state";
