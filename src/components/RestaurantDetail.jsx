@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import ADABadge from "./ADABadge";
 import WaterQualityBadge from "./WaterQualityBadge";
+import EnvironmentalSafety from "./EnvironmentalSafety";
 import KofiButton from "./KofiButton";
+import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
@@ -50,6 +52,29 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [showDataSource, setShowDataSource] = useState(false);
   const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
+  const [epaData, setEpaData] = useState(null);
+  const [epaLoading, setEpaLoading] = useState(true);
+
+  // Fetch EPA data on mount
+  useEffect(() => {
+    const fetchEPA = async () => {
+      try {
+        const address = `${restaurant.address}, ${restaurant.city}, ${restaurant.zip_code}`;
+        const res = await base44.functions.invoke("getEPAData", {
+          address,
+          business_id: restaurant.business_id,
+        });
+        if (res.data?.epa_data) {
+          setEpaData(res.data.epa_data);
+        }
+      } catch (error) {
+        console.error("Error fetching EPA data:", error);
+      } finally {
+        setEpaLoading(false);
+      }
+    };
+    fetchEPA();
+  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code]);
 
   // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -272,6 +297,13 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           <div className="mt-3">
             <WaterQualityBadge restaurant={restaurant} />
           </div>
+
+          {/* Environmental Safety */}
+          {!epaLoading && (
+            <div className="mt-4">
+              <EnvironmentalSafety epa_data={epaData} restaurant={restaurant} />
+            </div>
+          )}
         </div>
 
         {/* Data source drawer */}
