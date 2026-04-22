@@ -133,8 +133,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       className="space-y-5"
     >
       {/* ── Back ── */}
-      <Button variant="ghost" onClick={onBack} className="text-slate-500 hover:text-slate-800 -ml-2">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+      <Button variant="ghost" onClick={onBack} className="text-slate-500 hover:text-slate-800 -ml-2" aria-label="Back to search results">
+        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
         Back to results
       </Button>
 
@@ -175,17 +175,18 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleFavorite}
-                className={`p-2.5 rounded-xl border transition-all ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
-                title={favorited ? "Remove from favorites" : "Save to favorites"}
+                className={`p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
+                aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
+                aria-pressed={favorited}
               >
-                <Heart className={`w-4 h-4 ${favorited ? "fill-current" : ""}`} />
+                <Heart className={`w-4 h-4 ${favorited ? "fill-current" : ""}`} aria-hidden="true" />
               </button>
               <button
                 onClick={handleShare}
-                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all"
-                title="Share safety score"
+                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                aria-label="Share safety score"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-4 h-4" aria-hidden="true" />
               </button>
               {shareMsg && <span className="text-xs text-green-600 font-semibold">{shareMsg}</span>}
             </div>
@@ -215,29 +216,29 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
             {/* Right: Quick stat boxes */}
             <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group">
-                <p className="text-xl font-extrabold text-slate-900">{uniqueInspections.length}</p>
-                <p className="text-xs text-slate-500 leading-tight">Total inspections</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View history ↓</p>
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
+                <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
+                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group">
-                <p className="text-lg font-extrabold text-slate-900 leading-tight">
+              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
+                <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
                   {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
                 </p>
-                <p className="text-xs text-slate-500">Last inspected</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View history ↓</p>
+                <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
-              <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`}>
-                <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`}>{totalRepeatCount}</p>
-                <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`}>
+              <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
+                <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
+                <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
                   Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
                 </p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">What's this? ↓</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">What's this? ↓</p>
               </button>
-              <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`}>
-                <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`}>{cleanStreak}</p>
-                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`}>Clean streak</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">View trend ↓</p>
+              <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
+                <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
+                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
+                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View trend ↓</p>
               </button>
             </div>
           </div>
@@ -263,13 +264,15 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         <div className="border-t border-slate-100">
           <button
             onClick={() => setShowDataSource((v) => !v)}
-            className="w-full flex items-center justify-between px-6 py-3 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+            className="w-full flex items-center justify-between px-6 py-3 text-xs text-slate-500 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
+            aria-expanded={showDataSource}
+            aria-controls="data-source-panel"
           >
             <span className="flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" />
+              <Info className="w-3.5 h-3.5" aria-hidden="true" />
               Data source &amp; last updated
             </span>
-            {showDataSource ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {showDataSource ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
           </button>
           <AnimatePresence>
             {showDataSource && (
@@ -280,7 +283,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="px-6 pb-5 text-xs text-slate-500 space-y-2">
+                <div id="data-source-panel" className="px-6 pb-5 text-xs text-slate-500 space-y-2">
                   {sourceInfo ? (
                     <p className="flex items-start gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-600 mt-0.5" />
@@ -399,8 +402,11 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 >
                   {/* Inspection header — always visible, tap to expand */}
                   <button
-                    className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
                     onClick={() => setExpandedInspection(isExpanded ? null : idx)}
+                    aria-expanded={isExpanded}
+                    aria-controls={`inspection-panel-${idx}`}
+                    aria-label={`Inspection on ${dateStr} — ${insp.violations.length === 0 ? "no violations" : `${insp.violations.length} violation${insp.violations.length !== 1 ? "s" : ""}`}`}
                   >
                     {idx === 0 && (
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 rounded-l-full" />
@@ -428,13 +434,14 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                         )}
                       </p>
                     </div>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" /> : <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />}
                   </button>
 
                   {/* Expandable violations */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
+                        id={`inspection-panel-${idx}`}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}

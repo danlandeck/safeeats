@@ -40,13 +40,18 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
       }`}
       style={{ borderRadius: 20, fontFamily: "Nunito, sans-serif" }}
       onClick={onClick}
+      role="article"
+      aria-label={`${name} — Grade ${grade}, safety score ${isUnknown ? "unknown" : `${safetyScore} out of 100`}`}
     >
       <div className="flex items-stretch min-h-[90px]">
         {/* Grade block — BIG and obvious */}
-        <div className={`flex flex-col items-center justify-center px-4 py-3 flex-shrink-0 min-w-[80px] ${gradeColor}`}
-          style={{ borderRadius: "18px 0 0 18px" }}>
-          <span className="text-4xl font-black leading-none">{grade}</span>
-          <span className="text-[9px] font-extrabold mt-1 opacity-90 text-center leading-tight">
+        <div
+          className={`flex flex-col items-center justify-center px-4 py-3 flex-shrink-0 min-w-[80px] ${gradeColor}`}
+          style={{ borderRadius: "18px 0 0 18px" }}
+          aria-label={`Grade ${grade}${isUnknown ? " — no data" : `, score ${safetyScore} out of 100`}`}
+        >
+          <span className="text-4xl font-black leading-none" aria-hidden="true">{grade}</span>
+          <span className="text-[9px] font-extrabold mt-1 opacity-90 text-center leading-tight" aria-hidden="true">
             {isUnknown ? "NO DATA" : `${safetyScore}/100`}
           </span>
         </div>
@@ -65,21 +70,23 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
               <button
                 onClick={handleFav}
-                className={`p-1.5 rounded-lg transition-all ${favorited ? "text-red-500" : "text-slate-200 hover:text-red-400"}`}
-                title={favorited ? "Remove from favorites" : "Save to favorites"}
+                className={`p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "text-red-500" : "text-slate-200 hover:text-red-400"}`}
+                aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
+                aria-pressed={favorited}
               >
-                <Heart className={`w-3.5 h-3.5 ${favorited ? "fill-current" : ""}`} />
+                <Heart className={`w-3.5 h-3.5 ${favorited ? "fill-current" : ""}`} aria-hidden="true" />
               </button>
               {onToggleCompare && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleCompare(restaurant); }}
                   disabled={compareDisabled && !isCompared}
-                  className={`p-1.5 rounded-lg transition-all ${
+                  className={`p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${
                     isCompared ? "bg-blue-100 text-blue-700" : compareDisabled ? "text-slate-200 cursor-not-allowed" : "text-slate-300 hover:text-blue-500"
                   }`}
-                  title={isCompared ? "Remove from compare" : "Add to compare (up to 3)"}
+                  aria-label={isCompared ? `Remove ${name} from comparison` : `Add ${name} to comparison`}
+                  aria-pressed={isCompared}
                 >
-                  <GitCompareArrows className="w-3.5 h-3.5" />
+                  <GitCompareArrows className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               )}
               <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />

@@ -189,7 +189,7 @@ export default function SmartSearchPanel({
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
           <Search className="w-4 h-4" aria-hidden="true" /> Step 2 — Search restaurant or food type
         </p>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} role="search" aria-label="Search for restaurants">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" aria-hidden="true" />
@@ -238,11 +238,12 @@ export default function SmartSearchPanel({
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="h-16 px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[90px] transition-colors touch-manipulation text-base"
-              aria-label="Search"
+              className="h-16 px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[90px] transition-colors touch-manipulation text-base focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#4CAF50]"
+              aria-label={isLoading ? "Searching, please wait" : "Search restaurants"}
+              aria-busy={isLoading}
             >
               {isLoading
-                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" aria-hidden="true" />
+                ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" aria-hidden="true" /><span className="sr-only">Searching…</span></>
                 : "Search"}
             </button>
           </div>

@@ -1262,6 +1262,11 @@ export default function Home() {
       </div>
 
       {/* Content */}
+      {/* WCAG 4.1.3 — Live region for dynamic status announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only" id="search-status">
+        {isLoading ? "Searching for restaurants, please wait…" : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
+      </div>
+
       <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
         {!hasSearched && (
           <div className="space-y-8 mb-10">
