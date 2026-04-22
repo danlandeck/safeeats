@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import FailRiskBadge from "./FailRiskBadge";
+import DietaryBadges from "./DietaryBadges";
 
 const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
 const GRADE_LABELS = {
@@ -109,6 +110,9 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
               </span>
             )}
           </div>
+
+          {/* Cuisine + Dietary badges */}
+          <DietaryBadges restaurant={restaurant} maxShow={3} />
 
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (

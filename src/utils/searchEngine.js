@@ -52,6 +52,13 @@ const LLM_SCHEMA = {
           latest_result:          { type: "string" },
           total_inspections:      { type: "number" },
           violations:             { type: "array", items: { type: "string" } },
+          cuisine:                { type: "string" },
+          is_vegan_friendly:      { type: "boolean" },
+          is_vegetarian_friendly: { type: "boolean" },
+          is_kosher:              { type: "boolean" },
+          is_halal:               { type: "boolean" },
+          is_gluten_free_options: { type: "boolean" },
+          dietary_tags:           { type: "array", items: { type: "string" } },
         },
       },
     },
@@ -65,11 +72,13 @@ STRICT RULES:
 2. city field MUST match the requested location. If unsure, OMIT the result.
 3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
 4. NEVER return results from outside ${location}.
-5. Better to return 3 verified results than 10 with any location mismatch.`;
+5. Better to return 3 verified results than 10 with any location mismatch.
+6. For each restaurant, identify: cuisine type (e.g. "Chinese", "Italian", "Vegan", "Mexican"), is_vegan_friendly (true if restaurant is explicitly vegan or has strong vegan menu), is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, and dietary_tags (e.g. ["vegan", "kosher", "gluten-free"]).`;
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
-Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.`;
+Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.
+For each restaurant, identify: cuisine type (e.g. "Chinese", "Italian", "Vegan", "Mexican"), is_vegan_friendly (true if explicitly vegan or strong vegan menu), is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, and dietary_tags (e.g. ["vegan", "kosher"]).`;
 
 const PROMPT_DUBAI = (query, today) =>
   `Today is ${today}. Find ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE.

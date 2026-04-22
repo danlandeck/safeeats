@@ -44,6 +44,30 @@ const FILTER_DEFS = [
     inactive: "bg-white text-sky-700 border-sky-300 hover:bg-sky-50",
     description: "Flag restaurants with dairy handling violations",
   },
+  {
+    id: "vegan_only",
+    label: "🌱 Vegan",
+    emoji: "",
+    color: "bg-green-600 text-white border-green-600",
+    inactive: "bg-white text-green-700 border-green-300 hover:bg-green-50",
+    description: "Show only vegan-friendly restaurants",
+  },
+  {
+    id: "kosher_only",
+    label: "✡️ Kosher",
+    emoji: "",
+    color: "bg-blue-700 text-white border-blue-700",
+    inactive: "bg-white text-blue-800 border-blue-300 hover:bg-blue-50",
+    description: "Show only kosher restaurants",
+  },
+  {
+    id: "halal_only",
+    label: "☪️ Halal",
+    emoji: "",
+    color: "bg-emerald-700 text-white border-emerald-700",
+    inactive: "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50",
+    description: "Show only halal restaurants",
+  },
 ];
 
 function loadFilters() {
@@ -86,6 +110,31 @@ export function applyPersistentFilters(restaurants, activeFilters) {
   }
   if (activeFilters.allergen_dairy) {
     results = results.filter((r) => dairyKeywords.some((k) => getViolationText(r).includes(k)));
+  }
+
+  if (activeFilters.vegan_only) {
+    results = results.filter((r) =>
+      r.is_vegan_friendly === true ||
+      (r.dietary_tags || []).some((t) => /vegan/i.test(t)) ||
+      /vegan/i.test(r.cuisine || "") ||
+      /vegan/i.test(r.name || "")
+    );
+  }
+
+  if (activeFilters.kosher_only) {
+    results = results.filter((r) =>
+      r.is_kosher === true ||
+      (r.dietary_tags || []).some((t) => /kosher/i.test(t)) ||
+      /kosher/i.test(r.name || "")
+    );
+  }
+
+  if (activeFilters.halal_only) {
+    results = results.filter((r) =>
+      r.is_halal === true ||
+      (r.dietary_tags || []).some((t) => /halal/i.test(t)) ||
+      /halal/i.test(r.name || "")
+    );
   }
 
   return results;

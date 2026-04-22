@@ -284,6 +284,13 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
     latitude: null, longitude: null,
     isLLMData: true, source: "llm",
     allInspections, allRows: [],
+    cuisine: r.cuisine || "",
+    is_vegan_friendly: r.is_vegan_friendly || false,
+    is_vegetarian_friendly: r.is_vegetarian_friendly || false,
+    is_kosher: r.is_kosher || false,
+    is_halal: r.is_halal || false,
+    is_gluten_free_options: r.is_gluten_free_options || false,
+    dietary_tags: r.dietary_tags || [],
   };
 }
 
