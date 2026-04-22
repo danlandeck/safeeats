@@ -1,7 +1,5 @@
 import React, { useMemo, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import ScoreGauge from "./ScoreGauge";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -124,7 +122,7 @@ function MapController({ validRestaurants, userCoords, selectedId }) {
   return null;
 }
 
-export default function MapView({ restaurants, onSelectRestaurant, userCoords, selectedId }) {
+export default function MapView({ restaurants, onSelectRestaurant, onFilterByGrade, userCoords, selectedId }) {
   const initialCenter = useMemo(() => {
     if (userCoords) return [userCoords.lat, userCoords.lng];
     const valid = restaurants.filter(r => r.latitude && r.longitude);
@@ -151,7 +149,7 @@ export default function MapView({ restaurants, onSelectRestaurant, userCoords, s
 
         {/* ESRI World Street Map tile layer */}
         <TileLayer
-          attribution='Powered by <a href="https://www.esri.com">Esri</a> | Sources: Esri, HERE, Garmin'
+          attribution='Powered by <a href="https://www.esri.com/en-us/home" target="_blank">Esri</a> | Sources: Esri, HERE, Garmin'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
         />
 
@@ -169,52 +167,19 @@ export default function MapView({ restaurants, onSelectRestaurant, userCoords, s
 
         {validRestaurants.map((restaurant) => {
           const isSelected = restaurant.business_id === selectedId;
+          const grade = getGradeLetter(restaurant.safetyScore);
           return (
             <Marker
               key={`${restaurant.business_id}-${restaurant.latitude}`}
               position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
               icon={createColoredIcon(restaurant.safetyScore, isSelected)}
               zIndexOffset={isSelected ? 1000 : 0}
-            >
-              <Popup maxWidth={280} className="cartoon-popup">
-                <div style={{ fontFamily: "Nunito, sans-serif", padding: "6px 2px" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                      background: getEsriColor(restaurant.safetyScore),
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontWeight: 900, fontSize: 20, color: getTextColor(restaurant.safetyScore),
-                      border: "2px solid #1a1a1a",
-                    }}>
-                      {getGradeLetter(restaurant.safetyScore)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: "#1a1a1a", lineHeight: 1.3 }}>
-                        {restaurant.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                        📍 {restaurant.address}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: "#475569", marginBottom: 10 }}>
-                    🔍 {restaurant.totalInspections} inspection{restaurant.totalInspections !== 1 ? "s" : ""}
-                    {restaurant.latestDate ? ` · Last: ${new Date(restaurant.latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}` : ""}
-                  </div>
-                  <button
-                    onClick={() => onSelectRestaurant(restaurant)}
-                    style={{
-                      width: "100%", padding: "8px 0", borderRadius: 12,
-                      background: "#4CAF50", color: "white", fontWeight: 800,
-                      fontSize: 13, border: "none", cursor: "pointer",
-                      fontFamily: "Nunito, sans-serif",
-                    }}
-                  >
-                    See Full Report 🔍
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
+              eventHandlers={{
+                click: () => {
+                  if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
+                }
+              }}
+            />
           );
         })}
       </MapContainer>

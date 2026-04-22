@@ -1397,25 +1397,35 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* Persistent quick-filter bar */}
-                        <div className="mb-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Quick Filters</p>
-                          <PersistentFilterBar onChange={setPersistentFilters} />
-                        </div>
+                        {/* Persistent quick-filter bar + sort — hidden in map mode */}
+                        {viewMode !== "map" && (
+                          <>
+                            <div className="mb-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Quick Filters</p>
+                              <PersistentFilterBar onChange={setPersistentFilters} />
+                            </div>
 
-                        <div className="mb-4">
-                          <Suspense fallback={null}>
-                          <FilterSortControls
-                            filterResult={filterResult} onFilterChange={setFilterResult}
-                            sortBy={sortBy} onSortChange={setSortBy}
-                          />
-                          </Suspense>
-                        </div>
+                            <div className="mb-4">
+                              <Suspense fallback={null}>
+                                <FilterSortControls
+                                  filterResult={filterResult} onFilterChange={setFilterResult}
+                                  sortBy={sortBy} onSortChange={setSortBy}
+                                />
+                              </Suspense>
+                            </div>
+                          </>
+                        )}
 
 
                         {viewMode === "map" ? (
                           <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
-                            <MapView restaurants={filteredAndSortedResults} onSelectRestaurant={handleSelectBusiness} userCoords={userCoords} selectedId={selectedBusiness?.business_id} />
+                            <MapView
+                              restaurants={filteredAndSortedResults}
+                              onSelectRestaurant={handleSelectBusiness}
+                              onFilterByGrade={(grade) => setGradeFilter(grade)}
+                              userCoords={userCoords}
+                              selectedId={selectedBusiness?.business_id}
+                            />
                           </Suspense>
                         ) : (
                           <div className="space-y-3">
