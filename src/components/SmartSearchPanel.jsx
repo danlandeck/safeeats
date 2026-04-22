@@ -1,13 +1,24 @@
-import React, { useState, useRef, useCallback } from "react";
-import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { MapPin, Search, X, Clock, LocateFixed, Loader2, Sparkles } from "lucide-react";
 
-// Persistent recent searches
+// ── Restaurant query recents ──────────────────────────────────────────────────
 const RECENT_KEY = "safeeats_recent";
 function loadRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
 function saveRecent(q) {
   const prev = loadRecent().filter(x => x !== q);
   const next = [q, ...prev].slice(0, 6);
   try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+
+// ── Location recents (city/state queries) ────────────────────────────────────
+const RECENT_LOC_KEY = "safeeats_recent_locations";
+function loadRecentLocations() { try { return JSON.parse(localStorage.getItem(RECENT_LOC_KEY) || "[]"); } catch { return []; } }
+function saveRecentLocation(loc) {
+  if (!loc?.trim()) return;
+  const prev = loadRecentLocations().filter(x => x.toLowerCase() !== loc.toLowerCase());
+  const next = [loc, ...prev].slice(0, 5);
+  try { localStorage.setItem(RECENT_LOC_KEY, JSON.stringify(next)); } catch {}
   return next;
 }
 
@@ -38,12 +49,46 @@ export default function SmartSearchPanel({
   onNearMe,
   query, onQueryChange,
 }) {
-  const [recents, setRecents]           = useState(loadRecent);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [geoLoading, setGeoLoading]     = useState(false);
-  const [geoError, setGeoError]         = useState("");
-  const debounceRef                     = useRef(null);
-  const inputRef                        = useRef(null);
+  const [recents, setRecents]                   = useState(loadRecent);
+  const [recentLocations, setRecentLocations]   = useState(loadRecentLocations);
+  const [showDropdown, setShowDropdown]         = useState(false);
+  const [showLocDropdown, setShowLocDropdown]   = useState(false);
+  const [geoLoading, setGeoLoading]             = useState(false);
+  const [geoError, setGeoError]                 = useState("");
+  const [geoSuggestion, setGeoSuggestion]       = useState(null); // {label, region, countyId}
+  const debounceRef                             = useRef(null);
+  const inputRef                                = useRef(null);
+  const locInputRef                             = useRef(null);
+
+  // ── On mount: silently detect location & suggest nearest supported city ──
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.permissions?.query({ name: "geolocation" }).then((perm) => {
+      if (perm.state !== "granted") return;
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          const data = await res.json();
+          const city   = (data.address?.city || data.address?.town || data.address?.village || "").toLowerCase();
+          const state  = (data.address?.state || "").toLowerCase();
+          const country = (data.address?.country_code || "").toLowerCase();
+
+          if (country !== "us") return;
+
+          // Match against LIVE_API_CITIES
+          const match = LIVE_API_CITIES.find(c =>
+            city.includes(c.label.toLowerCase().split(" ")[0]) ||
+            c.label.toLowerCase().includes(city.split(" ")[0])
+          );
+          if (match) setGeoSuggestion(match);
+        } catch {}
+      }, () => {});
+    }).catch(() => {});
+  }, []);
 
   // Debounced autocomplete suggestions from recents
   const safeQuery = query || "";
@@ -102,6 +147,33 @@ export default function SmartSearchPanel({
     );
   }, [onNearMe]);
 
+  // Save location when user selects a city pill or types a location and searches
+  const handleCitySelect = useCallback((city) => {
+    onRegionChange(city);
+    const label = city.locationLabel || city.label;
+    setRecentLocations(saveRecentLocation(label) || recentLocations);
+    setShowLocDropdown(false);
+  }, [onRegionChange, recentLocations]);
+
+  const handleLocationBlur = useCallback(() => {
+    setTimeout(() => setShowLocDropdown(false), 150);
+    // Save whatever the user typed as a recent location if non-empty
+    if (locationQuery?.trim()) {
+      setRecentLocations(saveRecentLocation(locationQuery.trim()) || recentLocations);
+    }
+  }, [locationQuery, recentLocations]);
+
+  const pickRecentLocation = useCallback((loc) => {
+    onLocationChange(loc);
+    setShowLocDropdown(false);
+    // Try to match to a known city pill
+    const match = LIVE_API_CITIES.find(c =>
+      loc.toLowerCase().includes(c.label.toLowerCase()) ||
+      c.label.toLowerCase().includes(loc.toLowerCase().split(",")[0])
+    );
+    if (match) onRegionChange(match);
+  }, [onLocationChange, onRegionChange]);
+
   const fieldClass =
     "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/10 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
 
@@ -113,16 +185,63 @@ export default function SmartSearchPanel({
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
           <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
         </p>
+        {/* Geo-based suggestion banner */}
+        {geoSuggestion && activeRegion === "global" && (
+          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-[#4CAF50]/15 border border-[#4CAF50]/30 text-xs text-[#81c784]">
+            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="flex-1">We detected you're near <strong>{geoSuggestion.label}</strong> — we have live data there!</span>
+            <button
+              type="button"
+              onClick={() => { handleCitySelect(geoSuggestion); setGeoSuggestion(null); }}
+              className="bg-[#4CAF50] text-white font-bold px-2.5 py-1 rounded-lg hover:bg-[#43A047] transition-colors whitespace-nowrap"
+            >
+              Use it
+            </button>
+            <button type="button" onClick={() => setGeoSuggestion(null)} className="text-[#81c784] hover:text-white" aria-label="Dismiss suggestion">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <div className="relative flex-1">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
             <input
+              ref={locInputRef}
               value={locationQuery}
-              onChange={(e) => onLocationChange(e.target.value)}
+              onChange={(e) => { onLocationChange(e.target.value); setShowLocDropdown(true); }}
+              onFocus={() => setShowLocDropdown(true)}
+              onBlur={handleLocationBlur}
               placeholder="City, state, or country — e.g. New York, Tokyo, London…"
               className={fieldClass}
               aria-label="Location"
+              autoComplete="off"
             />
+            {/* Recent locations dropdown */}
+            {showLocDropdown && recentLocations.length > 0 && (
+              <ul
+                role="listbox"
+                aria-label="Recent locations"
+                className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-white/15 rounded-xl overflow-hidden z-50 shadow-xl"
+              >
+                <li className="px-4 pt-2 pb-1">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Recent Locations</span>
+                </li>
+                {recentLocations.map((loc, i) => (
+                  <li key={i}>
+                    <button
+                      role="option"
+                      type="button"
+                      onMouseDown={() => pickRecentLocation(loc)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                      {loc}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           {/* ── Near Me ── */}
           <button
@@ -149,11 +268,10 @@ export default function SmartSearchPanel({
                 type="button"
                 onClick={() => {
                   if (isActive) {
-                    // Deselect — reset to global/freeform
                     onLocationChange("");
                     onRegionChange({ label: "", region: "global", countyId: "global" });
                   } else {
-                    onRegionChange(city);
+                    handleCitySelect(city);
                   }
                 }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
