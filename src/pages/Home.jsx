@@ -20,7 +20,7 @@ import RestaurantDetail from "../components/RestaurantDetail";
 const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
 const MapView            = React.lazy(() => import("../components/MapView"));
 const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
-const FilterSortControls = React.lazy(() => import("../components/FilterSortControls"));
+import FilterSortControls from "../components/FilterSortControls";
 const ComparePanel       = React.lazy(() => import("../components/ComparePanel"));
 
 export { getGrade } from "../utils/grading";
@@ -1415,12 +1415,10 @@ export default function Home() {
                             </div>
 
                             <div className="mb-4">
-                              <Suspense fallback={null}>
-                                <FilterSortControls
-                                  filterResult={filterResult} onFilterChange={setFilterResult}
-                                  sortBy={sortBy} onSortChange={setSortBy}
-                                />
-                              </Suspense>
+                              <FilterSortControls
+                                filterResult={filterResult} onFilterChange={setFilterResult}
+                                sortBy={sortBy} onSortChange={setSortBy}
+                              />
                             </div>
                           </>
                         )}
