@@ -150,7 +150,7 @@ export default function WaterQualityBadge({ restaurant }) {
 
           <div className="flex items-center justify-between pt-1 border-t border-slate-100">
             <p className="text-[10px] text-slate-400">Source: EPA Safe Drinking Water Information System</p>
-            {data.epaUrl && (
+            {data.epaUrl && !data.isFallback && data.city?.toLowerCase() === city?.toLowerCase() && (
               <a
                 href={data.epaUrl}
                 target="_blank"
