@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility } from "lucide-react";
+import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility, Droplets } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -296,6 +296,92 @@ export default function About() {
               </div>
             </div>
           </Section>
+
+          {/* ── Water Quality ── */}
+          <div id="water-quality" className="scroll-mt-6">
+          <Section className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-cyan-50 overflow-hidden relative">
+            <div className="absolute top-0 right-0 text-7xl opacity-10 select-none pointer-events-none leading-none pr-4 pt-2">💧</div>
+            <div className="flex gap-4 items-start">
+              <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Droplets className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <h2 className="text-xl font-extrabold text-slate-900">Tap Water Quality — Should You Order From the Tap?</h2>
+                  <Pill color="bg-blue-600 text-white">NEW FEATURE</Pill>
+                </div>
+                <p className="text-slate-700 leading-relaxed text-sm mb-4">
+                  The water your restaurant uses comes from a municipal supply — the same source feeding every soda fountain, ice machine, and pasta pot on the premises. SafeEats now checks that supply's safety record directly through the <strong>EPA's Safe Drinking Water Information System (SDWIS)</strong>, so you can decide whether to order tap, sparkling, or stick with a can.
+                </p>
+
+                {/* Grade tiers */}
+                <div className="bg-white rounded-2xl border border-blue-100 p-5 mb-4 shadow-sm">
+                  <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">The 4-Tier Water Safety Grade</p>
+                  <div className="space-y-2.5">
+                    {[
+                      {
+                        grade: "💧 Excellent", color: "bg-blue-600 text-white",
+                        verdict: "Order freely from the tap or soda fountain.",
+                        detail: "No health-based EPA violations in the past 5 years. The water system meets or exceeds all Maximum Contaminant Level (MCL) standards."
+                      },
+                      {
+                        grade: "✅ Good", color: "bg-lime-500 text-white",
+                        verdict: "Tap water is safe to drink.",
+                        detail: "No current violations. Past violations were fully resolved. The system is in compliance with all EPA health standards."
+                      },
+                      {
+                        grade: "⚠️ Drinkable", color: "bg-orange-400 text-white",
+                        verdict: "Drinkable, but consider a bottled option if you're cautious.",
+                        detail: "One active health-based violation exists, but hasn't reached the level of a public advisory. Healthy adults face minimal risk; sensitive groups (infants, pregnant women, immunocompromised) may prefer bottled."
+                      },
+                      {
+                        grade: "🚫 Not Recommended", color: "bg-red-600 text-white",
+                        verdict: "Order a bottle or can. Tap water has unresolved health violations.",
+                        detail: "Two or more unresolved EPA health-based violations. This means the water system has exceeded MCLs for potentially harmful contaminants such as lead, arsenic, nitrates, bacteria, or disinfection byproducts — and the issues have not yet been corrected."
+                      },
+                    ].map(({ grade, color, verdict, detail }) => (
+                      <div key={grade} className="flex gap-3 items-start">
+                        <span className={`flex-shrink-0 text-xs font-extrabold px-3 py-1.5 rounded-full ${color} whitespace-nowrap`}>{grade}</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">{verdict}</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* What we check */}
+                <div className="bg-white rounded-2xl border border-blue-100 p-5 mb-4 shadow-sm">
+                  <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">What the EPA Checks For (MCL Standards)</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { icon: "🔩", name: "Lead & Copper", risk: "Neurological damage, especially in children" },
+                      { icon: "☣️", name: "Nitrates", risk: "Dangerous for infants under 6 months" },
+                      { icon: "🦠", name: "Bacteria (E. coli)", risk: "Gastrointestinal illness" },
+                      { icon: "⚗️", name: "Arsenic", risk: "Cancer risk with long-term exposure" },
+                      { icon: "🧪", name: "Disinfection Byproducts", risk: "Trihalomethanes, cancer risk" },
+                      { icon: "☢️", name: "Radionuclides", risk: "Radon, uranium — cancer risk" },
+                    ].map(({ icon, name, risk }) => (
+                      <div key={name} className="flex flex-col p-2.5 bg-blue-50 rounded-xl border border-blue-100">
+                        <span className="text-lg mb-1">{icon}</span>
+                        <p className="text-[11px] font-extrabold text-slate-800">{name}</p>
+                        <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{risk}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-blue-800 rounded-2xl p-4 text-white">
+                  <p className="text-sm font-bold mb-1">🇺🇸 US Coverage Only (for now)</p>
+                  <p className="text-blue-200 text-xs leading-relaxed">
+                    Water quality grades are powered by the EPA's Safe Drinking Water Information System (SDWIS), which covers all US community water systems. International water quality data is not yet available via a comparable open API — but is on our roadmap. Data is sourced at the municipal level; the same grade applies to all restaurants in a given city served by the same water utility.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Section>
+          </div>
 
           {/* ── Esri ── */}
           <Section>

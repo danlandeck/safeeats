@@ -15,6 +15,7 @@ import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
+import WaterQualityBadge from "./WaterQualityBadge";
 import KofiButton from "./KofiButton";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -257,6 +258,11 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* ADA Accessibility */}
           <div className="mt-4">
             <ADAAccessibilityBadge restaurant={restaurant} />
+          </div>
+
+          {/* Water Quality */}
+          <div className="mt-3">
+            <WaterQualityBadge restaurant={restaurant} />
           </div>
         </div>
 
