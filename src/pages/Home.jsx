@@ -4,6 +4,7 @@ import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
+import { useLanguage } from "../lib/LanguageContext";
 import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
 import { parseLocationQuery } from "../components/SearchBar";
@@ -781,8 +782,11 @@ export default function Home() {
 
   const currentRegion = REGIONS[region] || REGIONS["global"];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
-  const t = getTranslations(region);
-  const isRTL = ["uae"].includes(region);
+  const { t: langT } = useLanguage();
+  // Prefer explicit language selection; fall back to region-based translation
+  const t = langT || getTranslations(region);
+  const { langMeta } = useLanguage();
+  const isRTL = langMeta?.dir === "rtl" || ["uae"].includes(region);
 
   // Silently grab user coords if already permitted (no prompt)
   useEffect(() => {

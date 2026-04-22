@@ -425,3 +425,8 @@ export function getTranslations(regionKey) {
   const locale = REGION_LOCALE[regionKey] || "en";
   return TRANSLATIONS[locale] || TRANSLATIONS["en"];
 }
+
+// Get translations by explicit ISO 639-1 language code
+export function getTranslationsByLang(langCode) {
+  return TRANSLATIONS[langCode] || TRANSLATIONS["en"];
+}

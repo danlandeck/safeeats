@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { ShieldCheck, Info, BarChart2, Globe, Map } from "lucide-react";
 import KofiButton from "./components/KofiButton";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 
 // Cartoony nav pill style
 const navPill = "flex items-center gap-1.5 px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[40px]";
@@ -31,6 +32,7 @@ export default function Layout({ children, currentPageName }) {
               <Link to="/global-coverage"><button className={navPill}><Map className="w-4 h-4" />🗺️ Map</button></Link>
               <Link to="/country-codes"><button className={navPill}><Globe className="w-4 h-4" />🌍 Codes</button></Link>
               <Link to={createPageUrl("Feedback")}><button className={navPill}>💬 Feedback</button></Link>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
