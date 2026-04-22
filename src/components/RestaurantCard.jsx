@@ -34,9 +34,11 @@ function WaterMini({ restaurant }) {
   const city  = restaurant.city;
   const state = inferState(restaurant);
 
+  const fullAddress = [restaurant.address, restaurant.city, state, restaurant.zip_code].filter(Boolean).join(", ");
+
   useEffect(() => {
     if (!city || !state) return;
-    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id })
+    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id, full_address: fullAddress })
       .then(res => { if (res.data?.available) setWaterGrade(res.data.grade); })
       .catch(() => {});
   }, [city, state]);

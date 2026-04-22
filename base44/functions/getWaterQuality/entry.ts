@@ -362,10 +362,36 @@ function computeWaterGrade(violations) {
   };
 }
 
+async function geocodeFullAddress(fullAddress) {
+  if (!fullAddress) return null;
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullAddress)}&format=json&addressdetails=1&limit=1`;
+  const res = await fetch(url, { headers: { "User-Agent": "SafeEats/1.0" } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const addr = data[0].address || {};
+  return {
+    city: addr.city || addr.town || addr.village || addr.hamlet || null,
+    state: addr.state_code || null,
+    zip: addr.postcode || null,
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { city, state, country, county_id } = await req.json();
+    const { city: rawCity, state: rawState, country, county_id, full_address } = await req.json();
+
+    // If a full address is provided, geocode it to get precise city/state
+    let city = rawCity;
+    let state = rawState;
+    if (full_address) {
+      const geo = await geocodeFullAddress(full_address);
+      if (geo) {
+        if (geo.city) city = geo.city;
+        if (geo.state) state = geo.state;
+      }
+    }
 
     if (country && !["us", "usa", "united states"].includes((country || "").toLowerCase())) {
       return Response.json({ available: false, reason: "Water quality data via EPA is only available for US locations." });
@@ -375,7 +401,7 @@ Deno.serve(async (req) => {
       return Response.json({ available: false, reason: "State is required." });
     }
 
-    const stateUpper = state.toUpperCase().trim().slice(0, 2);
+    const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
 
     // 1️⃣ City-level (with neighborhood → city normalization)
     let system = city ? await findWaterSystemByCity(city, state) : null;

@@ -40,12 +40,13 @@ export default function WaterQualityBadge({ restaurant }) {
 
   const city  = restaurant.city;
   const state = inferState(restaurant);
+  const fullAddress = [restaurant.address, restaurant.city, state, restaurant.zip_code].filter(Boolean).join(", ");
 
   useEffect(() => {
     if (!city || !state) { setLoading(false); return; }
 
     setLoading(true);
-    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id })
+    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id, full_address: fullAddress })
       .then(res => setData(res.data))
       .catch(() => setData({ available: false, reason: "Unable to fetch water data." }))
       .finally(() => setLoading(false));
