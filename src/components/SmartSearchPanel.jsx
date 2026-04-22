@@ -185,23 +185,7 @@ export default function SmartSearchPanel({
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
           <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
         </p>
-        {/* Geo-based suggestion banner */}
-        {geoSuggestion && activeRegion === "global" && (
-          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl bg-[#4CAF50]/15 border border-[#4CAF50]/30 text-xs text-[#81c784]">
-            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="flex-1">We detected you're near <strong>{geoSuggestion.label}</strong> — we have live data there!</span>
-            <button
-              type="button"
-              onClick={() => { handleCitySelect(geoSuggestion); setGeoSuggestion(null); }}
-              className="bg-[#4CAF50] text-white font-bold px-2.5 py-1 rounded-lg hover:bg-[#43A047] transition-colors whitespace-nowrap"
-            >
-              Use it
-            </button>
-            <button type="button" onClick={() => setGeoSuggestion(null)} className="text-[#81c784] hover:text-white" aria-label="Dismiss suggestion">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
+
 
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -367,19 +351,7 @@ export default function SmartSearchPanel({
           </div>
         </form>
 
-        {/* Quick cuisine chips */}
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {QUICK_CUISINES.map(({ label, q }) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => handleCuisineClick(q)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/15 hover:bg-[#4CAF50]/20 hover:text-[#81c784] hover:border-[#4CAF50]/40 transition-all min-h-[36px] touch-manipulation"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+
       </div>
 
     </div>

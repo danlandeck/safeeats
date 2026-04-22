@@ -89,6 +89,9 @@ export default function WaterQualityBadge({ restaurant }) {
       <div className="min-w-0">
         <p className="text-xs font-bold text-slate-800 leading-tight">💧 Tap Water Quality</p>
         <p className="text-[11px] text-slate-500 truncate">{data.verdict}</p>
+        {data.systemName && (
+          <p className="text-[11px] text-slate-400 truncate mt-0.5">Supplied by: {data.systemName}</p>
+        )}
       </div>
     </div>
   );

@@ -1406,22 +1406,7 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* Persistent quick-filter bar + sort — hidden in map mode */}
-                        {viewMode !== "map" && (
-                          <>
-                            <div className="mb-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Quick Filters</p>
-                              <PersistentFilterBar onChange={setPersistentFilters} />
-                            </div>
 
-                            <div className="mb-4">
-                              <FilterSortControls
-                                filterResult={filterResult} onFilterChange={setFilterResult}
-                                sortBy={sortBy} onSortChange={setSortBy}
-                              />
-                            </div>
-                          </>
-                        )}
 
 
                         {viewMode === "map" ? (
