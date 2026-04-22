@@ -95,39 +95,49 @@
       "default": "unknown",
       "description": "ADA accessibility status"
     },
-    "epa_air_quality_index": {
-      "type": "number",
-      "description": "EPA air quality index (0-500), null if unavailable"
-    },
-    "epa_water_violations": {
-      "type": "number",
-      "description": "Count of EPA water quality violations"
-    },
-    "epa_hazardous_waste_score": {
-      "type": "number",
-      "description": "EPA hazardous waste risk score"
-    },
-    "epa_facility_id": {
+    "water_system_name": {
       "type": "string",
-      "description": "EPA facility registry ID"
+      "description": "Washington State drinking water system name"
     },
-    "epa_fetched_at": {
+    "water_system_id": {
       "type": "string",
-      "format": "date-time",
-      "description": "Timestamp of last EPA data fetch"
+      "description": "Washington State water system ID (WSID)"
     },
-    "epa_status": {
-      "type": "string",
-      "description": "EPA validation status (ok, geocoding_failed, state_mismatch, zip_mismatch, distance_exceeded, invalid_facility_type, no_valid_facilities, etc.)"
-    },
-    "water_safety_badge": {
+    "water_source_type": {
       "type": "string",
       "enum": [
-        "SAFE",
-        "CAUTION",
-        "UNSAFE"
+        "surface",
+        "groundwater",
+        "well",
+        "unknown"
       ],
-      "description": "Color-coded water safety badge based on EPA data and validation"
+      "description": "Type of water source"
+    },
+    "sanitary_survey_score": {
+      "type": "number",
+      "description": "Sanitary survey score from WA DOH"
+    },
+    "monitoring_violations": {
+      "type": "number",
+      "description": "Number of monitoring violations (last 3 years)"
+    },
+    "water_quality_violations": {
+      "type": "number",
+      "description": "Number of water quality violations (last 3 years)"
+    },
+    "health_advisories": {
+      "type": "number",
+      "description": "Number of active health advisories"
+    },
+    "water_safety_grade": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "Water safety grade (A=Safe, B=Generally Safe, C=Caution, D=Unsafe)"
     },
     "cuisine": {
       "type": "string",

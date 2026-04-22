@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { restaurant, epa_data } = await req.json();
+    const { restaurant } = await req.json();
 
     if (!restaurant || !restaurant.business_id || !restaurant.name) {
       return Response.json({ error: 'Invalid restaurant data' }, { status: 400 });
@@ -56,13 +56,16 @@ Deno.serve(async (req) => {
       last_api_check: new Date().toISOString(),
     };
 
-    // Add EPA data if provided
-    if (epa_data) {
-      restaurantData.epa_air_quality_index = epa_data.air_quality_index;
-      restaurantData.epa_water_violations = epa_data.water_quality_violations;
-      restaurantData.epa_hazardous_waste_score = epa_data.hazardous_waste_score;
-      restaurantData.epa_facility_id = epa_data.epa_facility_id;
-      restaurantData.epa_fetched_at = epa_data.fetched_at || new Date().toISOString();
+    // Add water system data if provided (Washington only)
+    if (restaurant.water_system_name) {
+      restaurantData.water_system_name = restaurant.water_system_name;
+      restaurantData.water_system_id = restaurant.water_system_id;
+      restaurantData.water_source_type = restaurant.water_source_type;
+      restaurantData.sanitary_survey_score = restaurant.sanitary_survey_score;
+      restaurantData.monitoring_violations = restaurant.monitoring_violations;
+      restaurantData.water_quality_violations = restaurant.water_quality_violations;
+      restaurantData.health_advisories = restaurant.health_advisories;
+      restaurantData.water_safety_grade = restaurant.water_safety_grade;
     }
 
     let result;
