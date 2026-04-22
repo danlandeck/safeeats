@@ -1,7 +1,6 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { MapPin, Search, X, Clock, LocateFixed, Loader2, Sparkles } from "lucide-react";
+import React, { useState, useRef, useCallback } from "react";
+import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
 
-// ── Restaurant query recents ──────────────────────────────────────────────────
 const RECENT_KEY = "safeeats_recent";
 function loadRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
 function saveRecent(q) {
@@ -11,7 +10,6 @@ function saveRecent(q) {
   return next;
 }
 
-// ── Location recents (city/state queries) ────────────────────────────────────
 const RECENT_LOC_KEY = "safeeats_recent_locations";
 function loadRecentLocations() { try { return JSON.parse(localStorage.getItem(RECENT_LOC_KEY) || "[]"); } catch { return []; } }
 function saveRecentLocation(loc) {
@@ -21,17 +19,6 @@ function saveRecentLocation(loc) {
   try { localStorage.setItem(RECENT_LOC_KEY, JSON.stringify(next)); } catch {}
   return next;
 }
-
-const QUICK_CUISINES = [
-  { label: "🍕 Pizza", q: "pizza" },
-  { label: "🍔 Burgers", q: "burger" },
-  { label: "🍣 Sushi", q: "sushi" },
-  { label: "🌮 Tacos", q: "tacos" },
-  { label: "🍜 Noodles", q: "noodles" },
-  { label: "🥗 Salads", q: "salad" },
-  { label: "🐔 Chicken", q: "chicken" },
-  { label: "☕ Café", q: "cafe" },
-];
 
 const LIVE_API_CITIES = [
   { label: "Seattle", region: "washington", countyId: "king", emoji: "🌲" },
@@ -55,42 +42,9 @@ export default function SmartSearchPanel({
   const [showLocDropdown, setShowLocDropdown]   = useState(false);
   const [geoLoading, setGeoLoading]             = useState(false);
   const [geoError, setGeoError]                 = useState("");
-  const [geoSuggestion, setGeoSuggestion]       = useState(null); // {label, region, countyId}
-  const debounceRef                             = useRef(null);
   const inputRef                                = useRef(null);
   const locInputRef                             = useRef(null);
 
-  // ── On mount: silently detect location & suggest nearest supported city ──
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.permissions?.query({ name: "geolocation" }).then((perm) => {
-      if (perm.state !== "granted") return;
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const { latitude: lat, longitude: lon } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-            { headers: { "Accept-Language": "en" } }
-          );
-          const data = await res.json();
-          const city   = (data.address?.city || data.address?.town || data.address?.village || "").toLowerCase();
-          const state  = (data.address?.state || "").toLowerCase();
-          const country = (data.address?.country_code || "").toLowerCase();
-
-          if (country !== "us") return;
-
-          // Match against LIVE_API_CITIES
-          const match = LIVE_API_CITIES.find(c =>
-            city.includes(c.label.toLowerCase().split(" ")[0]) ||
-            c.label.toLowerCase().includes(city.split(" ")[0])
-          );
-          if (match) setGeoSuggestion(match);
-        } catch {}
-      }, () => {});
-    }).catch(() => {});
-  }, []);
-
-  // Debounced autocomplete suggestions from recents
   const safeQuery = query || "";
   const suggestions = recents.filter(r => safeQuery.length > 0 && r.toLowerCase().includes(safeQuery.toLowerCase()));
 
@@ -104,19 +58,8 @@ export default function SmartSearchPanel({
   }, [query, onSearch]);
 
   const handleChange = (e) => {
-    const val = e.target.value;
-    onQueryChange(val);
+    onQueryChange(e.target.value);
     setShowDropdown(true);
-    // Debounce: auto-trigger only for cuisine-style short queries
-    clearTimeout(debounceRef.current);
-    if (val.trim().length >= 3) {
-      debounceRef.current = setTimeout(() => {
-        // Only auto-search if it looks like a cuisine keyword (no spaces + short)
-        if (val.trim().split(" ").length === 1 && val.trim().length <= 12) {
-          // don't auto-fire full search, just keep suggestions visible
-        }
-      }, 300);
-    }
   };
 
   const pickSuggestion = (s) => {
@@ -125,13 +68,6 @@ export default function SmartSearchPanel({
     setRecents(saveRecent(s));
     onSearch(s);
   };
-
-  const handleCuisineClick = useCallback((q) => {
-    onQueryChange(q);
-    setShowDropdown(false);
-    setRecents(saveRecent(q));
-    onSearch(q);
-  }, [onSearch]);
 
   const handleNearMe = useCallback(() => {
     setGeoError("");
@@ -147,7 +83,6 @@ export default function SmartSearchPanel({
     );
   }, [onNearMe]);
 
-  // Save location when user selects a city pill or types a location and searches
   const handleCitySelect = useCallback((city) => {
     onRegionChange(city);
     const label = city.locationLabel || city.label;
@@ -157,7 +92,6 @@ export default function SmartSearchPanel({
 
   const handleLocationBlur = useCallback(() => {
     setTimeout(() => setShowLocDropdown(false), 150);
-    // Save whatever the user typed as a recent location if non-empty
     if (locationQuery?.trim()) {
       setRecentLocations(saveRecentLocation(locationQuery.trim()) || recentLocations);
     }
@@ -166,7 +100,6 @@ export default function SmartSearchPanel({
   const pickRecentLocation = useCallback((loc) => {
     onLocationChange(loc);
     setShowLocDropdown(false);
-    // Try to match to a known city pill
     const match = LIVE_API_CITIES.find(c =>
       loc.toLowerCase().includes(c.label.toLowerCase()) ||
       c.label.toLowerCase().includes(loc.toLowerCase().split(",")[0])
@@ -186,7 +119,6 @@ export default function SmartSearchPanel({
           <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
         </p>
 
-
         <div className="flex gap-2">
           <div className="relative flex-1">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
@@ -201,7 +133,6 @@ export default function SmartSearchPanel({
               aria-label="Location"
               autoComplete="off"
             />
-            {/* Recent locations dropdown */}
             {showLocDropdown && recentLocations.length > 0 && (
               <ul
                 role="listbox"
@@ -227,7 +158,6 @@ export default function SmartSearchPanel({
               </ul>
             )}
           </div>
-          {/* ── Near Me ── */}
           <button
             type="button"
             onClick={handleNearMe}
@@ -314,7 +244,6 @@ export default function SmartSearchPanel({
                   <X className="w-4 h-4" />
                 </button>
               )}
-              {/* Dropdown: recent + suggestions */}
               {showDropdown && (suggestions.length > 0 || (recents.length > 0 && !safeQuery)) && (
                 <ul
                   role="listbox"
@@ -350,8 +279,6 @@ export default function SmartSearchPanel({
             </button>
           </div>
         </form>
-
-
       </div>
 
     </div>

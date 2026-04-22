@@ -7,30 +7,25 @@ import { getTranslations } from "../utils/i18n";
 import { useLanguage } from "../lib/LanguageContext";
 import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
-import { parseLocationQuery } from "../components/SearchBar";
 import RestaurantCard from "../components/RestaurantCard";
 import SmartSearchPanel from "../components/SmartSearchPanel";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
-import PersistentFilterBar, { applyPersistentFilters } from "../components/PersistentFilterBar";
 import AISearchStatus from "../components/AISearchStatus";
 import RestaurantDetail from "../components/RestaurantDetail";
 
 // Lazy-load heavy components so initial bundle is smaller
-const CameraScanner      = React.lazy(() => import("../components/CameraScanner"));
-const MapView            = React.lazy(() => import("../components/MapView"));
-const ScoreLegend        = React.lazy(() => import("../components/ScoreLegend"));
-import FilterSortControls from "../components/FilterSortControls";
-const ComparePanel       = React.lazy(() => import("../components/ComparePanel"));
+const CameraScanner = React.lazy(() => import("../components/CameraScanner"));
+const MapView       = React.lazy(() => import("../components/MapView"));
+const ScoreLegend   = React.lazy(() => import("../components/ScoreLegend"));
+const ComparePanel  = React.lazy(() => import("../components/ComparePanel"));
 
 export { getGrade } from "../utils/grading";
 export { getGradeColor } from "../utils/grading";
 
-
-
 // City aliases → { region, countyId } for all supported live API counties
 const CITY_TO_COUNTY = {
-  // King County, WA — all cities, neighborhoods, and unincorporated areas
+  // King County, WA
   "seattle": { region: "washington", countyId: "king" },
   "bellevue": { region: "washington", countyId: "king" },
   "redmond": { region: "washington", countyId: "king" },
@@ -72,7 +67,6 @@ const CITY_TO_COUNTY = {
   "lake forest park": { region: "washington", countyId: "king" },
   "kenmore": { region: "washington", countyId: "king" },
   "woodinville": { region: "washington", countyId: "king" },
-  // Seattle neighborhoods (all in King County)
   "capitol hill": { region: "washington", countyId: "king" },
   "ballard": { region: "washington", countyId: "king" },
   "fremont": { region: "washington", countyId: "king" },
@@ -137,7 +131,7 @@ const CITY_TO_COUNTY = {
   "junction": { region: "washington", countyId: "king" },
   "white center": { region: "washington", countyId: "king" },
   "arbor heights": { region: "washington", countyId: "king" },
-  // NYC — all boroughs and neighborhoods
+  // NYC
   "new york": { region: "new_york", countyId: "nyc" },
   "new york city": { region: "new_york", countyId: "nyc" },
   "nyc": { region: "new_york", countyId: "nyc" },
@@ -147,7 +141,6 @@ const CITY_TO_COUNTY = {
   "bronx": { region: "new_york", countyId: "nyc" },
   "the bronx": { region: "new_york", countyId: "nyc" },
   "staten island": { region: "new_york", countyId: "nyc" },
-  // Manhattan neighborhoods
   "harlem": { region: "new_york", countyId: "nyc" },
   "upper east side": { region: "new_york", countyId: "nyc" },
   "upper west side": { region: "new_york", countyId: "nyc" },
@@ -173,7 +166,6 @@ const CITY_TO_COUNTY = {
   "washington heights": { region: "new_york", countyId: "nyc" },
   "morningside heights": { region: "new_york", countyId: "nyc" },
   "hamilton heights": { region: "new_york", countyId: "nyc" },
-  // Brooklyn neighborhoods
   "williamsburg": { region: "new_york", countyId: "nyc" },
   "bushwick": { region: "new_york", countyId: "nyc" },
   "bed stuy": { region: "new_york", countyId: "nyc" },
@@ -203,7 +195,7 @@ const CITY_TO_COUNTY = {
   "bayside": { region: "new_york", countyId: "nyc" },
   "howard beach": { region: "new_york", countyId: "nyc" },
   "rego park": { region: "new_york", countyId: "nyc" },
-  // Chicago / Cook County — city + all suburbs and neighborhoods
+  // Chicago / Cook County
   "chicago": { region: "illinois", countyId: "cook" },
   "cook county": { region: "illinois", countyId: "cook" },
   "evanston": { region: "illinois", countyId: "cook" },
@@ -234,7 +226,6 @@ const CITY_TO_COUNTY = {
   "forest park": { region: "illinois", countyId: "cook" },
   "river forest": { region: "illinois", countyId: "cook" },
   "calumet city": { region: "illinois", countyId: "cook" },
-  // Chicago neighborhoods
   "wicker park": { region: "illinois", countyId: "cook" },
   "logan square": { region: "illinois", countyId: "cook" },
   "bucktown": { region: "illinois", countyId: "cook" },
@@ -261,7 +252,7 @@ const CITY_TO_COUNTY = {
   "uptown": { region: "illinois", countyId: "cook" },
   "ravenswood": { region: "illinois", countyId: "cook" },
   "lincoln square": { region: "illinois", countyId: "cook" },
-  // Austin / Travis County — city + neighborhoods + surrounding cities
+  // Austin / Travis County
   "austin": { region: "texas", countyId: "travis" },
   "travis county": { region: "texas", countyId: "travis" },
   "pflugerville": { region: "texas", countyId: "travis" },
@@ -285,7 +276,7 @@ const CITY_TO_COUNTY = {
   "rosedale": { region: "texas", countyId: "travis" },
   "tarrytown": { region: "texas", countyId: "travis" },
   "north loop austin": { region: "texas", countyId: "travis" },
-  // San Francisco — all neighborhoods
+  // San Francisco
   "san francisco": { region: "california", countyId: "sf" },
   "sf": { region: "california", countyId: "sf" },
   "mission district": { region: "california", countyId: "sf" },
@@ -330,7 +321,7 @@ const CITY_TO_COUNTY = {
   "miraloma park": { region: "california", countyId: "sf" },
   "duboce triangle": { region: "california", countyId: "sf" },
   "forest hill sf": { region: "california", countyId: "sf" },
-  // Los Angeles County — all cities and neighborhoods
+  // Los Angeles County
   "los angeles": { region: "california", countyId: "la" },
   "la": { region: "california", countyId: "la" },
   "hollywood": { region: "california", countyId: "la" },
@@ -458,12 +449,11 @@ const CITY_TO_COUNTY = {
   "palms": { region: "california", countyId: "la" },
   "sawtelle": { region: "california", countyId: "la" },
   "century city": { region: "california", countyId: "la" },
-  // Canada — country level
+  // Canada
   "canada": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
   "canadian": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
-  // Ontario
   "ontario": { region: "canada", countyId: "toronto", locationLabel: "Ontario, Canada" },
-  "toronto": { region: "canada", countyId: "toronto", locationLabel: "Toronto, Ontario, Canada" }, // routes to live DineSafe API
+  "toronto": { region: "canada", countyId: "toronto", locationLabel: "Toronto, Ontario, Canada" },
   "ottawa": { region: "canada", countyId: "ottawa", locationLabel: "Ottawa, Ontario, Canada" },
   "hamilton ontario": { region: "canada", countyId: "hamilton_on", locationLabel: "Hamilton, Ontario, Canada" },
   "mississauga": { region: "canada", countyId: "mississauga", locationLabel: "Mississauga, Ontario, Canada" },
@@ -474,7 +464,6 @@ const CITY_TO_COUNTY = {
   "guelph": { region: "canada", countyId: "kitchener", locationLabel: "Guelph, Ontario, Canada" },
   "windsor ontario": { region: "canada", countyId: "toronto", locationLabel: "Windsor, Ontario, Canada" },
   "barrie": { region: "canada", countyId: "toronto", locationLabel: "Barrie, Ontario, Canada" },
-  // British Columbia
   "british columbia": { region: "canada", countyId: "vancouver", locationLabel: "British Columbia, Canada" },
   "bc": { region: "canada", countyId: "vancouver", locationLabel: "British Columbia, Canada" },
   "vancouver": { region: "canada", countyId: "vancouver", locationLabel: "Vancouver, British Columbia, Canada" },
@@ -494,7 +483,6 @@ const CITY_TO_COUNTY = {
   "nanaimo": { region: "canada", countyId: "victoria_bc", locationLabel: "Nanaimo, British Columbia, Canada" },
   "kamloops": { region: "canada", countyId: "kelowna", locationLabel: "Kamloops, British Columbia, Canada" },
   "prince george bc": { region: "canada", countyId: "kelowna", locationLabel: "Prince George, British Columbia, Canada" },
-  // Québec
   "quebec": { region: "canada", countyId: "montreal", locationLabel: "Québec, Canada" },
   "québec": { region: "canada", countyId: "montreal", locationLabel: "Québec, Canada" },
   "montreal": { region: "canada", countyId: "montreal", locationLabel: "Montréal, Québec, Canada" },
@@ -507,7 +495,6 @@ const CITY_TO_COUNTY = {
   "sherbrooke": { region: "canada", countyId: "quebec_city", locationLabel: "Sherbrooke, Québec, Canada" },
   "saguenay": { region: "canada", countyId: "quebec_city", locationLabel: "Saguenay, Québec, Canada" },
   "trois-rivieres": { region: "canada", countyId: "quebec_city", locationLabel: "Trois-Rivières, Québec, Canada" },
-  // Alberta
   "alberta": { region: "canada", countyId: "calgary", locationLabel: "Alberta, Canada" },
   "calgary": { region: "canada", countyId: "calgary", locationLabel: "Calgary, Alberta, Canada" },
   "edmonton": { region: "canada", countyId: "edmonton", locationLabel: "Edmonton, Alberta, Canada" },
@@ -517,31 +504,24 @@ const CITY_TO_COUNTY = {
   "fort mcmurray": { region: "canada", countyId: "edmonton", locationLabel: "Fort McMurray, Alberta, Canada" },
   "airdrie": { region: "canada", countyId: "calgary", locationLabel: "Airdrie, Alberta, Canada" },
   "grande prairie": { region: "canada", countyId: "edmonton", locationLabel: "Grande Prairie, Alberta, Canada" },
-  // Manitoba
   "manitoba": { region: "canada", countyId: "winnipeg", locationLabel: "Manitoba, Canada" },
   "winnipeg": { region: "canada", countyId: "winnipeg", locationLabel: "Winnipeg, Manitoba, Canada" },
   "brandon mb": { region: "canada", countyId: "winnipeg", locationLabel: "Brandon, Manitoba, Canada" },
-  // Nova Scotia
   "nova scotia": { region: "canada", countyId: "halifax", locationLabel: "Nova Scotia, Canada" },
   "halifax": { region: "canada", countyId: "halifax", locationLabel: "Halifax, Nova Scotia, Canada" },
-  // Saskatchewan
   "saskatchewan": { region: "canada", countyId: "saskatoon", locationLabel: "Saskatchewan, Canada" },
   "saskatoon": { region: "canada", countyId: "saskatoon", locationLabel: "Saskatoon, Saskatchewan, Canada" },
   "regina": { region: "canada", countyId: "regina", locationLabel: "Regina, Saskatchewan, Canada" },
-  // Newfoundland
   "newfoundland": { region: "canada", countyId: "st_johns_nl", locationLabel: "Newfoundland, Canada" },
   "st. john's": { region: "canada", countyId: "st_johns_nl", locationLabel: "St. John's, Newfoundland, Canada" },
   "st johns": { region: "canada", countyId: "st_johns_nl", locationLabel: "St. John's, Newfoundland, Canada" },
-  // New Brunswick
   "new brunswick": { region: "canada", countyId: "moncton", locationLabel: "New Brunswick, Canada" },
   "moncton": { region: "canada", countyId: "moncton", locationLabel: "Moncton, New Brunswick, Canada" },
   "fredericton": { region: "canada", countyId: "moncton", locationLabel: "Fredericton, New Brunswick, Canada" },
   "saint john nb": { region: "canada", countyId: "moncton", locationLabel: "Saint John, New Brunswick, Canada" },
-  // PEI
   "prince edward island": { region: "canada", countyId: "moncton", locationLabel: "Prince Edward Island, Canada" },
   "pei": { region: "canada", countyId: "moncton", locationLabel: "Prince Edward Island, Canada" },
   "charlottetown": { region: "canada", countyId: "moncton", locationLabel: "Charlottetown, Prince Edward Island, Canada" },
-
   // UAE / Dubai
   "dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   "uae": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
@@ -556,7 +536,7 @@ const CITY_TO_COUNTY = {
   "deira": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   "bur dubai": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
   "jumeirah": { region: "uae", countyId: "dubai", locationLabel: "Dubai, UAE" },
-  // UK — England, Scotland, Wales, Northern Ireland (all route to UK FSA live API)
+  // UK
   "uk": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
   "united kingdom": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
   "great britain": { region: "uk", countyId: "uk_fsa", locationLabel: "United Kingdom" },
@@ -565,7 +545,6 @@ const CITY_TO_COUNTY = {
   "scotland": { region: "uk", countyId: "uk_fsa", locationLabel: "Scotland, UK" },
   "wales": { region: "uk", countyId: "uk_fsa", locationLabel: "Wales, UK" },
   "northern ireland": { region: "uk", countyId: "uk_fsa", locationLabel: "Northern Ireland, UK" },
-  // England — major cities
   "london": { region: "uk", countyId: "uk_fsa", locationLabel: "London, England, UK" },
   "birmingham": { region: "uk", countyId: "uk_fsa", locationLabel: "Birmingham, England, UK" },
   "manchester": { region: "uk", countyId: "uk_fsa", locationLabel: "Manchester, England, UK" },
@@ -578,7 +557,6 @@ const CITY_TO_COUNTY = {
   "leicester": { region: "uk", countyId: "uk_fsa", locationLabel: "Leicester, England, UK" },
   "coventry": { region: "uk", countyId: "uk_fsa", locationLabel: "Coventry, England, UK" },
   "bradford": { region: "uk", countyId: "uk_fsa", locationLabel: "Bradford, England, UK" },
-  "brighton": { region: "uk", countyId: "uk_fsa", locationLabel: "Brighton, England, UK" },
   "southampton": { region: "uk", countyId: "uk_fsa", locationLabel: "Southampton, England, UK" },
   "portsmouth": { region: "uk", countyId: "uk_fsa", locationLabel: "Portsmouth, England, UK" },
   "oxford": { region: "uk", countyId: "uk_fsa", locationLabel: "Oxford, England, UK" },
@@ -628,7 +606,6 @@ const CITY_TO_COUNTY = {
   "devon": { region: "uk", countyId: "uk_fsa", locationLabel: "Devon, England, UK" },
   "suffolk": { region: "uk", countyId: "uk_fsa", locationLabel: "Suffolk, England, UK" },
   "norfolk": { region: "uk", countyId: "uk_fsa", locationLabel: "Norfolk, England, UK" },
-  // London boroughs
   "westminster": { region: "uk", countyId: "uk_fsa", locationLabel: "Westminster, London, UK" },
   "shoreditch": { region: "uk", countyId: "uk_fsa", locationLabel: "Shoreditch, London, UK" },
   "soho london": { region: "uk", countyId: "uk_fsa", locationLabel: "Soho, London, UK" },
@@ -649,7 +626,6 @@ const CITY_TO_COUNTY = {
   "hammersmith": { region: "uk", countyId: "uk_fsa", locationLabel: "Hammersmith, London, UK" },
   "ealing": { region: "uk", countyId: "uk_fsa", locationLabel: "Ealing, London, UK" },
   "stratford": { region: "uk", countyId: "uk_fsa", locationLabel: "Stratford, London, UK" },
-  // Scotland — major cities and regions
   "edinburgh": { region: "uk", countyId: "uk_fsa", locationLabel: "Edinburgh, Scotland, UK" },
   "glasgow": { region: "uk", countyId: "uk_fsa", locationLabel: "Glasgow, Scotland, UK" },
   "aberdeen": { region: "uk", countyId: "uk_fsa", locationLabel: "Aberdeen, Scotland, UK" },
@@ -658,16 +634,13 @@ const CITY_TO_COUNTY = {
   "stirling": { region: "uk", countyId: "uk_fsa", locationLabel: "Stirling, Scotland, UK" },
   "st andrews": { region: "uk", countyId: "uk_fsa", locationLabel: "St Andrews, Scotland, UK" },
   "highlands": { region: "uk", countyId: "uk_fsa", locationLabel: "Highlands, Scotland, UK" },
-  // Wales — major cities and regions
   "cardiff": { region: "uk", countyId: "uk_fsa", locationLabel: "Cardiff, Wales, UK" },
   "swansea": { region: "uk", countyId: "uk_fsa", locationLabel: "Swansea, Wales, UK" },
   "newport wales": { region: "uk", countyId: "uk_fsa", locationLabel: "Newport, Wales, UK" },
   "wrexham": { region: "uk", countyId: "uk_fsa", locationLabel: "Wrexham, Wales, UK" },
-  // Northern Ireland
   "belfast": { region: "uk", countyId: "uk_fsa", locationLabel: "Belfast, Northern Ireland, UK" },
   "derry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
   "londonderry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
-
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -678,7 +651,7 @@ const CITY_TO_COUNTY = {
   "potomac": { region: "maryland", countyId: "montgomery_md" },
   "montgomery county": { region: "maryland", countyId: "montgomery_md" },
   "montgomery county md": { region: "maryland", countyId: "montgomery_md" },
-  // Delaware — all cities and towns
+  // Delaware
   "delaware": { region: "delaware", countyId: "delaware", locationLabel: "Delaware" },
   "wilmington": { region: "delaware", countyId: "delaware", locationLabel: "Wilmington, Delaware" },
   "dover": { region: "delaware", countyId: "delaware", locationLabel: "Dover, Delaware" },
@@ -688,7 +661,7 @@ const CITY_TO_COUNTY = {
   "lewes": { region: "delaware", countyId: "delaware", locationLabel: "Lewes, Delaware" },
   "hockessin": { region: "delaware", countyId: "delaware", locationLabel: "Hockessin, Delaware" },
   "claymont": { region: "delaware", countyId: "delaware", locationLabel: "Claymont, Delaware" },
-  // New York State (outside NYC) — major cities
+  // New York State (outside NYC)
   "buffalo": { region: "new_york", countyId: "ny_state", locationLabel: "Buffalo, New York" },
   "rochester ny": { region: "new_york", countyId: "ny_state", locationLabel: "Rochester, New York" },
   "rochester new york": { region: "new_york", countyId: "ny_state", locationLabel: "Rochester, New York" },
@@ -709,7 +682,6 @@ const CITY_TO_COUNTY = {
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
 };
 
-// Cities with live government inspection APIs (or featured AI-data cities)
 const LIVE_API_CITIES = [
   { label: "Seattle / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
@@ -724,18 +696,6 @@ const LIVE_API_CITIES = [
   { label: "Dubai 🇦🇪", region: "uae", countyId: "dubai", emoji: "🏙️", example: "restaurant", locationLabel: "Dubai, UAE" },
   { label: "United Kingdom 🇬🇧", region: "uk", countyId: "uk_fsa", emoji: "🇬🇧", example: "fish and chips", locationLabel: "United Kingdom" },
 ];
-
-
-
-function initSearchCache() {
-  try {
-    const raw = localStorage.getItem('safeeats_cache');
-    const parsed = raw ? JSON.parse(raw) : [];
-    const cutoff = Date.now() - 86_400_000; // 24h TTL
-    const fresh = parsed.filter(([, , ts]) => !ts || ts > cutoff);
-    return new Map(fresh.map(([k, v]) => [k, v]));
-  } catch { return new Map(); }
-}
 
 export default function Home() {
   const location = useLocation();
@@ -753,7 +713,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery]           = useState("");
   const [searchBarQuery, setSearchBarQuery]     = useState("");
   const [viewMode, setViewMode]                 = useState("list");
-  const [filterResult, setFilterResult]         = useState("all");
   const [sortBy, setSortBy]                     = useState("score-high");
   const [gradeFilter, setGradeFilter]           = useState(null);
   const [compareList, setCompareList]           = useState([]);
@@ -766,10 +725,7 @@ export default function Home() {
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
-  const [persistentFilters, setPersistentFilters] = useState({});
   const [fastResults, setFastResults]           = useState(null);
-  const searchCacheRef                          = useRef(initSearchCache());
-  const detailCacheRef                          = useRef(new Map());
 
   const handleToggleCompare = (restaurant) => {
     setCompareList((prev) => {
@@ -783,7 +739,6 @@ export default function Home() {
   const currentRegion = REGIONS[region] || REGIONS["global"];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
   const { t: langT } = useLanguage();
-  // Prefer explicit language selection; fall back to region-based translation
   const t = langT || getTranslations(region);
   const { langMeta } = useLanguage();
   const isRTL = langMeta?.dir === "rtl" || ["uae"].includes(region);
@@ -802,7 +757,6 @@ export default function Home() {
 
   // Auto-search from URL params (e.g. navigated here from CountyDrillDown)
   useEffect(() => {
-    // If navigated with a pre-loaded restaurant, show it directly
     if (location.state?.restaurant) {
       const { restaurant, region: r, county: c } = location.state;
       if (r && REGIONS[r]) setRegion(r);
@@ -840,7 +794,6 @@ export default function Home() {
     setViewMode("list");
     setCompareList([]);
     setShowCompare(false);
-    setFilterResult("all");
     setGradeFilter(null);
   };
 
@@ -848,86 +801,23 @@ export default function Home() {
     let query = rawQuery;
     let searchRegion = region;
     let searchCounty = countyId;
-    let autoDetectedLocation = false;
 
-    const parsed = parseLocationQuery(rawQuery);
-
-    if (parsed) {
-      // zip is a location identifier, not a search term — use name or city as the query
-      query = parsed.name || parsed.city || rawQuery;
-
-      const cityKey = (parsed.city || "").toLowerCase().trim();
-      const aliasMatch = cityKey ? CITY_TO_COUNTY[cityKey] : null;
-      if (aliasMatch && REGIONS[aliasMatch.region]) {
-        searchRegion = aliasMatch.region;
-        searchCounty = aliasMatch.countyId;
-        setRegion(searchRegion);
-        setCountyId(searchCounty);
-        if (aliasMatch.locationLabel) setLocationQuery(aliasMatch.locationLabel);
-      } else if (parsed.state) {
-        // Match a US state abbreviation to a region
-        const stateToMatch = parsed.state.toUpperCase();
-        const NON_US = new Set(["canada","uk","mexico","australia","france","germany","spain","italy",
-          "japan","brazil","india","south_korea","china","uae","singapore","netherlands",
-          "portugal","new_zealand","argentina","thailand","greece","turkey","south_africa","global"]);
-        const matchedRegionEntry = Object.entries(REGIONS).find(([key, r]) =>
-          !NON_US.has(key) && r.abbr?.toUpperCase() === stateToMatch
-        );
-        if (matchedRegionEntry) {
-          searchRegion = matchedRegionEntry[0];
-          searchCounty = matchedRegionEntry[1].counties[0].id;
-          setRegion(searchRegion);
-          setCountyId(searchCounty);
-        }
-      }
-
-      if (!parsed.name) query = rawQuery;
-    }
-
-    // --- Auto-detect location from query words if still on global ---
+    // Auto-detect location from explicit city name in query when on global
     if (searchRegion === "global" || searchCounty === "global") {
       const queryWords = rawQuery.toLowerCase().trim();
-      // Try matching any word/phrase in the query against CITY_TO_COUNTY
-      let matched = null;
-      // Try longest matches first (multi-word cities like "mercer island")
       const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
       for (const key of sortedKeys) {
         if (queryWords.includes(key)) {
-          matched = CITY_TO_COUNTY[key];
-          // Strip the city name from the query to get just the food/restaurant term
-          query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          const matched = CITY_TO_COUNTY[key];
+          if (REGIONS[matched.region]) {
+            searchRegion = matched.region;
+            searchCounty = matched.countyId;
+            setRegion(searchRegion);
+            setCountyId(searchCounty);
+            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+            query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          }
           break;
-        }
-      }
-      if (matched && REGIONS[matched.region]) {
-        searchRegion = matched.region;
-        searchCounty = matched.countyId;
-        setRegion(searchRegion);
-        setCountyId(searchCounty);
-        if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-        autoDetectedLocation = true;
-      }
-    }
-
-    // --- Auto-detect location from userCoords if still on global ---
-    if ((searchRegion === "global" || searchCounty === "global") && userCoords && !locationQuery.trim()) {
-      const geo = await reverseGeocode(userCoords.lat, userCoords.lng);
-      if (geo) {
-        const cityKey = (geo.city || "").toLowerCase().trim();
-        const countyKey = (geo.county || "").toLowerCase().trim();
-        const aliasMatch = CITY_TO_COUNTY[cityKey] || CITY_TO_COUNTY[countyKey];
-        if (aliasMatch && REGIONS[aliasMatch.region]) {
-          searchRegion = aliasMatch.region;
-          searchCounty = aliasMatch.countyId;
-          setRegion(searchRegion);
-          setCountyId(searchCounty);
-          const label = aliasMatch.locationLabel || geo.city || geo.county || "";
-          if (label) setLocationQuery(label);
-          autoDetectedLocation = true;
-        } else {
-          // Use the city/state as a location label for AI search context even without a live API
-          const label = [geo.city, geo.state, geo.country].filter(Boolean).join(", ");
-          if (label) setLocationQuery(label);
         }
       }
     }
@@ -945,34 +835,15 @@ export default function Home() {
     setViewMode("list");
     setSearchError("");
 
-    const cacheKey = `${searchCounty}:${query.toLowerCase()}`;
-    if (searchCacheRef.current.has(cacheKey)) {
-      setResults(searchCacheRef.current.get(cacheKey));
-      setIsLoading(false);
-      return;
-    }
+    const resolvedCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
+    const locationCtx = locationQuery.trim() || resolvedCounty.name;
 
-    const currentCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
-    const setAndCache = (data) => {
-      searchCacheRef.current.set(cacheKey, data);
-      try {
-        const entries = [...searchCacheRef.current].map(([k, v]) => [k, v, Date.now()]);
-        localStorage.setItem('safeeats_cache', JSON.stringify(entries.slice(-40)));
-      } catch {}
-      setResults(data);
-    };
+    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
+      setIsAISearch(true);
+    }
 
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-      // For Canada and other international matches, prefer the enriched locationLabel from the alias map
-      // Otherwise fall back to what the user typed, then the county name
-      const cityKey2 = (parsed?.city || "").toLowerCase().trim();
-      const aliasLabel = cityKey2 ? CITY_TO_COUNTY[cityKey2]?.locationLabel : null;
-      const locationCtx = aliasLabel || locationQuery.trim() || currentCounty.name;
-
-      if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
-        setIsAISearch(true);
-      }
 
       const { results: fetchedResults, isAI } = await engineSearch({
         query,
@@ -980,9 +851,7 @@ export default function Home() {
         locationLabel: locationCtx,
         today,
         signal,
-        onFastResults: (fast) => {
-          setFastResults(fast);
-        },
+        onFastResults: (fast) => setFastResults(fast),
         onCountUpdate: (bizId, trueCount) => {
           setResults(prev => prev.map(r =>
             r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
@@ -991,7 +860,7 @@ export default function Home() {
       });
 
       setIsAISearch(isAI);
-      setAndCache(fetchedResults);
+      setResults(fetchedResults);
     } catch (e) {
       if (e.name === "AbortError") return;
       setIsLoading(false);
@@ -1008,19 +877,12 @@ export default function Home() {
     setSelectedBusiness(biz);
     window.history.pushState({}, '', `?q=${encodeURIComponent(searchQuery)}&biz=${encodeURIComponent(biz.business_id)}`);
 
-    if (detailCacheRef.current.has(biz.business_id)) {
-      setDetailRows(detailCacheRef.current.get(biz.business_id));
-      return;
-    }
-
     setIsDetailLoading(true);
-    const cacheAndSet = (rows) => {
-      detailCacheRef.current.set(biz.business_id, rows);
-      setDetailRows(rows);
 
+    const processRows = (rows) => {
+      setDetailRows(rows);
       if (rows.length === 0) return;
 
-      // Compute authoritative stats directly from the fetched inspection rows
       const uniqueMap = {};
       rows.forEach(row => {
         const key = row.inspection_serial_num || `${row.inspection_date}|${row.inspection_result}`;
@@ -1028,21 +890,12 @@ export default function Home() {
       });
       const uniqueRows = Object.values(uniqueMap);
 
-      // True inspection count
       const actualCount = uniqueRows.length;
-
-      // Latest date from actual data
-      const sortedDates = uniqueRows
-        .map(r => r.inspection_date)
-        .filter(Boolean)
-        .sort((a, b) => new Date(b) - new Date(a));
+      const sortedDates = uniqueRows.map(r => r.inspection_date).filter(Boolean).sort((a, b) => new Date(b) - new Date(a));
       const trueLatestDate = sortedDates[0] || biz.latestDate;
-
-      // Latest result from most recent inspection
       const mostRecent = uniqueRows.find(r => r.inspection_date === trueLatestDate) || uniqueRows[0];
       const trueLatestResult = mostRecent?.inspection_result || biz.latestResult;
 
-      // Recompute safety score from fetched rows if source has numeric scores
       let trueSafetyScore = biz.safetyScore;
       const scoresFromRows = uniqueRows
         .map(r => {
@@ -1051,14 +904,12 @@ export default function Home() {
         })
         .filter(s => s !== null && !isNaN(s));
       if (scoresFromRows.length > 0) {
-        // Use the score from the most recent inspection as the authoritative score
-        const latestScoreRaw = (mostRecent?.inspection_score !== undefined ? mostRecent.inspection_score : mostRecent?.score);
+        const latestScoreRaw = mostRecent?.inspection_score !== undefined ? mostRecent.inspection_score : mostRecent?.score;
         if (latestScoreRaw !== undefined && latestScoreRaw !== null) {
           trueSafetyScore = Math.max(0, Math.min(100, 100 - parseInt(latestScoreRaw)));
         }
       }
 
-      // Enrich selectedBusiness with authoritative data from the detail fetch
       const enriched = {
         ...biz,
         totalInspections: actualCount,
@@ -1076,14 +927,11 @@ export default function Home() {
     };
 
     const rows = await engineFetchDetail(biz);
-    cacheAndSet(rows);
-
+    processRows(rows);
     setIsDetailLoading(false);
-  }, []);
+  }, [searchQuery]);
 
-  const handleSwitchToMap = useCallback(() => {
-    setViewMode("map");
-  }, []);
+  const handleSwitchToMap = useCallback(() => setViewMode("map"), []);
 
   // Haversine distance in miles
   const haversineMiles = (lat1, lon1, lat2, lon2) => {
@@ -1098,14 +946,11 @@ export default function Home() {
     if (nearMeActive) { setNearMeActive(false); setUserCoords(null); setNearMeError(""); return; }
     setNearMeError("");
     setIsGeolocating(true);
-    // Use locationQuery (user-typed location like "Tokyo" or "Japan") for geocoding context
-    // Fall back to region abbreviation for US live-API counties, or empty string globally
     const geoContext = locationQuery.trim() || REGIONS[region]?.abbr || "";
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserCoords(coords);
-        // Geocode any results missing coords
         const missing = results.filter((r) => !r.latitude || !r.longitude);
         await Promise.all(missing.map(async (r) => {
           const gc = await geocodeAddress(r.address, r.city, geoContext).catch(() => null);
@@ -1119,11 +964,7 @@ export default function Home() {
   }, [nearMeActive, region, locationQuery, results]);
 
   const filteredAndSortedResults = useMemo(() => {
-    let filtered = filterResult === "all" ? [...results] : results.filter((r) => {
-      const rv = (r.latestResult || "").toLowerCase();
-      const fv = filterResult.toLowerCase();
-      return rv === fv || rv.includes(fv);
-    });
+    let filtered = [...results];
     if (gradeFilter) {
       const gradeRanges = { A: [90, 100], B: [80, 89], C: [70, 79], D: [60, 69], F: [0, 59] };
       if (gradeFilter === "U") {
@@ -1135,12 +976,12 @@ export default function Home() {
     }
     const scoreOf = (r) => r.safetyScore !== null && r.safetyScore !== undefined ? r.safetyScore : -1;
     switch (sortBy) {
-      case "score-high":   filtered.sort((a, b) => scoreOf(b) - scoreOf(a) || b.totalInspections - a.totalInspections); break;
-      case "score-low":    filtered.sort((a, b) => scoreOf(a) - scoreOf(b) || b.totalInspections - a.totalInspections); break;
-      case "inspections":  filtered.sort((a, b) => b.totalInspections - a.totalInspections || scoreOf(b) - scoreOf(a)); break;
-      case "date-recent":  filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate)); break;
-      case "date-oldest":  filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate)); break;
-      default:             filtered.sort((a, b) => scoreOf(b) - scoreOf(a));
+      case "score-high":  filtered.sort((a, b) => scoreOf(b) - scoreOf(a) || b.totalInspections - a.totalInspections); break;
+      case "score-low":   filtered.sort((a, b) => scoreOf(a) - scoreOf(b) || b.totalInspections - a.totalInspections); break;
+      case "inspections": filtered.sort((a, b) => b.totalInspections - a.totalInspections || scoreOf(b) - scoreOf(a)); break;
+      case "date-recent": filtered.sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate)); break;
+      case "date-oldest": filtered.sort((a, b) => new Date(a.latestDate) - new Date(b.latestDate)); break;
+      default:            filtered.sort((a, b) => scoreOf(b) - scoreOf(a));
     }
     if (nearMeActive && userCoords) {
       filtered = filtered.filter((r) => {
@@ -1148,18 +989,14 @@ export default function Home() {
         return haversineMiles(userCoords.lat, userCoords.lng, parseFloat(r.latitude), parseFloat(r.longitude)) <= 5;
       });
     }
-    // Apply persistent filters (fails only, recent 30 days, allergens)
-    filtered = applyPersistentFilters(filtered, persistentFilters);
     return filtered;
-  }, [results, filterResult, sortBy, nearMeActive, userCoords, gradeFilter, persistentFilters]);
+  }, [results, sortBy, nearMeActive, userCoords, gradeFilter]);
 
   const handleGeocodedMapSwitch = useCallback((sortedResults) => {
     const MAP_LIMIT = 10;
     const topResults = sortedResults.slice(0, MAP_LIMIT);
     if (!topResults.some((r) => !r.latitude)) return;
-    // Use the user-typed location for geocoding context — works globally
     const geoContext = locationQuery.trim() || REGIONS[region]?.abbr || "";
-    // Geocode each in background — map shows immediately, markers pop in as resolved
     topResults.forEach(async (r) => {
       if (r.latitude && r.longitude) return;
       const coords = await geocodeAddress(r.address, r.city, geoContext).catch(() => null);
@@ -1186,7 +1023,6 @@ export default function Home() {
               Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️
             </p>
 
-            {/* Grade scale — immediately visible on landing */}
             {!hasSearched && (
               <div className="flex items-center justify-center gap-2 mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
                 {[
@@ -1261,8 +1097,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Content */}
-      {/* WCAG 4.1.3 — Live region for dynamic status announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only" id="search-status">
         {isLoading ? "Searching for restaurants, please wait…" : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
       </div>
@@ -1270,8 +1104,6 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
         {!hasSearched && (
           <div className="space-y-8 mb-10">
-
-            {/* Quick explainer */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ fontFamily: "Nunito, sans-serif" }}>
               {[
                 { emoji: "🔍", title: "Search any restaurant!", desc: "Type a name, like \"McDonald's\" or just \"pizza\". It works anywhere in the world!" },
@@ -1288,7 +1120,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { value: "195+", label: "Countries covered", emoji: "🌍" },
@@ -1303,21 +1134,15 @@ export default function Home() {
               ))}
             </div>
 
-
-
-            {/* Live data sources */}
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {["🌲 King County, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
-                  <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">
-                    {src}
-                  </span>
+                  <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>
               <p className="text-center text-xs text-slate-500 mt-3">🌍 Everywhere else is covered by AI-powered search of public health records. Just type any city or country!</p>
             </div>
-
           </div>
         )}
 
@@ -1368,15 +1193,14 @@ export default function Home() {
                         <h3 className="text-lg font-semibold text-slate-700">Search Unavailable</h3>
                         <p className="text-sm text-slate-400 mt-1 mb-4">{searchError}</p>
                         <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors">Try Again</button>
-                        </div>
-                        ) : results.length > 0 ? (
+                      </div>
+                    ) : results.length > 0 ? (
                       <div>
-                        {/* Results header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
                             <p className="text-sm font-extrabold text-slate-800">
                               Found {filteredAndSortedResults.length} restaurant{filteredAndSortedResults.length !== 1 ? "s" : ""}
-                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""} 
+                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""}
                               {searchQuery ? ` for "${searchQuery}"` : ""}
                               {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
                             </p>
@@ -1405,9 +1229,6 @@ export default function Home() {
                             </button>
                           </div>
                         </div>
-
-
-
 
                         {viewMode === "map" ? (
                           <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>
@@ -1484,7 +1305,6 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {/* Compare floating bar */}
       {compareList.length >= 2 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4 max-w-lg w-[90vw]">
           <div className="flex flex-col">
