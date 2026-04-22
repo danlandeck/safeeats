@@ -62,10 +62,18 @@ export default function WaterQualityBadge({ restaurant }) {
   }
 
   if (!data?.available) {
+    const reason = (!city || !state)
+      ? "No location data to look up water quality."
+      : (data?.reason || "Water quality data not available for this location.");
+    const isNonUS = !state && !city;
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-400 w-fit">
-        <Droplets className="w-3.5 h-3.5" />
-        <span>Water quality: US-only · <Link to="/About#water-quality" className="underline hover:text-slate-600">Learn more</Link></span>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 w-fit">
+        <Droplets className="w-3.5 h-3.5 text-slate-400" />
+        <span>
+          💧 Tap water: {isNonUS ? "US data only" : reason}
+          {" · "}
+          <Link to="/About#water-quality" className="underline hover:text-slate-700">Learn more</Link>
+        </span>
       </div>
     );
   }

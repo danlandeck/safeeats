@@ -1,11 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle } from "lucide-react";
+import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle, Droplets } from "lucide-react";
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
+import { base44 } from "@/api/base44Client";
+
+const COUNTY_STATE = {
+  king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
+  montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
+};
+
+function inferState(restaurant) {
+  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
+  if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) return COUNTY_STATE[restaurant.county_id];
+  if (restaurant.source && COUNTY_STATE[restaurant.source]) return COUNTY_STATE[restaurant.source];
+  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
+  const match = addr.match(/\b([A-Z]{2})\b/);
+  return match ? match[1] : null;
+}
+
+const WATER_GRADE_STYLE = {
+  excellent:       { bg: "bg-blue-600",   label: "💧 Excellent water",     short: "Excellent" },
+  good:            { bg: "bg-lime-500",   label: "✅ Good water",           short: "Good" },
+  drinkable:       { bg: "bg-orange-400", label: "⚠️ Drinkable water",      short: "Drinkable" },
+  not_recommended: { bg: "bg-red-600",    label: "🚫 Water not recommended", short: "Not Recommended" },
+};
+
+function WaterMini({ restaurant }) {
+  const [waterGrade, setWaterGrade] = useState(null);
+  const city  = restaurant.city;
+  const state = inferState(restaurant);
+
+  useEffect(() => {
+    if (!city || !state) return;
+    base44.functions.invoke("getWaterQuality", { city, state, country: "US" })
+      .then(res => { if (res.data?.available) setWaterGrade(res.data.grade); })
+      .catch(() => {});
+  }, [city, state]);
+
+  if (!waterGrade) return null;
+  const style = WATER_GRADE_STYLE[waterGrade];
+  if (!style) return null;
+
+  return (
+    <span className={`flex items-center gap-1 text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${style.bg}`}>
+      <Droplets className="w-2.5 h-2.5" />
+      {style.short}
+    </span>
+  );
+}
 
 const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
 const GRADE_LABELS = {
@@ -99,6 +145,9 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <span className="text-[11px] font-extrabold text-slate-600">
               {GRADE_LABELS[grade]}
             </span>
+
+            {/* Water quality mini badge */}
+            <WaterMini restaurant={restaurant} />
 
             {/* Risk badge */}
             {inspectionHistory && <FailRiskBadge inspections={inspectionHistory} />}
