@@ -6,6 +6,7 @@ import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
+import ADABadge from "./ADABadge";
 import { base44 } from "@/api/base44Client";
 
 const COUNTY_STATE = {
@@ -171,6 +172,13 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
 
           {/* Cuisine + Dietary badges */}
           <DietaryBadges restaurant={restaurant} maxShow={3} />
+
+          {/* ADA Compliance Badge */}
+          {restaurant.ada_compliance && restaurant.ada_compliance !== "unknown" && (
+            <div className="mt-2">
+              <ADABadge ada_compliance={restaurant.ada_compliance} size="sm" />
+            </div>
+          )}
 
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (

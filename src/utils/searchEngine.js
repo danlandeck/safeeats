@@ -59,6 +59,7 @@ const LLM_SCHEMA = {
           is_halal:               { type: "boolean" },
           is_gluten_free_options: { type: "boolean" },
           dietary_tags:           { type: "array", items: { type: "string" } },
+          ada_compliance:         { type: "string", enum: ["accessible", "partially_accessible", "not_accessible", "unknown"] },
         },
       },
     },
@@ -73,12 +74,12 @@ STRICT RULES:
 3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
 4. NEVER return results from outside ${location}.
 5. Better to return 3 verified results than 10 with any location mismatch.
-6. For each restaurant, identify: cuisine type (e.g. "Chinese", "Italian", "Vegan", "Mexican"), is_vegan_friendly (true if restaurant is explicitly vegan or has strong vegan menu), is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, and dietary_tags (e.g. ["vegan", "kosher", "gluten-free"]).`;
+6. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
 Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.
-For each restaurant, identify: cuisine type (e.g. "Chinese", "Italian", "Vegan", "Mexican"), is_vegan_friendly (true if explicitly vegan or strong vegan menu), is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, and dietary_tags (e.g. ["vegan", "kosher"]).`;
+For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
 
 const PROMPT_DUBAI = (query, today) =>
   `Today is ${today}. Find ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE.

@@ -42,6 +42,7 @@ export function processKingCountyResults(data) {
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.latitude, longitude: rowWithCoords?.longitude,
       isLLMData: false, source: "king",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -93,6 +94,7 @@ export function processNYCResults(data) {
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.latitude, longitude: rowWithCoords?.longitude,
       isLLMData: false, source: "nyc",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -137,6 +139,7 @@ export function processChicagoResults(data) {
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult: latest?.result,
       latitude: null, longitude: null, isLLMData: false, source: "chicago",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -188,6 +191,7 @@ export function processMontgomeryResults(data) {
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult: latest?.result,
       latitude: null, longitude: null, isLLMData: false, source: "montgomery",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -291,6 +295,7 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
     is_halal: r.is_halal || false,
     is_gluten_free_options: r.is_gluten_free_options || false,
     dietary_tags: r.dietary_tags || [],
+    ada_compliance: r.ada_compliance || "unknown",
   };
 }
 
@@ -325,6 +330,7 @@ export function processLAResults(data) {
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult: latest?.result,
       latitude: null, longitude: null, isLLMData: false, source: "la",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -370,7 +376,7 @@ export function processAustinResults(data) {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
     const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
-    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: null, longitude: null, isLLMData: false, source: "austin" };
+    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: null, longitude: null, isLLMData: false, source: "austin", ada_compliance: "unknown" };
   });
 }
 
@@ -414,7 +420,7 @@ export function processSFResults(data) {
     const latest = biz.inspections[0];
     const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
     const rowWithCoords = biz.allRows.find((r) => r.business_latitude && r.business_longitude);
-    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: rowWithCoords?.business_latitude, longitude: rowWithCoords?.business_longitude, isLLMData: false, source: "sf" };
+    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: rowWithCoords?.business_latitude, longitude: rowWithCoords?.business_longitude, isLLMData: false, source: "sf", ada_compliance: "unknown" };
   });
 }
 
@@ -515,6 +521,7 @@ export function processUKFSAResults(establishments) {
       localAuthority: est.LocalAuthorityName || "",
       newRatingPending: est.NewRatingPending,
       schemeType: est.SchemeType,
+      ada_compliance: "unknown",
     };
   });
 }
@@ -592,6 +599,7 @@ export function processDelawareResults(data) {
       latestDate: latest?.date,
       latestResult: violationCount === 0 ? "Pass" : "Violations Found",
       latitude: null, longitude: null, isLLMData: false, source: "delaware",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -667,6 +675,7 @@ export function processNYStateResults(data) {
       latestDate: latest?.date,
       latestResult: c === 0 && nc === 0 ? "Pass" : c > 0 ? `${c} critical violation${c !== 1 ? "s" : ""}` : "Violations Found",
       isLLMData: false, source: "ny_state",
+      ada_compliance: "unknown",
     };
   });
 }
@@ -749,6 +758,7 @@ export function processTorontoResults(records) {
       latestDate: latest?.date,
       latestResult: crucials > 0 ? "Crucial Infractions" : significants > 0 ? "Significant Infractions" : minors > 0 ? "Minor Infractions" : "Pass",
       isLLMData: false, source: "toronto",
+      ada_compliance: "unknown",
     };
   });
 }
