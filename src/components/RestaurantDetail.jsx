@@ -24,6 +24,23 @@ import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
 
+// ── Infer state from restaurant data ──────────────────────────────────────────
+function inferState(restaurant) {
+  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
+  // Map county_id to state
+  const COUNTY_STATE = {
+    king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
+    montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
+  };
+  if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) {
+    return COUNTY_STATE[restaurant.county_id];
+  }
+  // Try to extract from address
+  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
+  const match = addr.match(/\b([A-Z]{2})\b/);
+  return match ? match[1] : "US";
+}
+
 // ── Jargon → category for repeat detection ──────────────────────────────────
 function buildViolationKey(desc) {
   const { category } = translateViolation(desc);
@@ -53,11 +70,13 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
   const [epaData, setEpaData] = useState(null);
+  const [epaStatus, setEpaStatus] = useState(null);
+  const [epaLogs, setEpaLogs] = useState(null);
   const [epaLoading, setEpaLoading] = useState(true);
 
-  // Fetch EPA data on mount and sync to cache
+  // Fetch EPA data on mount
   useEffect(() => {
-    const fetchAndCacheEPA = async () => {
+    const fetchEPA = async () => {
       try {
         // First check cache
         const cacheRes = await base44.functions.invoke("getRestaurantFromCache", {
@@ -67,34 +86,48 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
         if (cacheRes.data?.cached_restaurant?.epa_data) {
           setEpaData(cacheRes.data.cached_restaurant.epa_data);
+          setEpaStatus(cacheRes.data.cached_restaurant.epa_status);
           setEpaLoading(false);
           return;
         }
 
-        // Not in cache, fetch from EPA
-        const address = `${restaurant.address}, ${restaurant.city}, ${restaurant.zip_code}`;
-        const epaRes = await base44.functions.invoke("getEPAData", {
-          address,
+        // Not in cache, validate EPA data with full validation
+        const epaRes = await base44.functions.invoke("validateEPAData", {
+          address: restaurant.address,
+          city: restaurant.city,
+          state: restaurant.state || inferState(restaurant),
+          zip: restaurant.zip_code,
           business_id: restaurant.business_id,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
         });
 
         if (epaRes.data?.epa_data) {
           setEpaData(epaRes.data.epa_data);
+          setEpaStatus(epaRes.data.epa_status);
+          setEpaLogs(epaRes.data.logs);
 
           // Sync to cache for future use
           await base44.functions.invoke("syncRestaurantCache", {
-            restaurant,
+            restaurant: {
+              ...restaurant,
+              epa_status: epaRes.data.epa_status,
+            },
             epa_data: epaRes.data.epa_data,
           }).catch(() => null);
+        } else {
+          setEpaStatus(epaRes.data?.epa_status || "no_data");
+          setEpaLogs(epaRes.data?.logs);
         }
       } catch (error) {
         console.error("Error fetching EPA data:", error);
+        setEpaStatus("error");
       } finally {
         setEpaLoading(false);
       }
     };
-    fetchAndCacheEPA();
-  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code, restaurant.source]);
+    fetchEPA();
+  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code, restaurant.state, restaurant.latitude, restaurant.longitude]);
 
   // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -321,7 +354,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* Environmental Safety */}
           {!epaLoading && (
             <div className="mt-4">
-              <EnvironmentalSafety epa_data={epaData} restaurant={restaurant} />
+              <EnvironmentalSafety epa_data={epaData} epa_status={epaStatus} epa_logs={epaLogs} restaurant={restaurant} />
             </div>
           )}
         </div>

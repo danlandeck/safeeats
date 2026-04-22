@@ -116,6 +116,19 @@
       "format": "date-time",
       "description": "Timestamp of last EPA data fetch"
     },
+    "epa_status": {
+      "type": "string",
+      "description": "EPA validation status (ok, geocoding_failed, state_mismatch, zip_mismatch, distance_exceeded, invalid_facility_type, no_valid_facilities, etc.)"
+    },
+    "water_safety_badge": {
+      "type": "string",
+      "enum": [
+        "SAFE",
+        "CAUTION",
+        "UNSAFE"
+      ],
+      "description": "Color-coded water safety badge based on EPA data and validation"
+    },
     "cuisine": {
       "type": "string",
       "description": "Cuisine type"

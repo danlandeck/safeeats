@@ -24,15 +24,30 @@ const getHazardWasteLevel = (score) => {
   return { label: "High Risk", color: "bg-red-100 text-red-700" };
 };
 
-export default function EnvironmentalSafety({ epa_data, restaurant }) {
-  if (!epa_data) {
+export default function EnvironmentalSafety({ epa_data, epa_status, epa_logs, restaurant }) {
+  if (!epa_data || !epa_status) {
     return (
-      <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+      <div className="bg-red-50 rounded-2xl border border-red-200 p-6">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-slate-700">Environmental Data</p>
-            <p className="text-xs text-slate-500 mt-1">EPA data not available for this location.</p>
+            <p className="font-semibold text-red-700">Environmental Data Unavailable</p>
+            <p className="text-xs text-red-600 mt-1">
+              {epa_status === "geocoding_failed" && "Could not geocode restaurant address."}
+              {epa_status === "state_mismatch" && "No facilities found in restaurant state."}
+              {epa_status === "distance_exceeded" && "Nearest facility beyond 3-mile radius."}
+              {epa_status === "invalid_facility_type" && "No water facilities found."}
+              {epa_status === "no_valid_facilities" && "No facilities met validation criteria."}
+              {!["geocoding_failed", "state_mismatch", "distance_exceeded", "invalid_facility_type", "no_valid_facilities"].includes(epa_status) && "EPA data not available for this location."}
+            </p>
+            {epa_logs && (
+              <details className="mt-2 text-xs">
+                <summary className="cursor-pointer text-red-600 underline">Debug logs</summary>
+                <pre className="mt-1 bg-slate-900 text-slate-100 p-2 rounded text-[10px] overflow-auto max-h-48">
+                  {JSON.stringify(epa_logs, null, 2)}
+                </pre>
+              </details>
+            )}
           </div>
         </div>
       </div>
