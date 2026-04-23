@@ -135,30 +135,7 @@ export default function SmartSearchPanel({
               aria-label="Location"
               autoComplete="off"
             />
-            {showLocDropdown && recentLocations.length > 0 && (
-              <ul
-                role="listbox"
-                aria-label="Recent locations"
-                className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-white/15 rounded-xl overflow-hidden z-50 shadow-xl"
-              >
-                <li className="px-4 pt-2 pb-1">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Recent Locations</span>
-                </li>
-                {recentLocations.map((loc, i) => (
-                  <li key={i}>
-                    <button
-                      role="option"
-                      type="button"
-                      onMouseDown={() => pickRecentLocation(loc)}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors"
-                    >
-                      <Clock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                      {loc}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+
           </div>
           <button
             type="button"
@@ -246,27 +223,7 @@ export default function SmartSearchPanel({
                   <X className="w-4 h-4" />
                 </button>
               )}
-              {showDropdown && (suggestions.length > 0 || (recents.length > 0 && !safeQuery)) && (
-                <ul
-                  role="listbox"
-                  aria-label="Search suggestions"
-                  className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-white/15 rounded-xl overflow-hidden z-50 shadow-xl"
-                >
-                  {(safeQuery ? suggestions : recents).map((s, i) => (
-                    <li key={i}>
-                      <button
-                        role="option"
-                        type="button"
-                        onMouseDown={() => pickSuggestion(s)}
-                        className="w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors"
-                      >
-                        <Clock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" aria-hidden="true" />
-                        {s}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+
             </div>
             <button
               type="submit"
