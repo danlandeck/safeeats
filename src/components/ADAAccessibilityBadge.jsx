@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, CheckCircle2, XCircle, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { SEARCH_KEYS } from "../utils/searchState";
 
-const ADA_CACHE_KEY = "safeeats_ada_cache";
+const ADA_CACHE_KEY = SEARCH_KEYS[2];
 
 function loadCache() {
   try { return JSON.parse(localStorage.getItem(ADA_CACHE_KEY) || "{}"); } catch { return {}; }

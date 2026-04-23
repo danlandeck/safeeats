@@ -1,7 +1,10 @@
 import React, { useState, useRef, useCallback } from "react";
 import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
+import { SEARCH_KEYS } from "../utils/searchState";
 
-const RECENT_KEY = "safeeats_recent";
+const RECENT_KEY     = SEARCH_KEYS[0];
+const RECENT_LOC_KEY = SEARCH_KEYS[1];
+
 function loadRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
 function saveRecent(q) {
   const prev = loadRecent().filter(x => x !== q);
@@ -10,7 +13,6 @@ function saveRecent(q) {
   return next;
 }
 
-const RECENT_LOC_KEY = "safeeats_recent_locations";
 function loadRecentLocations() { try { return JSON.parse(localStorage.getItem(RECENT_LOC_KEY) || "[]"); } catch { return []; } }
 function saveRecentLocation(loc) {
   if (!loc?.trim()) return;
