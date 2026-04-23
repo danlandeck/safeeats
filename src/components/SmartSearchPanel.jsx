@@ -137,19 +137,7 @@ export default function SmartSearchPanel({
             />
 
           </div>
-          <button
-            type="button"
-            onClick={handleNearMe}
-            disabled={geoLoading}
-            aria-label="Use my current location"
-            title="Find restaurants near me"
-            className="h-16 px-4 rounded-2xl bg-[#2196F3] hover:bg-[#1e88e5] disabled:opacity-60 text-white font-bold flex items-center gap-2 flex-shrink-0 transition-colors min-w-[120px] justify-center touch-manipulation"
-          >
-            {geoLoading
-              ? <><Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" /><span className="text-sm">Locating…</span></>
-              : <><LocateFixed className="w-5 h-5" aria-hidden="true" /><span className="text-sm font-bold">Near Me</span></>
-            }
-          </button>
+
         </div>
         {geoError && <p className="text-xs text-red-300 mt-2" role="alert">{geoError}</p>}
         <div className="flex flex-wrap gap-1.5 mt-2.5">
