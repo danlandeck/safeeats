@@ -2,10 +2,10 @@ import React from "react";
 import { CheckCircle2, AlertCircle, XCircle, HelpCircle } from "lucide-react";
 
 const ADA_STYLES = {
-  accessible: { bg: "bg-green-100", text: "text-green-700", icon: CheckCircle2, label: "Accessible" },
+  accessible: { bg: "bg-green-100", text: "text-green-700", icon: CheckCircle2, label: "ADA Accessible" },
   partially_accessible: { bg: "bg-yellow-100", text: "text-yellow-700", icon: AlertCircle, label: "Partially Accessible" },
   not_accessible: { bg: "bg-red-100", text: "text-red-700", icon: XCircle, label: "Not Accessible" },
-  unknown: { bg: "bg-slate-100", text: "text-slate-600", icon: HelpCircle, label: "Unknown" },
+  unknown: { bg: "bg-slate-100", text: "text-slate-500", icon: HelpCircle, label: "Accessibility Unknown" },
 };
 
 export default function ADABadge({ ada_compliance = "unknown", size = "md" }) {

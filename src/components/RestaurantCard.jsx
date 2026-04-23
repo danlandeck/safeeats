@@ -173,12 +173,10 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {/* Cuisine + Dietary badges */}
           <DietaryBadges restaurant={restaurant} maxShow={3} />
 
-          {/* ADA Compliance Badge */}
-          {restaurant.ada_compliance && restaurant.ada_compliance !== "unknown" && (
-            <div className="mt-2">
-              <ADABadge ada_compliance={restaurant.ada_compliance} size="sm" />
-            </div>
-          )}
+          {/* ADA Compliance Badge — always show */}
+          <div className="mt-2">
+            <ADABadge ada_compliance={restaurant.ada_compliance || "unknown"} size="sm" />
+          </div>
 
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (
