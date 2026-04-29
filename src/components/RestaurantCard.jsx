@@ -180,8 +180,13 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           </div>
 
           {/* EPA Water info — US restaurants only */}
+          {/* Only render for US restaurants; EPAWaterCard itself handles state derivation */}
           {inferState(restaurant) && (
-            <EPAWaterCard city={restaurant.city} state={inferState(restaurant)} />
+            <EPAWaterCard
+              city={restaurant.city}
+              address={restaurant.address}
+              source={restaurant.source}
+            />
           )}
 
           {/* Warning strip for low grades */}

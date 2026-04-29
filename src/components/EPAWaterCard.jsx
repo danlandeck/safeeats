@@ -3,13 +3,40 @@ import { Droplets, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 /**
- * EPAWaterCard — shows EPA drinking water safety info for a restaurant's city+state.
- * Calls the getWaterSystem backend function (server-side proxy for EPA SDWIS).
- * Results are cached in a module-level map so each city|state is fetched only once per session.
+ * EPAWaterCard — shows EPA drinking water safety info for a restaurant.
+ * Derives state from address string (most reliable) then falls back to source mapping.
+ * Results cached module-level so each unique city|state is only fetched once per session.
  */
 
-// Module-level cache — survives re-renders and is shared across all card instances
+// Module-level cache keyed by "city|state"
 const CACHE = {};
+
+const SOURCE_TO_STATE = {
+  king:          "WA",
+  nyc:           "NY",
+  ny_state:      "NY",
+  cook:          "IL",
+  travis:        "TX",
+  sf:            "CA",
+  la:            "CA",
+  montgomery_md: "MD",
+  delaware:      "DE",
+  toronto:       null,
+  dubai:         null,
+  uk_fsa:        null,
+};
+
+function parseStateFromAddress(address) {
+  if (!address) return null;
+  const match = address.match(/,\s*([A-Z]{2})\s+\d{5}/);
+  return match ? match[1] : null;
+}
+
+function parseCityFromAddress(address) {
+  if (!address) return null;
+  const match = address.match(/,\s*([^,]+),\s*[A-Z]{2}\s+\d{5}/);
+  return match ? match[1].trim() : null;
+}
 
 function getStatusBadge({ violationsHealthBased, violationsUnresolved }) {
   if (violationsUnresolved > 0) {
@@ -21,18 +48,26 @@ function getStatusBadge({ violationsHealthBased, violationsUnresolved }) {
   return { label: "Safe", className: "bg-green-100 text-green-700 border-green-200", icon: "✓" };
 }
 
-export default function EPAWaterCard({ city, state }) {
-  const [data, setData]       = useState(undefined); // undefined=loading, null=not found/error
+export default function EPAWaterCard({ city, address, source }) {
+  const [data, setData]       = useState(undefined);
   const [isError, setIsError] = useState(false);
   const mounted               = useRef(true);
 
-  const load = async () => {
-    if (!city || !state) { setData(null); return; }
-    const key = `${city}|${state}`;
+  // Derive state and city client-side so we can build the correct cache key
+  const derivedState = parseStateFromAddress(address) ?? SOURCE_TO_STATE[source] ?? null;
+  const derivedCity  = (city && city.trim()) ? city.trim() : parseCityFromAddress(address);
+  const cacheKey     = derivedCity && derivedState ? `${derivedCity}|${derivedState}` : null;
 
-    if (CACHE[key] !== undefined) {
-      setData(CACHE[key]);
-      setIsError(CACHE[key]?.error === true);
+  const load = async () => {
+    // Skip international / unresolvable locations immediately
+    if (!derivedState || !derivedCity) {
+      setData({ notFound: true });
+      return;
+    }
+
+    if (cacheKey && CACHE[cacheKey] !== undefined) {
+      setData(CACHE[cacheKey]);
+      setIsError(CACHE[cacheKey]?.error === true);
       return;
     }
 
@@ -40,16 +75,17 @@ export default function EPAWaterCard({ city, state }) {
     setIsError(false);
 
     try {
-      const res = await base44.functions.invoke("getWaterSystem", { city, state });
+      const res = await base44.functions.invoke("getWaterSystem", { city, address, source });
       const d = res.data;
-      CACHE[key] = d;
+      if (cacheKey) CACHE[cacheKey] = d;
       if (mounted.current) {
         setData(d);
         setIsError(d?.error === true);
       }
     } catch {
-      CACHE[key] = { error: true };
-      if (mounted.current) { setData({ error: true }); setIsError(true); }
+      const errVal = { error: true };
+      if (cacheKey) CACHE[cacheKey] = errVal;
+      if (mounted.current) { setData(errVal); setIsError(true); }
     }
   };
 
@@ -57,7 +93,7 @@ export default function EPAWaterCard({ city, state }) {
     mounted.current = true;
     load();
     return () => { mounted.current = false; };
-  }, [city, state]);
+  }, [cacheKey]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (data === undefined) {
@@ -69,7 +105,7 @@ export default function EPAWaterCard({ city, state }) {
     );
   }
 
-  // ── Not found ────────────────────────────────────────────────────────────
+  // ── Not found / international ────────────────────────────────────────────
   if (!data || data.notFound) {
     return (
       <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
@@ -87,7 +123,11 @@ export default function EPAWaterCard({ city, state }) {
         <span>Unable to load water data</span>
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); const key = `${city}|${state}`; delete CACHE[key]; load(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (cacheKey) delete CACHE[cacheKey];
+            load();
+          }}
           className="flex items-center gap-0.5 text-blue-500 hover:text-blue-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded"
           aria-label="Retry water data fetch"
         >
