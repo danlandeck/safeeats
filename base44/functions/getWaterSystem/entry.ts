@@ -188,6 +188,59 @@ Deno.serve(async (req) => {
       return Response.json({ notFound: true, reason: "international" });
     }
 
+    // Hardcoded city→PWSID map for verified municipal water utilities.
+    // Bypasses EPA query problems where private community wells outrank city utilities.
+    const CITY_PWSID = {
+      "MANCHESTER|CT": "CT0770011",  // Town of Manchester Water and Sewer Dept
+    };
+
+    const cityKey = `${cityClean}|${stateClean}`;
+    const hardcodedPwsid = CITY_PWSID[cityKey];
+
+    if (hardcodedPwsid) {
+      try {
+        const res = await fetch(`https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/PWSID/=/${hardcodedPwsid}/JSON`);
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          const system = rows[0];
+          let violations = { total: 0, healthBased: 0, unresolved: 0 };
+          try {
+            const since = new Date();
+            since.setFullYear(since.getFullYear() - 10);
+            const sinceStr = since.toISOString().slice(0, 10).replace(/-/g, "");
+            const vRes = await fetch(`https://data.epa.gov/efservice/VIOLATION/PWSID/=/${hardcodedPwsid}/COMPL_PER_BEGIN_DATE/>=/${sinceStr}/JSON`);
+            const vRows = await vRes.json();
+            if (Array.isArray(vRows)) {
+              violations.total = vRows.length;
+              violations.healthBased = vRows.filter(v => ["MCL","MRDL","TT"].includes(v.VIOLATION_CATEGORY_CODE)).length;
+              violations.unresolved = vRows.filter(v => ["Unaddressed","Addressed"].includes(v.VIOLATION_STATUS)).length;
+            }
+          } catch {}
+
+          const hardcodedSourceLabels = {
+            GW: "Groundwater (well)", SW: "Surface water (lake/river/reservoir)",
+            GU: "Groundwater under surface water influence",
+            GWP: "Groundwater (purchased)", SWP: "Surface water (purchased)",
+          };
+
+          console.log(`getWaterSystem: hardcoded PWSID match for ${cityKey} → ${hardcodedPwsid}`);
+          return Response.json({
+            pwsid: hardcodedPwsid,
+            name: (system.PWS_NAME || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).trim(),
+            sourceType: hardcodedSourceLabels[system.PRIMARY_SOURCE_CODE] || "Unknown",
+            populationServed: Number(system.POPULATION_SERVED_COUNT) || 0,
+            violationsTotal: violations.total,
+            violationsHealthBased: violations.healthBased,
+            violationsUnresolved: violations.unresolved,
+            sourceUrl: `https://enviro.epa.gov/enviro/sdw_form_v3.create_page?pwsid=${hardcodedPwsid}`,
+          });
+        }
+      } catch(e) {
+        console.warn("Hardcoded PWSID lookup failed:", hardcodedPwsid, e.message);
+        // Fall through to existing logic
+      }
+    }
+
     const BASE = "https://data.epa.gov/efservice";
     const activeFilter = `/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON`;
 
