@@ -13,7 +13,7 @@ const SOURCE_TO_STATE = {
 
 function parseStateFromAddress(address) {
   if (!address) return null;
-  const m = address.match(/,\s*([A-Z]{2})\s+\d{5}/);
+  const m = address.match(/,\s*([A-Z]{2})[\s,]+\d{5}/);
   return m ? m[1] : null;
 }
 
