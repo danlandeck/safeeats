@@ -48,7 +48,7 @@ function getStatusBadge({ violationsHealthBased, violationsUnresolved }) {
   return { label: "Safe", className: "bg-green-100 text-green-700 border-green-200", icon: "✓" };
 }
 
-export default function EPAWaterCard({ city, address, source }) {
+export default function EPAWaterCard({ city, address, source, zip_code }) {
   const [data, setData]       = useState(undefined);
   const [isError, setIsError] = useState(false);
   const mounted               = useRef(true);
@@ -75,7 +75,7 @@ export default function EPAWaterCard({ city, address, source }) {
     setIsError(false);
 
     try {
-      const res = await base44.functions.invoke("getWaterSystem", { city, address, source });
+      const res = await base44.functions.invoke("getWaterSystem", { city, address, source, zip_code });
       const d = res.data;
       if (cacheKey) CACHE[cacheKey] = d;
       if (mounted.current) {

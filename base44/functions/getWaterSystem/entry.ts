@@ -1,55 +1,171 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const CITY_TO_COUNTY = {
+  // Connecticut
+  "MANCHESTER|CT": "HARTFORD",
+  "HARTFORD|CT": "HARTFORD",
+  "NEW HAVEN|CT": "NEW HAVEN",
+  "BRIDGEPORT|CT": "FAIRFIELD",
+  "STAMFORD|CT": "FAIRFIELD",
+  "WATERBURY|CT": "NEW HAVEN",
+  "NORWALK|CT": "FAIRFIELD",
+  "DANBURY|CT": "FAIRFIELD",
+  "NEW BRITAIN|CT": "HARTFORD",
+  "WEST HARTFORD|CT": "HARTFORD",
+  "EAST HARTFORD|CT": "HARTFORD",
+  "GLASTONBURY|CT": "HARTFORD",
+  "ENFIELD|CT": "HARTFORD",
+  "SOUTHINGTON|CT": "HARTFORD",
+  "MERIDEN|CT": "NEW HAVEN",
+  "MILFORD|CT": "NEW HAVEN",
+  "WEST HAVEN|CT": "NEW HAVEN",
+  "STRATFORD|CT": "FAIRFIELD",
+  "SHELTON|CT": "FAIRFIELD",
+  "TORRINGTON|CT": "LITCHFIELD",
+  // Washington (King County)
+  "SEATTLE|WA": "KING",
+  "BELLEVUE|WA": "KING",
+  "KIRKLAND|WA": "KING",
+  "REDMOND|WA": "KING",
+  "RENTON|WA": "KING",
+  "KENT|WA": "KING",
+  "FEDERAL WAY|WA": "KING",
+  "SHORELINE|WA": "KING",
+  "BURIEN|WA": "KING",
+  "TUKWILA|WA": "KING",
+  "AUBURN|WA": "KING",
+  "SAMMAMISH|WA": "KING",
+  "BOTHELL|WA": "KING",
+  "ISSAQUAH|WA": "KING",
+  "MERCER ISLAND|WA": "KING",
+  // New York City
+  "NEW YORK|NY": "NEW YORK",
+  "MANHATTAN|NY": "NEW YORK",
+  "BROOKLYN|NY": "KINGS",
+  "QUEENS|NY": "QUEENS",
+  "BRONX|NY": "BRONX",
+  "STATEN ISLAND|NY": "RICHMOND",
+  "ASTORIA|NY": "QUEENS",
+  "FLUSHING|NY": "QUEENS",
+  "JAMAICA|NY": "QUEENS",
+  "LONG ISLAND CITY|NY": "QUEENS",
+  // Illinois (Cook County)
+  "CHICAGO|IL": "COOK",
+  "EVANSTON|IL": "COOK",
+  "SKOKIE|IL": "COOK",
+  "OAK PARK|IL": "COOK",
+  "CICERO|IL": "COOK",
+  "BERWYN|IL": "COOK",
+  "SCHAUMBURG|IL": "COOK",
+  "NAPERVILLE|IL": "DUPAGE",
+  "AURORA|IL": "KANE",
+  // Texas (Travis County / Austin)
+  "AUSTIN|TX": "TRAVIS",
+  "ROUND ROCK|TX": "WILLIAMSON",
+  "PFLUGERVILLE|TX": "TRAVIS",
+  "CEDAR PARK|TX": "WILLIAMSON",
+  "GEORGETOWN|TX": "WILLIAMSON",
+  // California (SF)
+  "SAN FRANCISCO|CA": "SAN FRANCISCO",
+  "DALY CITY|CA": "SAN MATEO",
+  "SOUTH SAN FRANCISCO|CA": "SAN MATEO",
+  "SAN BRUNO|CA": "SAN MATEO",
+  "PACIFICA|CA": "SAN MATEO",
+  // California (LA)
+  "LOS ANGELES|CA": "LOS ANGELES",
+  "LONG BEACH|CA": "LOS ANGELES",
+  "GLENDALE|CA": "LOS ANGELES",
+  "SANTA MONICA|CA": "LOS ANGELES",
+  "PASADENA|CA": "LOS ANGELES",
+  "TORRANCE|CA": "LOS ANGELES",
+  "COMPTON|CA": "LOS ANGELES",
+  "INGLEWOOD|CA": "LOS ANGELES",
+  "BURBANK|CA": "LOS ANGELES",
+  "EL MONTE|CA": "LOS ANGELES",
+  // Maryland (Montgomery County)
+  "ROCKVILLE|MD": "MONTGOMERY",
+  "BETHESDA|MD": "MONTGOMERY",
+  "SILVER SPRING|MD": "MONTGOMERY",
+  "GAITHERSBURG|MD": "MONTGOMERY",
+  "GERMANTOWN|MD": "MONTGOMERY",
+  "WHEATON|MD": "MONTGOMERY",
+  "POTOMAC|MD": "MONTGOMERY",
+  "CHEVY CHASE|MD": "MONTGOMERY",
+  "TAKOMA PARK|MD": "MONTGOMERY",
+  // Delaware
+  "WILMINGTON|DE": "NEW CASTLE",
+  "DOVER|DE": "KENT",
+  "NEWARK|DE": "NEW CASTLE",
+  "MIDDLETOWN|DE": "NEW CASTLE",
+  "BEAR|DE": "NEW CASTLE",
+};
+
 const SOURCE_LABELS = {
   GW:  "Groundwater (well)",
   SW:  "Surface water (lake/river/reservoir)",
   GU:  "Groundwater under surface water influence",
   GWP: "Groundwater purchased",
   SWP: "Surface water purchased",
+  GUP: "Purchased groundwater under surface water influence",
 };
 
 const SOURCE_TO_STATE = {
-  king:          "WA",
-  nyc:           "NY",
-  ny_state:      "NY",
-  cook:          "IL",
-  travis:        "TX",
-  sf:            "CA",
-  la:            "CA",
-  montgomery_md: "MD",
-  delaware:      "DE",
-  toronto:       null,
-  dubai:         null,
-  uk_fsa:        null,
+  king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
+  travis: "TX", sf: "CA", la: "CA", montgomery_md: "MD",
+  delaware: "DE", toronto: null, dubai: null, uk_fsa: null,
 };
 
-function toTitleCase(str) {
-  if (!str) return str;
-  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-}
-
-/**
- * Parse state abbreviation from address string.
- * Matches patterns like "Manchester, CT 06040"
- */
 function parseStateFromAddress(address) {
   if (!address) return null;
-  const match = address.match(/,\s*([A-Z]{2})\s+\d{5}/);
-  return match ? match[1] : null;
+  const m = address.match(/,\s*([A-Z]{2})\s+\d{5}/);
+  return m ? m[1] : null;
 }
 
-/**
- * Parse city from address string — the token just before "ST 00000"
- * e.g. "840 East Middle Turnpike, Manchester, CT 06040" → "Manchester"
- */
-function parseCityFromAddress(address) {
-  if (!address) return null;
-  const match = address.match(/,\s*([^,]+),\s*[A-Z]{2}\s+\d{5}/);
-  return match ? match[1].trim() : null;
+function titleCase(str) {
+  return (str || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).trim();
 }
 
-const TEN_YEARS_AGO = new Date();
-TEN_YEARS_AGO.setFullYear(TEN_YEARS_AGO.getFullYear() - 10);
+async function fetchEPA(url) {
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`EPA HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+function pickBestSystem(rows) {
+  return rows
+    .map(r => ({ ...r, _pop: Number(r.POPULATION_SERVED_COUNT) || 0 }))
+    .sort((a, b) => b._pop - a._pop)[0];
+}
+
+async function getViolationSummary(pwsid) {
+  try {
+    const since = new Date();
+    since.setFullYear(since.getFullYear() - 10);
+    const sinceStr = since.toISOString().slice(0, 10).replace(/-/g, "");
+    const rows = await fetchEPA(
+      `https://data.epa.gov/efservice/VIOLATION/PWSID/=/${pwsid}/COMPL_PER_BEGIN_DATE/>=/${sinceStr}/JSON`
+    );
+    const healthBased = rows.filter(v => ["MCL", "MRDL", "TT"].includes(v.VIOLATION_CATEGORY_CODE)).length;
+    const unresolved = rows.filter(v => ["Unaddressed", "Addressed"].includes(v.VIOLATION_STATUS)).length;
+    return { total: rows.length, healthBased, unresolved };
+  } catch {
+    return { total: 0, healthBased: 0, unresolved: 0 };
+  }
+}
+
+async function buildResult(system, violations) {
+  return {
+    pwsid: system.PWSID,
+    name: titleCase(system.PWS_NAME || ""),
+    sourceType: SOURCE_LABELS[system.PRIMARY_SOURCE_CODE] || "Unknown",
+    populationServed: system._pop || 0,
+    violationsTotal: violations.total,
+    violationsHealthBased: violations.healthBased,
+    violationsUnresolved: violations.unresolved,
+    sourceUrl: `https://enviro.epa.gov/enviro/sdw_form_v3.create_page?pwsid=${system.PWSID}`,
+  };
+}
 
 Deno.serve(async (req) => {
   try {
@@ -57,93 +173,79 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: true, message: 'Unauthorized' }, { status: 401 });
 
-    const { city, address, source } = await req.json();
+    const { city, address, source, zip_code } = await req.json();
 
-    // Layer 1: parse state from address string
-    let state = parseStateFromAddress(address);
+    // Step 1: Derive state
+    const fullAddr = [address, city, zip_code].filter(Boolean).join(", ");
+    const state = parseStateFromAddress(fullAddr) ?? SOURCE_TO_STATE[source] ?? null;
+    const cityClean = (city || "").trim().toUpperCase();
+    const stateClean = (state || "").toUpperCase();
 
-    // Layer 2: fall back to source mapping
-    if (!state && source) {
-      state = SOURCE_TO_STATE[source] ?? null;
-    }
+    console.log(`getWaterSystem: city="${cityClean}" state="${stateClean}" source="${source}" zip="${zip_code}"`);
 
-    // International or unknown — skip EPA
-    if (!state) {
-      console.log(`getWaterSystem: no US state found (source=${source}, address=${address}), returning notFound`);
+    // Bail immediately for international or unresolvable
+    if (!stateClean || !cityClean) {
       return Response.json({ notFound: true, reason: "international" });
     }
 
-    // Layer 3: derive city — use provided city, fall back to parsing address
-    const resolvedCity = (city && city.trim()) ? city.trim() : parseCityFromAddress(address);
+    const BASE = "https://data.epa.gov/efservice";
+    const activeFilter = `/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON`;
 
-    if (!resolvedCity) {
-      console.log(`getWaterSystem: could not determine city (city=${city}, address=${address})`);
-      return Response.json({ notFound: true, reason: "no_city" });
-    }
-
-    const cityUpper  = resolvedCity.toUpperCase();
-    const stateUpper = state.toUpperCase();
-
-    console.log(`getWaterSystem: querying EPA for city="${cityUpper}" state="${stateUpper}" (source=${source})`);
-
-    // 1. Look up Community Water Systems for this city+state
-    const systemsUrl = `https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/CITY_SERVED/=/${encodeURIComponent(cityUpper)}/PRIMACY_AGENCY_CODE/=/${stateUpper}/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON`;
-
-    const systemsRes = await fetch(systemsUrl, { headers: { 'Accept': 'application/json' } });
-    if (!systemsRes.ok) {
-      console.log(`getWaterSystem: EPA systems request failed with ${systemsRes.status}`);
-      return Response.json({ notFound: true });
-    }
-
-    const systems = await systemsRes.json();
-    if (!Array.isArray(systems) || systems.length === 0) {
-      console.log(`getWaterSystem: no systems found for ${cityUpper}, ${stateUpper}`);
-      return Response.json({ notFound: true });
-    }
-
-    // Pick system with highest population served
-    const best = systems.reduce((a, b) =>
-      Number(b.POPULATION_SERVED_COUNT || 0) > Number(a.POPULATION_SERVED_COUNT || 0) ? b : a
-    );
-
-    const pwsid = best.PWSID;
-    if (!pwsid) return Response.json({ notFound: true });
-
-    console.log(`getWaterSystem: selected PWSID=${pwsid} name="${best.PWS_NAME}" pop=${best.POPULATION_SERVED_COUNT}`);
-
-    // 2. Fetch violations for this PWSID
-    const violUrl = `https://data.epa.gov/efservice/VIOLATION/PWSID/=/${pwsid}/JSON`;
-    const violRes = await fetch(violUrl, { headers: { 'Accept': 'application/json' } });
-
-    let violationsTotal = 0;
-    let violationsHealthBased = 0;
-    let violationsUnresolved = 0;
-
-    if (violRes.ok) {
-      const violations = await violRes.json();
-      if (Array.isArray(violations)) {
-        const HEALTH_CATEGORIES = new Set(["MCL", "MRDL", "TT"]);
-        for (const v of violations) {
-          const beginDate = v.COMPL_PER_BEGIN_DATE ? new Date(v.COMPL_PER_BEGIN_DATE) : null;
-          if (beginDate && beginDate < TEN_YEARS_AGO) continue;
-          violationsTotal++;
-          if (HEALTH_CATEGORIES.has(v.VIOLATION_CATEGORY_CODE)) violationsHealthBased++;
-          const status = (v.VIOLATION_STATUS || "").toLowerCase();
-          if (status === "unaddressed" || status === "addressed") violationsUnresolved++;
+    // Step 2: County lookup (most reliable)
+    const countyKey = `${cityClean}|${stateClean}`;
+    const county = CITY_TO_COUNTY[countyKey];
+    if (county) {
+      try {
+        const rows = await fetchEPA(
+          `${BASE}/SDW_PUB_WATER_SYSTEMS/COUNTIES_SERVED/CONTAINING/${encodeURIComponent(county)}/PRIMACY_AGENCY_CODE/=/${stateClean}${activeFilter}`
+        );
+        if (rows.length > 0) {
+          console.log(`getWaterSystem: county lookup succeeded (${county}) — ${rows.length} systems`);
+          const best = pickBestSystem(rows);
+          const violations = await getViolationSummary(best.PWSID);
+          return Response.json(await buildResult(best, violations));
         }
+      } catch (e) {
+        console.warn("County lookup failed:", e.message);
       }
     }
 
-    return Response.json({
-      pwsid,
-      name: toTitleCase(best.PWS_NAME),
-      sourceType: SOURCE_LABELS[best.PRIMARY_SOURCE_CODE] || best.PRIMARY_SOURCE_CODE || "Unknown",
-      populationServed: Number(best.POPULATION_SERVED_COUNT || 0),
-      violationsTotal,
-      violationsHealthBased,
-      violationsUnresolved,
-      sourceUrl: `https://enviro.epa.gov/enviro/sdw_form_v3.create_page?pwsid=${pwsid}`,
-    });
+    // Step 3: City-served lookup
+    try {
+      const cityEncoded = encodeURIComponent(cityClean);
+      const rows = await fetchEPA(
+        `${BASE}/SDW_PUB_WATER_SYSTEMS/CITY_SERVED/=/${cityEncoded}/PRIMACY_AGENCY_CODE/=/${stateClean}${activeFilter}`
+      );
+      if (rows.length > 0) {
+        console.log(`getWaterSystem: city lookup succeeded — ${rows.length} systems`);
+        const best = pickBestSystem(rows);
+        const violations = await getViolationSummary(best.PWSID);
+        return Response.json(await buildResult(best, violations));
+      }
+    } catch (e) {
+      console.warn("City lookup failed:", e.message);
+    }
+
+    // Step 4: ZIP code lookup
+    const zip = zip_code || (fullAddr.match(/\b(\d{5})\b/) || [])[1];
+    if (zip) {
+      try {
+        const rows = await fetchEPA(
+          `${BASE}/SDW_PUB_WATER_SYSTEMS/ZIP_CODE/=/${zip}/PRIMACY_AGENCY_CODE/=/${stateClean}${activeFilter}`
+        );
+        if (rows.length > 0) {
+          console.log(`getWaterSystem: ZIP lookup succeeded (${zip}) — ${rows.length} systems`);
+          const best = pickBestSystem(rows);
+          const violations = await getViolationSummary(best.PWSID);
+          return Response.json(await buildResult(best, violations));
+        }
+      } catch (e) {
+        console.warn("ZIP lookup failed:", e.message);
+      }
+    }
+
+    console.log(`getWaterSystem: all lookups exhausted — notFound`);
+    return Response.json({ notFound: true });
 
   } catch (err) {
     console.error('getWaterSystem error:', err);

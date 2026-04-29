@@ -186,6 +186,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
               city={restaurant.city}
               address={[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ")}
               source={restaurant.source}
+              zip_code={restaurant.zip_code}
             />
           )}
 
