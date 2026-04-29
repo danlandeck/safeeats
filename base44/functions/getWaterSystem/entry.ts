@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
     // Hardcoded city→PWSID map for verified municipal water utilities.
     // Bypasses EPA query problems where private community wells outrank city utilities.
     const CITY_PWSID = {
-      "MANCHESTER|CT": "CT0770011",  // Town of Manchester Water and Sewer Dept
+      "MANCHESTER|CT": "CT0770021",  // Manchester Water Department (CT DPH verified, 15,218 connections)
     };
 
     const cityKey = `${cityClean}|${stateClean}`;
