@@ -16,7 +16,7 @@ import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import ADABadge from "./ADABadge";
-import WaterQualityBadge from "./WaterQualityBadge";
+import EPAWaterCard from "./EPAWaterCard";
 import WaterSystemInfo from "./WaterSystemInfo";
 import KofiButton from "./KofiButton";
 import { base44 } from "@/api/base44Client";
@@ -330,9 +330,12 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           )}
 
           {/* Water Quality */}
-          <div className="mt-3">
-            <WaterQualityBadge restaurant={restaurant} />
-          </div>
+          <EPAWaterCard
+            city={restaurant.city}
+            address={[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ")}
+            source={restaurant.source}
+            zip_code={restaurant.zip_code}
+          />
 
           {/* Water System Info (Washington only) */}
           {!waterSystemLoading && (
