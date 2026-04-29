@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
@@ -23,38 +23,6 @@ function inferState(restaurant) {
   return match ? match[1] : null;
 }
 
-const WATER_GRADE_STYLE = {
-  excellent:       { bg: "bg-blue-600",   label: "💧 Excellent water",     short: "Excellent" },
-  good:            { bg: "bg-lime-500",   label: "✅ Good water",           short: "Good" },
-  drinkable:       { bg: "bg-orange-400", label: "⚠️ Drinkable water",      short: "Drinkable" },
-  not_recommended: { bg: "bg-red-600",    label: "🚫 Water not recommended", short: "Not Recommended" },
-};
-
-function WaterMini({ restaurant }) {
-  const [waterGrade, setWaterGrade] = useState(null);
-  const city  = restaurant.city;
-  const state = inferState(restaurant);
-
-  const fullAddress = [restaurant.address, restaurant.city, state, restaurant.zip_code].filter(Boolean).join(", ");
-
-  useEffect(() => {
-    if (!city || !state) return;
-    base44.functions.invoke("getWaterQuality", { city, state, country: "US", county_id: restaurant.county_id, full_address: fullAddress })
-      .then(res => { if (res.data?.available) setWaterGrade(res.data.grade); })
-      .catch(() => {});
-  }, [city, state]);
-
-  if (!waterGrade) return null;
-  const style = WATER_GRADE_STYLE[waterGrade];
-  if (!style) return null;
-
-  return (
-    <span className={`flex items-center gap-1 text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${style.bg}`}>
-      <Droplets className="w-2.5 h-2.5" />
-      {style.short}
-    </span>
-  );
-}
 
 const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
 const GRADE_LABELS = {
