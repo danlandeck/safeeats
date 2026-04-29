@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle, Droplets } from "lucide-react";
+import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
-import { base44 } from "@/api/base44Client";
 import EPAWaterCard from "./EPAWaterCard";
 
 const COUNTY_STATE = {
@@ -149,9 +148,6 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <span className="text-[11px] font-extrabold text-slate-600">
               {GRADE_LABELS[grade]}
             </span>
-
-            {/* Water quality mini badge */}
-            <WaterMini restaurant={restaurant} />
 
             {/* Risk badge */}
             {inspectionHistory && <FailRiskBadge inspections={inspectionHistory} />}
