@@ -31,11 +31,11 @@ export default function EPAWaterCard({ city, address, source, zip_code }) {
   const [data, setData] = useState(undefined);
   const mounted = useRef(true);
 
-  // Derive state and city to build the lookup key that matches the WaterSystem entity
+  // Derive state and city to query the WaterSystem entity
   const fullAddr = [address, city, zip_code].filter(Boolean).join(", ");
   const derivedState = parseStateFromAddress(fullAddr) ?? SOURCE_TO_STATE[source] ?? null;
-  const derivedCity = (city && city.trim()) ? city.trim().toUpperCase() : null;
-  const lookupKey = derivedCity && derivedState ? `${derivedCity}|${derivedState}` : null;
+  const derivedCity = (city && city.trim()) ? city.trim() : null;
+  const lookupKey = derivedCity && derivedState ? `${derivedCity.toLowerCase()}|${derivedState}` : null;
 
   useEffect(() => {
     mounted.current = true;
@@ -54,8 +54,12 @@ export default function EPAWaterCard({ city, address, source, zip_code }) {
 
       try {
         // Query the WaterSystem entity for this city|state
-        const results = await base44.entities.WaterSystem.filter({ lookup_key: lookupKey });
-        const system = Array.isArray(results) && results.length > 0 ? results[0] : null;
+        // Query by city + state separately. Note: city stored in title case (e.g. "Manchester"), so use derivedCity directly.
+        // We do a case-insensitive comparison client-side after fetching matches by state since city stored as title case.
+        const results = await base44.entities.WaterSystem.filter({ state: derivedState });
+        const system = Array.isArray(results)
+          ? results.find(r => (r.city || "").toLowerCase() === derivedCity.toLowerCase()) || null
+          : null;
         const result = system || { notFound: true };
         CACHE[lookupKey] = result;
         if (mounted.current) setData(result);
