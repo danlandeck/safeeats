@@ -184,7 +184,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {inferState(restaurant) && (
             <EPAWaterCard
               city={restaurant.city}
-              address={restaurant.address}
+              address={[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ")}
               source={restaurant.source}
             />
           )}
