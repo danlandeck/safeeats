@@ -89,10 +89,22 @@
     font-family: 'Nunito', 'Montserrat', sans-serif;
   }
 
-  /* Bouncy button press effect */
-  button:active:not(:disabled), [role="button"]:active {
-    transform: scale(0.96);
-    transition: transform 0.1s ease;
+  /* Bouncy button press effect — only when motion is OK */
+  @media (prefers-reduced-motion: no-preference) {
+    button:active:not(:disabled), [role="button"]:active {
+      transform: scale(0.96);
+      transition: transform 0.1s ease;
+    }
+  }
+
+  /* Marker pulse — only when motion is OK */
+  @media (prefers-reduced-motion: no-preference) {
+    .marker-pulse { animation: marker-pulse 1.8s infinite ease-in-out; }
+    .wiggle { animation: wiggle 0.6s ease-in-out infinite; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marker-pulse, .wiggle { animation: none; }
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   }
 
   /* Cartoony thick border radius default */
@@ -107,14 +119,12 @@
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6); }
     50% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
   }
-  .marker-pulse { animation: marker-pulse 1.8s infinite ease-in-out; }
 
   /* Fun wiggle for mascot / highlights */
   @keyframes wiggle {
     0%, 100% { transform: rotate(-3deg); }
     50% { transform: rotate(3deg); }
   }
-  .wiggle { animation: wiggle 0.6s ease-in-out infinite; }
 
   /* No text cursor on interactive elements */
   button, [role="button"], a, label, select,

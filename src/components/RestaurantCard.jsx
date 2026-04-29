@@ -8,6 +8,7 @@ import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
 import { base44 } from "@/api/base44Client";
+import EPAWaterCard from "./EPAWaterCard";
 
 const COUNTY_STATE = {
   king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
@@ -177,6 +178,11 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           <div className="mt-2">
             <ADABadge ada_compliance={restaurant.ada_compliance || "unknown"} size="sm" />
           </div>
+
+          {/* EPA Water info — US restaurants only */}
+          {inferState(restaurant) && (
+            <EPAWaterCard city={restaurant.city} state={inferState(restaurant)} />
+          )}
 
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (

@@ -9,6 +9,7 @@ import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspec
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
 import RestaurantCard from "../components/RestaurantCard";
 import SmartSearchPanel from "../components/SmartSearchPanel";
+import FuzzySearchBar from "../components/FuzzySearchBar";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import AISearchStatus from "../components/AISearchStatus";
@@ -726,6 +727,8 @@ export default function Home() {
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
   const [fastResults, setFastResults]           = useState(null);
+  const [fuzzyFilters, setFuzzyFilters]         = useState({ cuisine: "", city: "", minGrade: "" });
+  const [fuzzySelected, setFuzzySelected]       = useState(null);
 
   const handleToggleCompare = (restaurant) => {
     setCompareList((prev) => {
@@ -795,6 +798,8 @@ export default function Home() {
     setCompareList([]);
     setShowCompare(false);
     setGradeFilter(null);
+    setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
+    setFuzzySelected(null);
   };
 
   const handleSearch = useCallback(async (rawQuery) => {
@@ -963,8 +968,12 @@ export default function Home() {
     );
   }, [nearMeActive, region, locationQuery, results]);
 
+  const GRADE_MIN_SCORE = { A: 90, B: 80, C: 70 };
+
   const filteredAndSortedResults = useMemo(() => {
     let filtered = [...results];
+
+    // ScoreLegend grade filter
     if (gradeFilter) {
       const gradeRanges = { A: [90, 100], B: [80, 89], C: [70, 79], D: [60, 69], F: [0, 59] };
       if (gradeFilter === "U") {
@@ -972,6 +981,18 @@ export default function Home() {
       } else {
         const [lo, hi] = gradeRanges[gradeFilter] || [0, 100];
         filtered = filtered.filter((r) => r.safetyScore !== null && r.safetyScore !== undefined && r.safetyScore >= lo && r.safetyScore <= hi);
+      }
+    }
+
+    // FuzzySearchBar filters
+    if (fuzzySelected) {
+      filtered = filtered.filter(r => r.business_id === fuzzySelected.business_id);
+    } else {
+      if (fuzzyFilters.cuisine) filtered = filtered.filter(r => r.cuisine === fuzzyFilters.cuisine);
+      if (fuzzyFilters.city)    filtered = filtered.filter(r => r.city === fuzzyFilters.city);
+      if (fuzzyFilters.minGrade && GRADE_MIN_SCORE[fuzzyFilters.minGrade] !== undefined) {
+        const minScore = GRADE_MIN_SCORE[fuzzyFilters.minGrade];
+        filtered = filtered.filter(r => r.safetyScore !== null && r.safetyScore !== undefined && r.safetyScore >= minScore);
       }
     }
     const scoreOf = (r) => r.safetyScore !== null && r.safetyScore !== undefined ? r.safetyScore : -1;
@@ -1196,6 +1217,16 @@ export default function Home() {
                       </div>
                     ) : results.length > 0 ? (
                       <div>
+                        {/* FuzzySearchBar — filters already-loaded results */}
+                        <div className="mb-3">
+                          <FuzzySearchBar
+                            results={results}
+                            onSelect={(r) => { setFuzzySelected(r); handleSelectBusiness(r); }}
+                            onFilterChange={(f) => { setFuzzyFilters(f); setFuzzySelected(null); }}
+                            placeholder={`Filter ${results.length} result${results.length !== 1 ? "s" : ""}…`}
+                          />
+                        </div>
+
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
                             <p className="text-sm font-extrabold text-slate-800">
