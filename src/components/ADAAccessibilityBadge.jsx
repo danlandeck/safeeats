@@ -30,16 +30,20 @@ export default function ADAAccessibilityBadge({ restaurant }) {
   const [data, setData] = useState(null);
   const [expanded, setExpanded] = useState(false);
 
-  const isUS = !restaurant.country || restaurant.country === "US" ||
-    ["washington", "new_york", "illinois", "maryland", "texas", "california"].includes(restaurant.source) ||
-    ["king", "nyc", "cook", "montgomery_md", "travis", "sf", "la"].includes(restaurant.county_id);
+  // Default to treating restaurants as US-based unless explicitly international.
+  // This is the right default — health inspection sources covered by SafeEats
+  // (king, nyc, cook, travis, sf, la, montgomery_md, delaware, ny_state) are all US.
+  const INTERNATIONAL_SOURCES = ["toronto", "dubai", "uk_fsa"];
+  const isUS = !INTERNATIONAL_SOURCES.includes(restaurant.source);
 
   useEffect(() => {
     if (!isUS) return;
     const cacheKey = restaurant.business_id;
     const cache = loadCache();
-    if (cache[cacheKey]) {
-      setData(cache[cacheKey]);
+    const cached = cache[cacheKey];
+    // Only use cache for confident results; re-query if previous lookup was inconclusive
+    if (cached && cached.accessible !== "unknown" && cached.confidence !== "low") {
+      setData(cached);
       setStatus("done");
       return;
     }
@@ -47,26 +51,22 @@ export default function ADAAccessibilityBadge({ restaurant }) {
 
     const address = `${restaurant.name}, ${restaurant.address || ""}, ${restaurant.city || ""}`.trim();
     base44.integrations.Core.InvokeLLM({
-      prompt: `You are a helpful assistant looking up ADA (Americans with Disabilities Act) wheelchair accessibility information for a US restaurant.
+      prompt: `Look up ADA wheelchair accessibility for this US restaurant by checking Google Maps, the restaurant's website, and Yelp listings.
 
 Restaurant: ${restaurant.name}
 Address: ${address}
 
-Search for whether this restaurant is ADA accessible / wheelchair accessible. Look for:
-1. Wheelchair accessible entrance (ramp or level entry)
-2. Accessible restroom
-3. Accessible parking
-4. Any known ADA complaints or violations
+Specifically check Google Maps' "Accessibility" section which lists accessible entrance, restroom, parking, and seating. Also check the restaurant's chain-wide accessibility policy if it's a chain (e.g. major chains like QDOBA, Chipotle, Starbucks all publish ADA compliance statements).
 
 Return a JSON object with:
-- accessible: true | false | "unknown"
-- entrance: true | false | null
-- restroom: true | false | null  
-- parking: true | false | null
-- summary: a 1-2 sentence plain English summary
-- confidence: "high" | "medium" | "low"
+- accessible: true if the restaurant has any accessibility features confirmed; false ONLY if there's evidence of non-accessibility; "unknown" if you cannot find any info
+- entrance: true if accessible entrance is confirmed (ramp, level entry, automatic door); false if confirmed not accessible; null if unknown
+- restroom: true/false/null with same logic
+- parking: true/false/null with same logic
+- summary: 1-2 sentence plain English summary citing your source (e.g. "Per Google Maps listing, has accessible entrance and restroom.")
+- confidence: "high" if Google Maps explicitly lists features; "medium" if inferred from chain policy or website; "low" if guessing
 
-If you cannot find specific info, use "unknown" for accessible and "low" for confidence.`,
+Default to assuming major US chain restaurants are accessible (post-1992 ADA law requires it) unless evidence suggests otherwise. Most QDOBA, Chipotle, McDonald's, etc. locations are accessible.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
