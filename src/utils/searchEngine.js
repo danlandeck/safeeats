@@ -152,8 +152,19 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
   } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
     const resultCityLower = (r.city || "").toLowerCase().trim();
     const expectedLower = expectedCity.toLowerCase().trim();
-    const firstWord = expectedLower.split(/[\s,]+/)[0];
-    isWrongLocation = firstWord.length > 2 && !resultCityLower.includes(firstWord);
+
+    // Use the FULL expected city string for matching, not just the first word.
+    // Strip trailing state/country suffixes like ", CT" or ", UAE" for comparison.
+    const expectedCleaned = expectedLower.replace(/,.*$/, "").trim();
+
+    // Match if the result city equals or contains the full expected name.
+    // For multi-word cities ("New York"), require the entire phrase, not just "new".
+    // For single-word cities, allow exact match or "Cityname, ST" style.
+    const isMatch = resultCityLower === expectedCleaned ||
+                    resultCityLower.startsWith(expectedCleaned + ",") ||
+                    resultCityLower.startsWith(expectedCleaned + " ");
+
+    isWrongLocation = expectedCleaned.length > 2 && !isMatch;
   }
   
   const built = buildLLMRestaurant(r, i, countyId, location, null);
