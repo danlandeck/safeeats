@@ -17,7 +17,6 @@ import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
-import WaterSystemInfo from "./WaterSystemInfo";
 import KofiButton from "./KofiButton";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
@@ -69,49 +68,6 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [showDataSource, setShowDataSource] = useState(false);
   const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
-  const [waterSystemLoading, setWaterSystemLoading] = useState(false);
-
-  // Fetch Washington water system data on mount
-  useEffect(() => {
-    const fetchWaterSystem = async () => {
-      if (inferState(restaurant) !== "WA") {
-        return; // Only available for Washington
-      }
-
-      setWaterSystemLoading(true);
-      try {
-        const res = await base44.functions.invoke("getWashingtonWaterSystem", {
-          address: restaurant.address,
-          city: restaurant.city,
-          zip: restaurant.zip_code,
-          state: inferState(restaurant),
-        });
-
-        if (res.data?.status === "ok") {
-          // Sync to cache
-          await base44.functions.invoke("syncRestaurantCache", {
-            restaurant: {
-              ...restaurant,
-              water_system_name: res.data.water_system_name,
-              water_system_id: res.data.water_system_id,
-              water_source_type: res.data.water_source_type,
-              sanitary_survey_score: res.data.sanitary_survey_score,
-              monitoring_violations: res.data.monitoring_violations,
-              water_quality_violations: res.data.water_quality_violations,
-              health_advisories: res.data.health_advisories,
-              water_safety_grade: res.data.water_safety_grade,
-            },
-          }).catch(() => null);
-        }
-      } catch (error) {
-        console.error("Error fetching water system data:", error);
-      } finally {
-        setWaterSystemLoading(false);
-      }
-    };
-    fetchWaterSystem();
-  }, [restaurant.business_id, restaurant.address, restaurant.city, restaurant.zip_code]);
-
   // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -337,12 +293,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             zip_code={restaurant.zip_code}
           />
 
-          {/* Water System Info (Washington only) */}
-          {!waterSystemLoading && (
-            <div className="mt-4">
-              <WaterSystemInfo restaurant={restaurant} />
-            </div>
-          )}
+
         </div>
 
         {/* Data source drawer */}
