@@ -133,7 +133,7 @@ export default function SmartSearchPanel({
               placeholder="City, state, or country — e.g. New York, Tokyo, London…"
               className={fieldClass}
               aria-label="Location"
-              autoComplete="off"
+              autoComplete="new-password"
             />
 
           </div>
@@ -202,7 +202,7 @@ export default function SmartSearchPanel({
                 className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
-                autoComplete="off"
+                autoComplete="new-password"
                 enterKeyHint="search"
               />
               {query && (
