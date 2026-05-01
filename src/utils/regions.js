@@ -586,3 +586,60 @@ export const REGIONS = {
     { id: "global", name: "Worldwide (AI Search)", city: "", hasPublicApi: false },
   ]},
 };
+
+/**
+ * Source / county_id → US two-letter state code.
+ * International sources resolve to null.
+ * Used by every component that needs to know what state a restaurant is in
+ * to look up state-specific data (water systems, ADA records, etc.)
+ */
+export const SOURCE_TO_STATE = {
+  king:          "WA",
+  nyc:           "NY",
+  ny_state:      "NY",
+  cook:          "IL",
+  chicago:       "IL",
+  travis:        "TX",
+  austin:        "TX",
+  sf:            "CA",
+  la:            "CA",
+  montgomery_md: "MD",
+  montgomery:    "MD",
+  delaware:      "DE",
+  toronto:       null,  // Canada
+  dubai:         null,  // UAE
+  uk_fsa:        null,  // UK
+};
+
+/**
+ * Derive a US two-letter state code from a restaurant object.
+ * Tries multiple strategies in order of reliability:
+ *   1. Explicit `state` field if present and valid
+ *   2. Map from county_id or source via SOURCE_TO_STATE
+ *   3. Parse from address using "City, ST 12345" pattern (allows comma between state and zip)
+ * Returns null if no state can be determined.
+ *
+ * @param {object} restaurant — must have at minimum a source, county_id, address, city, or state field
+ * @returns {string|null} two-letter uppercase state code or null
+ */
+export function inferState(restaurant) {
+  if (!restaurant) return null;
+
+  // Strategy 1: explicit state field
+  if (restaurant.state && typeof restaurant.state === "string" && restaurant.state.length === 2) {
+    return restaurant.state.toUpperCase();
+  }
+
+  // Strategy 2: known county_id or source
+  if (restaurant.county_id && SOURCE_TO_STATE[restaurant.county_id] !== undefined) {
+    return SOURCE_TO_STATE[restaurant.county_id];
+  }
+  if (restaurant.source && SOURCE_TO_STATE[restaurant.source] !== undefined) {
+    return SOURCE_TO_STATE[restaurant.source];
+  }
+
+  // Strategy 3: parse from address — accepts "City, ST 12345" or "City, ST, 12345"
+  const fullAddr = [restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ");
+  const m = fullAddr.match(/,\s*([A-Z]{2})[\s,]+\d{5}/);
+  return m ? m[1] : null;
+}

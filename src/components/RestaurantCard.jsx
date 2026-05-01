@@ -4,24 +4,13 @@ import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart,
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
+import { inferState } from "../utils/regions";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 
-const COUNTY_STATE = {
-  king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
-  montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
-};
 
-function inferState(restaurant) {
-  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
-  if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) return COUNTY_STATE[restaurant.county_id];
-  if (restaurant.source && COUNTY_STATE[restaurant.source]) return COUNTY_STATE[restaurant.source];
-  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
-  const match = addr.match(/\b([A-Z]{2})\b/);
-  return match ? match[1] : null;
-}
 
 
 const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
