@@ -219,7 +219,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       results.forEach(async (biz) => {
         try {
           const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
-          const rows = await fetch(countUrl).then(r => r.json());
+          const rows = await fetch(countUrl, signal ? { signal } : {}).then(r => r.json());
           if (!Array.isArray(rows) || rows.length === 0) return;
           const keys = new Set(rows.map(row => {
             const v = row[entry.dateField];
@@ -229,9 +229,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
           if (trueCount > biz.totalInspections) {
             onCountUpdate(biz.business_id, trueCount);
           }
-        } catch {}
-      });
-    }
+        } catch (err) {
+          // AbortError is expected when search is replaced; silently ignore.
+          // Other errors also silently ignored — these are background polish requests.
+        }
+        });
+        }
 
     return { results, isAI: false };
   }
