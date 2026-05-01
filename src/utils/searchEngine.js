@@ -109,10 +109,13 @@ function llmCall(prompt, internet = false) {
 }
 
 // EXHAUSTIVE forbidden locations
-const US_CITIES = ["miami", "new york", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia", "washington"];
-const US_STATES = ["florida", "new york", "massachusetts", "illinois", "california", "texas", "colorado", "georgia", "nevada", "pennsylvania", "dc"];
+// Dubai location filter — restaurants outside Dubai must be rejected.
+// Three lists of forbidden tokens, deduplicated and de-collided.
+const US_CITIES = ["miami", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia"];
+const US_STATES = ["florida", "new york", "massachusetts", "illinois", "california", "texas", "colorado", "georgia", "nevada", "pennsylvania", "washington dc"];
 const NON_DUBAI = ["london", "paris", "tokyo", "abu dhabi", "dubai creek", "ras al khaimah", "fujairah", "umm al quwain", "ajman", "sharjah"];
-const ALL_FORBIDDEN = [...US_CITIES, ...US_STATES, ...NON_DUBAI];
+// Deduplicate just in case any tokens overlap across lists
+const ALL_FORBIDDEN = [...new Set([...US_CITIES, ...US_STATES, ...NON_DUBAI])];
 
 function isDubaiLocation(city, address) {
   const cityLower = (city || "").toLowerCase().trim();
