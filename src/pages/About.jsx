@@ -66,7 +66,7 @@ export default function About() {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <h2 className="text-xl font-extrabold text-slate-900">ADA Accessibility — A Personal Commitment</h2>
-                  <Pill color="bg-emerald-600 text-white">NEW FEATURE</Pill>
+                  <Pill color="bg-emerald-600 text-white">US Restaurants</Pill>
                 </div>
                 <p className="text-slate-700 leading-relaxed text-sm mb-4">
                   Accessibility is deeply personal to our family. Knowing whether a restaurant is wheelchair accessible, has accessible restrooms, or adequate parking shouldn't require a phone call or a gamble — it should be right there alongside the health score before you ever leave the house.
@@ -308,52 +308,15 @@ export default function About() {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <h2 className="text-xl font-extrabold text-slate-900">Tap Water Quality — Should You Order From the Tap?</h2>
-                  <Pill color="bg-blue-600 text-white">NEW FEATURE</Pill>
+                  <Pill color="bg-blue-600 text-white">US Restaurants</Pill>
                 </div>
                 <p className="text-slate-700 leading-relaxed text-sm mb-4">
-                  The water your restaurant uses comes from a municipal supply — the same source feeding every soda fountain, ice machine, and pasta pot on the premises. SafeEats now checks that supply's safety record directly through the <strong>EPA's Safe Drinking Water Information System (SDWIS)</strong>, so you can decide whether to order tap, sparkling, or stick with a can.
+                  The water your restaurant uses comes from a municipal supply — the same source feeding every soda fountain, ice machine, and pasta pot on the premises. For every US restaurant, SafeEats surfaces a direct link to the <strong>Environmental Working Group (EWG) Tap Water Database</strong> so you can look up your exact zip code's water quality report in seconds.
                 </p>
 
-                {/* Grade tiers */}
+                {/* What EWG covers */}
                 <div className="bg-white rounded-2xl border border-blue-100 p-5 mb-4 shadow-sm">
-                  <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">The 4-Tier Water Safety Grade</p>
-                  <div className="space-y-2.5">
-                    {[
-                      {
-                        grade: "💧 Excellent", color: "bg-blue-600 text-white",
-                        verdict: "Order freely from the tap or soda fountain.",
-                        detail: "No health-based EPA violations in the past 5 years. The water system meets or exceeds all Maximum Contaminant Level (MCL) standards."
-                      },
-                      {
-                        grade: "✅ Good", color: "bg-lime-500 text-white",
-                        verdict: "Tap water is safe to drink.",
-                        detail: "No current violations. Past violations were fully resolved. The system is in compliance with all EPA health standards."
-                      },
-                      {
-                        grade: "⚠️ Drinkable", color: "bg-orange-400 text-white",
-                        verdict: "Drinkable, but consider a bottled option if you're cautious.",
-                        detail: "One active health-based violation exists, but hasn't reached the level of a public advisory. Healthy adults face minimal risk; sensitive groups (infants, pregnant women, immunocompromised) may prefer bottled."
-                      },
-                      {
-                        grade: "🚫 Not Recommended", color: "bg-red-600 text-white",
-                        verdict: "Order a bottle or can. Tap water has unresolved health violations.",
-                        detail: "Two or more unresolved EPA health-based violations. This means the water system has exceeded MCLs for potentially harmful contaminants such as lead, arsenic, nitrates, bacteria, or disinfection byproducts — and the issues have not yet been corrected."
-                      },
-                    ].map(({ grade, color, verdict, detail }) => (
-                      <div key={grade} className="flex gap-3 items-start">
-                        <span className={`flex-shrink-0 text-xs font-extrabold px-3 py-1.5 rounded-full ${color} whitespace-nowrap`}>{grade}</span>
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">{verdict}</p>
-                          <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{detail}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* What we check */}
-                <div className="bg-white rounded-2xl border border-blue-100 p-5 mb-4 shadow-sm">
-                  <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">What the EPA Checks For (MCL Standards)</p>
+                  <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">What EWG's Tap Water Database Covers</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
                       { icon: "🔩", name: "Lead & Copper", risk: "Neurological damage, especially in children" },
@@ -373,9 +336,9 @@ export default function About() {
                 </div>
 
                 <div className="bg-blue-800 rounded-2xl p-4 text-white">
-                  <p className="text-sm font-bold mb-1">🇺🇸 US Coverage Only (for now)</p>
+                  <p className="text-sm font-bold mb-1">🇺🇸 US Coverage — Powered by EWG</p>
                   <p className="text-blue-200 text-xs leading-relaxed">
-                    Water quality grades are powered by the EPA's Safe Drinking Water Information System (SDWIS), which covers all US community water systems. International water quality data is not yet available via a comparable open API — but is on our roadmap. Data is sourced at the municipal level; the same grade applies to all restaurants in a given city served by the same water utility.
+                    On every US restaurant detail card, SafeEats shows a 💧 Tap Water Quality link that takes you directly to the EWG report for that restaurant's zip code. EWG tests go beyond EPA legal limits — they compare contaminants against stricter health guidelines, so you get the full picture, not just the legal minimum. International tap water data is on our roadmap.
                   </p>
                 </div>
               </div>
