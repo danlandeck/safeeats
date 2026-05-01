@@ -93,6 +93,23 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
 
   if (!isUS) return null;
 
+  // Hide the entire badge if we don't have confident accessibility info.
+  // We only show the badge when we can actually say something useful.
+  const isAccessibleConfident = data?.accessible === true;
+  const isNotAccessibleConfident = data?.accessible === false;
+  const hasConfidentResult = isAccessibleConfident || isNotAccessibleConfident;
+
+  // While loading, show the loading state (existing behavior)
+  // After load completes: only render if we have a confident result
+  if (status === "done" && !hasConfidentResult) {
+    return null;
+  }
+
+  // Also hide on error — no point showing "ADA info unavailable" noise
+  if (status === "error") {
+    return null;
+  }
+
   const isAccessible = data?.accessible === true;
   const isNotAccessible = data?.accessible === false;
 
