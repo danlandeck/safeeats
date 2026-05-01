@@ -134,6 +134,9 @@ export default function SmartSearchPanel({
               className={fieldClass}
               aria-label="Location"
               autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
 
           </div>
@@ -203,6 +206,9 @@ export default function SmartSearchPanel({
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
                 autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
                 enterKeyHint="search"
               />
               {query && (

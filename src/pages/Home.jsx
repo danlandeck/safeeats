@@ -1070,16 +1070,6 @@ export default function Home() {
             locationQuery={locationQuery}
             onLocationChange={(val) => {
               setLocationQuery(val);
-              const key = val.toLowerCase().trim();
-              const match = CITY_TO_COUNTY[key];
-              if (match && REGIONS[match.region]) {
-                setRegion(match.region);
-                setCountyId(match.countyId);
-                if (match.locationLabel) setLocationQuery(match.locationLabel);
-              } else {
-                setRegion("global");
-                setCountyId("global");
-              }
             }}
             onRegionChange={({ region: r, countyId: c, label }) => {
               setRegion(r);
