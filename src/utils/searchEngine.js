@@ -99,6 +99,35 @@ const FAST_PROMPT_DUBAI = (query) =>
 List ONLY restaurants in DUBAI, UAE. city="Dubai" ALWAYS. Address: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, Dubai.
 Return max 8. If unsure = OMIT. ZERO non-Dubai results.`;
 
+/**
+ * Post-fetch relevance filter: ensures search results actually match the query name.
+ * Strategy:
+ *   - If query is short (<=2 chars), keep all results (avoid filtering "DQ" or "AM/PM" etc)
+ *   - For multi-word queries: every word must appear somewhere in the name
+ *   - For single-word queries: word must appear as substring in name
+ *   - Punctuation in either is normalized away
+ *   - Always case-insensitive
+ *   - If filter would remove ALL results, return original list (fail-open — better to show
+ *     too many results than zero)
+ */
+function filterByNameRelevance(results, query) {
+  if (!Array.isArray(results) || results.length === 0) return results;
+  const cleanQuery = (query || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  if (cleanQuery.length <= 2) return results;
+
+  const queryWords = cleanQuery.split(" ").filter(w => w.length >= 2);
+  if (queryWords.length === 0) return results;
+
+  const filtered = results.filter(r => {
+    const cleanName = (r.name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    if (!cleanName) return false;
+    return queryWords.every(w => cleanName.includes(w));
+  });
+
+  // Fail-open: if filtering removes everything, return original list
+  return filtered.length > 0 ? filtered : results;
+}
+
 function llmCall(prompt, internet = false) {
   return base44.integrations.Core.InvokeLLM({
     prompt,
@@ -212,7 +241,13 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
     const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
-    const results = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+    const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+
+    // Post-fetch relevance filter: keep only results whose name actually matches the query.
+    // The Socrata LIKE '%query%' is too permissive — it can return adjacent records or
+    // fuzzy matches when name fields are denormalized. We require the query (or each query word)
+    // to appear in the result's name, case-insensitively.
+    const results = filterByNameRelevance(allResults, query);
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
     if (onCountUpdate && countyId !== "delaware") {
