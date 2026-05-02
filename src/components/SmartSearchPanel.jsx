@@ -23,10 +23,10 @@ function saveRecentLocation(loc) {
 }
 
 const LIVE_API_CITIES = [
-  { label: "Seattle", region: "washington", countyId: "king", emoji: "🌲" },
+  { label: "Seattle Metro / King County", region: "washington", countyId: "king", emoji: "🌲" },
   { label: "New York", region: "new_york", countyId: "nyc", emoji: "🗽" },
   { label: "Chicago", region: "illinois", countyId: "cook", emoji: "🏙️" },
-  { label: "Montgomery MD", region: "maryland", countyId: "montgomery_md", emoji: "🏛️" },
+  { label: "Montgomery County, MD", region: "maryland", countyId: "montgomery_md", emoji: "🏛️" },
   { label: "Austin TX", region: "texas", countyId: "travis", emoji: "🤠" },
   { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉" },
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴" },
