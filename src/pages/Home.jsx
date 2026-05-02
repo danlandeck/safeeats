@@ -684,11 +684,11 @@ const CITY_TO_COUNTY = {
 };
 
 const LIVE_API_CITIES = [
-  { label: "Seattle / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
+  { label: "Seattle Metro / King Co.", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
   { label: "NY State (Buffalo, Albany…)", region: "new_york", countyId: "ny_state", emoji: "🏔️", example: "pizza", locationLabel: "New York State" },
   { label: "Chicago", region: "illinois", countyId: "cook", emoji: "🏙️", example: "pizza" },
-  { label: "Montgomery Co. MD", region: "maryland", countyId: "montgomery_md", emoji: "🏛️", example: "Chipotle" },
+  { label: "Montgomery Co. MD (DC suburbs)", region: "maryland", countyId: "montgomery_md", emoji: "🏛️", example: "Chipotle" },
   { label: "Austin TX", region: "texas", countyId: "travis", emoji: "🤠", example: "tacos" },
   { label: "San Francisco", region: "california", countyId: "sf", emoji: "🌉", example: "sushi" },
   { label: "Los Angeles", region: "california", countyId: "la", emoji: "🌴", example: "burger" },
@@ -1148,7 +1148,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 King County, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro / King Co., WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery Co., MD (DC suburbs)", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, Heart, AlertTriangle } from "lucide-react";
+import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
-import { isFavorite, toggleFavorite } from "../utils/favorites";
+
 import { inferState } from "../utils/regions";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
@@ -27,15 +27,8 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
   const grade = isUnknown ? "U" : getGrade(safetyScore);
-  const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
   const gradeColor = getGradeColor(grade);
   const gradeEmoji = GRADE_EMOJIS[grade] || "❓";
-
-  const handleFav = (e) => {
-    e.stopPropagation();
-    const newState = toggleFavorite(restaurant);
-    setFavorited(newState);
-  };
 
   return (
     <Card
@@ -74,14 +67,6 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             </div>
             {/* Action icons */}
             <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
-              <button
-                onClick={handleFav}
-                className={`p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "text-red-500" : "text-slate-200 hover:text-red-400"}`}
-                aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
-                aria-pressed={favorited}
-              >
-                <Heart className={`w-3.5 h-3.5 ${favorited ? "fill-current" : ""}`} aria-hidden="true" />
-              </button>
               {onToggleCompare && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleCompare(restaurant); }}

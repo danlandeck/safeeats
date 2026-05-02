@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
-  ExternalLink, Award, Users, TrendingUp
+  ExternalLink, Award, TrendingUp
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import GradeBadge from "./GradeBadge";
@@ -397,15 +397,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </p>
             )}
           </div>
-          {uniqueInspections.length > 0 && (
-            <button
-              onClick={() => setShowRawData((v) => !v)}
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 font-semibold border border-slate-200 px-3 py-1.5 rounded-lg bg-white transition-colors"
-            >
-              <Users className="w-3.5 h-3.5" />
-              {showRawData ? "Simple view" : "Raw data"}
-            </button>
-          )}
+
         </div>
 
         {uniqueInspections.length === 0 ? (
