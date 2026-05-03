@@ -1,0 +1,144 @@
+{
+  "description": "EPA Community Water System data with computed water quality grade. Keyed by city|state. Public read access.",
+  "name": "WaterSystem",
+  "properties": {
+    "city": {
+      "description": "City name in title case",
+      "type": "string"
+    },
+    "contaminants_above_guideline": {
+      "default": 0,
+      "description": "Number of contaminants detected above EWG/EPA health guidelines",
+      "type": "number"
+    },
+    "grade_emoji": {
+      "description": "Emoji representation of water grade",
+      "enum": [
+        "\ud83c\udf1f",
+        "\ud83d\ude0a",
+        "\ud83e\udd14",
+        "\u26a0\ufe0f",
+        "\ud83d\udea8",
+        "\u2753"
+      ],
+      "type": "string"
+    },
+    "grade_label": {
+      "description": "Playful grade label",
+      "enum": [
+        "Stellar",
+        "Solid",
+        "So-So",
+        "Sketchy",
+        "Yikes",
+        "Mystery"
+      ],
+      "type": "string"
+    },
+    "grade_tier": {
+      "description": "Grade tier code for styling",
+      "enum": [
+        "stellar",
+        "solid",
+        "soso",
+        "sketchy",
+        "yikes",
+        "mystery"
+      ],
+      "type": "string"
+    },
+    "last_updated": {
+      "description": "When this record was last refreshed",
+      "format": "date-time",
+      "type": "string"
+    },
+    "lookup_key": {
+      "description": "Unique key in format CITY|STATE (uppercase)",
+      "type": "string"
+    },
+    "max_contaminant_multiplier": {
+      "default": 0,
+      "description": "Highest contaminant level as multiplier of health guideline (e.g. 12 means 12x the guideline)",
+      "type": "number"
+    },
+    "name": {
+      "description": "Water system name in title case",
+      "type": "string"
+    },
+    "population_served": {
+      "description": "Population served by this system",
+      "type": "number"
+    },
+    "pwsid": {
+      "description": "EPA Public Water System ID",
+      "type": "string"
+    },
+    "source_type": {
+      "description": "Primary water source type",
+      "enum": [
+        "Groundwater (well)",
+        "Surface water (lake/river/reservoir)",
+        "Groundwater under surface water influence",
+        "Groundwater (purchased)",
+        "Surface water (purchased)",
+        "Mixed sources",
+        "Unknown"
+      ],
+      "type": "string"
+    },
+    "source_url": {
+      "description": "EPA SDWIS report URL",
+      "type": "string"
+    },
+    "state": {
+      "description": "Two-letter state code",
+      "type": "string"
+    },
+    "violations_health_based": {
+      "default": 0,
+      "description": "Health-based violations (MCL/MRDL/TT) in last 10 years",
+      "type": "number"
+    },
+    "violations_total": {
+      "default": 0,
+      "description": "Total EPA violations in last 10 years",
+      "type": "number"
+    },
+    "violations_unresolved": {
+      "default": 0,
+      "description": "Currently unresolved violations",
+      "type": "number"
+    },
+    "description": {
+      "description": "Optional notes or summary about this water system (up to 1000 characters)",
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "lookup_key",
+    "city",
+    "state",
+    "pwsid",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
