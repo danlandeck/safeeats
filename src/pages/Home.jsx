@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
+import { FixedSizeList as VirtualList } from "react-window";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
@@ -1262,17 +1263,43 @@ export default function Home() {
                             />
                           </Suspense>
                         ) : (
-                          <div className="space-y-3">
-                            {filteredAndSortedResults.map((r) => (
-                              <RestaurantCard
-                                key={r.business_id}
-                                restaurant={r}
-                                onClick={() => handleSelectBusiness(r)}
-                                onToggleCompare={handleToggleCompare}
-                                isCompared={compareList.some((c) => c.business_id === r.business_id)}
-                                compareDisabled={compareList.length >= 3}
-                              />
-                            ))}
+                          <div>
+                            {filteredAndSortedResults.length > 20 ? (
+                              <VirtualList
+                                height={Math.min(filteredAndSortedResults.length * 130, 800)}
+                                itemCount={filteredAndSortedResults.length}
+                                itemSize={130}
+                                width="100%"
+                              >
+                                {({ index, style }) => {
+                                  const r = filteredAndSortedResults[index];
+                                  return (
+                                    <div style={{ ...style, paddingBottom: 12 }} key={r.business_id}>
+                                      <RestaurantCard
+                                        restaurant={r}
+                                        onClick={() => handleSelectBusiness(r)}
+                                        onToggleCompare={handleToggleCompare}
+                                        isCompared={compareList.some((c) => c.business_id === r.business_id)}
+                                        compareDisabled={compareList.length >= 3}
+                                      />
+                                    </div>
+                                  );
+                                }}
+                              </VirtualList>
+                            ) : (
+                              <div className="space-y-3">
+                                {filteredAndSortedResults.map((r) => (
+                                  <RestaurantCard
+                                    key={r.business_id}
+                                    restaurant={r}
+                                    onClick={() => handleSelectBusiness(r)}
+                                    onToggleCompare={handleToggleCompare}
+                                    isCompared={compareList.some((c) => c.business_id === r.business_id)}
+                                    compareDisabled={compareList.length >= 3}
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

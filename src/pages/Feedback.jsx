@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "../utils";
 import { ArrowLeft, Send, MessageSquare, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +51,7 @@ Submitted from SafeEats App
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <Link to={createPageUrl("Home")}>
+        <Link to="/">
           <Button variant="ghost" className="mb-6 text-slate-500 hover:text-slate-800 -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
