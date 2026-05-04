@@ -11,6 +11,7 @@ import GlobalCoverage from './pages/GlobalCoverage';
 import Widget from './pages/Widget';
 import EmbedGenerator from './pages/EmbedGenerator';
 import Dashboard from './pages/Dashboard';
+import Feedback from './pages/Feedback';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
       <Route path="/embed" element={<LayoutWrapper currentPageName="EmbedGenerator"><EmbedGenerator /></LayoutWrapper>} />
       <Route path="/country-codes" element={<LayoutWrapper currentPageName="CountryCodes"><CountryCodes /></LayoutWrapper>} />
       <Route path="/global-coverage" element={<LayoutWrapper currentPageName="GlobalCoverage"><GlobalCoverage /></LayoutWrapper>} />
+      <Route path="/contact" element={<LayoutWrapper currentPageName="Feedback"><Feedback /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

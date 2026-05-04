@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
               <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
               <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Global coverage map"><Map className="w-4 h-4" aria-hidden="true" /><span>Map</span></Link></div>
               <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
-              <div role="listitem"><Link to={createPageUrl("Feedback")} className={navPill} aria-label="Send feedback">💬 <span>Feedback</span></Link></div>
+              <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
             </div>
           </div>
@@ -55,6 +55,10 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-slate-500">
                 Empowering informed dining decisions through transparency
               </p>
+              <div className="flex gap-3 mt-2">
+                <Link to="/About" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">About</Link>
+                <Link to="/contact" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Contact</Link>
+              </div>
             </div>
             <div className="text-center md:text-right space-y-2">
               <KofiButton context="footer" />
