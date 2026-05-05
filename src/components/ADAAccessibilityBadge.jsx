@@ -56,14 +56,15 @@ export default function ADAAccessibilityBadge({ restaurant }) {
 Restaurant: ${restaurant.name}
 Address: ${address}
 
-Specifically check Google Maps' "Accessibility" section which lists accessible entrance, restroom, parking, and seating. Also check the restaurant's chain-wide accessibility policy if it's a chain (e.g. major chains like QDOBA, Chipotle, Starbucks all publish ADA compliance statements).
+Specifically check Google Maps' "Accessibility" section which lists accessible entrance, restroom, parking, seating, and automatic doors. Also check the restaurant's chain-wide accessibility policy if it's a chain (e.g. major chains like QDOBA, Chipotle, Starbucks all publish ADA compliance statements).
 
 Return a JSON object with:
 - accessible: true if the restaurant has any accessibility features confirmed; false ONLY if there's evidence of non-accessibility; "unknown" if you cannot find any info
-- entrance: true if accessible entrance is confirmed (ramp, level entry, automatic door); false if confirmed not accessible; null if unknown
+- entrance: true if accessible entrance is confirmed (ramp, level entry); false if confirmed not accessible; null if unknown
 - restroom: true/false/null with same logic
 - parking: true/false/null with same logic
-- summary: 1-2 sentence plain English summary citing your source (e.g. "Per Google Maps listing, has accessible entrance and restroom.")
+- automatic_doors: true if automatic or power-assisted doors are confirmed; false if confirmed not present; null if unknown
+- summary: 1-2 sentence plain English summary citing your source (e.g. "Per Google Maps listing, has accessible entrance, restroom, and automatic doors.")
 - confidence: "high" if Google Maps explicitly lists features; "medium" if inferred from chain policy or website; "low" if guessing
 
 Default to assuming major US chain restaurants are accessible (post-1992 ADA law requires it) unless evidence suggests otherwise. Most QDOBA, Chipotle, McDonald's, etc. locations are accessible.`,
@@ -75,6 +76,7 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
           entrance: {},
           restroom: {},
           parking: {},
+          automatic_doors: {},
           summary: { type: "string" },
           confidence: { type: "string" }
         }
@@ -143,7 +145,7 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
     ? "This location may have limited accessibility features."
     : "We couldn't confirm specific accessibility details for this location.";
 
-  const hasFeatures = data && (data.entrance !== null || data.restroom !== null || data.parking !== null);
+  const hasFeatures = data && (data.entrance !== null || data.restroom !== null || data.parking !== null || data.automatic_doors !== null);
 
   return (
     <div className={`rounded-2xl border-2 overflow-hidden shadow-sm ${wrapperBorder}`}>
@@ -176,10 +178,11 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
 
         {/* Feature grid */}
         {status === "done" && hasFeatures && (
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
             <FeatureRow label="Accessible Entrance" icon="🚪" value={data.entrance} />
             <FeatureRow label="Accessible Restroom" icon="🚻" value={data.restroom} />
             <FeatureRow label="Accessible Parking" icon="🅿️" value={data.parking} />
+            <FeatureRow label="Automatic Doors" icon="🔄" value={data.automatic_doors} />
           </div>
         )}
 

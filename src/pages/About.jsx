@@ -73,11 +73,12 @@ export default function About() {
                 </p>
                 <div className="bg-white rounded-2xl border border-emerald-200 p-5 mb-4 shadow-sm">
                   <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-3">What SafeEats Checks for Every US Restaurant</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { icon: "🚪", title: "Accessible Entrance", desc: "Ramp, level entry, or automatic doors" },
+                      { icon: "🚪", title: "Accessible Entrance", desc: "Ramp or level entry confirmed" },
                       { icon: "🚻", title: "Accessible Restroom", desc: "ADA-compliant facilities on-site" },
                       { icon: "🅿️", title: "Accessible Parking", desc: "Designated accessible spaces nearby" },
+                      { icon: "🔄", title: "Automatic Doors", desc: "Power-assisted or automatic entry doors" },
                     ].map(({ icon, title, desc }) => (
                       <div key={title} className="flex flex-col items-center text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                         <span className="text-2xl mb-1">{icon}</span>
