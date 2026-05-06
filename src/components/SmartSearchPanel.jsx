@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
 import { SEARCH_KEYS } from "../utils/searchState";
+import { useLanguage } from "../lib/LanguageContext";
 
 const RECENT_KEY     = SEARCH_KEYS[0];
 const RECENT_LOC_KEY = SEARCH_KEYS[1];
@@ -38,6 +39,7 @@ export default function SmartSearchPanel({
   onNearMe,
   query, onQueryChange,
 }) {
+  const { t } = useLanguage();
   const [recents, setRecents]                   = useState(loadRecent);
   const [recentLocations, setRecentLocations]   = useState(loadRecentLocations);
   const [showDropdown, setShowDropdown]         = useState(false);
@@ -118,7 +120,7 @@ export default function SmartSearchPanel({
       {/* Location field */}
       <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
-          <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
+          <MapPin className="w-4 h-4" aria-hidden="true" /> {t?.step1Label || "Step 1 — Where are you eating?"}
         </p>
 
         <div className="flex gap-2">
@@ -130,7 +132,7 @@ export default function SmartSearchPanel({
               onChange={(e) => { onLocationChange(e.target.value); setShowLocDropdown(true); }}
               onFocus={() => setShowLocDropdown(true)}
               onBlur={handleLocationBlur}
-              placeholder="City, state, or country — e.g. New York, Tokyo, London…"
+              placeholder={t?.locationPlaceholder || "City, state, or country — e.g. New York, Tokyo, London…"}
               className={fieldClass}
               aria-label="Location"
               autoComplete="new-password"
@@ -181,7 +183,7 @@ export default function SmartSearchPanel({
                 : "text-slate-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
             }`}
           >
-            🌍 Any city / country
+            {t?.anyCity || "🌍 Any city / country"}
           </button>
         </div>
       </div>
@@ -189,7 +191,7 @@ export default function SmartSearchPanel({
       {/* Search field */}
       <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
         <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
-          <Search className="w-4 h-4" aria-hidden="true" /> Step 2 — Search restaurant or food type
+          <Search className="w-4 h-4" aria-hidden="true" /> {t?.step2Label || "Step 2 — Search restaurant or food type"}
         </p>
         <form onSubmit={handleSubmit} role="search" aria-label="Search for restaurants">
           <div className="flex gap-2">
@@ -201,7 +203,7 @@ export default function SmartSearchPanel({
                 onChange={handleChange}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder={`Restaurant name or cuisine type — e.g. "McDonald's" or "sushi"`}
+                placeholder={t?.restaurantPlaceholder || `Restaurant name or cuisine type — e.g. "McDonald's" or "sushi"`}
                 className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
@@ -228,7 +230,7 @@ export default function SmartSearchPanel({
             >
               {isLoading
                 ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" aria-hidden="true" /><span className="sr-only">Searching…</span></>
-                : "Search"}
+                : (t?.searchButton || "Search")}
             </button>
           </div>
         </form>

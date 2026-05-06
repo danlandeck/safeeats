@@ -1038,11 +1038,11 @@ export default function Home() {
               🛡️ #1 Global Food Safety Platform · 195+ Countries
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
-              Is your restaurant
-              <span className="text-[#4CAF50]"> safe to eat at? 🍽️</span>
+              {t.headline1}
+              <span className="text-[#4CAF50]"> {t.headline2}</span>
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-300 font-bold max-w-lg mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
-              Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️
+              {t.heroSubheadline || t.subheadline}
             </p>
 
             {!hasSearched && (
@@ -1060,7 +1060,7 @@ export default function Home() {
                     <span className="text-[10px] text-slate-300 font-extrabold">{tip}</span>
                   </div>
                 ))}
-                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">← how grades work</Link>
+                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">{t.howGradesWork || "← how grades work"}</Link>
               </div>
             )}
           </div>
@@ -1093,11 +1093,11 @@ export default function Home() {
           <div className="flex justify-center gap-2 mt-4">
             {hasSearched && (
               <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
-                <X className="w-4 h-4" /> New Search
+                <X className="w-4 h-4" /> {t.newSearch || "New Search"}
               </button>
             )}
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-              📷 {hasSearched ? "Scan Sign" : "Scan a Restaurant Sign"}
+              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")}
             </button>
           </div>
 
@@ -1221,15 +1221,15 @@ export default function Home() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
                             <p className="text-sm font-extrabold text-slate-800">
-                              Found {filteredAndSortedResults.length} restaurant{filteredAndSortedResults.length !== 1 ? "s" : ""}
-                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""}
-                              {searchQuery ? ` for "${searchQuery}"` : ""}
-                              {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
+                              {t.foundRestaurants ? t.foundRestaurants(filteredAndSortedResults.length) : `Found ${filteredAndSortedResults.length} restaurant${filteredAndSortedResults.length !== 1 ? "s" : ""}`}
+                              {results.length !== filteredAndSortedResults.length ? ` ${t.filteredFrom ? t.filteredFrom(results.length) : `(filtered from ${results.length})`}` : ""}
+                              {searchQuery ? ` ${t.forQuery ? t.forQuery(searchQuery) : `for "${searchQuery}"`}` : ""}
+                              {nearMeActive && <span className="ml-1 text-blue-600"> {t.withinDist || "· within 5 mi"}</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">
-                              {gradeFilter ? `Showing Grade ${gradeFilter} only · ` : ""}
-                              Sorted by safety score — tap any restaurant to see its full history
+                              {gradeFilter ? `${t.showingGrade ? t.showingGrade(gradeFilter) : `Showing Grade ${gradeFilter} only`} · ` : ""}
+                              {t.sortedByScore || "Sorted by safety score — tap any restaurant to see its full history"}
                             </p>
                           </div>
                           <div className="flex gap-2 flex-wrap justify-end">
@@ -1340,8 +1340,8 @@ export default function Home() {
                       </Suspense>
                       {gradeFilter && (
                         <div className="bg-slate-100 rounded-xl px-3 py-2 text-xs text-slate-600 font-semibold flex items-center justify-between">
-                          <span>Showing Grade {gradeFilter} only</span>
-                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">Clear</button>
+                          <span>{t.showingGrade ? t.showingGrade(gradeFilter) : `Showing Grade ${gradeFilter} only`}</span>
+                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">{t.clear || "Clear"}</button>
                         </div>
                       )}
                     </div>
