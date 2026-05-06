@@ -290,7 +290,10 @@ export default function NationalHeatMap({ region, onNavigate }) {
             scrollWheelZoom={false}
             attributionControl={false}
           >
-            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" />
+            <TileLayer
+  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+/>
             <MapController view={mapView} />
             <GeoJSON key="world" data={worldGeo} style={styleWorld} onEachFeature={onEachWorld} />
             {!isIntl && usGeo && (

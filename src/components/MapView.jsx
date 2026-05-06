@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // ESRI diverging color ramp
-function getEsriColor(score) {
+function getScoreColor(score) {
   if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
   if (score >= 80) return "#a6d96a";
@@ -36,7 +36,7 @@ function getGradeLetter(score) {
 }
 
 function createColoredIcon(score, isSelected = false) {
-  const bg = getEsriColor(score);
+  const bg = getScoreColor(score);
   const text = getTextColor(score);
   const grade = getGradeLetter(score);
   const size = isSelected ? 48 : 38;
@@ -147,10 +147,10 @@ export default function MapView({ restaurants, onSelectRestaurant, onFilterByGra
       >
         <MapController validRestaurants={validRestaurants} userCoords={userCoords} selectedId={selectedId} />
 
-        {/* ESRI World Street Map tile layer */}
+        {/* OpenStreetMap tile layer */}
         <TileLayer
-          attribution='Powered by <a href="https://www.esri.com/en-us/home" target="_blank">Esri</a> | Sources: Esri, HERE, Garmin'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
         {/* User location marker with accuracy circle */}
