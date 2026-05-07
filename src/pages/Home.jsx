@@ -862,10 +862,12 @@ export default function Home() {
         },
       });
 
+      if (signal.aborted) return;
       setIsAISearch(isAI);
       setResults(fetchedResults);
     } catch (e) {
-      if (e.name === "AbortError") return;
+      if (e.name === "AbortError" || signal.aborted) return;
+      console.error("Search error:", e);
       setIsLoading(false);
       setIsAISearch(false);
       setSearchError("Search failed. Please try again in a moment.");
@@ -1075,8 +1077,16 @@ export default function Home() {
               setLocationQuery(label);
             }}
             onSearch={(q) => {
-              if (hasSearched) resetSearch();
-              setTimeout(() => handleSearch(q), 0);
+              if (hasSearched) {
+                setResults([]);
+                setSelectedBusiness(null);
+                setFastResults(null);
+                setGradeFilter(null);
+                setSearchError("");
+                setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
+                setFuzzySelected(null);
+              }
+              handleSearch(q);
             }}
             isLoading={isLoading}
             activeRegion={region}
