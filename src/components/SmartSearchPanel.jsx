@@ -126,7 +126,10 @@ export default function SmartSearchPanel({
         <div className="flex gap-2">
           <div className="relative flex-1">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
+            <label htmlFor="search-location" className="sr-only">Location — city, state, or country</label>
             <input
+              id="search-location"
+              name="search-location"
               ref={locInputRef}
               value={locationQuery}
               onChange={(e) => { onLocationChange(e.target.value); setShowLocDropdown(true); }}
@@ -197,7 +200,10 @@ export default function SmartSearchPanel({
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" aria-hidden="true" />
+              <label htmlFor="search-restaurant" className="sr-only">Search restaurant name or cuisine type</label>
               <input
+                id="search-restaurant"
+                name="search-restaurant"
                 ref={inputRef}
                 value={query}
                 onChange={handleChange}

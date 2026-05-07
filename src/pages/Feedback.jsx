@@ -97,6 +97,7 @@ Submitted from SafeEats App
                 </label>
                 <Input
                   id="name"
+                  name="name"
                   type="text"
                   placeholder="John Doe"
                   value={formData.name}
@@ -112,6 +113,7 @@ Submitted from SafeEats App
                 </label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="john@example.com"
                   value={formData.email}
@@ -127,6 +129,7 @@ Submitted from SafeEats App
                 </label>
                 <Textarea
                   id="message"
+                  name="message"
                   placeholder="Tell us what you think about SafeEats, report issues, suggest features, or share your experience..."
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
