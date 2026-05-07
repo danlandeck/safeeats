@@ -854,7 +854,6 @@ export default function Home() {
         locationLabel: locationCtx,
         today,
         signal,
-        onFastResults: (fast) => setFastResults(fast),
         onCountUpdate: (bizId, trueCount) => {
           setResults(prev => prev.map(r =>
             r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
@@ -1183,27 +1182,13 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
                     {isLoading ? (
-                      isAISearch ? (
-                        <AISearchStatus
-                          hasFastResults={fastResults !== null && fastResults.length > 0}
-                          onAcceptFast={() => {
-                            if (abortRef.current) abortRef.current.abort();
-                            setResults(fastResults);
-                            setFastResults(null);
-                            setIsLoading(false);
-                          }}
-                          onCancel={() => {
-                            if (abortRef.current) abortRef.current.abort();
-                            setIsLoading(false);
-                            setFastResults(null);
-                          }}
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-20">
-                          <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
-                        </div>
-                      )
+                      <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
+                        <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
+                        {isAISearch && (
+                          <p className="text-xs text-slate-500 mt-2 max-w-xs text-center">Searching public health records worldwide — this may take a few seconds.</p>
+                        )}
+                      </div>
                     ) : searchError ? (
                       <div className="flex flex-col items-center justify-center py-16">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
