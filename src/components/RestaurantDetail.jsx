@@ -191,24 +191,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 </a>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={handleFavorite}
-                className={`p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
-                aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
-                aria-pressed={favorited}
-              >
-                <Heart className={`w-4 h-4 ${favorited ? "fill-current" : ""}`} aria-hidden="true" />
-              </button>
-              <button
-                onClick={handleShare}
-                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                aria-label="Share safety score"
-              >
-                <Share2 className="w-4 h-4" aria-hidden="true" />
-              </button>
-              {shareMsg && <span className="text-xs text-green-600 font-semibold">{shareMsg}</span>}
-            </div>
+
           </div>
 
           {/* Grade + Score + Stats row */}
