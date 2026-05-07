@@ -1,17 +1,8 @@
-import React, { useMemo, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
-import ScoreGauge from "./ScoreGauge";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React, { useEffect, useRef, useMemo } from "react";
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
-// ESRI diverging color ramp
+// Color ramp matching previous Leaflet implementation
 function getScoreColor(score) {
   if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
@@ -35,154 +26,189 @@ function getGradeLetter(score) {
   return "F";
 }
 
-function createColoredIcon(score, isSelected = false) {
+// Load the Google Maps script once
+let _loadPromise = null;
+function loadGoogleMaps() {
+  if (window.google?.maps) return Promise.resolve();
+  if (_loadPromise) return _loadPromise;
+  _loadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return _loadPromise;
+}
+
+// Build a custom pin SVG as a data URL for AdvancedMarkerElement or fallback Marker icon
+function makeMarkerSvg(score, isSelected) {
   const bg = getScoreColor(score);
-  const text = getTextColor(score);
+  const textColor = getTextColor(score);
   const grade = getGradeLetter(score);
   const size = isSelected ? 48 : 38;
-  const borderWidth = isSelected ? 4 : 3;
   const fontSize = isSelected ? 16 : 13;
-  const pulseRing = isSelected
-    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:3px solid ${bg};opacity:0.5;animation:marker-pulse 1.8s infinite ease-in-out;"></div>`
-    : "";
-
-  return L.divIcon({
-    className: "custom-marker",
-    html: `<div style="position:relative;width:${size}px;height:${size}px;">
-      ${pulseRing}
-      <div style="
-        width:${size}px;height:${size}px;
-        border-radius:50% 50% 50% 0;
-        background:${bg};
-        transform:rotate(-45deg);
-        border:${borderWidth}px solid white;
-        box-shadow:0 4px 14px rgba(0,0,0,0.4);
-        display:flex;align-items:center;justify-content:center;
-      ">
-        <div style="transform:rotate(45deg);color:${text};font-weight:900;font-size:${fontSize}px;font-family:Nunito,sans-serif;">
-          ${grade}
-        </div>
-      </div>
-    </div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -(size + 4)],
-  });
-}
-
-function createUserIcon() {
-  return L.divIcon({
-    className: "user-location-marker",
-    html: `<div style="position:relative;width:28px;height:28px;">
-      <div style="
-        position:absolute;inset:-8px;border-radius:50%;
-        background:rgba(33,150,243,0.2);
-        animation:marker-pulse 2s infinite ease-in-out;
-      "></div>
-      <div style="
-        width:28px;height:28px;border-radius:50%;
-        background:#2196F3;border:4px solid white;
-        box-shadow:0 3px 12px rgba(33,150,243,0.6);
-      "></div>
-    </div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-}
-
-// Auto-fits bounds to all markers; also pans to userCoords when no restaurants
-function MapController({ validRestaurants, userCoords, selectedId }) {
-  const map = useMap();
-  const prevKeyRef = useRef(null);
-
-  useEffect(() => {
-    const key = validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|");
-    if (key === prevKeyRef.current) return;
-    prevKeyRef.current = key;
-
-    if (validRestaurants.length > 0) {
-      const bounds = L.latLngBounds(
-        validRestaurants.map(r => [parseFloat(r.latitude), parseFloat(r.longitude)])
-      );
-      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 16, duration: 1.2 });
-    } else if (userCoords) {
-      map.flyTo([userCoords.lat, userCoords.lng], 13, { duration: 1.0 });
-    }
-  }, [validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|")]);
-
-  // Pan to selected restaurant
-  useEffect(() => {
-    if (!selectedId) return;
-    const r = validRestaurants.find(x => x.business_id === selectedId);
-    if (r?.latitude && r?.longitude) {
-      map.flyTo([parseFloat(r.latitude), parseFloat(r.longitude)], 16, { duration: 0.8 });
-    }
-  }, [selectedId]);
-
-  return null;
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size + 10}" viewBox="0 0 ${size} ${size + 10}">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${bg}" stroke="white" stroke-width="3"/>
+      <polygon points="${size / 2 - 6},${size - 2} ${size / 2 + 6},${size - 2} ${size / 2},${size + 10}" fill="${bg}"/>
+      <text x="${size / 2}" y="${size / 2 + fontSize / 3}" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="${fontSize}" fill="${textColor}">${grade}</text>
+    </svg>`;
+  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
 
 export default function MapView({ restaurants, onSelectRestaurant, onFilterByGrade, userCoords, selectedId }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
+  const userCircleRef = useRef(null);
+  const infoWindowRef = useRef(null);
+
+  const validRestaurants = useMemo(
+    () => restaurants.filter(r => r.latitude && r.longitude),
+    [restaurants]
+  );
+
   const initialCenter = useMemo(() => {
-    if (userCoords) return [userCoords.lat, userCoords.lng];
-    const valid = restaurants.filter(r => r.latitude && r.longitude);
-    if (valid.length > 0) {
-      const avgLat = valid.reduce((s, r) => s + parseFloat(r.latitude), 0) / valid.length;
-      const avgLon = valid.reduce((s, r) => s + parseFloat(r.longitude), 0) / valid.length;
-      return [avgLat, avgLon];
+    if (userCoords) return { lat: userCoords.lat, lng: userCoords.lng };
+    if (validRestaurants.length > 0) {
+      const avgLat = validRestaurants.reduce((s, r) => s + parseFloat(r.latitude), 0) / validRestaurants.length;
+      const avgLng = validRestaurants.reduce((s, r) => s + parseFloat(r.longitude), 0) / validRestaurants.length;
+      return { lat: avgLat, lng: avgLng };
     }
-    return [47.6062, -122.3321];
+    return { lat: 47.6062, lng: -122.3321 };
   }, []);
 
-  const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
-  const userIcon = useMemo(() => createUserIcon(), []);
+  // Initialize map once
+  useEffect(() => {
+    let cancelled = false;
+    loadGoogleMaps().then(() => {
+      if (cancelled || !containerRef.current || mapRef.current) return;
+      mapRef.current = new window.google.maps.Map(containerRef.current, {
+        center: initialCenter,
+        zoom: 13,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false,
+        styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }],
+      });
+      infoWindowRef.current = new window.google.maps.InfoWindow();
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Sync restaurant markers whenever validRestaurants or selectedId changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const google = window.google;
+
+    // Clear old markers
+    markersRef.current.forEach(m => m.setMap(null));
+    markersRef.current = [];
+
+    validRestaurants.forEach((restaurant) => {
+      const isSelected = restaurant.business_id === selectedId;
+      const grade = getGradeLetter(restaurant.safetyScore);
+      const pos = { lat: parseFloat(restaurant.latitude), lng: parseFloat(restaurant.longitude) };
+
+      const marker = new google.maps.Marker({
+        position: pos,
+        map: mapRef.current,
+        icon: {
+          url: makeMarkerSvg(restaurant.safetyScore, isSelected),
+          scaledSize: new google.maps.Size(isSelected ? 48 : 38, isSelected ? 58 : 48),
+          anchor: new google.maps.Point(isSelected ? 24 : 19, isSelected ? 58 : 48),
+        },
+        zIndex: isSelected ? 1000 : 1,
+        title: restaurant.name,
+      });
+
+      marker.addListener("click", () => {
+        if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
+        if (onSelectRestaurant) onSelectRestaurant(restaurant);
+
+        const content = `
+          <div style="font-family:Nunito,sans-serif;padding:4px 2px;min-width:160px;">
+            <p style="font-weight:900;font-size:14px;margin:0 0 4px 0;color:#0f172a;">${restaurant.name}</p>
+            <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">${[restaurant.address, restaurant.city].filter(Boolean).join(", ")}</p>
+            <p style="font-size:12px;font-weight:800;color:${getScoreColor(restaurant.safetyScore)};margin:0;">
+              Grade ${grade}${restaurant.safetyScore != null ? ` · ${restaurant.safetyScore}/100` : ""}
+            </p>
+          </div>`;
+        infoWindowRef.current.setContent(content);
+        infoWindowRef.current.open(mapRef.current, marker);
+      });
+
+      markersRef.current.push(marker);
+    });
+
+    // Fit bounds
+    if (validRestaurants.length > 1) {
+      const bounds = new google.maps.LatLngBounds();
+      validRestaurants.forEach(r => bounds.extend({ lat: parseFloat(r.latitude), lng: parseFloat(r.longitude) }));
+      mapRef.current.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+    } else if (validRestaurants.length === 1) {
+      mapRef.current.setCenter({ lat: parseFloat(validRestaurants[0].latitude), lng: parseFloat(validRestaurants[0].longitude) });
+      mapRef.current.setZoom(15);
+    } else if (userCoords) {
+      mapRef.current.setCenter({ lat: userCoords.lat, lng: userCoords.lng });
+      mapRef.current.setZoom(13);
+    }
+  }, [validRestaurants, selectedId]);
+
+  // Pan to selected restaurant
+  useEffect(() => {
+    if (!mapRef.current || !selectedId) return;
+    const r = validRestaurants.find(x => x.business_id === selectedId);
+    if (r?.latitude && r?.longitude) {
+      mapRef.current.panTo({ lat: parseFloat(r.latitude), lng: parseFloat(r.longitude) });
+      mapRef.current.setZoom(16);
+    }
+  }, [selectedId]);
+
+  // User location marker + accuracy circle
+  useEffect(() => {
+    if (!mapRef.current || !window.google) return;
+    const google = window.google;
+
+    if (userMarkerRef.current) { userMarkerRef.current.setMap(null); userMarkerRef.current = null; }
+    if (userCircleRef.current) { userCircleRef.current.setMap(null); userCircleRef.current = null; }
+
+    if (userCoords) {
+      userMarkerRef.current = new google.maps.Marker({
+        position: { lat: userCoords.lat, lng: userCoords.lng },
+        map: mapRef.current,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: "#2196F3",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 3,
+        },
+        title: "Your location",
+        zIndex: 2000,
+      });
+
+      userCircleRef.current = new google.maps.Circle({
+        map: mapRef.current,
+        center: { lat: userCoords.lat, lng: userCoords.lng },
+        radius: 400,
+        strokeColor: "#2196F3",
+        strokeOpacity: 0.5,
+        strokeWeight: 1.5,
+        fillColor: "#2196F3",
+        fillOpacity: 0.08,
+      });
+    }
+  }, [userCoords]);
 
   return (
     <div className="rounded-3xl overflow-hidden border-2 border-slate-200 shadow-lg" style={{ height: 520 }}>
-      <MapContainer
-        center={initialCenter}
-        zoom={13}
-        style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={true}
-      >
-        <MapController validRestaurants={validRestaurants} userCoords={userCoords} selectedId={selectedId} />
-
-        {/* OpenStreetMap tile layer */}
-        <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-
-        {/* User location marker with accuracy circle */}
-        {userCoords && (
-          <>
-            <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
-            <Circle
-              center={[userCoords.lat, userCoords.lng]}
-              radius={400}
-              pathOptions={{ color: "#2196F3", fillColor: "#2196F3", fillOpacity: 0.08, weight: 1.5, dashArray: "6 4" }}
-            />
-          </>
-        )}
-
-        {validRestaurants.map((restaurant) => {
-          const isSelected = restaurant.business_id === selectedId;
-          const grade = getGradeLetter(restaurant.safetyScore);
-          return (
-            <Marker
-              key={`${restaurant.business_id}-${restaurant.latitude}`}
-              position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
-              icon={createColoredIcon(restaurant.safetyScore, isSelected)}
-              zIndexOffset={isSelected ? 1000 : 0}
-              eventHandlers={{
-                click: () => {
-                  if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
-                }
-              }}
-            />
-          );
-        })}
-      </MapContainer>
+      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
     </div>
   );
 }

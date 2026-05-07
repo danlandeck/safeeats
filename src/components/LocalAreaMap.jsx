@@ -1,10 +1,52 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Circle, Popup } from "react-leaflet";
+import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, LocateFixed, Search } from "lucide-react";
-import "leaflet/dist/leaflet.css";
 
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const RADIUS_OPTIONS = [5, 10, 20];
 const MILES_TO_METERS = 1609.34;
+
+// Shared loader — avoids duplicate script tags if MapView also loaded it
+let _loadPromise = null;
+function loadGoogleMaps() {
+  if (window.google?.maps) return Promise.resolve();
+  if (_loadPromise) return _loadPromise;
+  _loadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return _loadPromise;
+}
+
+async function reverseGeocode(lat, lng) {
+  // Use Google Geocoding REST API (no extra library needed)
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${MAPS_API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.status !== "OK" || !data.results?.length) return null;
+
+  const components = data.results[0].address_components || [];
+  const get = (type) => components.find(c => c.types.includes(type))?.long_name || "";
+  const getShort = (type) => components.find(c => c.types.includes(type))?.short_name || "";
+
+  const city = get("locality") || get("sublocality") || get("neighborhood") || get("administrative_area_level_3");
+  const state = getShort("administrative_area_level_1");
+  const zip = get("postal_code");
+  return `${city}${state ? ", " + state : ""}${zip ? " " + zip : ""}`;
+}
+
+async function geocodeAddress(query) {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${MAPS_API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.status !== "OK" || !data.results?.length) return null;
+  const { lat, lng } = data.results[0].geometry.location;
+  return { lat, lng };
+}
 
 export default function LocalAreaMap({ onSearch, consentGiven }) {
   const [coords, setCoords] = useState(null);
@@ -16,6 +58,12 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
 
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const circleRef = useRef(null);
+  const markerRef = useRef(null);
+
+  // Auto-detect location on consent
   useEffect(() => {
     if (!consentGiven || coords || geoBlocked) return;
     setLoading(true);
@@ -25,13 +73,9 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
         const { latitude, longitude } = pos.coords;
         setCoords({ lat: latitude, lng: longitude });
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await res.json();
-          const a = data.address || {};
-          const city = a.city || a.town || a.village || a.suburb || "";
-          const state = a.state || "";
-          const zip = a.postcode || "";
-          setLocationLabel(`${city}${state ? ", " + state : ""}${zip ? " " + zip : ""}`);
+          await loadGoogleMaps();
+          const label = await reverseGeocode(latitude, longitude);
+          setLocationLabel(label);
         } catch { setLocationLabel(null); }
         setLoading(false);
       },
@@ -40,6 +84,66 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
     );
   }, [consentGiven]);
 
+  // Initialize / update map when coords change
+  useEffect(() => {
+    if (!coords) return;
+    let cancelled = false;
+
+    loadGoogleMaps().then(() => {
+      if (cancelled || !containerRef.current) return;
+      const google = window.google;
+      const center = { lat: coords.lat, lng: coords.lng };
+      const zoom = radiusMiles <= 5 ? 13 : radiusMiles <= 10 ? 12 : 11;
+
+      if (!mapRef.current) {
+        mapRef.current = new google.maps.Map(containerRef.current, {
+          center,
+          zoom,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          streetViewControl: false,
+          zoomControl: true,
+          scrollwheel: false,
+        });
+      } else {
+        mapRef.current.setCenter(center);
+        mapRef.current.setZoom(zoom);
+      }
+
+      // User pin
+      if (markerRef.current) markerRef.current.setMap(null);
+      markerRef.current = new google.maps.Marker({
+        position: center,
+        map: mapRef.current,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: "#2196F3",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 3,
+        },
+        title: "You are here",
+        zIndex: 1000,
+      });
+
+      // Radius circle
+      if (circleRef.current) circleRef.current.setMap(null);
+      circleRef.current = new google.maps.Circle({
+        map: mapRef.current,
+        center,
+        radius: radiusMiles * MILES_TO_METERS,
+        strokeColor: "#3b82f6",
+        strokeOpacity: 0.7,
+        strokeWeight: 2,
+        fillColor: "#3b82f6",
+        fillOpacity: 0.1,
+      });
+    });
+
+    return () => { cancelled = true; };
+  }, [coords, radiusMiles]);
+
   const handleManualSubmit = async (e) => {
     e.preventDefault();
     const q = manualInput.trim();
@@ -47,22 +151,16 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
     setGeocodeError("");
     setGeocoding(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us`);
-      const data = await res.json();
-      if (!data || data.length === 0) {
+      await loadGoogleMaps();
+      const result = await geocodeAddress(q);
+      if (!result) {
         setGeocodeError("Location not found. Try a city name or ZIP code.");
         setGeocoding(false);
         return;
       }
-      const { lat, lon } = data[0];
-      const rev = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r => r.json());
-      const a = rev.address || {};
-      const city = a.city || a.town || a.village || a.suburb || q;
-      const state = a.state || "";
-      const zip = a.postcode || "";
-      const label = `${city}${state ? ", " + state : ""}${zip ? " " + zip : ""}`;
-      setCoords({ lat: parseFloat(lat), lng: parseFloat(lon) });
-      setLocationLabel(label);
+      setCoords({ lat: result.lat, lng: result.lng });
+      const label = await reverseGeocode(result.lat, result.lng);
+      setLocationLabel(label || q);
       setGeoBlocked(false);
     } catch {
       setGeocodeError("Could not find that location. Please try again.");
@@ -116,8 +214,6 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
     );
   }
 
-  const radiusMeters = radiusMiles * MILES_TO_METERS;
-
   return (
     <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
       <div className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -154,35 +250,7 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
           </button>
         </div>
       </div>
-      <div style={{ height: 320 }}>
-        <MapContainer
-          key={`${coords.lat}-${coords.lng}-${radiusMiles}`}
-          center={[coords.lat, coords.lng]}
-          zoom={radiusMiles <= 5 ? 13 : radiusMiles <= 10 ? 12 : 11}
-          style={{ height: "100%", width: "100%" }}
-          zoomControl={true}
-          scrollWheelZoom={false}
-          attributionControl={false}
-        >
-          <TileLayer
-  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-/>
-          <Circle
-            center={[coords.lat, coords.lng]}
-            radius={radiusMeters}
-            pathOptions={{ color: "#3b82f6", fillColor: "#3b82f6", fillOpacity: 0.1, weight: 2 }}
-          >
-            <Popup>
-              <div className="text-center">
-                <p className="font-bold text-sm">📍 You are here</p>
-                {locationLabel && <p className="text-xs text-slate-500 mt-0.5">{locationLabel}</p>}
-                <p className="text-xs text-blue-600 mt-1">Radius: {radiusMiles} miles</p>
-              </div>
-            </Popup>
-          </Circle>
-        </MapContainer>
-      </div>
+      <div ref={containerRef} style={{ height: 320, width: "100%" }} />
       <div className="px-5 py-2 bg-slate-50 border-t border-slate-100">
         <p className="text-[11px] text-slate-400">Showing a {radiusMiles}-mile radius. Tap "Search Here" to find health inspection results nearby.</p>
       </div>
