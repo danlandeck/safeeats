@@ -18,23 +18,14 @@ const COMPLIANCE_CONFIG = {
   unknown:              { label: "Unknown",               bg: "bg-slate-100",   text: "text-slate-600",   border: "border-slate-200" },
 };
 
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
-function boolToYesNo(val) {
-  if (val === true) return "yes";
-  if (val === false) return "no";
-  return "unknown";
-}
-
-function deriveCompliance(parking, entrance, restroom, seating) {
-  const vals = [parking, entrance, restroom, seating];
-  const known = vals.filter(v => v !== "unknown");
-  if (known.length === 0) return "unknown";
-  if (known.every(v => v === "yes")) return "accessible";
-  if (known.every(v => v === "no")) return "not_accessible";
-  if (known.some(v => v === "yes")) return "partially_accessible";
-  return "unknown";
-}
+const UNKNOWN_ADA = {
+  ada_parking: "unknown",
+  ada_entrance_ramp: "unknown",
+  ada_restroom: "unknown",
+  ada_accessible_seating: "unknown",
+  ada_compliance: "unknown",
+  ada_last_updated: null,
+};
 
 function StatusBadge({ value }) {
   if (value === "yes") {
@@ -58,15 +49,6 @@ function StatusBadge({ value }) {
   );
 }
 
-const UNKNOWN_ADA = {
-  ada_parking: "unknown",
-  ada_entrance_ramp: "unknown",
-  ada_restroom: "unknown",
-  ada_accessible_seating: "unknown",
-  ada_compliance: "unknown",
-  ada_last_updated: null,
-};
-
 export default function ADADetailSection({ restaurant }) {
   const { langCode } = useLanguage();
   const [adaData, setAdaData] = useState(UNKNOWN_ADA);
@@ -75,119 +57,34 @@ export default function ADADetailSection({ restaurant }) {
   useEffect(() => {
     if (!restaurant?.business_id || !restaurant?.name) return;
 
-    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    console.log("[ADA] API key present:", !!API_KEY);
-
-    if (!API_KEY) {
-      console.error("[ADA] VITE_GOOGLE_MAPS_API_KEY is not set. Showing all fields as Unknown.");
-      setAdaData(UNKNOWN_ADA);
-      return;
-    }
-
     async function fetchADA() {
       setLoading(true);
+      console.log("[ADA] Fetching ADA data for:", restaurant.business_id, restaurant.name);
+
       try {
-        // Step 1: Check DB for existing cached record
-        console.log("[ADA] Checking DB cache for business_id:", restaurant.business_id);
-        const existing = await base44.entities.Restaurant.filter({ business_id: restaurant.business_id });
-        const record = existing?.[0] || null;
-        console.log("[ADA] DB record found:", !!record, record ? `ada_last_updated: ${record.ada_last_updated}` : "");
+        const res = await base44.functions.invoke("getGoogleADA", {
+          business_id: restaurant.business_id,
+          name: restaurant.name,
+          address: restaurant.address || "",
+          city: restaurant.city || "",
+        });
 
-        // Step 2: Use cache if fresh
-        if (record?.ada_last_updated) {
-          const age = Date.now() - new Date(record.ada_last_updated).getTime();
-          if (age < THIRTY_DAYS_MS) {
-            console.log("[ADA] Using cached data (age:", Math.round(age / 86400000), "days)");
-            setAdaData({
-              ada_parking:            record.ada_parking            || "unknown",
-              ada_entrance_ramp:      record.ada_entrance_ramp      || "unknown",
-              ada_restroom:           record.ada_restroom           || "unknown",
-              ada_accessible_seating: record.ada_accessible_seating || "unknown",
-              ada_compliance:         record.ada_compliance         || "unknown",
-              ada_last_updated:       record.ada_last_updated,
-            });
-            setLoading(false);
-            return;
-          }
-          console.log("[ADA] Cache expired, fetching from Google...");
-        }
+        console.log("[ADA] Backend response:", res?.data);
 
-        // Step 3: Google Places Text Search to get place_id
-        let placeId = record?.google_place_id || null;
-
-        if (!placeId) {
-          const textQuery = [restaurant.name, restaurant.address, restaurant.city].filter(Boolean).join(" ");
-          console.log("[ADA] Searching for:", textQuery);
-
-          const searchRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Goog-Api-Key": API_KEY,
-              "X-Goog-FieldMask": "places.id",
-            },
-            body: JSON.stringify({ textQuery }),
+        if (res?.data && !res.data.error) {
+          setAdaData({
+            ada_parking:            res.data.ada_parking            || "unknown",
+            ada_entrance_ramp:      res.data.ada_entrance_ramp      || "unknown",
+            ada_restroom:           res.data.ada_restroom           || "unknown",
+            ada_accessible_seating: res.data.ada_accessible_seating || "unknown",
+            ada_compliance:         res.data.ada_compliance         || "unknown",
+            ada_last_updated:       res.data.ada_last_updated       || null,
           });
-
-          const searchData = await searchRes.json();
-          console.log("[ADA] Text Search response:", searchData);
-
-          placeId = searchData?.places?.[0]?.id || null;
-          console.log("[ADA] Found place_id:", placeId);
+          console.log("[ADA] Data set successfully. Cached:", res.data.cached);
         } else {
-          console.log("[ADA] Reusing cached place_id:", placeId);
+          console.error("[ADA] Backend returned error:", res?.data?.error);
+          setAdaData(UNKNOWN_ADA);
         }
-
-        // Step 4: Fetch accessibility details
-        let opts = null;
-        if (placeId) {
-          const detailRes = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
-            method: "GET",
-            headers: {
-              "X-Goog-Api-Key": API_KEY,
-              "X-Goog-FieldMask": "accessibilityOptions",
-            },
-          });
-          const detailData = await detailRes.json();
-          console.log("[ADA] Details response:", detailData);
-          opts = detailData?.accessibilityOptions || null;
-        }
-
-        // Step 5: Map fields
-        const ada_parking            = boolToYesNo(opts?.wheelchairAccessibleParking);
-        const ada_entrance_ramp      = boolToYesNo(opts?.wheelchairAccessibleEntrance);
-        const ada_restroom           = boolToYesNo(opts?.wheelchairAccessibleRestroom);
-        const ada_accessible_seating = boolToYesNo(opts?.wheelchairAccessibleSeating);
-        const ada_compliance         = deriveCompliance(ada_parking, ada_entrance_ramp, ada_restroom, ada_accessible_seating);
-        const ada_last_updated       = new Date().toISOString();
-
-        const mapped = { ada_parking, ada_entrance_ramp, ada_restroom, ada_accessible_seating, ada_compliance, ada_last_updated };
-        console.log("[ADA] Mapped fields:", mapped);
-
-        // Step 6: Save to DB
-        const dbPayload = {
-          ...mapped,
-          ...(placeId ? { google_place_id: placeId } : {}),
-        };
-        console.log("[ADA] Saving to DB:", dbPayload);
-
-        try {
-          if (record) {
-            await base44.entities.Restaurant.update(record.id, dbPayload);
-          } else {
-            await base44.entities.Restaurant.create({
-              business_id: restaurant.business_id,
-              name: restaurant.name,
-              source: "ada_cache",
-              ...dbPayload,
-            });
-          }
-          console.log("[ADA] DB save successful");
-        } catch (dbErr) {
-          console.error("[ADA] DB save failed (non-fatal):", dbErr?.message || dbErr);
-        }
-
-        setAdaData(mapped);
       } catch (err) {
         console.error("[ADA] Fetch failed, showing Unknown:", err?.message || err);
         setAdaData(UNKNOWN_ADA);
