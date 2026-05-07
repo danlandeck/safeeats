@@ -57,8 +57,11 @@ export default function ADADetailSection({ restaurant }) {
   useEffect(() => {
     if (!restaurant?.business_id || !restaurant?.name) return;
 
+    let cancelled = false;
+
     async function fetchADA() {
       setLoading(true);
+      setAdaData(UNKNOWN_ADA); // reset on new restaurant
       console.log("[ADA] Fetching ADA data for:", restaurant.business_id, restaurant.name);
 
       try {
@@ -69,33 +72,44 @@ export default function ADADetailSection({ restaurant }) {
           city: restaurant.city || "",
         });
 
-        console.log("[ADA] Backend response:", res?.data);
+        if (cancelled) return;
 
-        if (res?.data && !res.data.error) {
-          setAdaData({
-            ada_parking:            res.data.ada_parking            || "unknown",
-            ada_entrance_ramp:      res.data.ada_entrance_ramp      || "unknown",
-            ada_restroom:           res.data.ada_restroom           || "unknown",
-            ada_accessible_seating: res.data.ada_accessible_seating || "unknown",
-            ada_compliance:         res.data.ada_compliance         || "unknown",
-            ada_last_updated:       res.data.ada_last_updated       || null,
-          });
-          console.log("[ADA] Data set successfully. Cached:", res.data.cached);
+        console.log("[ADA] Raw backend response:", res);
+        console.log("[ADA] res.data:", res?.data);
+
+        // base44.functions.invoke wraps the JSON response in { data: <payload> }
+        const payload = res?.data;
+        console.log("[ADA] payload:", payload);
+
+        if (payload && !payload.error) {
+          const newData = {
+            ada_parking:            String(payload.ada_parking            || "unknown"),
+            ada_entrance_ramp:      String(payload.ada_entrance_ramp      || "unknown"),
+            ada_restroom:           String(payload.ada_restroom           || "unknown"),
+            ada_accessible_seating: String(payload.ada_accessible_seating || "unknown"),
+            ada_compliance:         String(payload.ada_compliance         || "unknown"),
+            ada_last_updated:       payload.ada_last_updated || null,
+          };
+          console.log("[ADA] Setting adaData to:", newData);
+          setAdaData(newData);
         } else {
-          console.error("[ADA] Backend returned error:", res?.data?.error);
+          console.error("[ADA] Backend returned error:", payload?.error);
           setAdaData(UNKNOWN_ADA);
         }
       } catch (err) {
+        if (cancelled) return;
         console.error("[ADA] Fetch failed, showing Unknown:", err?.message || err);
         setAdaData(UNKNOWN_ADA);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchADA();
+    return () => { cancelled = true; };
   }, [restaurant?.business_id]);
 
+  console.log("[ADA UI] Rendering with data:", adaData);
   const compliance = adaData.ada_compliance || "unknown";
   const cfg = COMPLIANCE_CONFIG[compliance] || COMPLIANCE_CONFIG.unknown;
 
