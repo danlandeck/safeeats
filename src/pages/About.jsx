@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility, Droplets } from "lucide-react";
+import { ShieldCheck, Shield, Database, ArrowLeft, Heart, AlertTriangle, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility, Droplets } from "lucide-react";
+import { useLanguage } from "../lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -15,13 +16,14 @@ const Pill = ({ children, color = "bg-slate-900 text-white" }) => (
 );
 
 export default function About() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <div className="max-w-3xl mx-auto px-4 py-10">
         <Link to="/">
           <Button variant="ghost" className="mb-8 text-slate-500 hover:text-slate-800 -ml-2 group">
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" />
-            Back to Home
+            {t?.backToResults || "Back to Home"}
           </Button>
         </Link>
 
@@ -346,32 +348,6 @@ export default function About() {
             </div>
           </Section>
           </div>
-
-          {/* ── Esri ── */}
-          <Section>
-            <div className="flex gap-5 items-start">
-              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Globe className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h2 className="text-xl font-extrabold text-slate-900">Powered by Esri GIS Technology</h2>
-                  <Pill color="bg-blue-100 text-blue-700">Map Data Partner</Pill>
-                </div>
-                <p className="text-slate-600 leading-relaxed text-sm mb-4">
-                  SafeEats uses Esri's diverging health-risk color scale — the same visual language used by public health agencies worldwide — to make safety risk immediately legible at a glance. Their perceptually calibrated color ramp works even for users with color vision deficiencies.
-                </p>
-                <a
-                  href="https://www.esri.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors shadow-sm"
-                >
-                  Learn more about Esri →
-                </a>
-              </div>
-            </div>
-          </Section>
 
           {/* ── Disclaimer ── */}
           <Section className="border-2 border-red-300 bg-red-50 shadow-none">
