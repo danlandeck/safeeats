@@ -128,13 +128,43 @@ function filterByNameRelevance(results, query) {
   return filtered.length > 0 ? filtered : results;
 }
 
-function llmCall(prompt, internet = false) {
-  return base44.integrations.Core.InvokeLLM({
+async function llmCall(prompt, internet = false) {
+  if (!internet) {
+    // Training-data-only call: can use response_json_schema directly
+    return base44.integrations.Core.InvokeLLM({
+      prompt,
+      add_context_from_internet: false,
+      response_json_schema: LLM_SCHEMA,
+    });
+  }
+
+  // Two-step approach: Gemini does not allow add_context_from_internet + response_json_schema together.
+  // Step 1 — Web search: get raw text from the internet (no JSON schema)
+  const rawText = await base44.integrations.Core.InvokeLLM({
     prompt,
-    add_context_from_internet: internet,
-    response_json_schema: LLM_SCHEMA,
-    ...(internet ? { model: "gemini_3_flash" } : {}),
+    add_context_from_internet: true,
+    model: "gemini_3_flash",
   });
+
+  if (!rawText || typeof rawText !== "string" || rawText.trim().length < 10) {
+    return { restaurants: [] };
+  }
+
+  // Step 2 — Format: parse the raw text into structured JSON (no internet)
+  const formatPrompt = `You are a data formatter. Convert the following restaurant health inspection information into structured JSON.
+Only include restaurants with real data from the text below. Do not invent any data.
+If a field is unknown, use null or omit it.
+
+RAW DATA:
+${rawText}`;
+
+  const structured = await base44.integrations.Core.InvokeLLM({
+    prompt: formatPrompt,
+    add_context_from_internet: false,
+    response_json_schema: LLM_SCHEMA,
+  });
+
+  return structured || { restaurants: [] };
 }
 
 // EXHAUSTIVE forbidden locations
@@ -285,25 +315,35 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 
   // Dubai — fully isolated path
   if (countyId === "dubai") {
-    const restaurants = await runWithFastResults(
-      llmCall(FAST_PROMPT_DUBAI(query), false),
-      llmCall(PROMPT_DUBAI(query, today), true),
-      (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
-      onFastResults,
-      true  // isDubaiSearch flag for aggressive filtering
-    );
-    return { results: restaurants, isAI: true };
+    try {
+      const restaurants = await runWithFastResults(
+        llmCall(FAST_PROMPT_DUBAI(query), false),
+        llmCall(PROMPT_DUBAI(query, today), true),
+        (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
+        onFastResults,
+        true  // isDubaiSearch flag for aggressive filtering
+      );
+      return { results: restaurants, isAI: true };
+    } catch (err) {
+      console.warn("Dubai AI search failed:", err?.message || err);
+      return { results: [], isAI: true };
+    }
   }
 
   // AI global/location search
   const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : null;
-  const restaurants = await runWithFastResults(
-    llmCall(FAST_PROMPT(query, location), false),
-    llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
-    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
-    onFastResults
-  );
-  return { results: restaurants, isAI: true };
+  try {
+    const restaurants = await runWithFastResults(
+      llmCall(FAST_PROMPT(query, location), false),
+      llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
+      (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
+      onFastResults
+    );
+    return { results: restaurants, isAI: true };
+  } catch (err) {
+    console.warn("AI search failed:", err?.message || err);
+    return { results: [], isAI: true };
+  }
 }
 
 export async function fetchDetail(restaurant) {
