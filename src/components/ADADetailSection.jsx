@@ -47,25 +47,23 @@ export default function ADADetailSection({ restaurant: initialRestaurant }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!initialRestaurant?.id) return;
-
-    // Check 30-day cache client-side before calling backend
-    if (initialRestaurant.ada_last_updated) {
-      const age = Date.now() - new Date(initialRestaurant.ada_last_updated).getTime();
-      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-      if (age < THIRTY_DAYS_MS) return; // fresh enough, skip fetch
-    }
+    if (!initialRestaurant?.business_id || !initialRestaurant?.name) return;
 
     setLoading(true);
-    base44.functions.invoke("getGoogleADA", { restaurantId: initialRestaurant.id })
+    base44.functions.invoke("getGoogleADA", {
+      business_id: initialRestaurant.business_id,
+      name: initialRestaurant.name,
+      address: initialRestaurant.address || "",
+      city: initialRestaurant.city || "",
+    })
       .then((res) => {
-        if (res.data?.found !== false) {
+        if (res.data && !res.data.error) {
           setData(prev => ({ ...prev, ...res.data }));
         }
       })
       .catch(() => {}) // fail silently
       .finally(() => setLoading(false));
-  }, [initialRestaurant?.id]);
+  }, [initialRestaurant?.business_id]);
 
   const compliance = data.ada_compliance || "unknown";
   const cfg = COMPLIANCE_CONFIG[compliance] || COMPLIANCE_CONFIG.unknown;

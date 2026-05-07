@@ -13,12 +13,10 @@ function deriveCompliance(parking, entrance, restroom, seating) {
   const vals = [parking, entrance, restroom, seating];
   const known = vals.filter(v => v !== "unknown");
   if (known.length === 0) return "unknown";
-  const allYes = known.every(v => v === "yes");
-  const allNo = known.every(v => v === "no");
-  if (allYes && known.length === vals.length) return "accessible";
-  if (allNo && known.length === vals.length) return "not_accessible";
+  if (known.every(v => v === "yes")) return "accessible";
+  if (known.every(v => v === "no")) return "not_accessible";
   if (known.some(v => v === "yes")) return "partially_accessible";
-  return "not_accessible";
+  return "unknown";
 }
 
 async function findPlaceId(name, address, city) {
@@ -52,70 +50,75 @@ async function fetchAccessibility(placeId) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { restaurantId } = await req.json();
+    const { business_id, name, address, city } = await req.json();
 
-    if (!restaurantId) {
-      return Response.json({ error: "restaurantId required" }, { status: 400 });
+    if (!business_id || !name) {
+      return Response.json({ error: "business_id and name are required" }, { status: 400 });
     }
 
     if (!GOOGLE_API_KEY) {
       return Response.json({ error: "GOOGLE_MAPS_API_KEY not set" }, { status: 500 });
     }
 
-    // Load restaurant record
-    const restaurants = await base44.asServiceRole.entities.Restaurant.filter({ id: restaurantId });
-    const restaurant = restaurants?.[0];
-    if (!restaurant) {
-      return Response.json({ error: "Restaurant not found" }, { status: 404 });
-    }
+    // Step 1: Check DB for existing record by business_id
+    const existing = await base44.asServiceRole.entities.Restaurant.filter({ business_id });
+    const record = existing?.[0] || null;
 
-    // Check 30-day cache
-    if (restaurant.ada_last_updated) {
-      const age = Date.now() - new Date(restaurant.ada_last_updated).getTime();
+    // Step 2: Check 30-day cache
+    if (record?.ada_last_updated) {
+      const age = Date.now() - new Date(record.ada_last_updated).getTime();
       if (age < THIRTY_DAYS_MS) {
-        return Response.json({ cached: true, ada_compliance: restaurant.ada_compliance });
+        return Response.json({
+          cached: true,
+          ada_parking: record.ada_parking || "unknown",
+          ada_entrance_ramp: record.ada_entrance_ramp || "unknown",
+          ada_restroom: record.ada_restroom || "unknown",
+          ada_accessible_seating: record.ada_accessible_seating || "unknown",
+          ada_compliance: record.ada_compliance || "unknown",
+          ada_last_updated: record.ada_last_updated,
+        });
       }
     }
 
-    // Step 1: Get or find place_id
-    let placeId = restaurant.google_place_id;
+    // Step 3: Find Google place_id
+    let placeId = record?.google_place_id || null;
     if (!placeId) {
-      placeId = await findPlaceId(restaurant.name, restaurant.address, restaurant.city);
-      if (!placeId) {
-        return Response.json({ found: false });
-      }
+      placeId = await findPlaceId(name, address, city);
     }
 
-    // Step 2: Fetch accessibility options
-    const opts = await fetchAccessibility(placeId);
+    // Step 4: Fetch accessibility (gracefully handle no placeId)
+    const opts = placeId ? await fetchAccessibility(placeId) : null;
 
-    const ada_parking          = boolToYesNo(opts?.wheelchairAccessibleParking);
-    const ada_entrance_ramp    = boolToYesNo(opts?.wheelchairAccessibleEntrance);
-    const ada_restroom         = boolToYesNo(opts?.wheelchairAccessibleRestroom);
+    const ada_parking            = boolToYesNo(opts?.wheelchairAccessibleParking);
+    const ada_entrance_ramp      = boolToYesNo(opts?.wheelchairAccessibleEntrance);
+    const ada_restroom           = boolToYesNo(opts?.wheelchairAccessibleRestroom);
     const ada_accessible_seating = boolToYesNo(opts?.wheelchairAccessibleSeating);
-    const ada_compliance       = deriveCompliance(ada_parking, ada_entrance_ramp, ada_restroom, ada_accessible_seating);
-    const ada_last_updated     = new Date().toISOString();
+    const ada_compliance         = deriveCompliance(ada_parking, ada_entrance_ramp, ada_restroom, ada_accessible_seating);
+    const ada_last_updated       = new Date().toISOString();
 
-    // Step 3: Save back to restaurant
-    await base44.asServiceRole.entities.Restaurant.update(restaurantId, {
-      google_place_id: placeId,
+    const adaFields = {
       ada_parking,
       ada_entrance_ramp,
       ada_restroom,
       ada_accessible_seating,
       ada_compliance,
       ada_last_updated,
-    });
+      ...(placeId ? { google_place_id: placeId } : {}),
+    };
 
-    return Response.json({
-      found: true,
-      ada_parking,
-      ada_entrance_ramp,
-      ada_restroom,
-      ada_accessible_seating,
-      ada_compliance,
-      ada_last_updated,
-    });
+    // Step 5: Create or update DB record
+    if (record) {
+      await base44.asServiceRole.entities.Restaurant.update(record.id, adaFields);
+    } else {
+      await base44.asServiceRole.entities.Restaurant.create({
+        business_id,
+        name,
+        source: "ada_cache",
+        ...adaFields,
+      });
+    }
+
+    return Response.json({ ...adaFields });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
