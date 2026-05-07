@@ -43,7 +43,7 @@ const SOURCE_REGISTRY = {
   toronto:        { name: "Toronto Public Health — DineSafe", url: "https://www.toronto.ca/community-people/health-wellness-care/health-programs-advice/food-safety/dinesafe/" },
 };
 
-export default function RestaurantDetail({ restaurant, inspections, onBack }) {
+export default function RestaurantDetail({ restaurant, inspections = [], onBack }) {
   const { t, langCode } = useLanguage();
   const [showDataSource, setShowDataSource] = useState(false);
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
@@ -102,7 +102,12 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const totalRepeatCount = repeatCategories.size;
 
   // ── Source info ────────────────────────────────────────────────────────────
-  const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source] || SOURCE_REGISTRY[restaurant.region === "uae" ? "dubai" : null];
+  // Normalize source keys that differ from registry keys
+  const SOURCE_KEY_MAP = { chicago: "cook", montgomery: "montgomery_md", austin: "travis" };
+  const normalizedSource = SOURCE_KEY_MAP[restaurant.source] || restaurant.source;
+  const sourceInfo = SOURCE_REGISTRY[restaurant.county_id]
+    || SOURCE_REGISTRY[normalizedSource]
+    || (restaurant.region === "uae" ? SOURCE_REGISTRY.dubai : null);
 
   return (
     <motion.div
@@ -131,7 +136,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </h1>
               <div className="flex items-center gap-1.5 mt-1.5 text-sm text-slate-500">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate">{restaurant.address}, {restaurant.city} {restaurant.zip_code}</span>
+                <span className="truncate">
+                  {[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ") || "Address unavailable"}
+                </span>
               </div>
               {/* Contact row */}
               <div className="flex flex-wrap gap-3 mt-2">
@@ -362,7 +369,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.25 }}
-                  className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm"
+                  className="relative bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm"
                 >
                   {/* Inspection header — always visible, tap to expand */}
                   <button

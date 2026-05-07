@@ -88,9 +88,9 @@ export default function InspectionTrendChart({ inspections }) {
       {/* Context blurb if grades differ */}
       {currentGrade !== legacyGrade && (
         <div className="mb-4 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-600 leading-relaxed">
-          {currentGrade < legacyGrade
-            ? `⚠️ This restaurant's most recent grade (${currentGrade}) is lower than its long-term average (${legacyGrade}). A recent decline in safety standards.`
-            : `✅ Recent performance (${currentGrade}) is better than the historical average (${legacyGrade}). The establishment appears to be improving.`}
+          {currentScore < avgScore
+              ? `⚠️ This restaurant's most recent grade (${currentGrade}) is lower than its long-term average (${legacyGrade}). A recent decline in safety standards.`
+              : `✅ Recent performance (${currentGrade}) is better than the historical average (${legacyGrade}). The establishment appears to be improving.`}
         </div>
       )}
 

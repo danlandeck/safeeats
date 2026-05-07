@@ -261,6 +261,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
           try {
             const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
             const rows = await fetch(countUrl, signal ? { signal } : {}).then(r => r.json());
+            // Don't update if search was aborted
+            if (signal?.aborted) return;
             if (!Array.isArray(rows) || rows.length === 0) return;
             const keys = new Set(rows.map(row => {
               const v = row[entry.dateField];
@@ -271,7 +273,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
               onCountUpdate(biz.business_id, trueCount);
             }
           } catch (err) {
-            // silently ignore background count errors
+            // silently ignore background count errors (including AbortError)
           }
         });
       }

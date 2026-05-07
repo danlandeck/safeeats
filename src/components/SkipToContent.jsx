@@ -1,3 +1,5 @@
+import React from "react";
+
 // WCAG 2.4.1 — Skip Navigation
 export default function SkipToContent() {
   return (
