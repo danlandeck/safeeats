@@ -14,8 +14,7 @@ import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
-import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
-import ADABadge from "./ADABadge";
+import ADADetailSection from "./ADADetailSection";
 import EPAWaterCard from "./EPAWaterCard";
 import KofiButton from "./KofiButton";
 import { base44 } from "@/api/base44Client";
@@ -258,15 +257,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
           {/* ADA Accessibility */}
           <div className="mt-4">
-            <ADAAccessibilityBadge restaurant={restaurant} />
+            <ADADetailSection restaurant={restaurant} />
           </div>
-
-          {/* ADA Compliance Status */}
-          {restaurant.ada_compliance && (
-            <div className="mt-3">
-              <ADABadge ada_compliance={restaurant.ada_compliance} size="lg" />
-            </div>
-          )}
 
           {/* Water Quality */}
           <EPAWaterCard
