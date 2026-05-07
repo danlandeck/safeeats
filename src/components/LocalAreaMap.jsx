@@ -1,51 +1,50 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, LocateFixed, Search } from "lucide-react";
 
-const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 const RADIUS_OPTIONS = [5, 10, 20];
 const MILES_TO_METERS = 1609.34;
 
-// Shared loader — avoids duplicate script tags if MapView also loaded it
-let _loadPromise = null;
-function loadGoogleMaps() {
-  if (window.google?.maps) return Promise.resolve();
-  if (_loadPromise) return _loadPromise;
-  _loadPromise = new Promise((resolve, reject) => {
+// Load Leaflet CSS once
+let leafletCssLoaded = false;
+function ensureLeafletCss() {
+  if (leafletCssLoaded) return;
+  leafletCssLoaded = true;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  document.head.appendChild(link);
+}
+
+let _leafletPromise = null;
+function loadLeaflet() {
+  ensureLeafletCss();
+  if (window.L) return Promise.resolve(window.L);
+  if (_leafletPromise) return _leafletPromise;
+  _leafletPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}`;
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.async = true;
-    script.defer = true;
-    script.onload = resolve;
+    script.onload = () => resolve(window.L);
     script.onerror = reject;
     document.head.appendChild(script);
   });
-  return _loadPromise;
+  return _leafletPromise;
 }
 
 async function reverseGeocode(lat, lng) {
-  // Use Google Geocoding REST API (no extra library needed)
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${MAPS_API_KEY}`;
-  const res = await fetch(url);
+  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
   const data = await res.json();
-  if (data.status !== "OK" || !data.results?.length) return null;
-
-  const components = data.results[0].address_components || [];
-  const get = (type) => components.find(c => c.types.includes(type))?.long_name || "";
-  const getShort = (type) => components.find(c => c.types.includes(type))?.short_name || "";
-
-  const city = get("locality") || get("sublocality") || get("neighborhood") || get("administrative_area_level_3");
-  const state = getShort("administrative_area_level_1");
-  const zip = get("postal_code");
-  return `${city}${state ? ", " + state : ""}${zip ? " " + zip : ""}`;
+  if (!data?.address) return null;
+  const { city, town, village, suburb, state, postcode } = data.address;
+  const place = city || town || village || suburb || "";
+  return `${place}${state ? ", " + state : ""}${postcode ? " " + postcode : ""}`;
 }
 
 async function geocodeAddress(query) {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${MAPS_API_KEY}`;
-  const res = await fetch(url);
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
   const data = await res.json();
-  if (data.status !== "OK" || !data.results?.length) return null;
-  const { lat, lng } = data.results[0].geometry.location;
-  return { lat, lng };
+  if (!data?.length) return null;
+  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
 }
 
 export default function LocalAreaMap({ onSearch, consentGiven }) {
@@ -73,7 +72,6 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
         const { latitude, longitude } = pos.coords;
         setCoords({ lat: latitude, lng: longitude });
         try {
-          await loadGoogleMaps();
           const label = await reverseGeocode(latitude, longitude);
           setLocationLabel(label);
         } catch { setLocationLabel(null); }
@@ -84,61 +82,46 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
     );
   }, [consentGiven]);
 
-  // Initialize / update map when coords change
+  // Initialize / update map when coords or radius changes
   useEffect(() => {
     if (!coords) return;
     let cancelled = false;
 
-    loadGoogleMaps().then(() => {
+    loadLeaflet().then((L) => {
       if (cancelled || !containerRef.current) return;
-      const google = window.google;
-      const center = { lat: coords.lat, lng: coords.lng };
+      const center = [coords.lat, coords.lng];
       const zoom = radiusMiles <= 5 ? 13 : radiusMiles <= 10 ? 12 : 11;
 
       if (!mapRef.current) {
-        mapRef.current = new google.maps.Map(containerRef.current, {
-          center,
-          zoom,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          streetViewControl: false,
-          zoomControl: true,
-          scrollwheel: false,
-        });
+        mapRef.current = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, zoom);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(mapRef.current);
       } else {
-        mapRef.current.setCenter(center);
-        mapRef.current.setZoom(zoom);
+        mapRef.current.setView(center, zoom);
       }
 
       // User pin
-      if (markerRef.current) markerRef.current.setMap(null);
-      markerRef.current = new google.maps.Marker({
-        position: center,
-        map: mapRef.current,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: "#2196F3",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 3,
-        },
-        title: "You are here",
-        zIndex: 1000,
+      if (markerRef.current) { markerRef.current.remove(); markerRef.current = null; }
+      const userIcon = L.divIcon({
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:#2196F3;border:3px solid white;box-shadow:0 0 0 4px rgba(33,150,243,0.25);"></div>`,
+        className: "",
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
       });
+      markerRef.current = L.marker(center, { icon: userIcon, zIndexOffset: 1000, title: "You are here" }).addTo(mapRef.current);
 
       // Radius circle
-      if (circleRef.current) circleRef.current.setMap(null);
-      circleRef.current = new google.maps.Circle({
-        map: mapRef.current,
-        center,
+      if (circleRef.current) { circleRef.current.remove(); circleRef.current = null; }
+      circleRef.current = L.circle(center, {
         radius: radiusMiles * MILES_TO_METERS,
-        strokeColor: "#3b82f6",
-        strokeOpacity: 0.7,
-        strokeWeight: 2,
+        color: "#3b82f6",
+        weight: 2,
+        opacity: 0.7,
         fillColor: "#3b82f6",
         fillOpacity: 0.1,
-      });
+      }).addTo(mapRef.current);
     });
 
     return () => { cancelled = true; };
@@ -151,7 +134,6 @@ export default function LocalAreaMap({ onSearch, consentGiven }) {
     setGeocodeError("");
     setGeocoding(true);
     try {
-      await loadGoogleMaps();
       const result = await geocodeAddress(q);
       if (!result) {
         setGeocodeError("Location not found. Try a city name or ZIP code.");
