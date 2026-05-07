@@ -1,34 +1,23 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
-
+import { formatLocalDate } from "../utils/i18n";
+import { useLanguage } from "../lib/LanguageContext";
 import { inferState } from "../utils/regions";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 
-
-
-
-const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
-const GRADE_LABELS = {
-  A: "🌟 Super safe — eat here!",
-  B: "😊 Pretty good — mostly safe",
-  C: "🤔 Okay — a few things to know",
-  D: "⚠️ Hmm — some real problems",
-  F: "🚨 Careful — serious issues found",
-  U: "❓ Not sure yet — no data",
-};
-
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
+  const { t, langCode } = useLanguage();
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
   const grade = isUnknown ? "U" : getGrade(safetyScore);
   const gradeColor = getGradeColor(grade);
-  const gradeEmoji = GRADE_EMOJIS[grade] || "❓";
+  const gradeLabel = t?.gradeLabels?.[grade] || `Grade ${grade}`;
+  const noDataLabel = t?.noData || "NO DATA";
 
   return (
     <Card
@@ -51,7 +40,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
         >
           <span className="text-4xl font-black leading-none" aria-hidden="true">{grade}</span>
           <span className="text-[9px] font-extrabold mt-1 opacity-90 text-center leading-tight" aria-hidden="true">
-            {isUnknown ? "NO DATA" : `${safetyScore}/100`}
+            {isUnknown ? noDataLabel : `${safetyScore}/100`}
           </span>
         </div>
 
@@ -88,7 +77,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
             {/* Plain-English grade label */}
             <span className="text-[11px] font-extrabold text-slate-600">
-              {GRADE_LABELS[grade]}
+              {gradeLabel}
             </span>
 
             {/* Risk badge */}
@@ -97,14 +86,14 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             {/* Inspection count */}
             <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-bold">
               <ClipboardList className="w-2.5 h-2.5" />
-              {totalInspections} check{totalInspections !== 1 ? "s" : ""}
+              {t?.inspections ? t.inspections(totalInspections) : `${totalInspections} checks`}
             </span>
 
             {/* Last inspected */}
             {latestDate && (
               <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-bold">
                 <Calendar className="w-2.5 h-2.5" />
-                {format(new Date(latestDate), "MMM d, yyyy")}
+                {formatLocalDate(latestDate, langCode)}
               </span>
             )}
           </div>
@@ -133,7 +122,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <div className="flex items-center gap-1.5 mt-2 bg-red-50 border-2 border-red-300 rounded-xl px-2 py-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
               <span className="text-[10px] font-extrabold text-red-700">
-                {grade === "F" ? "🚨 Big problems found — tap to see the details!" : "⚠️ Some issues found — good to know before you go!"}
+                {grade === "F" ? (t?.warningF || "🚨 Big problems found — tap to see the details!") : (t?.warningD || "⚠️ Some issues found — good to know before you go!")}
               </span>
             </div>
           )}

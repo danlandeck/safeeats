@@ -19,6 +19,8 @@ import EPAWaterCard from "./EPAWaterCard";
 import KofiButton from "./KofiButton";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
+import { useLanguage } from "../lib/LanguageContext";
+import { formatLocalDate } from "../utils/i18n";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
 
@@ -62,6 +64,7 @@ const SOURCE_REGISTRY = {
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
+  const { t, langCode } = useLanguage();
   const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
   const [showRawData, setShowRawData] = useState(false);
   const [showDataSource, setShowDataSource] = useState(false);
@@ -153,7 +156,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       {/* ── Back ── */}
       <Button variant="ghost" onClick={onBack} className="text-slate-500 hover:text-slate-800 -ml-2" aria-label="Back to search results">
         <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-        Back to results
+        {t?.backToResults || "Back to results"}
       </Button>
 
       {/* ── HERO CARD ── */}
@@ -219,26 +222,26 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
               <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
                 <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
-                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
+                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">{t?.totalInspections || "Total inspections"}</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
               <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
                 <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
-                  {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
+                  {latestDate ? formatLocalDate(latestDate, langCode, { month: "short", year: "numeric" }) : "—"}
                 </p>
-                <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
+                <p className="text-xs text-slate-500" aria-hidden="true">{t?.lastInspected || "Last inspected"}</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
               <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
                 <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
                 <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
-                  Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
+                  {t?.repeatIssues ? t.repeatIssues(totalRepeatCount) : `${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"}`}
                 </p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">What's this? ↓</p>
               </button>
               <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
                 <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
-                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
+                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">{t?.cleanStreak || "Clean streak"}</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View trend ↓</p>
               </button>
             </div>
@@ -313,9 +316,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                   {latestDate && (
                     <p className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                      Last inspection on record:{" "}
+                      {t?.lastInspected || "Last inspected"}:{" "}
                       <span className="font-semibold text-slate-700">
-                        {new Date(latestDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                        {formatLocalDate(latestDate, langCode, { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     </p>
                   )}
@@ -392,7 +395,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               const score = raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : restaurant.safetyScore;
               const isExpanded = expandedInspection === idx;
               const dateStr = insp.inspection_date
-                ? new Date(insp.inspection_date).toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" })
+                ? formatLocalDate(insp.inspection_date, langCode, { weekday: "short", year: "numeric", month: "short", day: "numeric" })
                 : "Unknown date";
 
               return (
