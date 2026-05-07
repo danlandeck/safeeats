@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useMemo } from "react";
 
-const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 
 // Color ramp matching previous Leaflet implementation
 function getScoreColor(score) {

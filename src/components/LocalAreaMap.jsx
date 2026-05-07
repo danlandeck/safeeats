@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, LocateFixed, Search } from "lucide-react";
 
-const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || "";
 const RADIUS_OPTIONS = [5, 10, 20];
 const MILES_TO_METERS = 1609.34;
 
