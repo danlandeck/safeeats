@@ -1103,7 +1103,7 @@ export default function Home() {
               </button>
             )}
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")}
+              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")} <span className="text-orange-400 text-[10px] font-black tracking-widest ml-0.5 align-middle">BETA</span>
             </button>
           </div>
 
