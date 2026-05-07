@@ -1,14 +1,13 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
+  ArrowLeft, MapPin, Phone, Globe,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
   ExternalLink, Award, TrendingUp
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
-import GradeBadge from "./GradeBadge";
 import SafetySnapshot from "./SafetySnapshot";
 import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
@@ -17,29 +16,10 @@ import ReportIssueButton from "./ReportIssueButton";
 import ADADetailSection from "./ADADetailSection";
 import EPAWaterCard from "./EPAWaterCard";
 import KofiButton from "./KofiButton";
-import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { useLanguage } from "../lib/LanguageContext";
 import { formatLocalDate } from "../utils/i18n";
-import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
-
-// ── Infer state from restaurant data ──────────────────────────────────────────
-function inferState(restaurant) {
-  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
-  // Map county_id to state
-  const COUNTY_STATE = {
-    king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
-    montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
-  };
-  if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) {
-    return COUNTY_STATE[restaurant.county_id];
-  }
-  // Try to extract from address
-  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
-  const match = addr.match(/\b([A-Z]{2})\b/);
-  return match ? match[1] : "US";
-}
 
 // ── Jargon → category for repeat detection ──────────────────────────────────
 function buildViolationKey(desc) {
@@ -65,12 +45,8 @@ const SOURCE_REGISTRY = {
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const { t, langCode } = useLanguage();
-  const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
-  const [showRawData, setShowRawData] = useState(false);
   const [showDataSource, setShowDataSource] = useState(false);
-  const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
-  // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   // ── Group inspections ──────────────────────────────────────────────────────
@@ -127,24 +103,6 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
   // ── Source info ────────────────────────────────────────────────────────────
   const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source] || SOURCE_REGISTRY[restaurant.region === "uae" ? "dubai" : null];
-
-  // ── Share handler ──────────────────────────────────────────────────────────
-  const handleShare = async () => {
-    const text = `${restaurant.name} has a ${grade} food safety grade (${restaurant.safetyScore ?? "N/A"}/100) on SafeEats. Check before you eat! ${window.location.href}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: `${restaurant.name} Safety Score`, text, url: window.location.href }); }
-      catch {}
-    } else {
-      await navigator.clipboard.writeText(text);
-      setShareMsg("Copied!");
-      setTimeout(() => setShareMsg(""), 2000);
-    }
-  };
-
-  const handleFavorite = () => {
-    const newState = toggleFavorite(restaurant);
-    setFavorited(newState);
-  };
 
   return (
     <motion.div
@@ -478,15 +436,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                             </div>
                           )}
 
-                          {/* Raw data for power users */}
-                          {showRawData && (
-                            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Raw Record</p>
-                              <pre className="text-[10px] text-slate-500 overflow-x-auto whitespace-pre-wrap break-all">
-                                {JSON.stringify({ type: insp.inspection_type, result: insp.inspection_result, score: insp.inspection_score, serial: insp.inspection_serial_num }, null, 2)}
-                              </pre>
-                            </div>
-                          )}
+
                         </div>
                       </motion.div>
                     )}

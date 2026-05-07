@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
-import { getTranslations } from "../utils/i18n";
 import { useLanguage } from "../lib/LanguageContext";
 import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
@@ -742,9 +741,7 @@ export default function Home() {
 
   const currentRegion = REGIONS[region] || REGIONS["global"];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
-  const { t: langT } = useLanguage();
-  const t = langT || getTranslations(region);
-  const { langMeta } = useLanguage();
+  const { t, langMeta } = useLanguage();
   const isRTL = langMeta?.dir === "rtl" || ["uae"].includes(region);
 
   // Silently grab user coords if already permitted (no prompt)
@@ -1194,7 +1191,7 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-col items-center justify-center py-20">
                           <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-sm text-slate-400">Searching live government database…</p>
+                          <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
                         </div>
                       )
                     ) : searchError ? (

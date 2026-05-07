@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  Accessibility, Car, DoorOpen, Bath, Armchair,
+  Accessibility,
   CheckCircle2, XCircle, HelpCircle, Loader2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { format } from "date-fns";
+import { useLanguage } from "../lib/LanguageContext";
+import { formatLocalDate } from "../utils/i18n";
 
 const FIELDS = [
   { key: "ada_parking",            label: "Accessible Parking",   emoji: "🚗" },
@@ -43,6 +44,7 @@ function StatusBadge({ value }) {
 }
 
 export default function ADADetailSection({ restaurant: initialRestaurant }) {
+  const { langCode } = useLanguage();
   const [data, setData] = useState(initialRestaurant);
   const [loading, setLoading] = useState(false);
 
@@ -68,10 +70,9 @@ export default function ADADetailSection({ restaurant: initialRestaurant }) {
   const compliance = data.ada_compliance || "unknown";
   const cfg = COMPLIANCE_CONFIG[compliance] || COMPLIANCE_CONFIG.unknown;
 
-  let lastUpdatedStr = null;
-  if (data.ada_last_updated) {
-    try { lastUpdatedStr = format(new Date(data.ada_last_updated), "MMM d, yyyy"); } catch {}
-  }
+  const lastUpdatedStr = data.ada_last_updated
+    ? formatLocalDate(data.ada_last_updated, langCode, { year: "numeric", month: "short", day: "numeric" })
+    : null;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
