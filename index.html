@@ -2,15 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google Maps JS API is loaded lazily by MapView/LocalAreaMap components -->
-    <title>SafeEats — Real Food Safety Inspections</title>
-    <meta name="description" content="Real health inspection data for restaurants across King County, Snohomish, Pierce, Clark County (Las Vegas), and more. One platform, every county." />
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.openstreetmap.org; connect-src 'self' https:; frame-ancestors 'none';" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="robots" content="index, follow" />
+    <!-- SEO -->
+    <title>SafeEats — Real Food Safety Inspections Worldwide</title>
+    <meta name="description" content="Look up real health inspection scores and violation history for restaurants worldwide — NYC, LA, Chicago, Seattle, London, Dubai, Toronto and 195+ countries. Free, instant, A–F grades." />
+    <link rel="canonical" href="https://safeeats.base44.app/" />
     <!-- Open Graph -->
-    <meta property="og:title" content="SafeEats — Real Food Safety Inspections" />
-    <meta property="og:description" content="Look up restaurant health inspection scores and history across multiple counties. A–F grades, full history, no third-party redirects." />
+    <meta property="og:title" content="SafeEats — Real Food Safety Inspections Worldwide" />
+    <meta property="og:description" content="Real government health inspection data for 1M+ restaurants across 195+ countries. A–F grades, full violation history, ADA accessibility, and water quality — all free." />
     <meta property="og:type" content="website" />
-    <!-- Theme color: slate grey -->
+    <meta property="og:url" content="https://safeeats.base44.app/" />
+    <!-- Theme color -->
     <meta name="theme-color" content="#0f172a" />
     <!-- Favicon: slate grey shield SVG -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E" />

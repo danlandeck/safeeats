@@ -683,6 +683,15 @@ const CITY_TO_COUNTY = {
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
 };
 
+// Pure utility — defined outside component so it's never recreated
+const haversineMiles = (lat1, lon1, lat2, lon2) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+};
+
 const LIVE_API_CITIES = [
   { label: "Seattle Metro", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
@@ -875,7 +884,7 @@ export default function Home() {
 
     setIsLoading(false);
     setIsAISearch(false);
-  }, [region, countyId, locationQuery, userCoords]);
+  }, [region, countyId, locationQuery]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setSelectedBusiness(biz);
@@ -937,14 +946,7 @@ export default function Home() {
 
   const handleSwitchToMap = useCallback(() => setViewMode("map"), []);
 
-  // Haversine distance in miles
-  const haversineMiles = (lat1, lon1, lat2, lon2) => {
-    const R = 3958.8;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  };
+
 
   const handleFindNearMe = useCallback(async () => {
     if (nearMeActive) { setNearMeActive(false); setUserCoords(null); setNearMeError(""); return; }
@@ -1169,7 +1171,7 @@ export default function Home() {
             <motion.div key="detail" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
               {isDetailLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
+                  <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" role="status" aria-label="Loading details…" />
                   <p className="text-sm text-slate-400">{t.loadingDetails}</p>
                 </div>
               ) : (
@@ -1183,7 +1185,7 @@ export default function Home() {
                   <div className="lg:col-span-3">
                     {isLoading ? (
                       <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
+                        <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" role="status" aria-label="Searching…" />
                         <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
                         {isAISearch && (
                           <p className="text-xs text-slate-500 mt-2 max-w-xs text-center">Searching public health records worldwide — this may take a few seconds.</p>
@@ -1235,10 +1237,10 @@ export default function Home() {
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
                               {nearMeActive ? "📍 Near Me ON" : "📍 Near Me"}
                             </button>
-                            <button onClick={() => setViewMode("list")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={() => setViewMode("list")} aria-pressed={viewMode === "list"} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               📋 List
                             </button>
-                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} aria-pressed={viewMode === "map"} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               🗺️ Map
                             </button>
                           </div>
