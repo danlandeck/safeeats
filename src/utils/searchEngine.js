@@ -118,7 +118,10 @@ function containsStateToken(text, stateAbbr) {
 
 /**
  * Hard-filter AI results: keep only restaurants whose city AND state match.
- * Never falls back — returns empty array if nothing matches.
+ * City must match. State: only REJECT when a DIFFERENT state is explicitly
+ * found in the data (e.g. ", CA" in the address when Seattle, WA expected).
+ * Never requires confirmation of the expected state — a result with city="Seattle"
+ * and no state in its address is ACCEPTED, not rejected.
  */
 function hardFilterByLocation(results, locationLabel) {
   if (!locationLabel || locationLabel === "Worldwide (AI Search)") return results;
@@ -127,21 +130,30 @@ function hardFilterByLocation(results, locationLabel) {
   const expectedCityLow = expectedCity.toLowerCase();
 
   return results.filter(r => {
-    const cityLow  = (r.city    || "").toLowerCase().trim();
-    const addrLow  = (r.address || "").toLowerCase();
+    const cityLow = (r.city    || "").toLowerCase().trim();
+    const addrLow = (r.address || "").toLowerCase();
 
-    // City must match (exact or prefix like "Seattle, WA" in city field)
+    // Primary: city must appear in city field OR address
     const cityOk = cityLow === expectedCityLow ||
                    cityLow.startsWith(expectedCityLow + ",") ||
                    cityLow.startsWith(expectedCityLow + " ") ||
-                   cityLow.includes(expectedCityLow);
+                   cityLow.includes(expectedCityLow) ||
+                   addrLow.includes(expectedCityLow);
     if (!cityOk) return false;
 
-    // State must match when specified
+    // Secondary: reject only if a DIFFERENT US state abbreviation is found
+    // Pattern looks for ", XX" (comma + 2-letter abbr) in city+address
     if (expectedState) {
-      const stateOk = containsStateToken(cityLow, expectedState) ||
-                      containsStateToken(addrLow, expectedState);
-      if (!stateOk) return false;
+      const combined = cityLow + " " + addrLow;
+      const statePattern = /,\s*([a-z]{2})\b/g;
+      let m;
+      while ((m = statePattern.exec(combined)) !== null) {
+        const found = m[1];
+        // Only care about real US state abbreviations
+        if (ABBR_TO_STATE[found] && found !== expectedState) {
+          return false; // conflicting state found — reject
+        }
+      }
     }
 
     return true;
