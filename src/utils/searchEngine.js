@@ -324,7 +324,10 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: processTorontoResults(records), isAI: false };
   }
 
-  // Live government API
+  // Live government API — STRICT city isolation.
+  // Each city has its own dedicated government endpoint. Results are 100% scoped to that
+  // jurisdiction. If the API is unavailable we return a city-specific error — we do NOT
+  // fall through to AI search, which could return results from completely different cities.
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
     let raw;
@@ -332,42 +335,44 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
     } catch (fetchErr) {
       if (fetchErr.name === "AbortError") throw fetchErr;
-      // CORS or network error — fall through to AI search below
-      console.warn(`Live API fetch failed for ${countyId}, falling back to AI search:`, fetchErr.message);
-      raw = null;
+      console.warn(`Live API unavailable for ${countyId}:`, fetchErr.message);
+      // STRICT: do NOT fall through to AI — return a city-specific error instead.
+      return {
+        results: [],
+        isAI: false,
+        error: `The ${entry.name} health inspection database is temporarily unavailable. Please try again in a moment.`,
+      };
     }
-    if (raw !== null) {
-      const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
 
-      // Post-fetch relevance filter: keep only results whose name actually matches the query.
-      const nameFiltered = filterByNameRelevance(allResults, query);
-      // Location guard: drop results whose state doesn't match the searched county's state
-      const results = filterByLocationForLiveApi(nameFiltered, countyId);
+    const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+    // Relevance filter: keep only results whose name matches the query
+    const nameFiltered = filterByNameRelevance(allResults, query);
+    // Location guard: drop results whose state doesn't match the county's known state
+    const results = filterByLocationForLiveApi(nameFiltered, countyId);
 
-      // Background-fetch true inspection counts and fire onCountUpdate per business
-      if (onCountUpdate && countyId !== "delaware") {
-        results.forEach(async (biz) => {
-          try {
-            const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
-            const rows = await fetch(countUrl, signal ? { signal } : {}).then(r => r.json());
-            if (!Array.isArray(rows) || rows.length === 0) return;
-            const keys = new Set(rows.map(row => {
-              const v = row[entry.dateField];
-              return v ? v.split("T")[0] : null;
-            }).filter(Boolean));
-            const trueCount = keys.size;
-            if (trueCount > biz.totalInspections) {
-              onCountUpdate(biz.business_id, trueCount);
-            }
-          } catch (err) {
-            // silently ignore background count errors
+    // Background-fetch true inspection counts and fire onCountUpdate per business
+    if (onCountUpdate && countyId !== "delaware") {
+      results.forEach(async (biz) => {
+        try {
+          const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
+          const rows = await fetch(countUrl, signal ? { signal } : {}).then(r => r.json());
+          if (!Array.isArray(rows) || rows.length === 0) return;
+          const keys = new Set(rows.map(row => {
+            const v = row[entry.dateField];
+            return v ? v.split("T")[0] : null;
+          }).filter(Boolean));
+          const trueCount = keys.size;
+          if (trueCount > biz.totalInspections) {
+            onCountUpdate(biz.business_id, trueCount);
           }
-        });
-      }
-
-      return { results, isAI: false };
+        } catch (err) {
+          // silently ignore background count errors
+        }
+      });
     }
-    // raw was null (network/CORS failure) — fall through to AI search
+
+    return { results, isAI: false };
+    // IMPORTANT: execution never falls through to AI search for live-API cities.
   }
 
   // Dubai — fully isolated path

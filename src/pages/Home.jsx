@@ -848,7 +848,7 @@ export default function Home() {
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      const { results: fetchedResults, isAI } = await engineSearch({
+      const { results: fetchedResults, isAI, error: liveApiError } = await engineSearch({
         query,
         countyId: searchCounty,
         locationLabel: locationCtx,
@@ -863,6 +863,15 @@ export default function Home() {
       });
 
       if (signal.aborted) return;
+
+      // Live API returned a city-specific error (e.g. API temporarily down).
+      // Do NOT fall back to AI — show the error for that specific city only.
+      if (liveApiError) {
+        setSearchError(liveApiError);
+        setIsLoading(false);
+        return;
+      }
+
       setIsAISearch(isAI);
       setResults(fetchedResults);
     } catch (e) {
