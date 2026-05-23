@@ -103,60 +103,19 @@ function parseLocationParts(location) {
 }
 
 /**
- * Returns true if `text` contains the state as a whole word/token.
- * Avoids substring false-positives like "wa" matching "washington blvd".
- */
-function containsStateToken(text, stateAbbr) {
-  if (!text || !stateAbbr) return false;
-  const t = text.toLowerCase();
-  const abbr = stateAbbr.toLowerCase();
-  const full = ABBR_TO_STATE[abbr] || "";
-  // Match abbreviation as a standalone token (preceded/followed by non-alpha)
-  const abbrRe = new RegExp(`(?:^|[^a-z])${abbr}(?:[^a-z]|$)`);
-  return abbrRe.test(t) || (full.length > 2 && t.includes(full));
-}
-
-/**
- * Hard-filter AI results: keep only restaurants whose city AND state match.
- * City must match. State: only REJECT when a DIFFERENT state is explicitly
- * found in the data (e.g. ", CA" in the address when Seattle, WA expected).
- * Never requires confirmation of the expected state — a result with city="Seattle"
- * and no state in its address is ACCEPTED, not rejected.
+ * Hard-filter AI results: keep only restaurants whose city matches the
+ * expected location. Checks both the city field and the address field.
+ * Returns empty array if nothing matches (no fail-open).
  */
 function hardFilterByLocation(results, locationLabel) {
   if (!locationLabel || locationLabel === "Worldwide (AI Search)") return results;
-  const { city: expectedCity, state: expectedState } = parseLocationParts(locationLabel);
+  const { city: expectedCity } = parseLocationParts(locationLabel);
   if (!expectedCity || expectedCity.length < 2) return results;
   const expectedCityLow = expectedCity.toLowerCase();
-
   return results.filter(r => {
     const cityLow = (r.city    || "").toLowerCase().trim();
     const addrLow = (r.address || "").toLowerCase();
-
-    // Primary: city must appear in city field OR address
-    const cityOk = cityLow === expectedCityLow ||
-                   cityLow.startsWith(expectedCityLow + ",") ||
-                   cityLow.startsWith(expectedCityLow + " ") ||
-                   cityLow.includes(expectedCityLow) ||
-                   addrLow.includes(expectedCityLow);
-    if (!cityOk) return false;
-
-    // Secondary: reject only if a DIFFERENT US state abbreviation is found
-    // Pattern looks for ", XX" (comma + 2-letter abbr) in city+address
-    if (expectedState) {
-      const combined = cityLow + " " + addrLow;
-      const statePattern = /,\s*([a-z]{2})\b/g;
-      let m;
-      while ((m = statePattern.exec(combined)) !== null) {
-        const found = m[1];
-        // Only care about real US state abbreviations
-        if (ABBR_TO_STATE[found] && found !== expectedState) {
-          return false; // conflicting state found — reject
-        }
-      }
-    }
-
-    return true;
+    return cityLow.includes(expectedCityLow) || addrLow.includes(expectedCityLow);
   });
 }
 
