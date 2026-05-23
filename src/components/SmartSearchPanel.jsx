@@ -1,27 +1,7 @@
 import React, { useState, useRef, useCallback } from "react";
-import { MapPin, Search, X, Clock, LocateFixed, Loader2 } from "lucide-react";
-import { SEARCH_KEYS } from "../utils/searchState";
+import { MapPin, Search, X } from "lucide-react";
+import { clearSearchState } from "../utils/searchState";
 import { useLanguage } from "../lib/LanguageContext";
-
-const RECENT_KEY     = SEARCH_KEYS[0];
-const RECENT_LOC_KEY = SEARCH_KEYS[1];
-
-function loadRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } }
-function saveRecent(q) {
-  const prev = loadRecent().filter(x => x !== q);
-  const next = [q, ...prev].slice(0, 6);
-  try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch {}
-  return next;
-}
-
-function loadRecentLocations() { try { return JSON.parse(localStorage.getItem(RECENT_LOC_KEY) || "[]"); } catch { return []; } }
-function saveRecentLocation(loc) {
-  if (!loc?.trim()) return;
-  const prev = loadRecentLocations().filter(x => x.toLowerCase() !== loc.toLowerCase());
-  const next = [loc, ...prev].slice(0, 5);
-  try { localStorage.setItem(RECENT_LOC_KEY, JSON.stringify(next)); } catch {}
-  return next;
-}
 
 const LIVE_API_CITIES = [
   { label: "Seattle Metro / King County", region: "washington", countyId: "king", emoji: "🌲" },
@@ -40,76 +20,20 @@ export default function SmartSearchPanel({
   query, onQueryChange,
 }) {
   const { t } = useLanguage();
-  const [recents, setRecents]                   = useState(loadRecent);
-  const [recentLocations, setRecentLocations]   = useState(loadRecentLocations);
-  const [showDropdown, setShowDropdown]         = useState(false);
-  const [showLocDropdown, setShowLocDropdown]   = useState(false);
-  const [geoLoading, setGeoLoading]             = useState(false);
-  const [geoError, setGeoError]                 = useState("");
-  const inputRef                                = useRef(null);
-  const locInputRef                             = useRef(null);
-
-  const safeQuery = query || "";
-  const suggestions = recents.filter(r => safeQuery.length > 0 && r.toLowerCase().includes(safeQuery.toLowerCase()));
+  const [geoError, setGeoError] = useState("");
+  const inputRef = useRef(null);
 
   const handleSubmit = useCallback((e) => {
     e?.preventDefault();
     const q = query.trim();
     if (!q) return;
-    setShowDropdown(false);
-    setRecents(saveRecent(q));
+    clearSearchState();
     onSearch(q);
   }, [query, onSearch]);
 
-  const handleChange = (e) => {
-    onQueryChange(e.target.value);
-    setShowDropdown(true);
-  };
-
-  const pickSuggestion = (s) => {
-    onQueryChange(s);
-    setShowDropdown(false);
-    setRecents(saveRecent(s));
-    onSearch(s);
-  };
-
-  const handleNearMe = useCallback(() => {
-    setGeoError("");
-    if (!navigator.geolocation) { setGeoError("Geolocation not supported"); return; }
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLoading(false);
-        onNearMe?.({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => { setGeoLoading(false); setGeoError("Location access denied"); },
-      { timeout: 8000 }
-    );
-  }, [onNearMe]);
-
   const handleCitySelect = useCallback((city) => {
     onRegionChange(city);
-    const label = city.locationLabel || city.label;
-    setRecentLocations(saveRecentLocation(label) || recentLocations);
-    setShowLocDropdown(false);
-  }, [onRegionChange, recentLocations]);
-
-  const handleLocationBlur = useCallback(() => {
-    setTimeout(() => setShowLocDropdown(false), 150);
-    if (locationQuery?.trim()) {
-      setRecentLocations(saveRecentLocation(locationQuery.trim()) || recentLocations);
-    }
-  }, [locationQuery, recentLocations]);
-
-  const pickRecentLocation = useCallback((loc) => {
-    onLocationChange(loc);
-    setShowLocDropdown(false);
-    const match = LIVE_API_CITIES.find(c =>
-      loc.toLowerCase().includes(c.label.toLowerCase()) ||
-      c.label.toLowerCase().includes(loc.toLowerCase().split(",")[0])
-    );
-    if (match) onRegionChange(match);
-  }, [onLocationChange, onRegionChange]);
+  }, [onRegionChange]);
 
   const fieldClass =
     "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/10 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
@@ -130,24 +54,21 @@ export default function SmartSearchPanel({
             <input
               id="search-location"
               name="search-location"
-              ref={locInputRef}
               value={locationQuery}
-              onChange={(e) => { onLocationChange(e.target.value); setShowLocDropdown(true); }}
-              onFocus={() => setShowLocDropdown(true)}
-              onBlur={handleLocationBlur}
+              onChange={(e) => onLocationChange(e.target.value)}
               placeholder={t?.locationPlaceholder || "City, state, or country — e.g. New York, Tokyo, London…"}
               className={fieldClass}
               aria-label="Location"
-              autoComplete="new-password"
+              autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
             />
-
           </div>
-
         </div>
+
         {geoError && <p className="text-xs text-red-300 mt-2" role="alert">{geoError}</p>}
+
         <div className="flex flex-wrap gap-1.5 mt-2.5">
           {LIVE_API_CITIES.map((city) => {
             const isActive = activeRegion === city.region && activeCounty === city.countyId;
@@ -206,26 +127,22 @@ export default function SmartSearchPanel({
                 name="search-restaurant"
                 ref={inputRef}
                 value={query}
-                onChange={handleChange}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                onChange={(e) => onQueryChange(e.target.value)}
                 placeholder={t?.restaurantPlaceholder || `Restaurant name or cuisine type — e.g. "McDonald's" or "sushi"`}
                 className={fieldClass}
                 aria-label="Search restaurants"
-                aria-autocomplete="list"
-                autoComplete="new-password"
+                autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
                 enterKeyHint="search"
               />
               {query && (
-                <button type="button" onClick={() => { onQueryChange(""); setShowDropdown(false); inputRef.current?.focus(); }}
+                <button type="button" onClick={() => { onQueryChange(""); inputRef.current?.focus(); }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" aria-label="Clear search">
                   <X className="w-4 h-4" />
                 </button>
               )}
-
             </div>
             <button
               type="submit"
