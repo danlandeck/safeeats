@@ -683,15 +683,6 @@ const CITY_TO_COUNTY = {
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
 };
 
-// Pure utility — defined outside component so it's never recreated
-const haversineMiles = (lat1, lon1, lat2, lon2) => {
-  const R = 3958.8;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-};
-
 const LIVE_API_CITIES = [
   { label: "Seattle Metro", region: "washington", countyId: "king", emoji: "🌲", example: "McDonald's" },
   { label: "New York City", region: "new_york", countyId: "nyc", emoji: "🗽", example: "Subway" },
@@ -814,12 +805,11 @@ export default function Home() {
     let searchRegion = region;
     let searchCounty = countyId;
 
-    // Auto-detect county from query text first, then fall back to locationQuery
-    const sortedCityKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
-
+    // Auto-detect location from explicit city name in query when on global
     if (searchRegion === "global" || searchCounty === "global") {
       const queryWords = rawQuery.toLowerCase().trim();
-      for (const key of sortedCityKeys) {
+      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
         if (queryWords.includes(key)) {
           const matched = CITY_TO_COUNTY[key];
           if (REGIONS[matched.region]) {
@@ -829,25 +819,6 @@ export default function Home() {
             setCountyId(searchCounty);
             if (matched.locationLabel) setLocationQuery(matched.locationLabel);
             query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
-          }
-          break;
-        }
-      }
-    }
-
-    // If still on global, also try to auto-detect from the location field
-    // This is the key fix: "Aladdin" + "Seattle, WA" → route to King County live API
-    if ((searchRegion === "global" || searchCounty === "global") && locationQuery) {
-      const locWords = locationQuery.toLowerCase().trim();
-      for (const key of sortedCityKeys) {
-        if (locWords.includes(key)) {
-          const matched = CITY_TO_COUNTY[key];
-          if (REGIONS[matched.region]) {
-            searchRegion = matched.region;
-            searchCounty = matched.countyId;
-            setRegion(searchRegion);
-            setCountyId(searchCounty);
-            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
           }
           break;
         }
@@ -883,6 +854,7 @@ export default function Home() {
         locationLabel: locationCtx,
         today,
         signal,
+        onFastResults: (fast) => setFastResults(fast),
         onCountUpdate: (bizId, trueCount) => {
           setResults(prev => prev.map(r =>
             r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
@@ -904,7 +876,7 @@ export default function Home() {
 
     setIsLoading(false);
     setIsAISearch(false);
-  }, [region, countyId, locationQuery]);
+  }, [region, countyId, locationQuery, userCoords]);
 
   const handleSelectBusiness = useCallback(async (biz) => {
     setSelectedBusiness(biz);
@@ -966,7 +938,14 @@ export default function Home() {
 
   const handleSwitchToMap = useCallback(() => setViewMode("map"), []);
 
-
+  // Haversine distance in miles
+  const haversineMiles = (lat1, lon1, lat2, lon2) => {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
 
   const handleFindNearMe = useCallback(async () => {
     if (nearMeActive) { setNearMeActive(false); setUserCoords(null); setNearMeError(""); return; }
@@ -1125,7 +1104,7 @@ export default function Home() {
               </button>
             )}
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")} <span className="text-orange-400 text-[10px] font-black tracking-widest ml-0.5 align-middle">BETA</span>
+              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")}
             </button>
           </div>
 
@@ -1191,7 +1170,7 @@ export default function Home() {
             <motion.div key="detail" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
               {isDetailLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" role="status" aria-label="Loading details…" />
+                  <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
                   <p className="text-sm text-slate-400">{t.loadingDetails}</p>
                 </div>
               ) : (
@@ -1204,13 +1183,27 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
                     {isLoading ? (
-                      <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" role="status" aria-label="Searching…" />
-                        <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
-                        {isAISearch && (
-                          <p className="text-xs text-slate-500 mt-2 max-w-xs text-center">Searching public health records worldwide — this may take a few seconds.</p>
-                        )}
-                      </div>
+                      isAISearch ? (
+                        <AISearchStatus
+                          hasFastResults={fastResults !== null && fastResults.length > 0}
+                          onAcceptFast={() => {
+                            if (abortRef.current) abortRef.current.abort();
+                            setResults(fastResults);
+                            setFastResults(null);
+                            setIsLoading(false);
+                          }}
+                          onCancel={() => {
+                            if (abortRef.current) abortRef.current.abort();
+                            setIsLoading(false);
+                            setFastResults(null);
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20">
+                          <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
+                          <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
+                        </div>
+                      )
                     ) : searchError ? (
                       <div className="flex flex-col items-center justify-center py-16">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1229,7 +1222,6 @@ export default function Home() {
                             onSelect={(r) => { setFuzzySelected(r); handleSelectBusiness(r); }}
                             onFilterChange={(f) => { setFuzzyFilters(f); setFuzzySelected(null); }}
                             placeholder={`Filter ${results.length} result${results.length !== 1 ? "s" : ""}…`}
-                            locationQuery={locationQuery}
                           />
                         </div>
 
@@ -1258,10 +1250,10 @@ export default function Home() {
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
                               {nearMeActive ? "📍 Near Me ON" : "📍 Near Me"}
                             </button>
-                            <button onClick={() => setViewMode("list")} aria-pressed={viewMode === "list"} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={() => setViewMode("list")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               📋 List
                             </button>
-                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} aria-pressed={viewMode === "map"} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
+                            <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
                               🗺️ Map
                             </button>
                           </div>

@@ -117,16 +117,6 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             />
           )}
 
-          {/* LLM data disclaimer */}
-          {(restaurant.isLLMData || restaurant.source === "llm") && (
-            <div className="flex items-center gap-1.5 mt-2 bg-amber-50 border border-amber-200 rounded-xl px-2 py-1.5">
-              <span className="text-amber-500 text-xs flex-shrink-0">🤖</span>
-              <span className="text-[10px] text-amber-700 leading-tight">
-                Data inferred from public web sources — may not reflect latest inspection.
-              </span>
-            </div>
-          )}
-
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (
             <div className="flex items-center gap-1.5 mt-2 bg-red-50 border-2 border-red-300 rounded-xl px-2 py-1.5">

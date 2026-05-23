@@ -1,5 +1,17 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import ScoreGauge from "./ScoreGauge";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+// ESRI diverging color ramp
 function getScoreColor(score) {
   if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
@@ -23,179 +35,154 @@ function getGradeLetter(score) {
   return "F";
 }
 
-function makeMarkerIcon(L, score, isSelected) {
+function createColoredIcon(score, isSelected = false) {
   const bg = getScoreColor(score);
-  const textColor = getTextColor(score);
+  const text = getTextColor(score);
   const grade = getGradeLetter(score);
   const size = isSelected ? 48 : 38;
+  const borderWidth = isSelected ? 4 : 3;
   const fontSize = isSelected ? 16 : 13;
-  const totalH = size + 10;
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${totalH}" viewBox="0 0 ${size} ${totalH}">
-      <circle cx="${size/2}" cy="${size/2}" r="${size/2-2}" fill="${bg}" stroke="white" stroke-width="3"/>
-      <polygon points="${size/2-6},${size-2} ${size/2+6},${size-2} ${size/2},${totalH}" fill="${bg}"/>
-      <text x="${size/2}" y="${size/2+fontSize/3}" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="${fontSize}" fill="${textColor}">${grade}</text>
-    </svg>`;
+  const pulseRing = isSelected
+    ? `<div style="position:absolute;inset:-6px;border-radius:50%;border:3px solid ${bg};opacity:0.5;animation:marker-pulse 1.8s infinite ease-in-out;"></div>`
+    : "";
+
   return L.divIcon({
-    html: svg,
-    className: "",
-    iconSize: [size, totalH],
-    iconAnchor: [size / 2, totalH],
-    popupAnchor: [0, -totalH],
+    className: "custom-marker",
+    html: `<div style="position:relative;width:${size}px;height:${size}px;">
+      ${pulseRing}
+      <div style="
+        width:${size}px;height:${size}px;
+        border-radius:50% 50% 50% 0;
+        background:${bg};
+        transform:rotate(-45deg);
+        border:${borderWidth}px solid white;
+        box-shadow:0 4px 14px rgba(0,0,0,0.4);
+        display:flex;align-items:center;justify-content:center;
+      ">
+        <div style="transform:rotate(45deg);color:${text};font-weight:900;font-size:${fontSize}px;font-family:Nunito,sans-serif;">
+          ${grade}
+        </div>
+      </div>
+    </div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -(size + 4)],
   });
 }
 
-// Load Leaflet CSS once
-let leafletCssLoaded = false;
-function ensureLeafletCss() {
-  if (leafletCssLoaded) return;
-  leafletCssLoaded = true;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-  document.head.appendChild(link);
+function createUserIcon() {
+  return L.divIcon({
+    className: "user-location-marker",
+    html: `<div style="position:relative;width:28px;height:28px;">
+      <div style="
+        position:absolute;inset:-8px;border-radius:50%;
+        background:rgba(33,150,243,0.2);
+        animation:marker-pulse 2s infinite ease-in-out;
+      "></div>
+      <div style="
+        width:28px;height:28px;border-radius:50%;
+        background:#2196F3;border:4px solid white;
+        box-shadow:0 3px 12px rgba(33,150,243,0.6);
+      "></div>
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
 }
 
-// Lazy-load Leaflet JS once
-let _leafletPromise = null;
-function loadLeaflet() {
-  ensureLeafletCss();
-  if (window.L) return Promise.resolve(window.L);
-  if (_leafletPromise) return _leafletPromise;
-  _leafletPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.async = true;
-    script.onload = () => resolve(window.L);
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-  return _leafletPromise;
+// Auto-fits bounds to all markers; also pans to userCoords when no restaurants
+function MapController({ validRestaurants, userCoords, selectedId }) {
+  const map = useMap();
+  const prevKeyRef = useRef(null);
+
+  useEffect(() => {
+    const key = validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|");
+    if (key === prevKeyRef.current) return;
+    prevKeyRef.current = key;
+
+    if (validRestaurants.length > 0) {
+      const bounds = L.latLngBounds(
+        validRestaurants.map(r => [parseFloat(r.latitude), parseFloat(r.longitude)])
+      );
+      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 16, duration: 1.2 });
+    } else if (userCoords) {
+      map.flyTo([userCoords.lat, userCoords.lng], 13, { duration: 1.0 });
+    }
+  }, [validRestaurants.map(r => `${r.latitude},${r.longitude}`).join("|")]);
+
+  // Pan to selected restaurant
+  useEffect(() => {
+    if (!selectedId) return;
+    const r = validRestaurants.find(x => x.business_id === selectedId);
+    if (r?.latitude && r?.longitude) {
+      map.flyTo([parseFloat(r.latitude), parseFloat(r.longitude)], 16, { duration: 0.8 });
+    }
+  }, [selectedId]);
+
+  return null;
 }
 
 export default function MapView({ restaurants, onSelectRestaurant, onFilterByGrade, userCoords, selectedId }) {
-  const containerRef = useRef(null);
-  const mapRef = useRef(null);
-  const markersRef = useRef([]);
-  const userMarkerRef = useRef(null);
-  const userCircleRef = useRef(null);
-
-  const validRestaurants = useMemo(
-    () => restaurants.filter(r => r.latitude && r.longitude),
-    [restaurants]
-  );
-
   const initialCenter = useMemo(() => {
     if (userCoords) return [userCoords.lat, userCoords.lng];
-    if (validRestaurants.length > 0) {
-      const avgLat = validRestaurants.reduce((s, r) => s + parseFloat(r.latitude), 0) / validRestaurants.length;
-      const avgLng = validRestaurants.reduce((s, r) => s + parseFloat(r.longitude), 0) / validRestaurants.length;
-      return [avgLat, avgLng];
+    const valid = restaurants.filter(r => r.latitude && r.longitude);
+    if (valid.length > 0) {
+      const avgLat = valid.reduce((s, r) => s + parseFloat(r.latitude), 0) / valid.length;
+      const avgLon = valid.reduce((s, r) => s + parseFloat(r.longitude), 0) / valid.length;
+      return [avgLat, avgLon];
     }
     return [47.6062, -122.3321];
   }, []);
 
-  // Initialize map once
-  useEffect(() => {
-    let cancelled = false;
-    loadLeaflet().then((L) => {
-      if (cancelled || !containerRef.current || mapRef.current) return;
-      mapRef.current = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(initialCenter, 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(mapRef.current);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Sync restaurant markers
-  useEffect(() => {
-    if (!mapRef.current || !window.L) return;
-    const L = window.L;
-
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-
-    validRestaurants.forEach((restaurant) => {
-      const isSelected = restaurant.business_id === selectedId;
-      const grade = getGradeLetter(restaurant.safetyScore);
-      const latlng = [parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)];
-
-      const marker = L.marker(latlng, {
-        icon: makeMarkerIcon(L, restaurant.safetyScore, isSelected),
-        zIndexOffset: isSelected ? 1000 : 0,
-        title: restaurant.name,
-      }).addTo(mapRef.current);
-
-      const popupContent = `
-        <div style="font-family:Nunito,sans-serif;padding:4px 2px;min-width:160px;">
-          <p style="font-weight:900;font-size:14px;margin:0 0 4px 0;color:#0f172a;">${restaurant.name}</p>
-          <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">${[restaurant.address, restaurant.city].filter(Boolean).join(", ")}</p>
-          <p style="font-size:12px;font-weight:800;color:${getScoreColor(restaurant.safetyScore)};margin:0;">
-            Grade ${grade}${restaurant.safetyScore != null ? ` · ${restaurant.safetyScore}/100` : ""}
-          </p>
-        </div>`;
-      marker.bindPopup(popupContent);
-
-      marker.on("click", () => {
-        if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
-        if (onSelectRestaurant) onSelectRestaurant(restaurant);
-      });
-
-      markersRef.current.push(marker);
-    });
-
-    // Fit bounds
-    if (validRestaurants.length > 1) {
-      const bounds = validRestaurants.map(r => [parseFloat(r.latitude), parseFloat(r.longitude)]);
-      mapRef.current.fitBounds(bounds, { padding: [60, 60] });
-    } else if (validRestaurants.length === 1) {
-      mapRef.current.setView([parseFloat(validRestaurants[0].latitude), parseFloat(validRestaurants[0].longitude)], 15);
-    } else if (userCoords) {
-      mapRef.current.setView([userCoords.lat, userCoords.lng], 13);
-    }
-  }, [validRestaurants, selectedId]);
-
-  // Pan to selected restaurant
-  useEffect(() => {
-    if (!mapRef.current || !selectedId) return;
-    const r = validRestaurants.find(x => x.business_id === selectedId);
-    if (r?.latitude && r?.longitude) {
-      mapRef.current.setView([parseFloat(r.latitude), parseFloat(r.longitude)], 16);
-    }
-  }, [selectedId]);
-
-  // User location marker + accuracy circle
-  useEffect(() => {
-    if (!mapRef.current || !window.L) return;
-    const L = window.L;
-
-    if (userMarkerRef.current) { userMarkerRef.current.remove(); userMarkerRef.current = null; }
-    if (userCircleRef.current) { userCircleRef.current.remove(); userCircleRef.current = null; }
-
-    if (userCoords) {
-      const userIcon = L.divIcon({
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:#2196F3;border:3px solid white;box-shadow:0 0 0 3px rgba(33,150,243,0.3);"></div>`,
-        className: "",
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-      });
-      userMarkerRef.current = L.marker([userCoords.lat, userCoords.lng], { icon: userIcon, zIndexOffset: 2000, title: "Your location" }).addTo(mapRef.current);
-      userCircleRef.current = L.circle([userCoords.lat, userCoords.lng], {
-        radius: 400,
-        color: "#2196F3",
-        weight: 1.5,
-        opacity: 0.5,
-        fillColor: "#2196F3",
-        fillOpacity: 0.08,
-      }).addTo(mapRef.current);
-    }
-  }, [userCoords]);
+  const validRestaurants = restaurants.filter(r => r.latitude && r.longitude);
+  const userIcon = useMemo(() => createUserIcon(), []);
 
   return (
     <div className="rounded-3xl overflow-hidden border-2 border-slate-200 shadow-lg" style={{ height: 520 }}>
-      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
+      <MapContainer
+        center={initialCenter}
+        zoom={13}
+        style={{ height: "100%", width: "100%" }}
+        scrollWheelZoom={true}
+      >
+        <MapController validRestaurants={validRestaurants} userCoords={userCoords} selectedId={selectedId} />
+
+        {/* OpenStreetMap tile layer */}
+        <TileLayer
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+
+        {/* User location marker with accuracy circle */}
+        {userCoords && (
+          <>
+            <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
+            <Circle
+              center={[userCoords.lat, userCoords.lng]}
+              radius={400}
+              pathOptions={{ color: "#2196F3", fillColor: "#2196F3", fillOpacity: 0.08, weight: 1.5, dashArray: "6 4" }}
+            />
+          </>
+        )}
+
+        {validRestaurants.map((restaurant) => {
+          const isSelected = restaurant.business_id === selectedId;
+          const grade = getGradeLetter(restaurant.safetyScore);
+          return (
+            <Marker
+              key={`${restaurant.business_id}-${restaurant.latitude}`}
+              position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
+              icon={createColoredIcon(restaurant.safetyScore, isSelected)}
+              zIndexOffset={isSelected ? 1000 : 0}
+              eventHandlers={{
+                click: () => {
+                  if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
+                }
+              }}
+            />
+          );
+        })}
+      </MapContainer>
     </div>
   );
 }

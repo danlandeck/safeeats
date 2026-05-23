@@ -9,26 +9,7 @@ import { Search, X } from "lucide-react";
  *   onSelect      — called with restaurant object when user picks one
  *   onFilterChange— called with { cuisine, city, minGrade } filter state
  *   placeholder   — input placeholder text
- *   locationQuery — the user's picked location (e.g. "Seattle, WA") used to
- *                   hard-filter suggestions so only same-city results appear
  */
-
-/** Extract city name from a location string like "Seattle, WA" or "Chicago, IL" */
-function parseCityFromLocation(loc) {
-  if (!loc) return "";
-  const comma = loc.indexOf(",");
-  return (comma === -1 ? loc : loc.slice(0, comma)).trim().toLowerCase();
-}
-
-/** True when restaurant city matches the expected city (case-insensitive). */
-function cityMatches(restaurant, expectedCityLow) {
-  if (!expectedCityLow) return true;
-  const c = (restaurant.city || "").toLowerCase().trim();
-  return c === expectedCityLow ||
-         c.startsWith(expectedCityLow + ",") ||
-         c.startsWith(expectedCityLow + " ") ||
-         c.includes(expectedCityLow);
-}
 
 const GRADE_ORDER = ["A", "B", "C", "D", "F", "U"];
 
@@ -51,7 +32,7 @@ function buildIndex(docs) {
   return ms;
 }
 
-export default function FuzzySearchBar({ results = [], onSelect, onFilterChange, placeholder = "Filter results…", locationQuery = "" }) {
+export default function FuzzySearchBar({ results = [], onSelect, onFilterChange, placeholder = "Filter results…" }) {
   const [query, setQuery]           = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx]   = useState(-1);
@@ -83,16 +64,11 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
   const doSearch = useCallback((q) => {
     if (!msRef.current || !q.trim()) { setSuggestions([]); setOpen(false); return; }
     const hits = msRef.current.search(q, { prefix: true, fuzzy: 0.2 });
-    const expectedCity = parseCityFromLocation(locationQuery);
-    const top = hits
-      .map(h => results.find(r => (r.business_id || "") === h.id || r.name === h.name))
-      .filter(Boolean)
-      .filter(r => cityMatches(r, expectedCity))
-      .slice(0, 8);
+    const top  = hits.slice(0, 8).map(h => results.find(r => (r.business_id || "") === h.id || r.name === h.name)).filter(Boolean);
     setSuggestions(top);
     setOpen(top.length > 0);
     setActiveIdx(-1);
-  }, [results, locationQuery]);
+  }, [results]);
 
   const handleChange = (e) => {
     const val = e.target.value;
