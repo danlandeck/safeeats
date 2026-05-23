@@ -5,13 +5,11 @@ import { ShieldCheck, Info, Globe, Signal } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
-import { useLanguage } from "./lib/LanguageContext";
 
 // Cartoony nav pill style — applied directly to Link for proper semantics
 const navPill = "flex items-center gap-1.5 px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
 
 export default function Layout({ children, currentPageName }) {
-  const { t } = useLanguage();
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
@@ -31,10 +29,10 @@ export default function Layout({ children, currentPageName }) {
             </a>
             {/* Nav links */}
             <div className="flex items-center gap-0.5 flex-wrap justify-end" role="list">
-              <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>{t?.navAbout || "About"}</span></Link></div>
-              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Global coverage"><Signal className="w-4 h-4" aria-hidden="true" /><span>{t?.navCoverage || "Coverage"}</span></Link></div>
-              <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>{t?.navCodes || "Codes"}</span></Link></div>
-              <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>{t?.navContact || "Contact"}</span></Link></div>
+              <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
+              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Global coverage"><Signal className="w-4 h-4" aria-hidden="true" /><span>Coverage</span></Link></div>
+              <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
+              <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
             </div>
           </div>
@@ -54,11 +52,11 @@ export default function Layout({ children, currentPageName }) {
                 <span className="font-extrabold text-white tracking-tight">SafeEats</span>
               </div>
               <p className="text-xs text-slate-500">
-                {t?.footerTagline || "Empowering informed dining decisions through transparency"}
+                Empowering informed dining decisions through transparency
               </p>
               <div className="flex gap-3 mt-2">
-                <Link to="/About" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">{t?.navAbout || "About"}</Link>
-                <Link to="/contact" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">{t?.navContact || "Contact"}</Link>
+                <Link to="/About" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">About</Link>
+                <Link to="/contact" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Contact</Link>
               </div>
             </div>
             <div className="text-center md:text-right space-y-2">

@@ -12,7 +12,7 @@ import EPAWaterCard from "./EPAWaterCard";
 
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
   const { t, langCode } = useLanguage();
-  const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult } = restaurant;
+  const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
   const grade = isUnknown ? "U" : getGrade(safetyScore);
   const gradeColor = getGradeColor(grade);
@@ -81,7 +81,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             </span>
 
             {/* Risk badge */}
-            {restaurant.inspectionHistory?.length > 1 && <FailRiskBadge inspections={restaurant.inspectionHistory} />}
+            {inspectionHistory && <FailRiskBadge inspections={inspectionHistory} />}
 
             {/* Inspection count */}
             <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-bold">
