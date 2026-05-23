@@ -814,11 +814,12 @@ export default function Home() {
     let searchRegion = region;
     let searchCounty = countyId;
 
-    // Auto-detect location from explicit city name in query when on global
+    // Auto-detect county from query text first, then fall back to locationQuery
+    const sortedCityKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+
     if (searchRegion === "global" || searchCounty === "global") {
       const queryWords = rawQuery.toLowerCase().trim();
-      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
-      for (const key of sortedKeys) {
+      for (const key of sortedCityKeys) {
         if (queryWords.includes(key)) {
           const matched = CITY_TO_COUNTY[key];
           if (REGIONS[matched.region]) {
@@ -828,6 +829,25 @@ export default function Home() {
             setCountyId(searchCounty);
             if (matched.locationLabel) setLocationQuery(matched.locationLabel);
             query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          }
+          break;
+        }
+      }
+    }
+
+    // If still on global, also try to auto-detect from the location field
+    // This is the key fix: "Aladdin" + "Seattle, WA" → route to King County live API
+    if ((searchRegion === "global" || searchCounty === "global") && locationQuery) {
+      const locWords = locationQuery.toLowerCase().trim();
+      for (const key of sortedCityKeys) {
+        if (locWords.includes(key)) {
+          const matched = CITY_TO_COUNTY[key];
+          if (REGIONS[matched.region]) {
+            searchRegion = matched.region;
+            searchCounty = matched.countyId;
+            setRegion(searchRegion);
+            setCountyId(searchCounty);
+            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
           }
           break;
         }
