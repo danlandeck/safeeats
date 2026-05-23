@@ -250,6 +250,9 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
     return { ...built, _wrongLocation: false };
   } else {
     const { city: expCity, state: expState } = parseLocationLabel(expectedCity || "");
+    // Use county's known state as fallback when the location label has no explicit state abbreviation
+    // (e.g. "Seattle Metro / King County" has no ", WA", but countyId="king" maps to "wa")
+    const effectiveState = expState || COUNTY_STATE[countyId] || null;
 
     if (expCity && expCity !== "worldwide (ai search)") {
       // City check — compare result city (before comma) to expected city
@@ -261,17 +264,24 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
         resultCityLower.includes(expCity)
       );
 
-      // State check — if expected state is known, result's state (when determinable) must match
+      // State check — use effectiveState (label state OR county's known state)
       let stateMatch = true;
-      if (expState) {
+      if (effectiveState) {
         const resultState = parseStateFromResult(r);
-        if (resultState && resultState !== expState) stateMatch = false;
+        if (resultState && resultState !== effectiveState) stateMatch = false;
       }
 
-      isWrongLocation = !(cityMatch && stateMatch);
+      // Also reject if the address explicitly names a different major city
+      const addressLower = (r.address || "").toLowerCase();
+      const MAJOR_CITIES = ["los angeles", "new york", "chicago", "houston", "san francisco",
+        "miami", "dallas", "boston", "atlanta", "denver", "philadelphia", "phoenix",
+        "san diego", "san jose", "austin", "las vegas", "portland", "seattle", "nashville"];
+      const contradictingCity = cityMatch && stateMatch &&
+        MAJOR_CITIES.some(c => c !== expCity && addressLower.includes(c));
+
+      isWrongLocation = !(cityMatch && stateMatch) || contradictingCity;
     } else if (!expCity) {
       // No city resolved — fail closed when county implies a specific location
-      // to prevent cross-state pollution when locationLabel arrives empty
       if (COUNTY_STATE[countyId]) isWrongLocation = true;
     }
   }
