@@ -66,15 +66,36 @@ const LLM_SCHEMA = {
   },
 };
 
-const PROMPT_LOCATION = (query, location, today) =>
-  `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location} ONLY.
+/**
+ * Parse a location string like "Springfield, IL" or "Austin, TX" into
+ * { city: "Springfield", state: "IL" }. state is null if no comma found.
+ */
+function parseLocationParts(location) {
+  if (!location) return { city: "", state: null };
+  const commaIdx = location.indexOf(",");
+  if (commaIdx === -1) return { city: location.trim(), state: null };
+  const city = location.slice(0, commaIdx).trim();
+  // Take first word after comma as the state/country code
+  const stateRaw = location.slice(commaIdx + 1).trim();
+  // Only treat as a state code if it's 2–3 uppercase letters (e.g. "IL", "TX", "CA")
+  const stateCode = /^[A-Z]{2,3}$/.test(stateRaw.split(/[,\s]/)[0])
+    ? stateRaw.split(/[,\s]/)[0].toUpperCase()
+    : stateRaw.toLowerCase();
+  return { city, state: stateCode };
+}
+
+const PROMPT_LOCATION = (query, location, today) => {
+  const { city, state } = parseLocationParts(location);
+  const stateClause = state ? `\nSTATE/REGION: Results MUST be in "${state}". A city with the same name in a different state is FORBIDDEN.` : "";
+  return `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location} ONLY.${stateClause}
 STRICT RULES:
-1. EVERY result MUST have city="${location}" or a city name that starts with the same word as "${location}".
-2. city field MUST match the requested location. If unsure, OMIT the result.
+1. EVERY result MUST have city="${city}" (or very close match). If the city name differs, OMIT the result.
+2. city field MUST match the requested location exactly. If unsure, OMIT the result.${state ? `\n2b. state or address MUST contain "${state}". Results from other states are FORBIDDEN.` : ""}
 3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
 4. NEVER return results from outside ${location}.
 5. Better to return 3 verified results than 10 with any location mismatch.
 6. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
+};
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
@@ -198,12 +219,10 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
   
   if (countyId === "dubai") {
     isWrongLocation = !isDubaiLocation(r.city, r.address);
-    // If wrong location, return early with flag set
     if (isWrongLocation) {
       const built = buildLLMRestaurant(r, i, countyId, location, null);
       return { ...built, _wrongLocation: true };
     }
-    // Only override city if location is valid
     const built = {
       ...buildLLMRestaurant(r, i, countyId, location, null),
       city: "Dubai",
@@ -212,21 +231,31 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
     };
     return { ...built, _wrongLocation: false };
   } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
-    const resultCityLower = (r.city || "").toLowerCase().trim();
-    const expectedLower = expectedCity.toLowerCase().trim();
+    const resultCityLower  = (r.city    || "").toLowerCase().trim();
+    const resultAddrLower  = (r.address || "").toLowerCase();
+    const { city: parsedCity, state: parsedState } = parseLocationParts(expectedCity);
+    const expectedCityLow  = parsedCity.toLowerCase().trim();
 
-    // Use the FULL expected city string for matching, not just the first word.
-    // Strip trailing state/country suffixes like ", CT" or ", UAE" for comparison.
-    const expectedCleaned = expectedLower.replace(/,.*$/, "").trim();
+    // --- City check ---
+    const cityMatch = expectedCityLow.length <= 2
+      ? true // too short to be meaningful, skip
+      : resultCityLower === expectedCityLow ||
+        resultCityLower.startsWith(expectedCityLow + ",") ||
+        resultCityLower.startsWith(expectedCityLow + " ") ||
+        resultCityLower.includes(expectedCityLow);
 
-    // Match if the result city equals or contains the full expected name.
-    // For multi-word cities ("New York"), require the entire phrase, not just "new".
-    // For single-word cities, allow exact match or "Cityname, ST" style.
-    const isMatch = resultCityLower === expectedCleaned ||
-                    resultCityLower.startsWith(expectedCleaned + ",") ||
-                    resultCityLower.startsWith(expectedCleaned + " ");
+    // --- State check (only when a state code was parsed) ---
+    let stateMatch = true;
+    if (parsedState && parsedState.length >= 2) {
+      const stateLow = parsedState.toLowerCase();
+      // Check if state code/name appears in city field or address
+      stateMatch = resultCityLower.includes(stateLow) ||
+                   resultAddrLower.includes(stateLow) ||
+                   // also check the original location string appears anywhere
+                   (r.zip_code || "").toLowerCase().includes(stateLow);
+    }
 
-    isWrongLocation = expectedCleaned.length > 2 && !isMatch;
+    isWrongLocation = !cityMatch || !stateMatch;
   }
   
   const built = buildLLMRestaurant(r, i, countyId, location, null);
