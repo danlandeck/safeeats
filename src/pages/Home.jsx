@@ -1229,6 +1229,7 @@ export default function Home() {
                             onSelect={(r) => { setFuzzySelected(r); handleSelectBusiness(r); }}
                             onFilterChange={(f) => { setFuzzyFilters(f); setFuzzySelected(null); }}
                             placeholder={`Filter ${results.length} result${results.length !== 1 ? "s" : ""}…`}
+                            locationQuery={locationQuery}
                           />
                         </div>
 
