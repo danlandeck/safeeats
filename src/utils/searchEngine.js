@@ -137,13 +137,83 @@ function llmCall(prompt, internet = false) {
   });
 }
 
-// EXHAUSTIVE forbidden locations
-// Dubai location filter — restaurants outside Dubai must be rejected.
-// Three lists of forbidden tokens, deduplicated and de-collided.
+// --- Location matching helpers ---
+
+const STATE_ABBR_MAP = {
+  alabama: "al", alaska: "ak", arizona: "az", arkansas: "ar", california: "ca",
+  colorado: "co", connecticut: "ct", delaware: "de", florida: "fl", georgia: "ga",
+  hawaii: "hi", idaho: "id", illinois: "il", indiana: "in", iowa: "ia",
+  kansas: "ks", kentucky: "ky", louisiana: "la", maine: "me", maryland: "md",
+  massachusetts: "ma", michigan: "mi", minnesota: "mn", mississippi: "ms",
+  missouri: "mo", montana: "mt", nebraska: "ne", nevada: "nv", "new hampshire": "nh",
+  "new jersey": "nj", "new mexico": "nm", "new york": "ny", "north carolina": "nc",
+  "north dakota": "nd", ohio: "oh", oklahoma: "ok", oregon: "or", pennsylvania: "pa",
+  "rhode island": "ri", "south carolina": "sc", "south dakota": "sd", tennessee: "tn",
+  texas: "tx", utah: "ut", vermont: "vt", virginia: "va", washington: "wa",
+  "west virginia": "wv", wisconsin: "wi", wyoming: "wy",
+};
+
+// Known US state for each live-API county
+const COUNTY_STATE = {
+  king: "wa", nyc: "ny", cook: "il", montgomery_md: "md",
+  travis: "tx", sf: "ca", la: "ca", delaware: "de", ny_state: "ny",
+};
+
+function normalizeState(s) {
+  if (!s) return null;
+  const lower = s.trim().toLowerCase();
+  if (STATE_ABBR_MAP[lower]) return STATE_ABBR_MAP[lower];
+  if (lower.length === 2 && /^[a-z]{2}$/.test(lower)) return lower;
+  return null;
+}
+
+// Parse { city, state } from a label like "Seattle, WA" or "Seattle Metro / King County"
+function parseLocationLabel(label) {
+  if (!label) return { city: null, state: null };
+  const parts = label.split(",").map(s => s.trim());
+  const rawCity = (parts[0] || "").toLowerCase();
+  // Strip common suffixes that aren't city names
+  const city = rawCity
+    .replace(/\s*(metro|county|borough)\b.*/i, "")
+    .replace(/\s*\/.*$/, "")
+    .trim() || null;
+  const rawState = parts[1]?.split(/\s+/)[0] || null;
+  return { city, state: normalizeState(rawState) };
+}
+
+// Extract the state abbreviation from a result's city/address fields
+function parseStateFromResult(r) {
+  // 1. "City, ST" in city field
+  const cityParts = (r.city || "").split(",");
+  if (cityParts.length >= 2) {
+    const st = normalizeState(cityParts[cityParts.length - 1].trim().split(/\s+/)[0]);
+    if (st) return st;
+  }
+  // 2. ", ST 12345" pattern in address
+  const m1 = (r.address || "").match(/,\s*([A-Za-z]{2})\s*\d{5}/);
+  if (m1) return normalizeState(m1[1]);
+  // 3. ", ST" at end or before comma in address
+  const m2 = (r.address || "").match(/,\s*([A-Za-z]{2})\s*(?:[,\d]|$)/);
+  if (m2) return normalizeState(m2[1]);
+  return null;
+}
+
+// Filter live-API results by the county's known state (fail-open if no state known)
+function filterByLocationForLiveApi(results, countyId) {
+  const knownState = COUNTY_STATE[countyId];
+  if (!knownState) return results;
+  const filtered = results.filter(r => {
+    const rs = parseStateFromResult(r);
+    return !rs || rs === knownState;
+  });
+  return filtered.length > 0 ? filtered : results;
+}
+
+// --- Dubai location helpers ---
+// Restaurants outside Dubai must be rejected.
 const US_CITIES = ["miami", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia"];
 const US_STATES = ["florida", "new york", "massachusetts", "illinois", "california", "texas", "colorado", "georgia", "nevada", "pennsylvania", "washington dc"];
 const NON_DUBAI = ["london", "paris", "tokyo", "abu dhabi", "dubai creek", "ras al khaimah", "fujairah", "umm al quwain", "ajman", "sharjah"];
-// Deduplicate just in case any tokens overlap across lists
 const ALL_FORBIDDEN = [...new Set([...US_CITIES, ...US_STATES, ...NON_DUBAI])];
 
 function isDubaiLocation(city, address) {
@@ -163,17 +233,14 @@ function isDubaiLocation(city, address) {
 }
 
 function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
-  // VALIDATE LOCATION ON ORIGINAL DATA BEFORE ANY OVERRIDES
   let isWrongLocation = false;
-  
+
   if (countyId === "dubai") {
     isWrongLocation = !isDubaiLocation(r.city, r.address);
-    // If wrong location, return early with flag set
     if (isWrongLocation) {
       const built = buildLLMRestaurant(r, i, countyId, location, null);
       return { ...built, _wrongLocation: true };
     }
-    // Only override city if location is valid
     const built = {
       ...buildLLMRestaurant(r, i, countyId, location, null),
       city: "Dubai",
@@ -181,24 +248,34 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
       country: "UAE",
     };
     return { ...built, _wrongLocation: false };
-  } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
-    const resultCityLower = (r.city || "").toLowerCase().trim();
-    const expectedLower = expectedCity.toLowerCase().trim();
+  } else {
+    const { city: expCity, state: expState } = parseLocationLabel(expectedCity || "");
 
-    // Use the FULL expected city string for matching, not just the first word.
-    // Strip trailing state/country suffixes like ", CT" or ", UAE" for comparison.
-    const expectedCleaned = expectedLower.replace(/,.*$/, "").trim();
+    if (expCity && expCity !== "worldwide (ai search)") {
+      // City check — compare result city (before comma) to expected city
+      const resultCityLower = (r.city || "").toLowerCase().trim().split(",")[0].trim();
+      const cityMatch = expCity.length > 2 && (
+        resultCityLower === expCity ||
+        resultCityLower.startsWith(expCity + ",") ||
+        resultCityLower.startsWith(expCity + " ") ||
+        resultCityLower.includes(expCity)
+      );
 
-    // Match if the result city equals or contains the full expected name.
-    // For multi-word cities ("New York"), require the entire phrase, not just "new".
-    // For single-word cities, allow exact match or "Cityname, ST" style.
-    const isMatch = resultCityLower === expectedCleaned ||
-                    resultCityLower.startsWith(expectedCleaned + ",") ||
-                    resultCityLower.startsWith(expectedCleaned + " ");
+      // State check — if expected state is known, result's state (when determinable) must match
+      let stateMatch = true;
+      if (expState) {
+        const resultState = parseStateFromResult(r);
+        if (resultState && resultState !== expState) stateMatch = false;
+      }
 
-    isWrongLocation = expectedCleaned.length > 2 && !isMatch;
+      isWrongLocation = !(cityMatch && stateMatch);
+    } else if (!expCity) {
+      // No city resolved — fail closed when county implies a specific location
+      // to prevent cross-state pollution when locationLabel arrives empty
+      if (COUNTY_STATE[countyId]) isWrongLocation = true;
+    }
   }
-  
+
   const built = buildLLMRestaurant(r, i, countyId, location, null);
   return { ...built, _wrongLocation: isWrongLocation };
 }
@@ -253,7 +330,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
 
       // Post-fetch relevance filter: keep only results whose name actually matches the query.
-      const results = filterByNameRelevance(allResults, query);
+      const nameFiltered = filterByNameRelevance(allResults, query);
+      // Location guard: drop results whose state doesn't match the searched county's state
+      const results = filterByLocationForLiveApi(nameFiltered, countyId);
 
       // Background-fetch true inspection counts and fire onCountUpdate per business
       if (onCountUpdate && countyId !== "delaware") {
