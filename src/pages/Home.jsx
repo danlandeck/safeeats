@@ -701,8 +701,8 @@ const LIVE_API_CITIES = [
 export default function Home() {
   const location = useLocation();
   const { accept, decline } = useConsent();
-  const [region, setRegion]                     = useState("global");
-  const [countyId, setCountyId]                 = useState("global");
+  const [region, setRegion]                     = useState("washington");
+  const [countyId, setCountyId]                 = useState("king");
   const pendingSearchRef                        = useRef(null);
   const [results, setResults]                   = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -801,29 +801,9 @@ export default function Home() {
   };
 
   const handleSearch = useCallback(async (rawQuery) => {
-    let query = rawQuery;
-    let searchRegion = region;
-    let searchCounty = countyId;
-
-    // Auto-detect location from explicit city name in query when on global
-    if (searchRegion === "global" || searchCounty === "global") {
-      const queryWords = rawQuery.toLowerCase().trim();
-      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
-      for (const key of sortedKeys) {
-        if (queryWords.includes(key)) {
-          const matched = CITY_TO_COUNTY[key];
-          if (REGIONS[matched.region]) {
-            searchRegion = matched.region;
-            searchCounty = matched.countyId;
-            setRegion(searchRegion);
-            setCountyId(searchCounty);
-            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-            query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
-          }
-          break;
-        }
-      }
-    }
+    const query = rawQuery;
+    const searchRegion = region;
+    const searchCounty = countyId;
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -840,10 +820,6 @@ export default function Home() {
 
     const resolvedCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
     const locationCtx = locationQuery.trim() || resolvedCounty.name;
-
-    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
-      setIsAISearch(true);
-    }
 
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1076,14 +1052,10 @@ export default function Home() {
           <SmartSearchPanel
             query={searchBarQuery}
             onQueryChange={setSearchBarQuery}
-            locationQuery={locationQuery}
-            onLocationChange={(val) => {
-              setLocationQuery(val);
-            }}
             onRegionChange={({ region: r, countyId: c, label }) => {
               setRegion(r);
               setCountyId(c);
-              setLocationQuery(label);
+              setLocationQuery(label || "");
             }}
             onSearch={(q) => {
               if (hasSearched) {
