@@ -209,6 +209,62 @@ function filterByLocationForLiveApi(results, countyId) {
   return filtered.length > 0 ? filtered : results;
 }
 
+// ─── Layer 2: Hard jurisdiction enforcement (zip-code based) ───────────────────
+// Each county's valid zip-code prefixes. A result whose zip exists but does NOT
+// start with any of these prefixes is physically impossible to be in this county
+// and is discarded regardless of what the source API claimed.
+const COUNTY_ZIP_PREFIXES = {
+  king:          ["980", "981"],                                      // King County, WA
+  nyc:           ["100", "101", "102", "103", "104", "111", "112", "113", "114"], // NYC boroughs
+  cook:          ["606", "607", "608"],                              // Chicago / Cook County, IL
+  montgomery_md: ["208", "209"],                                      // Montgomery County, MD
+  travis:        ["786", "787", "788"],                              // Austin / Travis County, TX
+  sf:            ["941"],                                             // San Francisco, CA
+  la:            ["900", "901", "902", "903", "904", "905", "906", // Los Angeles, CA
+                  "907", "908", "910", "911", "912", "913", "914",
+                  "915", "916", "917", "918"],
+  delaware:      ["197", "198", "199"],                              // Delaware
+  ny_state:      ["100", "101", "102", "103", "104",               // All NY State (includes NYC)
+                  "105", "106", "107", "108", "109", "110",
+                  "111", "112", "113", "114", "115", "116",
+                  "117", "118", "119", "120", "121", "122",
+                  "123", "124", "125", "126", "127", "128", "129",
+                  "130", "131", "132", "133", "134", "135", "136",
+                  "137", "138", "139", "140", "141", "142", "143",
+                  "144", "145", "146", "147", "148", "149"],
+};
+
+/**
+ * Enforces geographic isolation by zip-code prefix.
+ * If a result has a zip code that doesn't match the expected county's zip prefixes,
+ * it is discarded. Results with no detectable zip pass through (fail-open on missing data).
+ * This is the final defense ensuring a Los Angeles result can NEVER appear in Seattle results.
+ */
+function enforceJurisdiction(results, countyId) {
+  const validPrefixes = COUNTY_ZIP_PREFIXES[countyId];
+  if (!validPrefixes) return results; // No rules defined for this county — pass through
+
+  return results.filter(r => {
+    // Extract zip from dedicated field
+    const zipFromField = (r.zip_code || "").replace(/\D/g, "").slice(0, 5);
+    // Extract zip embedded in address (e.g. "1150 S HOPE ST LOS ANGELES 90015")
+    const zipFromAddr = ((r.address || "").match(/\b(\d{5})\b/) || [""])[1] || "";
+    const zip = zipFromField || zipFromAddr;
+
+    if (zip.length >= 3) {
+      // We have enough zip data — enforce strict prefix match
+      const valid = validPrefixes.some(p => zip.startsWith(p));
+      if (!valid) {
+        console.warn(`[jurisdiction] Discarding result "${r.name}" (zip ${zip}) — not valid for county "${countyId}".`);
+      }
+      return valid;
+    }
+
+    // No zip available — pass through, can't validate
+    return true;
+  });
+}
+
 // --- Dubai location helpers ---
 // Restaurants outside Dubai must be rejected.
 const US_CITIES = ["miami", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia"];
@@ -347,8 +403,11 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
     // Relevance filter: keep only results whose name matches the query
     const nameFiltered = filterByNameRelevance(allResults, query);
-    // Location guard: drop results whose state doesn't match the county's known state
-    const results = filterByLocationForLiveApi(nameFiltered, countyId);
+    // Layer 1: state-based location guard
+    const stateFiltered = filterByLocationForLiveApi(nameFiltered, countyId);
+    // Layer 2: hard zip-code jurisdiction enforcement — physically impossible for a
+    // Los Angeles result (zip 900xx) to survive into a King County (zip 980xx-981xx) search
+    const results = enforceJurisdiction(stateFiltered, countyId);
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
     if (onCountUpdate && countyId !== "delaware") {
