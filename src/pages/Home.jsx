@@ -800,10 +800,15 @@ export default function Home() {
     setFuzzySelected(null);
   };
 
-  const handleSearch = useCallback(async (rawQuery) => {
+  const handleSearch = useCallback(async (rawQuery, cityOverride) => {
     const query = rawQuery;
-    const searchRegion = region;
-    const searchCounty = countyId;
+    const searchRegion = cityOverride?.region || region;
+    const searchCounty = cityOverride?.countyId || countyId;
+    if (cityOverride) {
+      setRegion(cityOverride.region);
+      setCountyId(cityOverride.countyId);
+      setLocationQuery(cityOverride.label || "");
+    }
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -1052,12 +1057,7 @@ export default function Home() {
           <SmartSearchPanel
             query={searchBarQuery}
             onQueryChange={setSearchBarQuery}
-            onRegionChange={({ region: r, countyId: c, label }) => {
-              setRegion(r);
-              setCountyId(c);
-              setLocationQuery(label || "");
-            }}
-            onSearch={(q) => {
+            onSearch={(q, cityInfo) => {
               if (hasSearched) {
                 setResults([]);
                 setSelectedBusiness(null);
@@ -1067,15 +1067,9 @@ export default function Home() {
                 setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
                 setFuzzySelected(null);
               }
-              handleSearch(q);
+              handleSearch(q, cityInfo);
             }}
             isLoading={isLoading}
-            activeRegion={region}
-            activeCounty={countyId}
-            onNearMe={(coords) => {
-              setUserCoords(coords);
-              setNearMeActive(true);
-            }}
           />
 
           <div className="flex justify-center gap-2 mt-4">
