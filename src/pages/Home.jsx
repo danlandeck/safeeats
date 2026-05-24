@@ -802,13 +802,15 @@ export default function Home() {
 
   const handleSearch = useCallback(async (rawQuery, cityOverride) => {
     const query = rawQuery;
-    const searchRegion = cityOverride?.region || region;
-    const searchCounty = cityOverride?.countyId || countyId;
-    if (cityOverride) {
+    // ai_global = unknown location, falls through to LLM in searchEngine
+    const isAIGlobal = cityOverride?.countyId === "ai_global";
+    const searchRegion = isAIGlobal ? "global" : (cityOverride?.region || region);
+    const searchCounty = isAIGlobal ? null : (cityOverride?.countyId || countyId);
+    if (cityOverride && !isAIGlobal) {
       setRegion(cityOverride.region);
       setCountyId(cityOverride.countyId);
-      setLocationQuery(cityOverride.label || "");
     }
+    if (cityOverride) setLocationQuery(cityOverride.label || "");
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();

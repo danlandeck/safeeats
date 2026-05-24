@@ -1,67 +1,91 @@
-import React, { useRef, useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Search, MapPin, UtensilsCrossed } from "lucide-react";
 import { clearSearchState } from "../utils/searchState";
 
-// ─── Market detection ─────────────────────────────────────────────────────────
+// ─── Market routing table ─────────────────────────────────────────────────────
+// Each entry maps location keywords → { countyId, region, label }
+// Order matters: more-specific entries first.
 
-const MARKETS = [
+const MARKET_RULES = [
+  // ── Proxy cities (live government data) ──────────────────────────────────
   {
-    countyId: "king",
-    region: "washington",
-    label: "Seattle / King County",
-    emoji: "🌲",
+    countyId: "king", region: "washington", label: "Seattle / King County, WA",
     keywords: ["seattle", "king county", "bellevue", "kirkland", "redmond", "renton", "kent",
       "bothell", "issaquah", "mercer island", "tukwila", "burien", "shoreline", "kenmore",
-      "sammamish", "woodinville", "auburn"],
+      "sammamish", "woodinville", "auburn", "federal way"],
   },
   {
-    countyId: "nyc",
-    region: "new_york",
-    label: "New York City",
-    emoji: "🗽",
-    keywords: ["new york", "nyc", "manhattan", "brooklyn", "queens", "bronx", "staten island"],
+    countyId: "nyc", region: "new_york", label: "New York City, NY",
+    keywords: ["new york city", "nyc", "manhattan", "brooklyn", "queens", "bronx", "staten island",
+      "new york, ny", "harlem", "tribeca", "soho", "williamsburg", "astoria", "flushing",
+      "the bronx"],
   },
   {
-    countyId: "cook",
-    region: "illinois",
-    label: "Chicago",
-    emoji: "🏙️",
-    keywords: ["chicago", "cook county"],
+    countyId: "cook", region: "illinois", label: "Chicago, IL",
+    keywords: ["chicago", "cook county", "evanston", "skokie", "wicker park", "wrigleyville",
+      "lincoln park", "logan square", "river north", "bucktown", "pilsen"],
   },
   {
-    countyId: "travis",
-    region: "texas",
-    label: "Austin",
-    emoji: "🤠",
-    keywords: ["austin"],
+    countyId: "travis", region: "texas", label: "Austin, TX",
+    keywords: ["austin", "travis county", "pflugerville", "round rock", "cedar park",
+      "south congress", "east austin", "zilker", "domain austin"],
   },
   {
-    countyId: "sf",
-    region: "california",
-    label: "San Francisco",
-    emoji: "🌉",
-    keywords: ["san francisco", "sf"],
+    countyId: "sf", region: "california", label: "San Francisco, CA",
+    keywords: ["san francisco", " sf ", "sf,", "bay area", "mission district", "castro",
+      "soma", "tenderloin", "north beach", "haight", "noe valley", "hayes valley",
+      "fisherman's wharf", "russian hill", "nob hill"],
   },
   {
-    countyId: "la",
-    region: "california",
-    label: "Los Angeles",
-    emoji: "🌴",
-    keywords: ["los angeles", "la", "hollywood", "santa monica", "pasadena", "los angeles county"],
+    countyId: "la", region: "california", label: "Los Angeles, CA",
+    keywords: ["los angeles", " la ", "la,", "hollywood", "santa monica", "pasadena",
+      "burbank", "glendale", "long beach", "culver city", "venice beach", "koreatown",
+      "silver lake", "echo park", "downtown la", "dtla", "beverly hills", "west hollywood",
+      "los angeles county", "compton", "inglewood", "torrance"],
   },
   {
-    countyId: "montgomery_md",
-    region: "maryland",
-    label: "Montgomery County, MD",
-    emoji: "🏛️",
-    keywords: ["montgomery county", "rockville", "bethesda", "silver spring", "gaithersburg"],
+    countyId: "montgomery_md", region: "maryland", label: "Montgomery County, MD",
+    keywords: ["montgomery county", "rockville", "bethesda", "silver spring", "gaithersburg",
+      "germantown", "chevy chase", "potomac", "montgomery, md"],
+  },
+  // ── Backend-function cities ───────────────────────────────────────────────
+  {
+    countyId: "toronto", region: "canada", label: "Toronto, Ontario, Canada",
+    keywords: ["toronto", "ontario", "north york", "scarborough", "etobicoke", "york, on",
+      "mississauga", "brampton", "markham", "vaughan"],
+  },
+  {
+    countyId: "uk_fsa", region: "uk", label: "United Kingdom",
+    keywords: ["united kingdom", " uk ", "uk,", "uk)", "england", "scotland", "wales",
+      "northern ireland", "great britain", "britain", "london", "manchester", "birmingham",
+      "liverpool", "leeds", "sheffield", "bristol", "newcastle", "nottingham", "leicester",
+      "coventry", "edinburgh", "glasgow", "cardiff", "belfast"],
+  },
+  {
+    countyId: "delaware", region: "delaware", label: "Delaware",
+    keywords: ["delaware", "wilmington, de", "dover, de", "newark, de"],
+  },
+  {
+    countyId: "ny_state", region: "new_york", label: "New York State",
+    keywords: ["buffalo", "rochester, ny", "syracuse", "albany, ny", "yonkers",
+      "new rochelle", "white plains", "utica, ny", "schenectady", "binghamton",
+      "long island", "nassau county", "westchester county", "ithaca", "saratoga springs",
+      "new york state", "upstate new york"],
+  },
+  {
+    countyId: "dubai", region: "uae", label: "Dubai, UAE",
+    keywords: ["dubai", "uae", "united arab emirates", "abu dhabi", "sharjah",
+      "jbr", "difc", "downtown dubai", "palm jumeirah", "dubai marina"],
   },
 ];
 
+/**
+ * Detect market from location string.
+ * Returns a market object, or null (→ AI/LLM fallback).
+ */
 function detectMarket(locationInput) {
-  const lower = locationInput.toLowerCase().trim();
-  for (const market of MARKETS) {
-    // Sort keywords longest-first to prefer more specific matches
+  const lower = " " + locationInput.toLowerCase() + " ";
+  for (const market of MARKET_RULES) {
     const sorted = [...market.keywords].sort((a, b) => b.length - a.length);
     for (const kw of sorted) {
       if (lower.includes(kw)) return market;
@@ -70,6 +94,23 @@ function detectMarket(locationInput) {
   return null;
 }
 
+// Informational chips shown below the form
+const MARKET_CHIPS = [
+  { emoji: "🌲", label: "Seattle / King County" },
+  { emoji: "🗽", label: "New York City" },
+  { emoji: "🏙️", label: "Chicago" },
+  { emoji: "🤠", label: "Austin" },
+  { emoji: "🌉", label: "San Francisco" },
+  { emoji: "🌴", label: "Los Angeles" },
+  { emoji: "🏛️", label: "Montgomery County, MD" },
+  { emoji: "🍁", label: "Toronto (DineSafe)" },
+  { emoji: "🇬🇧", label: "United Kingdom" },
+  { emoji: "🦅", label: "Delaware" },
+  { emoji: "🏔️", label: "NY State" },
+  { emoji: "🇦🇪", label: "Dubai" },
+  { emoji: "🌍", label: "Everywhere else (AI)" },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function SmartSearchPanel({ onSearch, isLoading, query, onQueryChange }) {
@@ -77,49 +118,36 @@ export default function SmartSearchPanel({ onSearch, isLoading, query, onQueryCh
   const [restaurantValue, setRestaurantValue] = useState(query || "");
   const [locationError, setLocationError] = useState("");
   const [restaurantError, setRestaurantError] = useState("");
-  const [noMarketError, setNoMarketError] = useState(false);
 
-  // Keep parent query in sync with restaurant field
   const handleRestaurantChange = useCallback((e) => {
     setRestaurantValue(e.target.value);
     onQueryChange(e.target.value);
     if (restaurantError) setRestaurantError("");
-    setNoMarketError(false);
   }, [onQueryChange, restaurantError]);
 
   const handleLocationChange = useCallback((e) => {
     setLocationValue(e.target.value);
     if (locationError) setLocationError("");
-    setNoMarketError(false);
   }, [locationError]);
 
   const handleSubmit = useCallback((e) => {
     e?.preventDefault();
 
     let valid = true;
-    if (!locationValue.trim()) {
-      setLocationError("Please enter a location");
-      valid = false;
-    }
-    if (!restaurantValue.trim()) {
-      setRestaurantError("Please enter a restaurant name");
-      valid = false;
-    }
+    if (!locationValue.trim()) { setLocationError("Please enter a location"); valid = false; }
+    if (!restaurantValue.trim()) { setRestaurantError("Please enter a restaurant name"); valid = false; }
     if (!valid) return;
 
-    const market = detectMarket(locationValue);
-    if (!market) {
-      setNoMarketError(true);
-      return;
-    }
+    const detected = detectMarket(locationValue);
 
-    setNoMarketError(false);
+    // Known market → use its countyId/region
+    // Unknown → AI fallback: pass the raw location as label, countyId="ai_global"
+    const cityInfo = detected
+      ? { countyId: detected.countyId, region: detected.region, label: detected.label }
+      : { countyId: "ai_global", region: "global", label: locationValue.trim() };
+
     clearSearchState();
-    onSearch(restaurantValue.trim(), {
-      countyId: market.countyId,
-      region: market.region,
-      label: market.label,
-    });
+    onSearch(restaurantValue.trim(), cityInfo);
   }, [locationValue, restaurantValue, onSearch]);
 
   return (
@@ -128,49 +156,45 @@ export default function SmartSearchPanel({ onSearch, isLoading, query, onQueryCh
       <form onSubmit={handleSubmit} role="search" aria-label="Search for restaurants" noValidate>
         <div className="flex flex-col gap-3">
 
-          {/* Row 1: Location */}
+          {/* Location field */}
           <div className="flex flex-col gap-1">
             <label htmlFor="location-field" className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
               City, State, County, Country, Province, District, Parish, or Municipality
             </label>
-            <div className="relative">
-              <input
-                id="location-field"
-                value={locationValue}
-                onChange={handleLocationChange}
-                placeholder='e.g. "Seattle, WA" or "Chicago, IL" or "London, UK"'
-                className={`w-full pl-4 pr-4 h-14 rounded-2xl border-2 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all ${locationError ? "border-red-400" : "border-white/20"}`}
-                autoComplete="off"
-                aria-describedby={locationError ? "location-error" : undefined}
-                aria-invalid={!!locationError}
-              />
-            </div>
+            <input
+              id="location-field"
+              value={locationValue}
+              onChange={handleLocationChange}
+              placeholder='e.g. "Seattle, WA" or "Chicago, IL" or "London, UK" or "Tokyo, Japan"'
+              className={`w-full px-4 h-14 rounded-2xl border-2 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all ${locationError ? "border-red-400" : "border-white/20"}`}
+              autoComplete="off"
+              aria-describedby={locationError ? "location-error" : undefined}
+              aria-invalid={!!locationError}
+            />
             {locationError && (
               <p id="location-error" className="text-xs text-red-400 font-semibold" role="alert">{locationError}</p>
             )}
           </div>
 
-          {/* Row 2: Restaurant + Search button */}
+          {/* Restaurant + Search button */}
           <div className="flex flex-col gap-1">
             <label htmlFor="restaurant-field" className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <UtensilsCrossed className="w-3.5 h-3.5" aria-hidden="true" />
               Restaurant Name
             </label>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <input
-                  id="restaurant-field"
-                  value={restaurantValue}
-                  onChange={handleRestaurantChange}
-                  placeholder={`e.g. "Dick's Burgers" or "Starbucks" or "Pizza Hut"`}
-                  className={`w-full pl-4 pr-4 h-14 rounded-2xl border-2 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all ${restaurantError ? "border-red-400" : "border-white/20"}`}
-                  autoComplete="off"
-                  enterKeyHint="search"
-                  aria-describedby={restaurantError ? "restaurant-error" : undefined}
-                  aria-invalid={!!restaurantError}
-                />
-              </div>
+              <input
+                id="restaurant-field"
+                value={restaurantValue}
+                onChange={handleRestaurantChange}
+                placeholder={`e.g. "Dick's Burgers" or "Starbucks" or "Pizza Hut"`}
+                className={`flex-1 px-4 h-14 rounded-2xl border-2 bg-white/10 text-white placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all ${restaurantError ? "border-red-400" : "border-white/20"}`}
+                autoComplete="off"
+                enterKeyHint="search"
+                aria-describedby={restaurantError ? "restaurant-error" : undefined}
+                aria-invalid={!!restaurantError}
+              />
               <button
                 type="submit"
                 disabled={isLoading}
@@ -189,20 +213,13 @@ export default function SmartSearchPanel({ onSearch, isLoading, query, onQueryCh
           </div>
 
         </div>
-
-        {/* No-market error */}
-        {noMarketError && (
-          <p className="mt-2 text-sm text-yellow-300 font-semibold text-center" role="alert">
-            📍 We currently cover <strong>Seattle/King County, NYC, Chicago, Austin, San Francisco, Los Angeles,</strong> and <strong>Montgomery County MD</strong>. More markets coming soon!
-          </p>
-        )}
       </form>
 
-      {/* Supported markets — informational chips only */}
+      {/* Supported markets — informational chips */}
       <div className="flex flex-wrap justify-center gap-1.5" aria-label="Supported markets">
-        {MARKETS.map(m => (
+        {MARKET_CHIPS.map(m => (
           <span
-            key={m.countyId}
+            key={m.label}
             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/15 select-none"
           >
             {m.emoji} {m.label}
