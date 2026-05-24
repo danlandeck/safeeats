@@ -20,146 +20,51 @@ import {
   processTorontoResults, torontoToDetailRows,
 } from "./inspectionProcessors";
 
-// ─── City-isolated fetch functions ────────────────────────────────────────────
-// Each function calls ONLY its own city's API endpoint and applies a post-fetch
-// geographic filter. ONLY ONE of these is ever called per search.
+// ─── Proxy API ────────────────────────────────────────────────────────────────
+// All live city searches go through a single proxy endpoint.
+// ONE city key per call — never multiple cities simultaneously.
 
-async function fetchSeattle(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.kingcounty.gov/resource/f29f-zza5.json?$where=upper(name) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r => {
-    const addr = (r.address || '').toUpperCase();
-    return addr.includes(', WA') || addr.includes('SEATTLE') ||
-      (r.city || '').toUpperCase().includes('SEATTLE') ||
-      (r.zip_code || '').startsWith('981');
-  });
-  return processKingCountyResults(filtered);
-}
+const PROXY_BASE = 'https://safeeats-proxy.vercel.app/api/search';
 
-async function fetchNYC(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.cityofnewyork.us/resource/43nn-pn8j.json?$where=upper(dba) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r => {
-    const boro = (r.boro || '').toUpperCase();
-    return ['MANHATTAN', 'BROOKLYN', 'QUEENS', 'BRONX', 'STATEN ISLAND'].includes(boro);
-  });
-  return processNYCResults(filtered);
-}
-
-async function fetchChicago(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.cityofchicago.org/resource/4ijn-s7e5.json?$where=upper(aka_name) like '%25${encoded}%25' OR upper(legal_name) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r => (r.city || '').toUpperCase() === 'CHICAGO');
-  return processChicagoResults(filtered);
-}
-
-async function fetchAustin(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.austintexas.gov/resource/ecmv-9xxi.json?$where=upper(restaurant_name) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r =>
-    (r.zip_code || '').startsWith('787') ||
-    (r.city || '').toUpperCase().includes('AUSTIN')
-  );
-  return processAustinResults(filtered);
-}
-
-async function fetchSanFrancisco(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.sfgov.org/resource/pyih-qa8i.json?$where=upper(business_name) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r =>
-    (r.business_city || '').toUpperCase().includes('SAN FRANCISCO') ||
-    (r.business_zip || '').startsWith('941')
-  );
-  return processSFResults(filtered);
-}
-
-// LA County endpoint — different schema from the old lacity.org endpoint
-function normalizeLACountyResult(r) {
-  const score = parseFloat(r.score || 0);
+/**
+ * Normalize a proxy result into the app's standard Restaurant shape.
+ */
+function normalizeProxyResult(r, city) {
+  const score = typeof r.inspection_score === 'number' ? r.inspection_score : parseFloat(r.inspection_score || 0);
+  const grade = r.grade || (score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : score > 0 ? 'F' : 'U');
   return {
-    business_id: r.facility_id || r.pe_number || `la-${r.facility_name}-${r.activity_date}`,
-    name: r.facility_name || '',
-    address: r.facility_address || '',
-    city: r.facility_city || 'Los Angeles',
-    zip_code: r.facility_zip || '',
-    phone: r.owner_phone || '',
-    source: 'la',
-    county_id: 'la',
-    safetyScore: score || null,
-    grade: score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : score > 0 ? 'F' : 'U',
-    totalInspections: 1,
-    latestDate: r.activity_date ? r.activity_date.split('T')[0] : '',
-    latestResult: r.grade || String(score || ''),
-    isLLMData: false,
-  };
-}
-
-async function fetchLosAngeles(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.lacounty.gov/resource/ga4s-mqqp.json?$where=upper(facility_name) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r =>
-    (r.facility_city || r.city || '').toUpperCase().includes('LOS ANGELES') ||
-    (r.facility_zip || '').startsWith('900')
-  );
-  return filtered.map(normalizeLACountyResult);
-}
-
-// Montgomery County — new endpoint with establishmentname field
-function normalizeMontgomeryResult(r) {
-  return {
-    business_id: r.objectid || r.establishmentid || `md-${r.establishmentname}-${r.inspectiondate}`,
-    name: r.establishmentname || '',
-    address: [r.address, r.city, r.state, r.zip].filter(Boolean).join(', '),
+    business_id: r.id || `${city}-${r.name}-${r.address}`,
+    name: r.name || '',
+    address: r.address || '',
     city: r.city || '',
     zip_code: r.zip || '',
     phone: r.phone || '',
-    source: 'montgomery',
-    county_id: 'montgomery_md',
-    safetyScore: null,
-    grade: 'U',
+    latitude: r.lat || null,
+    longitude: r.lng || null,
+    description: r.description || '',
+    source: city,
+    county_id: city,
+    safetyScore: score || null,
+    grade,
     totalInspections: 1,
-    latestDate: r.inspectiondate ? r.inspectiondate.split('T')[0] : '',
-    latestResult: r.result || r.inspectionresult || '',
+    latestDate: r.inspection_date || '',
+    latestResult: r.inspection_result || '',
+    violation_description: r.violation_description || '',
+    violation_points: r.violation_points || 0,
     isLLMData: false,
   };
 }
 
-async function fetchMontgomeryMD(query) {
-  const encoded = encodeURIComponent(query.toUpperCase());
-  const url = `https://data.montgomerycountymd.gov/resource/6dba-2py5.json?$where=upper(establishmentname) like '%25${encoded}%25'&$limit=50`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const filtered = data.filter(r => (r.state || '').toUpperCase() === 'MD');
-  return filtered.map(normalizeMontgomeryResult);
-}
-
-// ─── Dispatcher ───────────────────────────────────────────────────────────────
-// The ONLY entry point for live city search. The switch is exhaustive — only one
-// city's function ever runs per call. No Promise.all, no merging, no cross-city results.
-
+/**
+ * Single dispatcher — calls ONLY the proxy for the selected city.
+ * One city key per call. No merging across cities.
+ */
 async function searchRestaurants(city, query) {
-  switch (city) {
-    case 'seattle':    return fetchSeattle(query);
-    case 'nyc':        return fetchNYC(query);
-    case 'chicago':    return fetchChicago(query);
-    case 'austin':     return fetchAustin(query);
-    case 'sf':         return fetchSanFrancisco(query);
-    case 'la':         return fetchLosAngeles(query);
-    case 'montgomery': return fetchMontgomeryMD(query);
-    default:           return [];
-  }
+  const url = `${PROXY_BASE}?city=${encodeURIComponent(city)}&q=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+  const json = await res.json();
+  return (json.results || []).map(r => normalizeProxyResult(r, city));
 }
 
 // ─── countyId → city key ──────────────────────────────────────────────────────
