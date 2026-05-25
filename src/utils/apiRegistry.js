@@ -15,11 +15,6 @@
  *   source      – tag written onto each result row (used by detail fetchers)
  */
 
-/**
- * geoWhere (optional): extra SoQL condition ANDed into every search query to enforce
- * geographic isolation at the API level. Each city's endpoint already only contains
- * data for that jurisdiction, but this provides belt-and-suspenders scoping.
- */
 export const API_REGISTRY = {
   king: {
     id: "king",
@@ -30,7 +25,6 @@ export const API_REGISTRY = {
     dateField: "inspection_date",
     limit: 1000,
     source: "king",
-    // King County API is already scoped to King County only (data.kingcounty.gov)
   },
   nyc: {
     id: "nyc",
@@ -41,7 +35,6 @@ export const API_REGISTRY = {
     dateField: "inspection_date",
     limit: 1000,
     source: "nyc",
-    // NYC API scoped to NYC only (data.cityofnewyork.us)
   },
   cook: {
     id: "cook",
@@ -52,7 +45,6 @@ export const API_REGISTRY = {
     dateField: "inspection_date",
     limit: 1000,
     source: "chicago",
-    geoWhere: "upper(city)='CHICAGO'",
   },
   montgomery_md: {
     id: "montgomery_md",
@@ -63,7 +55,6 @@ export const API_REGISTRY = {
     dateField: "inspectiondate",
     limit: 1000,
     source: "montgomery",
-    // Montgomery County API scoped to Montgomery County only
   },
   travis: {
     id: "travis",
@@ -74,7 +65,6 @@ export const API_REGISTRY = {
     dateField: "inspection_date",
     limit: 1000,
     source: "austin",
-    // Austin API scoped to Austin/Travis County only (data.austintexas.gov)
   },
   sf: {
     id: "sf",
@@ -85,7 +75,6 @@ export const API_REGISTRY = {
     dateField: "inspection_date",
     limit: 1000,
     source: "sf",
-    geoWhere: "upper(business_city)='SAN FRANCISCO'",
   },
   la: {
     id: "la",
@@ -96,14 +85,13 @@ export const API_REGISTRY = {
     dateField: "activity_date",
     limit: 1000,
     source: "la",
-    // LA City API scoped to City of Los Angeles only (data.lacity.org)
   },
   delaware: {
     id: "delaware",
     name: "Delaware",
     endpoint: "https://data.delaware.gov/resource/384s-wygj.json",
     searchField: "restname",
-    idField: "restname",
+    idField: "restname", // group by name+address for detail
     dateField: "insp_date",
     limit: 1000,
     source: "delaware",
@@ -123,16 +111,12 @@ export const API_REGISTRY = {
 /** IDs of counties that have a live government API */
 export const LIVE_API_IDS = new Set(Object.keys(API_REGISTRY));
 
-/** Build a SoQL LIKE query URL for a given registry entry + search term.
- *  If the entry has a geoWhere clause, it is ANDed into the query for belt-and-suspenders
- *  geographic isolation at the API level (on top of each endpoint being city-specific). */
+/** Build a SoQL LIKE query URL for a given registry entry + search term */
 export function buildSearchUrl(entry, query) {
   const clean = query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase();
   const encoded = encodeURIComponent(clean);
   const field = entry.searchField;
-  const nameClause = `upper(replace(${field},chr(39),'')) like '%25${encoded}%25'`;
-  const where = entry.geoWhere ? `${nameClause} AND ${entry.geoWhere}` : nameClause;
-  return `${entry.endpoint}?$where=${where}&$limit=${entry.limit}&$order=${entry.dateField} DESC`;
+  return `${entry.endpoint}?$where=upper(replace(${field},chr(39),'')) like '%25${encoded}%25'&$limit=${entry.limit}&$order=${entry.dateField} DESC`;
 }
 
 /** Build a detail-fetch URL to load all inspections for one establishment */

@@ -1,16 +1,8 @@
-/**
- * searchEngine.js — City-isolated restaurant search
- *
- * Architecture: ONE function per city. The dispatcher (searchRestaurants) calls
- * EXACTLY ONE fetch function based on the selected city. No Promise.all across
- * multiple cities. No merging. No cross-city results. Ever.
- */
-
 import { base44 } from "@/api/base44Client";
-import { API_REGISTRY, buildDetailUrl } from "./apiRegistry";
+import { API_REGISTRY, LIVE_API_IDS, buildSearchUrl, buildDetailUrl } from "./apiRegistry";
 import {
   processKingCountyResults, processNYCResults, processChicagoResults,
-  processAustinResults, processSFResults,
+  processMontgomeryResults, processAustinResults, processSFResults, processLAResults,
   nycToDetailRows, chicagoToDetailRows, montgomeryToDetailRows,
   austinToDetailRows, sfToDetailRows, laToDetailRows,
   llmToDetailRows, buildLLMRestaurant,
@@ -20,65 +12,27 @@ import {
   processTorontoResults, torontoToDetailRows,
 } from "./inspectionProcessors";
 
-// ─── Proxy API ────────────────────────────────────────────────────────────────
-// All live city searches go through a single proxy endpoint.
-// ONE city key per call — never multiple cities simultaneously.
-
-const PROXY_BASE = 'https://safeeats-proxy.vercel.app/api/search';
-
-/**
- * Normalize a proxy result into the app's standard Restaurant shape.
- */
-function normalizeProxyResult(r, city) {
-  const score = typeof r.inspection_score === 'number' ? r.inspection_score : parseFloat(r.inspection_score || 0);
-  const grade = r.grade || (score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : score > 0 ? 'F' : 'U');
-  return {
-    business_id: r.id || `${city}-${r.name}-${r.address}`,
-    name: r.name || '',
-    address: r.address || '',
-    city: r.city || '',
-    zip_code: r.zip || '',
-    phone: r.phone || '',
-    latitude: r.lat || null,
-    longitude: r.lng || null,
-    description: r.description || '',
-    source: city,
-    county_id: city,
-    safetyScore: score || null,
-    grade,
-    totalInspections: 1,
-    latestDate: r.inspection_date || '',
-    latestResult: r.inspection_result || '',
-    violation_description: r.violation_description || '',
-    violation_points: r.violation_points || 0,
-    isLLMData: false,
-  };
-}
-
-/**
- * Single dispatcher — calls ONLY the proxy for the selected city.
- * One city key per call. No merging across cities.
- */
-async function searchRestaurants(city, query) {
-  const url = `${PROXY_BASE}?city=${encodeURIComponent(city)}&q=${encodeURIComponent(query)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
-  const json = await res.json();
-  return (json.results || []).map(r => normalizeProxyResult(r, city));
-}
-
-// ─── countyId → city key ──────────────────────────────────────────────────────
-const COUNTY_TO_CITY = {
-  king:          'seattle',
-  nyc:           'nyc',
-  cook:          'chicago',
-  travis:        'austin',
-  sf:            'sf',
-  la:            'la',
-  montgomery_md: 'montgomery',
+const PROCESSORS = {
+  king:          { process: processKingCountyResults,  toDetailRows: null },
+  nyc:           { process: processNYCResults,         toDetailRows: nycToDetailRows },
+  cook:          { process: processChicagoResults,     toDetailRows: chicagoToDetailRows },
+  montgomery_md: { process: processMontgomeryResults,  toDetailRows: montgomeryToDetailRows },
+  travis:        { process: processAustinResults,      toDetailRows: austinToDetailRows },
+  sf:            { process: processSFResults,          toDetailRows: sfToDetailRows },
+  la:            { process: processLAResults,          toDetailRows: laToDetailRows },
+  delaware:      { process: processDelawareResults,    toDetailRows: delawareToDetailRows },
+  ny_state:      { process: processNYStateResults,     toDetailRows: nyStateToDetailRows },
+  toronto:       { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
 };
 
-// ─── LLM helpers (AI / Dubai paths) ──────────────────────────────────────────
+const SOURCE_TO_COUNTY = {
+  king: "king", nyc: "nyc", chicago: "cook",
+  montgomery: "montgomery_md", austin: "travis",
+  sf: "sf", la: "la", dubai: "dubai", llm: "llm",
+  uk_fsa: "uk_fsa", delaware: "delaware",
+  ny_state: "ny_state", toronto: "toronto",
+};
+
 const LLM_SCHEMA = {
   type: "object",
   properties: {
@@ -93,6 +47,7 @@ const LLM_SCHEMA = {
           zip_code:               { type: "string" },
           phone:                  { type: "string" },
           latest_score:           { type: "number" },
+          total_violation_points: { type: "number" },
           latest_date:            { type: "string" },
           latest_result:          { type: "string" },
           total_inspections:      { type: "number" },
@@ -111,6 +66,68 @@ const LLM_SCHEMA = {
   },
 };
 
+const PROMPT_LOCATION = (query, location, today) =>
+  `Today is ${today}. Search the web for real health inspection records for "${query}" in ${location} ONLY.
+STRICT RULES:
+1. EVERY result MUST have city="${location}" or a city name that starts with the same word as "${location}".
+2. city field MUST match the requested location. If unsure, OMIT the result.
+3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
+4. NEVER return results from outside ${location}.
+5. Better to return 3 verified results than 10 with any location mismatch.
+6. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
+
+const PROMPT_GLOBAL = (query, today) =>
+  `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
+Return up to 8 real, verifiable businesses. No invented data. latest_score: 0–100.
+For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
+
+const PROMPT_DUBAI = (query, today) =>
+  `Today is ${today}. Find ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE.
+ZERO TOLERANCE RULES:
+1. BLOCK EVERYTHING: Miami, New York, Boston, Chicago, Los Angeles, San Francisco, Austin, London, Paris, Tokyo, Abu Dhabi, Sharjah — ANY US city or non-UAE location = REJECTED.
+2. city MUST be exactly "Dubai" for EVERY result.
+3. Address MUST include: Jumeirah, Deira, Bur Dubai, Marina, Downtown Dubai, JBR, DIFC, Business Bay, Palm Jumeirah, Sheikh Zayed, or "Dubai, UAE".
+4. Verify EVERY result is actually in Dubai before returning it. If unsure = OMIT.
+5. Return max 8 real verified Dubai restaurants only. ZERO results from outside Dubai.`;
+
+const FAST_PROMPT = (query, location) => location
+  ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
+  : `List up to 8 real restaurants matching "${query}" worldwide. Training data only.`;
+
+const FAST_PROMPT_DUBAI = (query) =>
+  `DUBAI ONLY. REJECT: Miami, Boston, New York, Chicago, LA, SF, Austin, London, Paris, Tokyo, Abu Dhabi, any US city.
+List ONLY restaurants in DUBAI, UAE. city="Dubai" ALWAYS. Address: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, Dubai.
+Return max 8. If unsure = OMIT. ZERO non-Dubai results.`;
+
+/**
+ * Post-fetch relevance filter: ensures search results actually match the query name.
+ * Strategy:
+ *   - If query is short (<=2 chars), keep all results (avoid filtering "DQ" or "AM/PM" etc)
+ *   - For multi-word queries: every word must appear somewhere in the name
+ *   - For single-word queries: word must appear as substring in name
+ *   - Punctuation in either is normalized away
+ *   - Always case-insensitive
+ *   - If filter would remove ALL results, return original list (fail-open — better to show
+ *     too many results than zero)
+ */
+function filterByNameRelevance(results, query) {
+  if (!Array.isArray(results) || results.length === 0) return results;
+  const cleanQuery = (query || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  if (cleanQuery.length <= 2) return results;
+
+  const queryWords = cleanQuery.split(" ").filter(w => w.length >= 2);
+  if (queryWords.length === 0) return results;
+
+  const filtered = results.filter(r => {
+    const cleanName = (r.name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    if (!cleanName) return false;
+    return queryWords.every(w => cleanName.includes(w));
+  });
+
+  // Fail-open: if filtering removes everything, return original list
+  return filtered.length > 0 ? filtered : results;
+}
+
 function llmCall(prompt, internet = false) {
   return base44.integrations.Core.InvokeLLM({
     prompt,
@@ -120,113 +137,194 @@ function llmCall(prompt, internet = false) {
   });
 }
 
-const DUBAI_VALID_MARKERS = ["jumeirah", "deira", "bur dubai", "marina", "downtown dubai", "jbr", "difc", "business bay", "palm jumeirah", "sheikh zayed", "dubai", "uae"];
-const DUBAI_BLOCKED = ["miami", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "london", "paris", "tokyo", "abu dhabi", "sharjah", "new york"];
+// EXHAUSTIVE forbidden locations
+// Dubai location filter — restaurants outside Dubai must be rejected.
+// Three lists of forbidden tokens, deduplicated and de-collided.
+const US_CITIES = ["miami", "boston", "chicago", "los angeles", "san francisco", "austin", "seattle", "denver", "atlanta", "dallas", "houston", "phoenix", "orlando", "las vegas", "philadelphia"];
+const US_STATES = ["florida", "new york", "massachusetts", "illinois", "california", "texas", "colorado", "georgia", "nevada", "pennsylvania", "washington dc"];
+const NON_DUBAI = ["london", "paris", "tokyo", "abu dhabi", "dubai creek", "ras al khaimah", "fujairah", "umm al quwain", "ajman", "sharjah"];
+// Deduplicate just in case any tokens overlap across lists
+const ALL_FORBIDDEN = [...new Set([...US_CITIES, ...US_STATES, ...NON_DUBAI])];
 
 function isDubaiLocation(city, address) {
-  const c = (city || '').toLowerCase();
-  const a = (address || '').toLowerCase();
-  if (DUBAI_BLOCKED.some(b => c.includes(b) || a.includes(b))) return false;
-  return (c === 'dubai' || c.startsWith('dubai,')) && DUBAI_VALID_MARKERS.some(m => a.includes(m));
+  const cityLower = (city || "").toLowerCase().trim();
+  const addressLower = (address || "").toLowerCase();
+  
+  // REJECT if any forbidden location found
+  if (ALL_FORBIDDEN.some(f => cityLower.includes(f) || addressLower.includes(f))) {
+    return false;
+  }
+  
+  // ACCEPT only if city is "dubai" AND address has Dubai marker
+  const isDubaiCity = cityLower === "dubai" || cityLower.startsWith("dubai,");
+  const hasDubaiAddress = ["jumeirah", "deira", "bur dubai", "marina", "downtown dubai", "jbr", "difc", "business bay", "palm jumeirah", "sheikh zayed", "dubai", "uae"].some(m => addressLower.includes(m));
+  
+  return isDubaiCity && hasDubaiAddress;
 }
 
-// ─── Main search export ───────────────────────────────────────────────────────
+function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
+  // VALIDATE LOCATION ON ORIGINAL DATA BEFORE ANY OVERRIDES
+  let isWrongLocation = false;
+  
+  if (countyId === "dubai") {
+    isWrongLocation = !isDubaiLocation(r.city, r.address);
+    // If wrong location, return early with flag set
+    if (isWrongLocation) {
+      const built = buildLLMRestaurant(r, i, countyId, location, null);
+      return { ...built, _wrongLocation: true };
+    }
+    // Only override city if location is valid
+    const built = {
+      ...buildLLMRestaurant(r, i, countyId, location, null),
+      city: "Dubai",
+      region: "uae",
+      country: "UAE",
+    };
+    return { ...built, _wrongLocation: false };
+  } else if (expectedCity && expectedCity !== "Worldwide (AI Search)") {
+    const resultCityLower = (r.city || "").toLowerCase().trim();
+    const expectedLower = expectedCity.toLowerCase().trim();
+
+    // Use the FULL expected city string for matching, not just the first word.
+    // Strip trailing state/country suffixes like ", CT" or ", UAE" for comparison.
+    const expectedCleaned = expectedLower.replace(/,.*$/, "").trim();
+
+    // Match if the result city equals or contains the full expected name.
+    // For multi-word cities ("New York"), require the entire phrase, not just "new".
+    // For single-word cities, allow exact match or "Cityname, ST" style.
+    const isMatch = resultCityLower === expectedCleaned ||
+                    resultCityLower.startsWith(expectedCleaned + ",") ||
+                    resultCityLower.startsWith(expectedCleaned + " ");
+
+    isWrongLocation = expectedCleaned.length > 2 && !isMatch;
+  }
+  
+  const built = buildLLMRestaurant(r, i, countyId, location, null);
+  return { ...built, _wrongLocation: isWrongLocation };
+}
+
+async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastResults, isDubaiSearch = false) {
+  let fastDelivered = false;
+  fastPromise.then((res) => {
+    if (fastDelivered) return;
+    let fast = (res?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+    if (isDubaiSearch) {
+      fast = fast.filter(r => isDubaiLocation(r.city, r.address));
+    }
+    if (fast.length > 0 && onFastResults) { fastDelivered = true; onFastResults(fast); }
+  }).catch(() => {});
+  const result = await accuratePromise;
+  fastDelivered = true;
+  let restaurants = (result?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  if (isDubaiSearch) {
+    restaurants = restaurants.filter(r => isDubaiLocation(r.city, r.address));
+  }
+  return restaurants;
+}
+
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults, onCountUpdate }) {
-  // UK FSA — backend proxy
+  // UK FSA live API (requires backend proxy for header injection)
   if (countyId === "uk_fsa") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
-    return { results: processUKFSAResults(res.data?.establishments || []), isAI: false };
+    const establishments = res.data?.establishments || [];
+    return { results: processUKFSAResults(establishments), isAI: false };
   }
 
-  // Toronto DineSafe — backend proxy
+  // Toronto DineSafe (CKAN — needs backend proxy)
   if (countyId === "toronto") {
     const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
-    return { results: processTorontoResults(res.data?.records || []), isAI: false };
+    const records = res.data?.records || [];
+    return { results: processTorontoResults(records), isAI: false };
   }
 
-  // Live city API — single isolated dispatch
-  const city = COUNTY_TO_CITY[countyId];
-  if (city) {
-    try {
-      const results = await searchRestaurants(city, query);
-      return { results, isAI: false };
-    } catch (err) {
-      if (err.name === 'AbortError') throw err;
-      return {
-        results: [],
-        isAI: false,
-        error: `The ${city} health inspection database is temporarily unavailable. Please try again.`,
-      };
-    }
+  // Live government API
+  if (LIVE_API_IDS.has(countyId)) {
+    const entry = API_REGISTRY[countyId];
+    const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
+    const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+
+    // Post-fetch relevance filter: keep only results whose name actually matches the query.
+    // The Socrata LIKE '%query%' is too permissive — it can return adjacent records or
+    // fuzzy matches when name fields are denormalized. We require the query (or each query word)
+    // to appear in the result's name, case-insensitively.
+    const results = filterByNameRelevance(allResults, query);
+
+    // Background-fetch true inspection counts and fire onCountUpdate per business
+    if (onCountUpdate && countyId !== "delaware") {
+      results.forEach(async (biz) => {
+        try {
+          const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
+          const rows = await fetch(countUrl, signal ? { signal } : {}).then(r => r.json());
+          if (!Array.isArray(rows) || rows.length === 0) return;
+          const keys = new Set(rows.map(row => {
+            const v = row[entry.dateField];
+            return v ? v.split("T")[0] : null;
+          }).filter(Boolean));
+          const trueCount = keys.size;
+          if (trueCount > biz.totalInspections) {
+            onCountUpdate(biz.business_id, trueCount);
+          }
+        } catch (err) {
+          // AbortError is expected when search is replaced; silently ignore.
+          // Other errors also silently ignored — these are background polish requests.
+        }
+        });
+        }
+
+    return { results, isAI: false };
   }
 
-  // Dubai — LLM isolated path
+  // Dubai — fully isolated path
   if (countyId === "dubai") {
-    const today_ = today || new Date().toISOString().split('T')[0];
-    const prompt = `Today is ${today_}. Find ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE. city MUST be exactly "Dubai". ZERO results from outside Dubai.`;
-    const res = await llmCall(prompt, true);
-    const restaurants = (res?.restaurants || [])
-      .filter(r => isDubaiLocation(r.city, r.address))
-      .map((r, i) => ({ ...buildLLMRestaurant(r, i, 'dubai', 'Dubai', null), city: 'Dubai' }));
+    const restaurants = await runWithFastResults(
+      llmCall(FAST_PROMPT_DUBAI(query), false),
+      llmCall(PROMPT_DUBAI(query, today), true),
+      (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
+      onFastResults,
+      true  // isDubaiSearch flag for aggressive filtering
+    );
     return { results: restaurants, isAI: true };
   }
 
-  // AI global / location fallback
-  const today_ = today || new Date().toISOString().split('T')[0];
+  // AI global/location search
   const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : null;
-  const prompt = location
-    ? `Today is ${today_}. Search for real health inspection records for "${query}" in ${location} ONLY. Every result city MUST match ${location}. Return up to 8 verified results.`
-    : `Today is ${today_}. Search for real health inspection records for "${query}" anywhere. Return up to 8 real results.`;
-  const res = await llmCall(prompt, true);
-  const restaurants = (res?.restaurants || []).map((r, i) => buildLLMRestaurant(r, i, countyId, location || '', null));
+  const restaurants = await runWithFastResults(
+    llmCall(FAST_PROMPT(query, location), false),
+    llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
+    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
+    onFastResults
+  );
   return { results: restaurants, isAI: true };
 }
-
-// ─── Detail fetch (unchanged) ─────────────────────────────────────────────────
-const SOURCE_TO_COUNTY = {
-  king: "king", nyc: "nyc", chicago: "cook",
-  montgomery: "montgomery_md", austin: "travis",
-  sf: "sf", la: "la", dubai: "dubai", llm: "llm",
-  uk_fsa: "uk_fsa", delaware: "delaware",
-  ny_state: "ny_state", toronto: "toronto",
-};
-
-const DETAIL_PROCESSORS = {
-  nyc:           nycToDetailRows,
-  cook:          chicagoToDetailRows,
-  montgomery_md: montgomeryToDetailRows,
-  travis:        austinToDetailRows,
-  sf:            sfToDetailRows,
-  la:            laToDetailRows,
-  delaware:      delawareToDetailRows,
-  ny_state:      nyStateToDetailRows,
-  toronto:       torontoToDetailRows,
-};
 
 export async function fetchDetail(restaurant) {
   const { source, business_id, isLLMData } = restaurant;
   if (isLLMData || source === "dubai" || source === "llm") return llmToDetailRows(restaurant);
 
+  // Toronto DineSafe — CKAN detail fetch
   if (source === "toronto") {
     try {
       const res = await base44.functions.invoke("torontoDineSafe", { action: "detail", establishmentId: business_id });
-      return torontoToDetailRows(res.data?.records || []);
+      const records = res.data?.records || [];
+      return torontoToDetailRows(records);
     } catch { return []; }
   }
 
+  // UK FSA — use score descriptor endpoint
   if (source === "uk_fsa") {
     try {
       const res = await base44.functions.invoke("ukFoodRatings", { action: "detail", fhrsId: restaurant.fhrsId });
       const descriptors = res.data?.scoreDescriptors || [];
+      // Build detail rows from score descriptors
       if (descriptors.length > 0) {
         return descriptors.map((d, i) => ({
           inspection_serial_num: `uk-${restaurant.fhrsId}-${i}`,
           inspection_date: restaurant.latestDate,
           inspection_score: String(d.Score || 0),
-          inspection_result: restaurant.latestResult || '',
-          inspection_type: 'Food Hygiene Rating (FSA)',
-          violation_description: `${d.ScoreCategory}: ${d.Description || (d.Score > 0 ? 'Improvement required' : 'Very good')}`,
-          violation_type: d.Score > 15 ? 'RED' : 'BLUE',
+          inspection_result: restaurant.latestResult || "",
+          inspection_type: "Food Hygiene Rating (FSA)",
+          violation_description: d.Score > 0 ? `${d.ScoreCategory}: ${d.Description || "Improvement required"}` : `${d.ScoreCategory}: ${d.Description || "Very good"}`,
+          violation_type: d.Score > 15 ? "RED" : "BLUE",
           violation_points: String(d.Score || 0),
         }));
       }
@@ -238,6 +336,7 @@ export async function fetchDetail(restaurant) {
   const entry = API_REGISTRY[countyId];
   if (!entry) return [];
 
+  // Delaware: business_id is "name-address", need to split and query
   if (countyId === "delaware") {
     const [restname, ...addrParts] = business_id.split("-");
     const restaddress = addrParts.join("-");
@@ -249,5 +348,5 @@ export async function fetchDetail(restaurant) {
   const data = await fetch(buildDetailUrl(entry, business_id)).then(r => r.json());
   const rows = Array.isArray(data) ? data : [];
   if (countyId === "king") return rows;
-  return DETAIL_PROCESSORS[countyId] ? DETAIL_PROCESSORS[countyId](rows) : rows;
+  return PROCESSORS[countyId].toDetailRows(rows);
 }

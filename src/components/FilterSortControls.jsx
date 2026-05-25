@@ -7,9 +7,9 @@ export default function FilterSortControls({ filterResult, onFilterChange, sortB
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
       <div className="flex items-center gap-2">
         <Filter className="w-4 h-4 text-slate-400" />
-        <label htmlFor="filter-result" className="text-xs font-medium text-slate-600">Result:</label>
+        <span className="text-xs font-medium text-slate-600">Result:</span>
         <Select value={filterResult} onValueChange={onFilterChange}>
-          <SelectTrigger id="filter-result" name="filter-result" className="h-8 text-xs w-44" aria-label="Filter by inspection result">
+          <SelectTrigger className="h-8 text-xs w-44">
             <SelectValue placeholder="All Results" />
           </SelectTrigger>
           <SelectContent>
@@ -29,9 +29,9 @@ export default function FilterSortControls({ filterResult, onFilterChange, sortB
 
       <div className="flex items-center gap-2">
         <ArrowUpDown className="w-4 h-4 text-slate-400" />
-        <label htmlFor="sort-by" className="text-xs font-medium text-slate-600">Sort:</label>
+        <span className="text-xs font-medium text-slate-600">Sort:</span>
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger id="sort-by" name="sort-by" className="h-8 text-xs w-44" aria-label="Sort results by">
+          <SelectTrigger className="h-8 text-xs w-44">
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>

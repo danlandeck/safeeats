@@ -1,25 +1,44 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft, MapPin, Phone, Globe,
+  ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
   ExternalLink, Award, TrendingUp
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
+import GradeBadge from "./GradeBadge";
 import SafetySnapshot from "./SafetySnapshot";
 import ViolationItem from "./ViolationItem";
 import InspectionTrendChart from "./InspectionTrendChart";
 import FailRiskBadge from "./FailRiskBadge";
 import ReportIssueButton from "./ReportIssueButton";
-import ADADetailSection from "./ADADetailSection";
+import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
+import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 import KofiButton from "./KofiButton";
+import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
-import { useLanguage } from "../lib/LanguageContext";
-import { formatLocalDate } from "../utils/i18n";
+import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
+
+// ── Infer state from restaurant data ──────────────────────────────────────────
+function inferState(restaurant) {
+  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
+  // Map county_id to state
+  const COUNTY_STATE = {
+    king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
+    montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
+  };
+  if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) {
+    return COUNTY_STATE[restaurant.county_id];
+  }
+  // Try to extract from address
+  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
+  const match = addr.match(/\b([A-Z]{2})\b/);
+  return match ? match[1] : "US";
+}
 
 // ── Jargon → category for repeat detection ──────────────────────────────────
 function buildViolationKey(desc) {
@@ -44,9 +63,12 @@ const SOURCE_REGISTRY = {
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
-  const { t, langCode } = useLanguage();
+  const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
+  const [showRawData, setShowRawData] = useState(false);
   const [showDataSource, setShowDataSource] = useState(false);
+  const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
+  // Scroll-to helpers for stat boxes
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   // ── Group inspections ──────────────────────────────────────────────────────
@@ -104,6 +126,24 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   // ── Source info ────────────────────────────────────────────────────────────
   const sourceInfo = SOURCE_REGISTRY[restaurant.county_id] || SOURCE_REGISTRY[restaurant.source] || SOURCE_REGISTRY[restaurant.region === "uae" ? "dubai" : null];
 
+  // ── Share handler ──────────────────────────────────────────────────────────
+  const handleShare = async () => {
+    const text = `${restaurant.name} has a ${grade} food safety grade (${restaurant.safetyScore ?? "N/A"}/100) on SafeEats. Check before you eat! ${window.location.href}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: `${restaurant.name} Safety Score`, text, url: window.location.href }); }
+      catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      setShareMsg("Copied!");
+      setTimeout(() => setShareMsg(""), 2000);
+    }
+  };
+
+  const handleFavorite = () => {
+    const newState = toggleFavorite(restaurant);
+    setFavorited(newState);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -114,7 +154,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       {/* ── Back ── */}
       <Button variant="ghost" onClick={onBack} className="text-slate-500 hover:text-slate-800 -ml-2" aria-label="Back to search results">
         <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-        {t?.backToResults || "Back to results"}
+        Back to results
       </Button>
 
       {/* ── HERO CARD ── */}
@@ -151,7 +191,24 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 </a>
               </div>
             </div>
-
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleFavorite}
+                className={`p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
+                aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
+                aria-pressed={favorited}
+              >
+                <Heart className={`w-4 h-4 ${favorited ? "fill-current" : ""}`} aria-hidden="true" />
+              </button>
+              <button
+                onClick={handleShare}
+                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                aria-label="Share safety score"
+              >
+                <Share2 className="w-4 h-4" aria-hidden="true" />
+              </button>
+              {shareMsg && <span className="text-xs text-green-600 font-semibold">{shareMsg}</span>}
+            </div>
           </div>
 
           {/* Grade + Score + Stats row */}
@@ -180,26 +237,26 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
               <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
                 <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
-                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">{t?.totalInspections || "Total inspections"}</p>
+                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
               <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
                 <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
-                  {latestDate ? formatLocalDate(latestDate, langCode, { month: "short", year: "numeric" }) : "—"}
+                  {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
                 </p>
-                <p className="text-xs text-slate-500" aria-hidden="true">{t?.lastInspected || "Last inspected"}</p>
+                <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
               </button>
               <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
                 <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
                 <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
-                  {t?.repeatIssues ? t.repeatIssues(totalRepeatCount) : `${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"}`}
+                  Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
                 </p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">What's this? ↓</p>
               </button>
               <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
                 <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
-                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">{t?.cleanStreak || "Clean streak"}</p>
+                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
                 <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View trend ↓</p>
               </button>
             </div>
@@ -218,8 +275,15 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
           {/* ADA Accessibility */}
           <div className="mt-4">
-            <ADADetailSection restaurant={restaurant} />
+            <ADAAccessibilityBadge restaurant={restaurant} />
           </div>
+
+          {/* ADA Compliance Status */}
+          {restaurant.ada_compliance && (
+            <div className="mt-3">
+              <ADABadge ada_compliance={restaurant.ada_compliance} size="lg" />
+            </div>
+          )}
 
           {/* Water Quality */}
           <EPAWaterCard
@@ -274,9 +338,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                   {latestDate && (
                     <p className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                      {t?.lastInspected || "Last inspected"}:{" "}
+                      Last inspection on record:{" "}
                       <span className="font-semibold text-slate-700">
-                        {formatLocalDate(latestDate, langCode, { year: "numeric", month: "long", day: "numeric" })}
+                        {new Date(latestDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     </p>
                   )}
@@ -353,7 +417,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               const score = raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : restaurant.safetyScore;
               const isExpanded = expandedInspection === idx;
               const dateStr = insp.inspection_date
-                ? formatLocalDate(insp.inspection_date, langCode, { weekday: "short", year: "numeric", month: "short", day: "numeric" })
+                ? new Date(insp.inspection_date).toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" })
                 : "Unknown date";
 
               return (
@@ -436,7 +500,15 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                             </div>
                           )}
 
-
+                          {/* Raw data for power users */}
+                          {showRawData && (
+                            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Raw Record</p>
+                              <pre className="text-[10px] text-slate-500 overflow-x-auto whitespace-pre-wrap break-all">
+                                {JSON.stringify({ type: insp.inspection_type, result: insp.inspection_result, score: insp.inspection_score, serial: insp.inspection_serial_num }, null, 2)}
+                              </pre>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}

@@ -10,7 +10,7 @@ import CountryCodes from './pages/CountryCodes';
 import GlobalCoverage from './pages/GlobalCoverage';
 import Widget from './pages/Widget';
 import EmbedGenerator from './pages/EmbedGenerator';
-
+import Dashboard from './pages/Dashboard';
 import Feedback from './pages/Feedback';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
@@ -67,7 +67,7 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/county-drilldown" element={<LayoutWrapper currentPageName="CountyDrillDown"><CountyDrillDown /></LayoutWrapper>} />
-
+      <Route path="/dashboard" element={<LayoutWrapper currentPageName="Dashboard"><Dashboard /></LayoutWrapper>} />
       <Route path="/widget" element={<Widget />} />
       <Route path="/embed" element={<LayoutWrapper currentPageName="EmbedGenerator"><EmbedGenerator /></LayoutWrapper>} />
       <Route path="/country-codes" element={<LayoutWrapper currentPageName="CountryCodes"><CountryCodes /></LayoutWrapper>} />
@@ -85,7 +85,7 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Router>
             <NavigationTracker />
             <AuthenticatedApp />
           </Router>

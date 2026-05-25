@@ -109,7 +109,6 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
         <input
           id="fuzzy-search-input"
-          name="fuzzy-search"
           ref={inputRef}
           type="text"
           value={query}
@@ -181,7 +180,6 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
               <label htmlFor="filter-cuisine" className="text-xs font-bold text-slate-500 whitespace-nowrap">Cuisine:</label>
               <select
                 id="filter-cuisine"
-                name="filter-cuisine"
                 value={cuisine}
                 onChange={e => setCuisine(e.target.value)}
                 className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"
@@ -198,7 +196,6 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
               <label htmlFor="filter-city" className="text-xs font-bold text-slate-500 whitespace-nowrap">City:</label>
               <select
                 id="filter-city"
-                name="filter-city"
                 value={city}
                 onChange={e => setCity(e.target.value)}
                 className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"
@@ -214,7 +211,6 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
             <label htmlFor="filter-grade" className="text-xs font-bold text-slate-500 whitespace-nowrap">Min grade:</label>
             <select
               id="filter-grade"
-              name="filter-grade"
               value={minGrade}
               onChange={e => setMinGrade(e.target.value)}
               className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"

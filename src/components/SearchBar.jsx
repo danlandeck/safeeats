@@ -35,15 +35,11 @@ export default function SearchBar({ onSearch, isLoading, placeholder, dir }) {
       <div className="relative flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <label htmlFor="searchbar-query" className="sr-only">Search restaurant or cuisine</label>
           <Input
-            id="searchbar-query"
-            name="searchbar-query"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder || "Try: Subway, San Diego CA · pizza Seattle · tacos Austin TX"}
             dir={dir || "ltr"}
-            aria-label="Search restaurant or cuisine"
             className="pl-12 pr-10 h-14 text-base rounded-2xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:border-slate-300 whitespace-nowrap overflow-x-auto"
           />
           {query && (

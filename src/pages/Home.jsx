@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
+import { getTranslations } from "../utils/i18n";
 import { useLanguage } from "../lib/LanguageContext";
 import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
@@ -701,8 +702,8 @@ const LIVE_API_CITIES = [
 export default function Home() {
   const location = useLocation();
   const { accept, decline } = useConsent();
-  const [region, setRegion]                     = useState("washington");
-  const [countyId, setCountyId]                 = useState("king");
+  const [region, setRegion]                     = useState("global");
+  const [countyId, setCountyId]                 = useState("global");
   const pendingSearchRef                        = useRef(null);
   const [results, setResults]                   = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -741,7 +742,9 @@ export default function Home() {
 
   const currentRegion = REGIONS[region] || REGIONS["global"];
   const currentCounty = currentRegion.counties.find((c) => c.id === countyId) || currentRegion.counties[0];
-  const { t, langMeta } = useLanguage();
+  const { t: langT } = useLanguage();
+  const t = langT || getTranslations(region);
+  const { langMeta } = useLanguage();
   const isRTL = langMeta?.dir === "rtl" || ["uae"].includes(region);
 
   // Silently grab user coords if already permitted (no prompt)
@@ -800,17 +803,30 @@ export default function Home() {
     setFuzzySelected(null);
   };
 
-  const handleSearch = useCallback(async (rawQuery, cityOverride) => {
-    const query = rawQuery;
-    // ai_global = unknown location, falls through to LLM in searchEngine
-    const isAIGlobal = cityOverride?.countyId === "ai_global";
-    const searchRegion = isAIGlobal ? "global" : (cityOverride?.region || region);
-    const searchCounty = isAIGlobal ? null : (cityOverride?.countyId || countyId);
-    if (cityOverride && !isAIGlobal) {
-      setRegion(cityOverride.region);
-      setCountyId(cityOverride.countyId);
+  const handleSearch = useCallback(async (rawQuery) => {
+    let query = rawQuery;
+    let searchRegion = region;
+    let searchCounty = countyId;
+
+    // Auto-detect location from explicit city name in query when on global
+    if (searchRegion === "global" || searchCounty === "global") {
+      const queryWords = rawQuery.toLowerCase().trim();
+      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        if (queryWords.includes(key)) {
+          const matched = CITY_TO_COUNTY[key];
+          if (REGIONS[matched.region]) {
+            searchRegion = matched.region;
+            searchCounty = matched.countyId;
+            setRegion(searchRegion);
+            setCountyId(searchCounty);
+            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+            query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          }
+          break;
+        }
+      }
     }
-    if (cityOverride) setLocationQuery(cityOverride.label || "");
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -828,10 +844,14 @@ export default function Home() {
     const resolvedCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
     const locationCtx = locationQuery.trim() || resolvedCounty.name;
 
+    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
+      setIsAISearch(true);
+    }
+
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      const { results: fetchedResults, isAI, error: liveApiError } = await engineSearch({
+      const { results: fetchedResults, isAI } = await engineSearch({
         query,
         countyId: searchCounty,
         locationLabel: locationCtx,
@@ -845,21 +865,10 @@ export default function Home() {
         },
       });
 
-      if (signal.aborted) return;
-
-      // Live API returned a city-specific error (e.g. API temporarily down).
-      // Do NOT fall back to AI — show the error for that specific city only.
-      if (liveApiError) {
-        setSearchError(liveApiError);
-        setIsLoading(false);
-        return;
-      }
-
       setIsAISearch(isAI);
       setResults(fetchedResults);
     } catch (e) {
-      if (e.name === "AbortError" || signal.aborted) return;
-      console.error("Search error:", e);
+      if (e.name === "AbortError") return;
       setIsLoading(false);
       setIsAISearch(false);
       setSearchError("Search failed. Please try again in a moment.");
@@ -1029,11 +1038,11 @@ export default function Home() {
               🛡️ #1 Global Food Safety Platform · 195+ Countries
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
-              {t.headline1}
-              <span className="text-[#4CAF50]"> {t.headline2}</span>
+              Is your restaurant
+              <span className="text-[#4CAF50]"> safe to eat at? 🍽️</span>
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-300 font-bold max-w-lg mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
-              {t.heroSubheadline || t.subheadline}
+              Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️
             </p>
 
             {!hasSearched && (
@@ -1051,7 +1060,7 @@ export default function Home() {
                     <span className="text-[10px] text-slate-300 font-extrabold">{tip}</span>
                   </div>
                 ))}
-                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">{t.howGradesWork || "← how grades work"}</Link>
+                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">← how grades work</Link>
               </div>
             )}
           </div>
@@ -1059,29 +1068,36 @@ export default function Home() {
           <SmartSearchPanel
             query={searchBarQuery}
             onQueryChange={setSearchBarQuery}
-            onSearch={(q, cityInfo) => {
-              if (hasSearched) {
-                setResults([]);
-                setSelectedBusiness(null);
-                setFastResults(null);
-                setGradeFilter(null);
-                setSearchError("");
-                setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
-                setFuzzySelected(null);
-              }
-              handleSearch(q, cityInfo);
+            locationQuery={locationQuery}
+            onLocationChange={(val) => {
+              setLocationQuery(val);
+            }}
+            onRegionChange={({ region: r, countyId: c, label }) => {
+              setRegion(r);
+              setCountyId(c);
+              setLocationQuery(label);
+            }}
+            onSearch={(q) => {
+              if (hasSearched) resetSearch();
+              setTimeout(() => handleSearch(q), 0);
             }}
             isLoading={isLoading}
+            activeRegion={region}
+            activeCounty={countyId}
+            onNearMe={(coords) => {
+              setUserCoords(coords);
+              setNearMeActive(true);
+            }}
           />
 
           <div className="flex justify-center gap-2 mt-4">
             {hasSearched && (
               <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
-                <X className="w-4 h-4" /> {t.newSearch || "New Search"}
+                <X className="w-4 h-4" /> New Search
               </button>
             )}
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-              📷 {hasSearched ? (t.scanSignShort || "Scan Sign") : (t.scanSign || "Scan a Restaurant Sign")}
+              📷 {hasSearched ? "Scan Sign" : "Scan a Restaurant Sign"}
             </button>
           </div>
 
@@ -1178,7 +1194,7 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-col items-center justify-center py-20">
                           <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-sm text-slate-400">{t?.searchingLiveDB || "Searching live government database…"}</p>
+                          <p className="text-sm text-slate-400">Searching live government database…</p>
                         </div>
                       )
                     ) : searchError ? (
@@ -1205,15 +1221,15 @@ export default function Home() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
                             <p className="text-sm font-extrabold text-slate-800">
-                              {t.foundRestaurants ? t.foundRestaurants(filteredAndSortedResults.length) : `Found ${filteredAndSortedResults.length} restaurant${filteredAndSortedResults.length !== 1 ? "s" : ""}`}
-                              {results.length !== filteredAndSortedResults.length ? ` ${t.filteredFrom ? t.filteredFrom(results.length) : `(filtered from ${results.length})`}` : ""}
-                              {searchQuery ? ` ${t.forQuery ? t.forQuery(searchQuery) : `for "${searchQuery}"`}` : ""}
-                              {nearMeActive && <span className="ml-1 text-blue-600"> {t.withinDist || "· within 5 mi"}</span>}
+                              Found {filteredAndSortedResults.length} restaurant{filteredAndSortedResults.length !== 1 ? "s" : ""}
+                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""}
+                              {searchQuery ? ` for "${searchQuery}"` : ""}
+                              {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">
-                              {gradeFilter ? `${t.showingGrade ? t.showingGrade(gradeFilter) : `Showing Grade ${gradeFilter} only`} · ` : ""}
-                              {t.sortedByScore || "Sorted by safety score — tap any restaurant to see its full history"}
+                              {gradeFilter ? `Showing Grade ${gradeFilter} only · ` : ""}
+                              Sorted by safety score — tap any restaurant to see its full history
                             </p>
                           </div>
                           <div className="flex gap-2 flex-wrap justify-end">
@@ -1324,8 +1340,8 @@ export default function Home() {
                       </Suspense>
                       {gradeFilter && (
                         <div className="bg-slate-100 rounded-xl px-3 py-2 text-xs text-slate-600 font-semibold flex items-center justify-between">
-                          <span>{t.showingGrade ? t.showingGrade(gradeFilter) : `Showing Grade ${gradeFilter} only`}</span>
-                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">{t.clear || "Clear"}</button>
+                          <span>Showing Grade {gradeFilter} only</span>
+                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">Clear</button>
                         </div>
                       )}
                     </div>
