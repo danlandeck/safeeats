@@ -1088,7 +1088,17 @@ export default function Home() {
               setLocationQuery(label);
             }}
             onSearch={(q) => {
-              if (hasSearched) resetSearch();
+              if (hasSearched) {
+                // Clear results but DO NOT reset region/countyId — preserve the selected city
+                setResults([]);
+                setHasSearched(false);
+                setSelectedBusiness(null);
+                setFastResults(null);
+                setGradeFilter(null);
+                setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
+                setFuzzySelected(null);
+                window.history.pushState({}, '', window.location.pathname);
+              }
               setTimeout(() => handleSearch(q), 0);
             }}
             isLoading={isLoading}
