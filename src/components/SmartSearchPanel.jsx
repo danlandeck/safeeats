@@ -143,47 +143,6 @@ export default function SmartSearchPanel({
 
         </div>
         {geoError && <p className="text-xs text-red-300 mt-2" role="alert">{geoError}</p>}
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {LIVE_API_CITIES.map((city) => {
-            const isActive = activeRegion === city.region && activeCounty === city.countyId;
-            return (
-              <button
-                key={city.countyId}
-                type="button"
-                onClick={() => {
-                  if (isActive) {
-                    onLocationChange("");
-                    onRegionChange({ label: "", region: "global", countyId: "global" });
-                  } else {
-                    handleCitySelect(city);
-                  }
-                }}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
-                  isActive
-                    ? "bg-[#4CAF50] text-white border-[#4CAF50]"
-                    : "bg-white/10 text-slate-300 border-white/15 hover:bg-white/20 hover:text-white"
-                }`}
-              >
-                {city.emoji} {city.label}
-                {isActive && <X className="w-3 h-3 ml-0.5 opacity-80" />}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => {
-              onLocationChange("");
-              onRegionChange({ label: "", region: "global", countyId: "global" });
-            }}
-            className={`flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px] ${
-              activeRegion === "global"
-                ? "bg-[#4CAF50] text-white border-[#4CAF50]"
-                : "text-slate-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
-            }`}
-          >
-            🌍 Any city / country
-          </button>
-        </div>
       </div>
 
       {/* Search field */}
