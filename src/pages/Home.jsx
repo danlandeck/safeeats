@@ -710,6 +710,8 @@ export default function Home() {
   const [detailRows, setDetailRows]             = useState([]);
   const [isLoading, setIsLoading]               = useState(false);
   const abortRef                                = useRef(null);
+  const countyIdRef                             = useRef("global");
+  const regionRef                               = useRef("global");
   const [isDetailLoading, setIsDetailLoading]   = useState(false);
   const [hasSearched, setHasSearched]           = useState(false);
   const [searchQuery, setSearchQuery]           = useState("");
@@ -763,8 +765,8 @@ export default function Home() {
   useEffect(() => {
     if (location.state?.restaurant) {
       const { restaurant, region: r, county: c } = location.state;
-      if (r && REGIONS[r]) setRegion(r);
-      if (c) setCountyId(c);
+      if (r && REGIONS[r]) { regionRef.current = r; setRegion(r); }
+      if (c) { countyIdRef.current = c; setCountyId(c); }
       setHasSearched(true);
       setSelectedBusiness(restaurant);
       setDetailRows(llmToDetailRows(restaurant));
@@ -775,8 +777,8 @@ export default function Home() {
     const r = params.get("region");
     const c = params.get("county");
     if (q) {
-      if (r && REGIONS[r]) setRegion(r);
-      if (c) setCountyId(c);
+      if (r && REGIONS[r]) { regionRef.current = r; setRegion(r); }
+      if (c) { countyIdRef.current = c; setCountyId(c); }
       pendingSearchRef.current = q;
     }
   }, []);
@@ -792,8 +794,8 @@ export default function Home() {
   const resetSearch = () => {
     setResults([]);
     setHasSearched(false);
-    setRegion("global");
-    setCountyId("global");
+    regionRef.current = "global"; setRegion("global");
+    countyIdRef.current = "global"; setCountyId("global");
     setSelectedBusiness(null);
     setFastResults(null);
     window.history.pushState({}, '', window.location.pathname);
@@ -807,8 +809,8 @@ export default function Home() {
 
   const handleSearch = useCallback(async (rawQuery) => {
     let query = rawQuery;
-    let searchRegion = region;
-    let searchCounty = countyId;
+    let searchRegion = regionRef.current;
+    let searchCounty = countyIdRef.current;
 
     // Auto-detect location from explicit city name in query when on global
     const queryWords = rawQuery.toLowerCase().trim();
@@ -820,8 +822,8 @@ export default function Home() {
         if (REGIONS[matched.region]) {
           searchRegion = matched.region;
           searchCounty = matched.countyId;
-          setRegion(searchRegion);
-          setCountyId(searchCounty);
+          regionRef.current = searchRegion; setRegion(searchRegion);
+          countyIdRef.current = searchCounty; setCountyId(searchCounty);
           if (matched.locationLabel) setLocationQuery(matched.locationLabel);
           query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
           cityMatched = true;
@@ -833,8 +835,8 @@ export default function Home() {
     if (!cityMatched && (searchCounty === "global" || searchCounty === null)) {
       searchRegion = "global";
       searchCounty = "global";
-      setRegion("global");
-      setCountyId("global");
+      regionRef.current = "global"; setRegion("global");
+      countyIdRef.current = "global"; setCountyId("global");
     }
     // If !cityMatched but searchCounty is already set to a real city, keep it as-is
 
@@ -1083,8 +1085,8 @@ export default function Home() {
               setLocationQuery(val);
             }}
             onRegionChange={({ region: r, countyId: c, label }) => {
-              setRegion(r);
-              setCountyId(c);
+              regionRef.current = r; setRegion(r);
+              countyIdRef.current = c; setCountyId(c);
               setLocationQuery(label);
             }}
             onSearch={(q) => {
@@ -1340,7 +1342,7 @@ export default function Home() {
                           <div className="flex flex-wrap justify-center gap-2">
                             {LIVE_API_CITIES.map(city => (
                               <button key={city.countyId}
-                                onClick={() => { setRegion(city.region); setCountyId(city.countyId); setLocationQuery(city.locationLabel || city.label); resetSearch(); }}
+                                onClick={() => { regionRef.current = city.region; setRegion(city.region); countyIdRef.current = city.countyId; setCountyId(city.countyId); setLocationQuery(city.locationLabel || city.label); resetSearch(); }}
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
                                 {city.emoji} {city.label}
                               </button>
