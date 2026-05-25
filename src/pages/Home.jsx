@@ -792,6 +792,8 @@ export default function Home() {
   const resetSearch = () => {
     setResults([]);
     setHasSearched(false);
+    setRegion("global");
+    setCountyId("global");
     setSelectedBusiness(null);
     setFastResults(null);
     window.history.pushState({}, '', window.location.pathname);
@@ -809,23 +811,30 @@ export default function Home() {
     let searchCounty = countyId;
 
     // Auto-detect location from explicit city name in query when on global
-    if (searchRegion === "global" || searchCounty === "global") {
-      const queryWords = rawQuery.toLowerCase().trim();
-      const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
-      for (const key of sortedKeys) {
-        if (queryWords.includes(key)) {
-          const matched = CITY_TO_COUNTY[key];
-          if (REGIONS[matched.region]) {
-            searchRegion = matched.region;
-            searchCounty = matched.countyId;
-            setRegion(searchRegion);
-            setCountyId(searchCounty);
-            if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-            query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
-          }
-          break;
+    const queryWords = rawQuery.toLowerCase().trim();
+    const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+    let cityMatched = false;
+    for (const key of sortedKeys) {
+      if (queryWords.includes(key)) {
+        const matched = CITY_TO_COUNTY[key];
+        if (REGIONS[matched.region]) {
+          searchRegion = matched.region;
+          searchCounty = matched.countyId;
+          setRegion(searchRegion);
+          setCountyId(searchCounty);
+          if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+          query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+          cityMatched = true;
         }
+        break;
       }
+    }
+    // If no city matched, always reset to global — never reuse a stale city from a previous search
+    if (!cityMatched) {
+      searchRegion = "global";
+      searchCounty = "global";
+      setRegion("global");
+      setCountyId("global");
     }
 
     if (abortRef.current) abortRef.current.abort();
