@@ -830,12 +830,13 @@ export default function Home() {
       }
     }
     // If no city matched, always reset to global — never reuse a stale city from a previous search
-    if (!cityMatched) {
+    if (!cityMatched && (searchCounty === "global" || searchCounty === null)) {
       searchRegion = "global";
       searchCounty = "global";
       setRegion("global");
       setCountyId("global");
     }
+    // If !cityMatched but searchCounty is already set to a real city, keep it as-is
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
