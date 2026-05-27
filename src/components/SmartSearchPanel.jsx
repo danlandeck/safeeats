@@ -56,8 +56,10 @@ export default function SmartSearchPanel({
     if (!q) return;
     setShowDropdown(false);
     setRecents(saveRecent(q));
-    onSearch(q);
-  }, [query, onSearch]);
+  const loc = locationQuery?.trim();
+  const combined = loc ? `${q} ${loc}` : q;
+  onSearch(combined);
+}, [query, locationQuery, onSearch]);
 
   const handleChange = (e) => {
     onQueryChange(e.target.value);
