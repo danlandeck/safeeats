@@ -112,19 +112,28 @@ Return max 8. If unsure = OMIT. ZERO non-Dubai results.`;
  */
 function filterByNameRelevance(results, query) {
   if (!Array.isArray(results) || results.length === 0) return results;
-  const cleanQuery = (query || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-  if (cleanQuery.length <= 2) return results;
+  
+  // Normalize: lowercase, strip apostrophes/dashes, collapse spaces
+  const normalize = (str) => (str || "")
+    .toLowerCase()
+    .replace(/['\-]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const cleanQuery = normalize(query);
+  if (cleanQuery.length <= 1) return results;
 
   const queryWords = cleanQuery.split(" ").filter(w => w.length >= 2);
   if (queryWords.length === 0) return results;
 
   const filtered = results.filter(r => {
-    const cleanName = (r.name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    const cleanName = normalize(r.name);
     if (!cleanName) return false;
-    return queryWords.every(w => cleanName.includes(w));
+    // ANY query word must appear in the name (not ALL — so "Chipotle" matches "Chipotle Mexican Grill")
+    return queryWords.some(w => cleanName.includes(w));
   });
 
-  // Fail-open: if filtering removes everything, return original list
   return filtered.length > 0 ? filtered : results;
 }
 
