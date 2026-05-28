@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import React, { useMemo, useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, Marker, Circle, Popup, useMap } from "react-leaflet";
 import ScoreGauge from "./ScoreGauge";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -123,6 +123,7 @@ function MapController({ validRestaurants, userCoords, selectedId }) {
 }
 
 export default function MapView({ restaurants, onSelectRestaurant, onFilterByGrade, userCoords, selectedId }) {
+  const [popupId, setPopupId] = useState(null);
   const initialCenter = useMemo(() => {
     if (userCoords) return [userCoords.lat, userCoords.lng];
     const valid = restaurants.filter(r => r.latitude && r.longitude);
@@ -167,19 +168,84 @@ export default function MapView({ restaurants, onSelectRestaurant, onFilterByGra
 
         {validRestaurants.map((restaurant) => {
           const isSelected = restaurant.business_id === selectedId;
+          const isPopupOpen = restaurant.business_id === popupId;
+          const bg = getScoreColor(restaurant.safetyScore);
           const grade = getGradeLetter(restaurant.safetyScore);
+          const score = restaurant.safetyScore;
           return (
             <Marker
               key={`${restaurant.business_id}-${restaurant.latitude}`}
               position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
-              icon={createColoredIcon(restaurant.safetyScore, isSelected)}
-              zIndexOffset={isSelected ? 1000 : 0}
+              icon={createColoredIcon(restaurant.safetyScore, isSelected || isPopupOpen)}
+              zIndexOffset={isSelected || isPopupOpen ? 1000 : 0}
               eventHandlers={{
-                click: () => {
-                  if (onFilterByGrade) onFilterByGrade(grade === "?" ? null : grade);
-                }
+                click: () => setPopupId(isPopupOpen ? null : restaurant.business_id),
               }}
-            />
+            >
+              {isPopupOpen && (
+                <Popup
+                  onClose={() => setPopupId(null)}
+                  closeButton={false}
+                  autoPan={true}
+                  className="safeats-popup"
+                >
+                  <div style={{ fontFamily: "Nunito, sans-serif", minWidth: 200, maxWidth: 240 }}>
+                    {/* Grade badge */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: "50%",
+                        background: bg, color: score >= 70 && score < 80 ? "#555" : "#fff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontWeight: 900, fontSize: 18, flexShrink: 0,
+                        border: "3px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                      }}>
+                        {grade}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: "#1e293b", lineHeight: 1.2,
+                          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {restaurant.name}
+                        </div>
+                        {score !== null && score !== undefined && (
+                          <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>
+                            Safety score: {score}/100
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Address */}
+                    {(restaurant.address || restaurant.city) && (
+                      <div style={{ fontSize: 11, color: "#475569", marginBottom: 6, fontWeight: 600 }}>
+                        📍 {[restaurant.address, restaurant.city].filter(Boolean).join(", ")}
+                      </div>
+                    )}
+
+                    {/* Latest inspection */}
+                    {restaurant.latestDate && (
+                      <div style={{ fontSize: 11, color: "#475569", marginBottom: 8, fontWeight: 600 }}>
+                        🗓️ Last inspected: {restaurant.latestDate}
+                        {restaurant.latestResult ? ` — ${restaurant.latestResult}` : ""}
+                      </div>
+                    )}
+
+                    {/* CTA button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setPopupId(null); onSelectRestaurant(restaurant); }}
+                      style={{
+                        width: "100%", padding: "8px 12px",
+                        background: "#1e293b", color: "#fff",
+                        border: "none", borderRadius: 10,
+                        fontWeight: 800, fontSize: 12,
+                        cursor: "pointer", fontFamily: "Nunito, sans-serif"
+                      }}
+                    >
+                      View Full Details →
+                    </button>
+                  </div>
+                </Popup>
+              )}
+            </Marker>
           );
         })}
       </MapContainer>
