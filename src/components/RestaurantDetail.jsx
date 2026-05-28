@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DirectionsButtons from "./DirectionsButtons";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft, MapPin, Phone, Globe, Share2, Heart,
+  ArrowLeft, MapPin, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
   ExternalLink, Award, TrendingUp
 } from "lucide-react";
@@ -175,19 +175,13 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </div>
               {/* Contact row */}
               <div className="flex flex-wrap gap-3 mt-2">
-                {restaurant.phone && (
-                  <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}
-                    className="flex items-center gap-1 text-sm text-emerald-700 font-semibold hover:underline">
-                    <Phone className="w-3.5 h-3.5" />{restaurant.phone}
-                  </a>
-                )}
                 <a
                   href={restaurant.website?.startsWith("http") ? restaurant.website : `https://www.google.com/search?q=${encodeURIComponent(restaurant.name + " " + (restaurant.city || "") + " restaurant")}`}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 text-sm text-blue-600 font-semibold hover:underline"
                 >
                   <Globe className="w-3.5 h-3.5" />
-                  {restaurant.website ? "Visit website" : "Find online"}
+                  {restaurant.website ? "Visit website" : "Find on Google"}
                 </a>
               </div>
             </div>
