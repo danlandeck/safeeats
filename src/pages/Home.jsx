@@ -850,7 +850,13 @@ export default function Home() {
         regionRef.current = searchRegion; setRegion(searchRegion);
         countyIdRef.current = searchCounty; setCountyId(searchCounty);
         if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-        query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+        query = rawQuery
+          .replace(new RegExp(key, "i"), "")
+          .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")  // strip trailing state abbr e.g. ", WA"
+          .trim()
+          .replace(/^,\s*/, "")
+          .replace(/,\s*$/, "")
+          .trim() || rawQuery;
         cityMatched = true;
       }
       break;
