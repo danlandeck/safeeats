@@ -258,11 +258,21 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: filterByNameRelevance(processBostonResults(records), query), isAI: false };
   }
 
-  // Stanislaus County CA (scraped portal)
+  // Stanislaus County CA (scraped portal, with AI fallback)
   if (countyId === "stanislaus") {
     const res = await base44.functions.invoke("stanislausInspections", { action: "search", name: query });
     const facilities = res.data?.facilities || [];
-    return { results: filterByNameRelevance(processStanislausResults(facilities), query), isAI: false };
+    const liveResults = filterByNameRelevance(processStanislausResults(facilities), query);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    // Not in county database — fall back to AI web search
+    const location = locationLabel?.trim() || "Modesto, Stanislaus County, CA";
+    const restaurants = await runWithFastResults(
+      llmCall(FAST_PROMPT(query, location), false),
+      llmCall(PROMPT_LOCATION(query, location, today), true),
+      (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location, "Modesto"),
+      onFastResults
+    );
+    return { results: restaurants, isAI: true };
   }
 
   // Houston (CKAN — needs backend proxy)
