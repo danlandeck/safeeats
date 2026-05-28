@@ -253,7 +253,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (countyId === "uk_fsa") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
     const establishments = res.data?.establishments || [];
-    const liveResults = processUKFSAResults(establishments);
+    const liveResults = filterByNameRelevance(processUKFSAResults(establishments), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
     return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
@@ -262,7 +262,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (countyId === "toronto") {
     const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
     const records = res.data?.records || [];
-    const liveResults = processTorontoResults(records);
+    const liveResults = filterByNameRelevance(processTorontoResults(records), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
     return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
