@@ -716,47 +716,44 @@ export function processTorontoResults(records) {
   if (!Array.isArray(records) || records.length === 0) return [];
   const businesses = {};
   records.forEach((row) => {
-    const id = row["Establishment ID"];
+    // New schema uses camelCase fields (estId, estName, address, inspectionDate, etc.)
+    const id = row.estId || row["Establishment ID"];
     if (!id) return;
     if (!businesses[id]) {
-      const addrRaw = row["Establishment Address"] || "";
-      // Address format: "321 CARLAW AVE, Unit-103 None M4M 2S1" — extract postal code
-      const postalMatch = addrRaw.match(/([A-Z]\d[A-Z]\s?\d[A-Z]\d)\s*$/);
-      const postal = postalMatch ? postalMatch[1] : "";
-      const address = addrRaw.replace(postalMatch?.[0] || "", "").replace(/None\s*$/, "").replace(/,\s*$/, "").trim();
+      const addrRaw = row.address || row["Establishment Address"] || "";
+      const address = addrRaw.replace(/\bNone\b/g, "").replace(/,\s*$/, "").trim();
       businesses[id] = {
         business_id: id,
-        name: (row["Establishment Name"] || "").trim(),
-        address, city: "Toronto", zip_code: postal,
-        phone: "", description: row["Establishment Type"] || "",
+        name: (row.estName || row["Establishment Name"] || "").trim(),
+        address, city: "Toronto", zip_code: "",
+        phone: "", description: "",
         inspections: [], allRows: [],
-        latitude: row.Latitude || null,
-        longitude: row.Longitude || null,
+        latitude: row.latitude || row.Latitude || null,
+        longitude: row.longitude || row.Longitude || null,
       };
     }
     businesses[id].allRows.push(row);
-    const dateKey = row["Inspection Date"] || "";
-    if (dateKey && !businesses[id].inspections.find((i) => i.serial === dateKey)) {
-      businesses[id].inspections.push({
-        serial: dateKey, date: dateKey,
-        severity: row.Severity || "", action: row.Action || "",
-      });
+    const dateKey = row.inspectionDate || row["Inspection Date"] || "";
+    const status = row.inspectionStatus || "";
+    if (dateKey && !businesses[id].inspections.find((i) => i.date === dateKey)) {
+      businesses[id].inspections.push({ date: dateKey, status });
     }
   });
   return Object.values(businesses).map((biz) => {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
-    // Count violations: C-Crucial, S-Significant, M-Minor
-    const crucials = biz.allRows.filter((r) => (r.Severity || "").startsWith("C")).length;
-    const significants = biz.allRows.filter((r) => (r.Severity || "").startsWith("S")).length;
-    const minors = biz.allRows.filter((r) => (r.Severity || "").startsWith("M")).length;
-    const pts = crucials * 10 + significants * 5 + minors * 2;
-    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
     const latest = biz.inspections[0];
+    const closedCount = biz.allRows.filter(r => /closed/i.test(r.inspectionStatus || r.Action || "")).length;
+    const conditionalCount = biz.allRows.filter(r => /conditional/i.test(r.inspectionStatus || r.Action || "")).length;
+    const violationRows = biz.allRows.filter(r => (r.typeDesc || r["Infraction Details"] || "").trim() && !/^None$/i.test((r.typeDesc || "").trim()));
+    const pts = closedCount * 20 + conditionalCount * 5 + Math.max(0, violationRows.length - conditionalCount) * 1;
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
+    const latestStatus = latest?.status || "";
+    const latestResult = /closed/i.test(latestStatus) ? "Closed" : /conditional/i.test(latestStatus) ? "Conditional Pass" : "Pass";
     return {
       ...biz, safetyScore, grade: getGrade(safetyScore),
-      totalInspections: new Set(biz.inspections.map((i) => i.date)).size,
+      totalInspections: biz.inspections.length,
       latestDate: latest?.date,
-      latestResult: crucials > 0 ? "Crucial Infractions" : significants > 0 ? "Significant Infractions" : minors > 0 ? "Minor Infractions" : "Pass",
+      latestResult,
       isLLMData: false, source: "toronto",
       ada_compliance: "unknown",
     };
@@ -766,34 +763,34 @@ export function processTorontoResults(records) {
 export function torontoToDetailRows(records) {
   const inspMap = {};
   records.forEach((row) => {
-    const dateKey = row["Inspection Date"] || "unknown";
+    // Support both old and new schema
+    const dateKey = row.inspectionDate || row["Inspection Date"] || "unknown";
+    const status = row.inspectionStatus || row.Action || "";
     if (!inspMap[dateKey]) {
+      const isConditional = /conditional/i.test(status);
+      const isClosed = /closed/i.test(status);
       inspMap[dateKey] = {
         inspection_serial_num: `toronto-${dateKey}`,
         inspection_date: dateKey,
-        inspection_score: "0",
-        inspection_result: row.Action || "",
+        inspection_score: isClosed ? "40" : isConditional ? "20" : "0",
+        inspection_result: isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass",
         inspection_type: "DineSafe Inspection",
         violations: [],
       };
     }
-    const infraction = (row["Infraction Details"] || "").trim();
-    const severity = (row.Severity || "").trim();
-    if (infraction && infraction.toLowerCase() !== "fail to ensure") {
-      inspMap[dateKey].violations.push({ description: infraction, severity });
+    const infraction = (row.typeDesc || row["Infraction Details"] || "").trim();
+    if (infraction && !/^None$/i.test(infraction)) {
+      const isConditional = /conditional/i.test(row.inspectionStatus || "");
+      inspMap[dateKey].violations.push({ description: infraction, isConditional });
     }
   });
   const rows = [];
   Object.values(inspMap).forEach((insp) => {
-    const crucials = insp.violations.filter((v) => v.severity.startsWith("C")).length;
-    const significants = insp.violations.filter((v) => v.severity.startsWith("S")).length;
-    const pts = crucials * 10 + significants * 5;
-    insp.inspection_score = String(pts);
     if (insp.violations.length === 0) {
-      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+      rows.push({ ...insp, violation_description: "", violation_type: "BLUE", violation_points: "0" });
     } else {
       insp.violations.forEach((v) => {
-        rows.push({ ...insp, violation_description: `${v.severity}: ${v.description}`, violation_type: v.severity.startsWith("C") ? "RED" : "BLUE", violation_points: v.severity.startsWith("C") ? "10" : v.severity.startsWith("S") ? "5" : "2" });
+        rows.push({ ...insp, violation_description: v.description, violation_type: v.isConditional ? "RED" : "BLUE", violation_points: v.isConditional ? "10" : "2" });
       });
     }
   });
