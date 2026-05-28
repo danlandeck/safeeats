@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const CKAN_BASE = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search";
+const CKAN_SQL = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search_sql";
 const RESOURCE_ID = "29d83dfa-f8b6-4aa2-8e57-12046c1d83e8";
 
 Deno.serve(async (req) => {
@@ -11,7 +12,9 @@ Deno.serve(async (req) => {
     if (action === "search") {
       if (!name) return Response.json({ error: "name required" }, { status: 400 });
 
-      const url = `${CKAN_BASE}?resource_id=${RESOURCE_ID}&q=${encodeURIComponent(name)}&limit=100`;
+      // Use SQL ILIKE for reliable substring matching (full-text search drops short/common words)
+      const sql = `SELECT * FROM "${RESOURCE_ID}" WHERE "Establishment Name" ILIKE '%${name.replace(/'/g, "''")}%' ORDER BY "Inspection Date" DESC LIMIT 200`;
+      const url = `${CKAN_SQL}?sql=${encodeURIComponent(sql)}`;
       const res = await fetch(url);
       if (!res.ok) return Response.json({ error: `CKAN error: ${res.status}` }, { status: 502 });
       const data = await res.json();
