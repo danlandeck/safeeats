@@ -13,6 +13,8 @@ import {
   processBostonResults, bostonToDetailRows,
   processHoustonResults, houstonToDetailRows,
   processStanislausResults, stanislausToDetailRows,
+  processSingaporeResults, singaporeToDetailRows,
+  processNSWResults, nswToDetailRows,
 } from "./inspectionProcessors";
 
 const PROCESSORS = {
@@ -35,6 +37,85 @@ const SOURCE_TO_COUNTY = {
   uk_fsa: "uk_fsa", delaware: "delaware",
   ny_state: "ny_state", toronto: "toronto",
   boston: "boston", houston: "houston",
+  stanislaus: "stanislaus",
+  singapore: "singapore",
+  australia_nsw: "sydney", australia_qld: "brisbane",
+};
+
+// All UK city IDs that should route through the live UK FSA API
+const UK_CITY_IDS = new Set([
+  "london", "birmingham", "manchester", "leeds", "glasgow",
+  "edinburgh", "liverpool", "bristol", "sheffield", "cardiff", "belfast",
+]);
+
+// Country-specific guidance for the LLM to find real inspection data
+const COUNTRY_CONTEXT = {
+  // Australia
+  sydney:       "Prioritize: NSW Food Authority (foodauthority.nsw.gov.au), Scores on Doors A-E grades.",
+  melbourne:    "Prioritize: VicHealth food safety, City of Melbourne restaurant inspections, FoodSmart Victoria.",
+  brisbane:     "Prioritize: Brisbane City Council & Queensland Health restaurant inspection records.",
+  perth:        "Prioritize: WA Department of Health (health.wa.gov.au) food premises inspection records.",
+  adelaide:     "Prioritize: SA Health food premises inspection records, City of Adelaide.",
+  gold_coast:   "Prioritize: Gold Coast City Council food safety inspection records.",
+  canberra:     "Prioritize: ACT Health food premises inspection records.",
+  hobart:       "Prioritize: Tasmania Health Service food premises inspection records.",
+  // Japan
+  tokyo:        "Search: Tokyo Metropolitan Government (東京都) food hygiene (食品衛生) from local 保健所 (health centers). Score is Pass/Fail from 食品衛生責任者.",
+  osaka:        "Search: Osaka Prefecture food hygiene inspection records from 保健所 (hokenjo). Focus on 食品衛生 compliance.",
+  kyoto:        "Search: Kyoto City food safety inspection records from local 保健所.",
+  yokohama:     "Search: Yokohama City food hygiene inspection records from local 保健所.",
+  sapporo:      "Search: Sapporo City food safety inspection records from local 保健所.",
+  fukuoka:      "Search: Fukuoka City food hygiene inspection records from local 保健所.",
+  nagoya:       "Search: Nagoya City food safety inspection records from 保健所.",
+  // South Korea
+  seoul:        "Search: 식품안전나라 (foodsafetykorea.go.kr) and Seoul Metropolitan Government food inspection database. Score is 0-100.",
+  busan:        "Search: 식품안전나라 (foodsafetykorea.go.kr) and Busan Metropolitan City food safety records.",
+  incheon:      "Search: 식품안전나라 (foodsafetykorea.go.kr) and Incheon City food hygiene inspection data.",
+  // France
+  paris:        "Prioritize: Alim'confiance platform (alim-confiance.gouv.fr) — official DGCCRF transparency database with 4-tier ratings.",
+  lyon:         "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Lyon.",
+  marseille:    "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Marseille.",
+  toulouse:     "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Toulouse.",
+  nice:         "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Nice.",
+  bordeaux:     "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Bordeaux.",
+  strasbourg:   "Prioritize: Alim'confiance (alim-confiance.gouv.fr) — DGCCRF food inspection results for Strasbourg.",
+  // Germany
+  berlin:       "Prioritize: verbraucherportal.de and Berlin Senatsverwaltung Lebensmittelüberwachung inspection records.",
+  munich:       "Prioritize: LGL Bayern (lgl.bayern.de) food inspection records and verbraucherportal.de.",
+  hamburg:      "Prioritize: Hamburg Lebensmittelüberwachung (hamburg.de/lmue) restaurant inspection records.",
+  cologne:      "Prioritize: Köln Veterinär- und Lebensmittelüberwachungsamt food inspection records.",
+  frankfurt:    "Prioritize: Frankfurt am Main food inspection (Lebensmittelüberwachung) records.",
+  // Netherlands
+  amsterdam:    "Prioritize: NVWA (nvwa.nl) inspection results and inspectieresultaten.nl — Dutch Food and Consumer Product Safety Authority.",
+  rotterdam:    "Prioritize: NVWA (nvwa.nl) and inspectieresultaten.nl food inspection results for Rotterdam.",
+  the_hague:    "Prioritize: NVWA (nvwa.nl) food inspection records for The Hague.",
+  // Denmark
+  copenhagen:   "Prioritize: Smiley scheme (findsmiley.dk) from Fødevarestyrelsen — 4-tier smiley rating for Danish restaurants.",
+  // New Zealand
+  auckland:     "Prioritize: Auckland Council food premises inspection records and FoodSafe verification scheme.",
+  wellington:   "Prioritize: Wellington City Council environmental health food premises inspections.",
+  christchurch: "Prioritize: Christchurch City Council food premises inspection records.",
+  // Canada (non-Toronto)
+  vancouver:    "Prioritize: Vancouver Coastal Health (vch.ca) restaurant inspection database, Fraser Health inspection records.",
+  calgary:      "Prioritize: Alberta Health Services food inspection records for Calgary.",
+  edmonton:     "Prioritize: Alberta Health Services food inspection records for Edmonton.",
+  montreal:     "Prioritize: MAPAQ Québec food inspection records and Montreal public health inspection data.",
+  // India
+  mumbai:       "Prioritize: FSSAI (fssai.gov.in) registration database and Mumbai Municipal Corporation (MCGM) food safety records.",
+  delhi:        "Prioritize: FSSAI (fssai.gov.in) registration and Delhi government food safety inspection records.",
+  bangalore:    "Prioritize: FSSAI (fssai.gov.in) and BBMP (Bruhat Bengaluru Mahanagara Palike) food safety inspection records.",
+  // China
+  beijing:      "Prioritize: 国家市场监督管理总局 (SAMR) food inspection, Beijing food safety supervision (北京食品安全) database.",
+  shanghai:     "Prioritize: Shanghai municipal food safety authority (上海市食品安全) inspection records.",
+  hong_kong:    "Prioritize: FEHD (Food and Environmental Hygiene Department) Hong Kong (fehd.gov.hk) inspection records.",
+  // Brazil
+  sao_paulo:    "Prioritize: VISA São Paulo (cvs.saude.sp.gov.br) Vigilância Sanitária restaurant inspection records.",
+  rio:          "Prioritize: VISA Rio de Janeiro Vigilância Sanitária (rio.rj.gov.br/web/cvs) food establishment inspection records.",
+  // UAE (non-Dubai)
+  abu_dhabi:    "Prioritize: ADAFSA (Abu Dhabi Agriculture and Food Safety Authority) restaurant inspection and grading records.",
+  sharjah:      "Prioritize: Sharjah City Municipality food safety inspection records.",
+  // Singapore handled by live API — keep as LLM fallback description
+  singapore:    "Prioritize: SFA/NEA food hygiene grades (A/B/C/D/E scale), SFA food establishment inspections (sfa.gov.sg).",
 };
 
 const LLM_SCHEMA = {
@@ -99,6 +180,10 @@ const FAST_PROMPT = (query, location) => location
   ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
   : `List up to 8 real restaurants matching "${query}" worldwide. Training data only.`;
 
+function getCountryContext(countyId) {
+  return COUNTRY_CONTEXT[countyId] || "";
+}
+
 const FAST_PROMPT_DUBAI = (query) =>
   `DUBAI ONLY. REJECT: Miami, Boston, New York, Chicago, LA, SF, Austin, London, Paris, Tokyo, Abu Dhabi, any US city.
 List ONLY restaurants in DUBAI, UAE. city="Dubai" ALWAYS. Address: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, Dubai.
@@ -154,9 +239,12 @@ function llmCall(prompt, internet = false) {
 async function aiSearchFallback(query, countyId, locationLabel, today, onFastResults) {
   const location = locationLabel?.trim() || null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
+  const ctx = getCountryContext(countyId);
+  const basePrompt = location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today);
+  const enhancedPrompt = ctx ? `${basePrompt}\n8. ${ctx}` : basePrompt;
   const restaurants = await runWithFastResults(
     llmCall(FAST_PROMPT(query, location), false),
-    llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
+    llmCall(enhancedPrompt, true),
     (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity),
     onFastResults
   );
@@ -249,12 +337,54 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastR
 }
 
 export async function search({ query, countyId, locationLabel, today, signal, onFastResults, onCountUpdate }) {
+  // All UK cities route through the live FSA API (national search, UK-wide coverage)
+  if (UK_CITY_IDS.has(countyId) || countyId === "uk_fsa") {
+    const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
+    const establishments = res.data?.establishments || [];
+    // Optionally filter by city name if user selected a specific UK city (not uk_fsa)
+    const cityFilter = countyId !== "uk_fsa" ? countyId.replace(/_/g, " ").toLowerCase() : null;
+    const filtered = cityFilter
+      ? establishments.filter(e => {
+          const auth = (e.LocalAuthorityName || "").toLowerCase();
+          const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3, e.AddressLine4].join(" ").toLowerCase();
+          return auth.includes(cityFilter) || addr.includes(cityFilter);
+        })
+      : establishments;
+    const pool = filtered.length > 0 ? filtered : establishments;
+    const liveResults = filterByNameRelevance(processUKFSAResults(pool), query);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+  }
+
   // UK FSA live API (requires backend proxy for header injection)
-  if (countyId === "uk_fsa") {
+  if (countyId === "uk_fsa_legacy") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
     const establishments = res.data?.establishments || [];
     const liveResults = filterByNameRelevance(processUKFSAResults(establishments), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+  }
+
+  // Singapore — live data via data.gov.sg CKAN API
+  if (countyId === "singapore") {
+    const res = await base44.functions.invoke("singaporeInspections", { action: "search", name: query });
+    const records = res.data?.records || [];
+    if (records.length > 0) {
+      const liveResults = filterByNameRelevance(processSingaporeResults(records, res.data?.resourceId), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    }
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+  }
+
+  // Australia NSW / QLD — live data via state open data portals
+  if (countyId === "sydney" || countyId === "brisbane" || countyId === "gold_coast") {
+    const state = (countyId === "brisbane" || countyId === "gold_coast") ? "qld" : "nsw";
+    const res = await base44.functions.invoke("australiaFoodSafety", { action: "search", name: query, state });
+    const records = res.data?.records || [];
+    if (records.length > 0) {
+      const liveResults = filterByNameRelevance(processNSWResults(records, res.data?.state), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    }
     return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
 
@@ -395,6 +525,16 @@ export async function fetchDetail(restaurant) {
       const res = await base44.functions.invoke("bostonFoodInspections", { action: "detail", licenseno: business_id });
       return bostonToDetailRows(res.data?.records || []);
     } catch { return []; }
+  }
+
+  // Singapore
+  if (source === "singapore") {
+    return singaporeToDetailRows(restaurant);
+  }
+
+  // Australia NSW / QLD
+  if (source === "australia_nsw" || source === "australia_qld") {
+    return nswToDetailRows(restaurant);
   }
 
   // Los Angeles County (ArcGIS)

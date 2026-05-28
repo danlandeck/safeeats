@@ -1056,6 +1056,118 @@ export function stanislausToDetailRows(restaurant) {
   }];
 }
 
+// ── Singapore (data.gov.sg / SFA / NEA) ────────────────────────────────────────
+// Flexible: handles any CKAN-shaped record from data.gov.sg food hygiene datasets.
+// Common fields: businessname/name, address, grade/hygiene_grade, last_inspected_date.
+export function processSingaporeResults(records, resourceId) {
+  if (!Array.isArray(records) || records.length === 0) return [];
+  const businesses = {};
+  records.forEach((row, i) => {
+    const name = row.businessname || row.name || row.establishment_name || row.trade_name || "";
+    const address = row.address || row.premises_address || "";
+    const id = row.id || row.establishment_id || row.licence_no || `sg-${i}-${name}`;
+    if (!name) return;
+    if (!businesses[id]) {
+      businesses[id] = { business_id: String(id), name, address, city: "Singapore",
+        zip_code: row.postal_code || row.postalcode || "", phone: "",
+        description: row.business_type || row.category || "",
+        grade: row.grade || row.hygiene_grade || row.food_hygiene_grade || "U",
+        lastDate: row.last_inspected_date || row.inspection_date || "",
+        _resourceId: resourceId || "",
+      };
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    // Singapore uses A/B/C/D/E scale — map to 0-100 score
+    const gradeMap = { A: 95, B: 80, C: 60, D: 40, E: 20 };
+    const gradeUpper = (biz.grade || "").toUpperCase();
+    const safetyScore = gradeMap[gradeUpper] ?? null;
+    return {
+      ...biz, safetyScore,
+      grade: safetyScore !== null ? gradeUpper : "U",
+      totalInspections: 1,
+      latestDate: biz.lastDate,
+      latestResult: gradeUpper && gradeUpper !== "U" ? `Grade ${gradeUpper}` : "Unknown",
+      latitude: null, longitude: null, isLLMData: false, source: "singapore",
+      ada_compliance: "unknown",
+    };
+  });
+}
+
+export function singaporeToDetailRows(restaurant) {
+  const gradeMap = { A: 5, B: 20, C: 40, D: 60, E: 80 };
+  const grade = (restaurant.grade || "").toUpperCase();
+  const pts = gradeMap[grade] ?? 0;
+  return [{
+    inspection_serial_num: `sg-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: String(pts),
+    inspection_result: grade ? `Grade ${grade} — NEA/SFA Food Hygiene Rating` : "Unknown",
+    inspection_type: "Food Hygiene Inspection (SFA/NEA)",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}
+
+// ── Australia NSW (data.nsw.gov.au CKAN) ─────────────────────────────────────
+// Field names vary by dataset. We handle multiple known schemas flexibly.
+export function processNSWResults(records, state = "NSW") {
+  if (!Array.isArray(records) || records.length === 0) return [];
+  const businesses = {};
+  records.forEach((row, i) => {
+    const name = row.premises_name || row.businessname || row.name || row.trading_name || "";
+    const address = row.address || row.premises_address || row.street_address || "";
+    const suburb = row.suburb || row.city || row.locality || "";
+    const id = row.id || row.premises_id || row.licence_no || `nsw-${i}-${name}`;
+    if (!name) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: String(id), name, address,
+        city: suburb || (state === "QLD" ? "Brisbane" : "Sydney"),
+        zip_code: row.postcode || "", phone: "", description: row.food_business_type || row.category || "",
+        inspections: [], allRows: [],
+      };
+    }
+    businesses[id].allRows.push(row);
+    const dateKey = (row.inspection_date || row.date || row.compliance_date || "").split("T")[0];
+    const result = row.result || row.outcome || row.compliance_status || "";
+    if (dateKey && !businesses[id].inspections.find((insp) => insp.date === dateKey)) {
+      const isFail = /fail|notice|order|prohibition/i.test(result);
+      businesses[id].inspections.push({ date: dateKey, result, isFail });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const failCount = biz.inspections.filter((i) => i.isFail).length;
+    const safetyScore = !latest ? null : latest.isFail ? 45 : failCount === 0 ? 88 : 72;
+    const latestResult = latest?.result || "Unknown";
+    return {
+      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date || "",
+      latestResult,
+      latitude: null, longitude: null, isLLMData: false,
+      source: state === "QLD" ? "australia_qld" : "australia_nsw",
+      ada_compliance: "unknown",
+    };
+  });
+}
+
+export function nswToDetailRows(restaurant) {
+  return [{
+    inspection_serial_num: `nsw-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: String(Math.max(0, 100 - (restaurant.safetyScore || 88))),
+    inspection_result: restaurant.latestResult || "Pass",
+    inspection_type: "NSW Food Authority Inspection",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}
+
 // ── Reverse Geocoding ─────────────────────────────────────────────────────────
 // Given lat/lng, returns { city, county, state, country } using Nominatim
 export async function reverseGeocode(lat, lng) {
