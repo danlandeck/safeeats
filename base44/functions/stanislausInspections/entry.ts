@@ -74,20 +74,13 @@ Deno.serve(async (req) => {
     const { action, name, city } = body;
 
     if (action === "search") {
-      const formData = new URLSearchParams();
-      // Always fetch full list (server ignores partial name filters), filter client-side
-      formData.append("facilityName", "");
-      formData.append("streetName", "");
-      formData.append("city", city || "");
-
+      // GET returns all facilities — POST is ignored by the server, so use GET + client-side filter
       const res = await fetch(CONTROLLER_URL, {
-        method: "POST",
+        method: "GET",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
           "User-Agent": "Mozilla/5.0 (compatible; SafeEats/1.0)",
           "Referer": "https://secure.stancounty.com/FoodFacilities/home.jsp",
         },
-        body: formData.toString(),
       });
 
       if (!res.ok) {
@@ -95,7 +88,6 @@ Deno.serve(async (req) => {
       }
 
       const html = await res.text();
-      // Filter by name since the portal seems to return all facilities
       const facilities = parseHtmlTable(html, name);
 
       return Response.json({ facilities });

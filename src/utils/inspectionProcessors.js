@@ -402,57 +402,87 @@ export function processSFResults(data) {
   if (!Array.isArray(data) || data.length === 0) return [];
   const businesses = {};
   data.forEach((row) => {
-    const id = row.business_id;
+    const id = row.permit_number;
     if (!id) return;
     if (!businesses[id]) {
-      businesses[id] = { business_id: id, name: row.business_name, address: row.business_address || "", city: row.business_city || "San Francisco", zip_code: row.business_zip || "", phone: "", description: "", inspections: [], allRows: [] };
+      businesses[id] = {
+        business_id: id,
+        name: row.dba || "",
+        address: (row.street_address_clean || row.street_address || "").replace(/\s{2,}/g, " ").trim(),
+        city: "San Francisco", zip_code: "", phone: "", description: row.permit_type || "",
+        inspections: [], allRows: [],
+        latitude: row.latitude || null, longitude: row.longitude || null,
+      };
     }
     businesses[id].allRows.push(row);
-    const key = `${row.inspection_date}-${row.inspection_type || "routine"}`;
-    if (!businesses[id].inspections.find((i) => i.serial === key)) {
-      const score = parseInt(row.inspection_score) || 100;
-      const pts = 100 - score;
-      businesses[id].inspections.push({ serial: key, date: row.inspection_date, score: pts, result: score >= 90 ? "Pass" : score >= 70 ? "Conditional Pass" : "Fail" });
+    const dateKey = (row.inspection_date || "").split("T")[0];
+    if (dateKey && !businesses[id].inspections.find((i) => i.date === dateKey)) {
+      const status = row.facility_rating_status || "";
+      const violCount = parseInt(row.violation_count) || 0;
+      businesses[id].inspections.push({ date: dateKey, status, violCount });
     }
   });
   return Object.values(businesses).map((biz) => {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
-    const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
-    const rowWithCoords = biz.allRows.find((r) => r.business_latitude && r.business_longitude);
-    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: rowWithCoords?.business_latitude, longitude: rowWithCoords?.business_longitude, isLLMData: false, source: "sf", ada_compliance: "unknown" };
+    const status = latest?.status || "";
+    const isClosed = /closure/i.test(status);
+    const isConditional = /conditional/i.test(status);
+    const violCount = latest?.violCount || 0;
+    const pts = isClosed ? 80 : isConditional ? 35 + violCount * 3 : violCount * 3;
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
+    const latestResult = isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass";
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date, latestResult,
+      isLLMData: false, source: "sf", ada_compliance: "unknown",
+    };
   });
 }
 
 export function sfToDetailRows(data) {
   const inspMap = {};
   data.forEach((row) => {
-    const key = `${row.inspection_date}-${row.inspection_type || "routine"}-${row.business_id}`;
-    if (!inspMap[key]) {
-      const score = parseInt(row.inspection_score) || 100;
-      inspMap[key] = {
-        inspection_serial_num: key,
-        inspection_date: row.inspection_date,
-        inspection_score: String(100 - score),
-        inspection_result: score >= 90 ? "Pass" : score >= 70 ? "Conditional Pass" : "Fail",
-        inspection_type: row.inspection_type || "",
+    const dateKey = (row.inspection_date || "unknown").split("T")[0];
+    const status = row.facility_rating_status || "";
+    const isClosed = /closure/i.test(status);
+    const isConditional = /conditional/i.test(status);
+    if (!inspMap[dateKey]) {
+      const violCount = parseInt(row.violation_count) || 0;
+      const pts = isClosed ? 80 : isConditional ? 35 : violCount * 3;
+      inspMap[dateKey] = {
+        inspection_serial_num: `sf-${row.permit_number}-${dateKey}`,
+        inspection_date: dateKey,
+        inspection_score: String(pts),
+        inspection_result: isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass",
+        inspection_type: row.permit_type || "Routine Inspection",
         violations: [],
       };
     }
-    if (row.violation_description) {
-      inspMap[key].violations.push({
-        violation_description: row.violation_description,
-        violation_type: row.risk_category === "High Risk" ? "RED" : "BLUE",
-        violation_points: row.risk_category === "High Risk" ? "5" : "2",
+    // violation_codes is a long string with codes and descriptions, e.g.
+    // "114xxx, 114yyy - Description text., 114zzz - Other text."
+    const violCodes = (row.violation_codes || "").trim();
+    if (violCodes) {
+      // Split on " - " separator into individual violation descriptions
+      const parts = violCodes.split(/(?<=\.),\s*(?=\d)/);
+      parts.forEach((part) => {
+        const trimmed = part.trim().replace(/^\d[\d,\s]*-\s*/, "").trim();
+        if (trimmed && !inspMap[dateKey].violations.includes(trimmed)) {
+          inspMap[dateKey].violations.push(trimmed);
+        }
       });
     }
   });
   const rows = [];
   Object.values(inspMap).forEach((insp) => {
+    const isCritical = /closed|conditional/i.test(insp.inspection_result);
     if (insp.violations.length === 0) {
-      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+      rows.push({ ...insp, violation_description: "", violation_type: "BLUE", violation_points: "0" });
     } else {
-      insp.violations.forEach((v) => rows.push({ ...insp, ...v }));
+      insp.violations.forEach((v) => {
+        rows.push({ ...insp, violation_description: v, violation_type: isCritical ? "RED" : "BLUE", violation_points: isCritical ? "5" : "2" });
+      });
     }
   });
   return rows;

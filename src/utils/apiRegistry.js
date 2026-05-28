@@ -69,23 +69,16 @@ export const API_REGISTRY = {
   sf: {
     id: "sf",
     name: "San Francisco, CA",
-    endpoint: "https://data.sfgov.org/resource/pyih-qa8i.json",
-    searchField: "business_name",
-    idField: "business_id",
+    // Dataset: "Health Inspection Scores (2024-Present)" — replaces archived pyih-qa8i
+    endpoint: "https://data.sfgov.org/resource/tvy3-wexg.json",
+    searchField: "dba",
+    idField: "permit_number",
     dateField: "inspection_date",
     limit: 1000,
     source: "sf",
   },
-  la: {
-    id: "la",
-    name: "Los Angeles, CA",
-    endpoint: "https://data.lacity.org/resource/29fd-3paw.json",
-    searchField: "facility_name",
-    idField: "facility_id",
-    dateField: "activity_date",
-    limit: 1000,
-    source: "la",
-  },
+  // LA (data.lacity.org/29fd-3paw) was frozen at 2018 — removed from live registry.
+  // LA searches now fall through to AI web search which returns current data.
   delaware: {
     id: "delaware",
     name: "Delaware",
