@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, CheckCircle2, XCircle, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, ExternalLink, HelpCircle } from "lucide-react";
 import { SEARCH_KEYS } from "../utils/searchState";
 
 const ADA_CACHE_KEY = SEARCH_KEYS[2];
@@ -38,51 +38,23 @@ export default function ADAAccessibilityBadge({ restaurant }) {
 
   useEffect(() => {
     if (!isUS) return;
-    const cacheKey = restaurant.business_id;
+    const cacheKey = `places-ada-${restaurant.business_id}`;
     const cache = loadCache();
     const cached = cache[cacheKey];
-    // Only use cache for confident results; re-query if previous lookup was inconclusive
-    if (cached && cached.accessible !== "unknown" && cached.confidence !== "low") {
+    if (cached) {
       setData(cached);
       setStatus("done");
       return;
     }
     setStatus("loading");
 
-    const address = `${restaurant.name}, ${restaurant.address || ""}, ${restaurant.city || ""}`.trim();
-    base44.integrations.Core.InvokeLLM({
-      prompt: `Look up ADA wheelchair accessibility for this US restaurant by checking Google Maps, the restaurant's website, and Yelp listings.
-
-Restaurant: ${restaurant.name}
-Address: ${address}
-
-Specifically check Google Maps' "Accessibility" section which lists accessible entrance, restroom, parking, seating, and automatic doors. Also check the restaurant's chain-wide accessibility policy if it's a chain (e.g. major chains like QDOBA, Chipotle, Starbucks all publish ADA compliance statements).
-
-Return a JSON object with:
-- accessible: true if the restaurant has any accessibility features confirmed; false ONLY if there's evidence of non-accessibility; "unknown" if you cannot find any info
-- entrance: true if accessible entrance is confirmed (ramp, level entry); false if confirmed not accessible; null if unknown
-- restroom: true/false/null with same logic
-- parking: true/false/null with same logic
-- automatic_doors: true if automatic or power-assisted doors are confirmed; false if confirmed not present; null if unknown
-- summary: 1-2 sentence plain English summary citing your source (e.g. "Per Google Maps listing, has accessible entrance, restroom, and automatic doors.")
-- confidence: "high" if Google Maps explicitly lists features; "medium" if inferred from chain policy or website; "low" if guessing
-
-Default to assuming major US chain restaurants are accessible (post-1992 ADA law requires it) unless evidence suggests otherwise. Most QDOBA, Chipotle, McDonald's, etc. locations are accessible.`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          accessible: {},
-          entrance: {},
-          restroom: {},
-          parking: {},
-          automatic_doors: {},
-          summary: { type: "string" },
-          confidence: { type: "string" }
-        }
-      }
-    }).then((result) => {
-      const d = result || {};
+    base44.functions.invoke("getPlacesADA", {
+      name: restaurant.name,
+      address: restaurant.address || "",
+      city: restaurant.city || "",
+      zip_code: restaurant.zip_code || "",
+    }).then((res) => {
+      const d = res.data || {};
       const cache = loadCache();
       cache[cacheKey] = d;
       saveCache(cache);
@@ -95,25 +67,18 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
 
   if (!isUS) return null;
 
-  // Hide the entire badge if we don't have confident accessibility info.
-  // We only show the badge when we can actually say something useful.
-  const isAccessibleConfident = data?.accessible === true;
-  const isNotAccessibleConfident = data?.accessible === false;
-  const hasConfidentResult = isAccessibleConfident || isNotAccessibleConfident;
+  // Hide on error or when Google has no data for this place
+  if (status === "error") return null;
+  if (status === "done" && (!data?.found || !data?.hasAnyData)) return null;
 
-  // While loading, show the loading state (existing behavior)
-  // After load completes: only render if we have a confident result
-  if (status === "done" && !hasConfidentResult) {
-    return null;
-  }
+  const entrance = data?.wheelchairAccessibleEntrance ?? null;
+  const parking  = data?.wheelchairAccessibleParking  ?? null;
+  const restroom = data?.wheelchairAccessibleRestroom  ?? null;
+  const seating  = data?.wheelchairAccessibleSeating   ?? null;
 
-  // Also hide on error — no point showing "ADA info unavailable" noise
-  if (status === "error") {
-    return null;
-  }
-
-  const isAccessible = data?.accessible === true;
-  const isNotAccessible = data?.accessible === false;
+  // Determine overall accessible status from entrance (most critical field)
+  const isAccessible    = entrance === true  || (entrance === null && (parking === true || restroom === true || seating === true));
+  const isNotAccessible = entrance === false;
 
   const headerBg = isAccessible
     ? "bg-gradient-to-r from-emerald-600 to-emerald-500"
@@ -121,29 +86,21 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
     ? "bg-gradient-to-r from-red-500 to-orange-500"
     : "bg-gradient-to-r from-slate-600 to-slate-500";
 
-  const wrapperBorder = isAccessible
-    ? "border-emerald-300"
-    : isNotAccessible
-    ? "border-red-200"
-    : "border-slate-200";
+  const wrapperBorder = isAccessible ? "border-emerald-300" : isNotAccessible ? "border-red-200" : "border-slate-200";
 
   const headline = status === "loading"
     ? "Checking ADA accessibility…"
-    : status === "error"
-    ? "ADA info unavailable"
-    : isAccessible
-    ? "♿ ADA Accessible"
-    : isNotAccessible
-    ? "⚠️ Limited ADA Accessibility"
-    : "♿ ADA Accessibility Unknown";
+    : isAccessible    ? "♿ Wheelchair Accessible"
+    : isNotAccessible ? "⚠️ Limited Wheelchair Accessibility"
+    : "♿ Accessibility Unknown";
 
   const subtext = status === "loading"
-    ? "Searching public records…"
+    ? "Looking up Google Places data…"
     : isAccessible
-    ? "This restaurant appears to accommodate guests with disabilities."
+    ? "Google Maps confirms accessibility features at this location."
     : isNotAccessible
-    ? "This location may have limited accessibility features."
-    : "We couldn't confirm specific accessibility details for this location.";
+    ? "Google Maps indicates limited accessibility at this location."
+    : "Google Maps has partial accessibility data for this location.";
 
   const hasFeatures = data && (data.entrance !== null || data.restroom !== null || data.parking !== null || data.automatic_doors !== null);
 
@@ -176,36 +133,30 @@ Default to assuming major US chain restaurants are accessible (post-1992 ADA law
           </p>
         </div>
 
-        {/* Feature grid */}
-        {status === "done" && hasFeatures && (
+        {/* Feature grid — real Google Places data */}
+        {status === "done" && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-            <FeatureRow label="Accessible Entrance" icon="🚪" value={data.entrance} />
-            <FeatureRow label="Accessible Restroom" icon="🚻" value={data.restroom} />
-            <FeatureRow label="Accessible Parking" icon="🅿️" value={data.parking} />
-            <FeatureRow label="Automatic Doors" icon="🔄" value={data.automatic_doors} />
+            <FeatureRow label="Accessible Entrance" icon="🚪" value={entrance} />
+            <FeatureRow label="Accessible Restroom" icon="🚻" value={restroom} />
+            <FeatureRow label="Accessible Parking"  icon="🅿️" value={parking}  />
+            <FeatureRow label="Accessible Seating"  icon="🪑" value={seating}  />
           </div>
         )}
 
-        {/* Expandable summary */}
-        {status === "done" && data?.summary && (
-          <div>
-            <button
-              onClick={() => setExpanded(v => !v)}
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+        {/* Google Places attribution */}
+        {status === "done" && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-slate-400">
+              Data from Google Maps · 
+            </span>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((restaurant.name || "") + " " + (restaurant.address || "") + " " + (restaurant.city || ""))}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-0.5 text-[10px] text-blue-500 hover:underline font-semibold"
             >
-              {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              {expanded ? "Hide details" : "View source details"}
-            </button>
-            {expanded && (
-              <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-600 leading-relaxed">{data.summary}</p>
-                {data.confidence && (
-                  <p className="text-[10px] text-slate-400 mt-1.5">
-                    Confidence: <span className="font-semibold capitalize">{data.confidence}</span> · Sourced via public web data. Always verify directly with the restaurant.
-                  </p>
-                )}
-              </div>
-            )}
+              Verify on Google Maps <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+            <span className="text-[10px] text-slate-400">· Always confirm directly with the restaurant.</span>
           </div>
         )}
 
