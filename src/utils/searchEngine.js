@@ -151,6 +151,18 @@ function llmCall(prompt, internet = false) {
   });
 }
 
+async function aiSearchFallback(query, countyId, locationLabel, today, onFastResults) {
+  const location = locationLabel?.trim() || null;
+  const primaryCity = location ? location.split(",")[0].trim() : "";
+  const restaurants = await runWithFastResults(
+    llmCall(FAST_PROMPT(query, location), false),
+    llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
+    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity),
+    onFastResults
+  );
+  return { results: restaurants, isAI: true };
+}
+
 // EXHAUSTIVE forbidden locations
 // Dubai location filter — restaurants outside Dubai must be rejected.
 // Three lists of forbidden tokens, deduplicated and de-collided.
@@ -241,21 +253,27 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (countyId === "uk_fsa") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
     const establishments = res.data?.establishments || [];
-    return { results: processUKFSAResults(establishments), isAI: false };
+    const liveResults = processUKFSAResults(establishments);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
 
   // Toronto DineSafe (CKAN — needs backend proxy)
   if (countyId === "toronto") {
     const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
     const records = res.data?.records || [];
-    return { results: processTorontoResults(records), isAI: false };
+    const liveResults = processTorontoResults(records);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
 
   // Boston (CKAN — needs backend proxy)
   if (countyId === "boston") {
     const res = await base44.functions.invoke("bostonFoodInspections", { action: "search", name: query });
     const records = res.data?.records || [];
-    return { results: filterByNameRelevance(processBostonResults(records), query), isAI: false };
+    const liveResults = filterByNameRelevance(processBostonResults(records), query);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
 
   // Stanislaus County CA (scraped portal, with AI fallback)
@@ -279,7 +297,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (countyId === "houston") {
     const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
     const records = res.data?.records || [];
-    return { results: filterByNameRelevance(processHoustonResults(records), query), isAI: false };
+    const liveResults = filterByNameRelevance(processHoustonResults(records), query);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
   }
 
   // Live government API
@@ -293,6 +313,11 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     // fuzzy matches when name fields are denormalized. We require the query (or each query word)
     // to appear in the result's name, case-insensitively.
     const results = filterByNameRelevance(allResults, query);
+
+    // If live API returned nothing, fall back to AI
+    if (results.length === 0) {
+      return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    }
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
     if (onCountUpdate && countyId !== "delaware") {
