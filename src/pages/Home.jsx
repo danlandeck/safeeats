@@ -851,11 +851,13 @@ export default function Home() {
         countyIdRef.current = searchCounty; setCountyId(searchCounty);
         if (matched.locationLabel) setLocationQuery(matched.locationLabel);
         query = rawQuery
-          .replace(new RegExp(key, "i"), "")
-          .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")  // strip trailing state abbr e.g. ", WA"
+          .replace(new RegExp(key, "i"), "")               // strip city name
+          .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")          // strip trailing state abbr e.g. ", WA"
+          .replace(/\s+\b(in|at|near|of|the)\b\s*$/i, "") // strip trailing prepositions
+          .replace(/^\s*\b(in|at|near)\b\s+/i, "")        // strip leading prepositions
           .trim()
-          .replace(/^,\s*/, "")
-          .replace(/,\s*$/, "")
+          .replace(/^[,\s]+/, "")   // strip leading commas/spaces
+          .replace(/[,\s]+$/, "")   // strip trailing commas/spaces
           .trim() || rawQuery;
         cityMatched = true;
       }
