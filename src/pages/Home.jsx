@@ -814,22 +814,46 @@ export default function Home() {
 
     // Auto-detect location from explicit city name in query when on global
     const queryWords = rawQuery.toLowerCase().trim();
+
+    // US state abbreviations — when present, force US interpretation of ambiguous city names
+    const US_STATE_ABBR = new Set([
+      'al','ak','az','ar','ca','co','ct','de','fl','ga','hi','id','il','in','ia',
+      'ks','ky','la','me','md','ma','mi','mn','ms','mo','mt','ne','nv','nh','nj',
+      'nm','ny','nc','nd','oh','ok','or','pa','ri','sc','sd','tn','tx','ut','vt',
+      'va','wa','wv','wi','wy','dc'
+    ]);
+
+    // Cities that exist in both the US and another country in CITY_TO_COUNTY.
+    const AMBIGUOUS_CITY_NON_US = new Set([
+      'manchester','birmingham','bristol','newcastle','cambridge','oxford',
+      'reading','lincoln','york','chester','richmond','london','hamilton',
+    ]);
+
+    const queryTokens = queryWords.split(/[\s,]+/).filter(Boolean);
+    const hasUSStateAbbr = queryTokens.some(tok => US_STATE_ABBR.has(tok));
+
     const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
     let cityMatched = false;
     for (const key of sortedKeys) {
-      if (queryWords.includes(key)) {
-        const matched = CITY_TO_COUNTY[key];
-        if (REGIONS[matched.region]) {
-          searchRegion = matched.region;
-          searchCounty = matched.countyId;
-          regionRef.current = searchRegion; setRegion(searchRegion);
-          countyIdRef.current = searchCounty; setCountyId(searchCounty);
-          if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-          query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
-          cityMatched = true;
-        }
-        break;
+      if (!queryWords.includes(key)) continue;
+
+      const matched = CITY_TO_COUNTY[key];
+
+      // If the user typed a US state abbr, skip non-US matches for ambiguous city names.
+      if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
+        if (key !== 'newcastle') continue;
       }
+
+      if (REGIONS[matched.region]) {
+        searchRegion = matched.region;
+        searchCounty = matched.countyId;
+        regionRef.current = searchRegion; setRegion(searchRegion);
+        countyIdRef.current = searchCounty; setCountyId(searchCounty);
+        if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+        query = rawQuery.replace(new RegExp(key, "i"), "").trim().replace(/^,\s*/, "") || rawQuery;
+        cityMatched = true;
+      }
+      break;
     }
     // If no city matched, always reset to global — never reuse a stale city from a previous search
     if (!cityMatched && (searchCounty === "global" || searchCounty === null)) {
