@@ -670,6 +670,15 @@ const CITY_TO_COUNTY = {
   "belfast": { region: "uk", countyId: "uk_fsa", locationLabel: "Belfast, Northern Ireland, UK" },
   "derry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
   "londonderry": { region: "uk", countyId: "uk_fsa", locationLabel: "Derry, Northern Ireland, UK" },
+  // Stanislaus County, CA
+  "modesto": { region: "california", countyId: "stanislaus", locationLabel: "Modesto, CA" },
+  "turlock": { region: "california", countyId: "stanislaus", locationLabel: "Turlock, CA" },
+  "ceres": { region: "california", countyId: "stanislaus", locationLabel: "Ceres, CA" },
+  "riverbank": { region: "california", countyId: "stanislaus", locationLabel: "Riverbank, CA" },
+  "oakdale": { region: "california", countyId: "stanislaus", locationLabel: "Oakdale, CA" },
+  "patterson ca": { region: "california", countyId: "stanislaus", locationLabel: "Patterson, CA" },
+  "newman ca": { region: "california", countyId: "stanislaus", locationLabel: "Newman, CA" },
+  "stanislaus county": { region: "california", countyId: "stanislaus", locationLabel: "Stanislaus County, CA" },
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -726,6 +735,7 @@ const LIVE_API_CITIES = [
   { label: "United Kingdom 🇬🇧", region: "uk", countyId: "uk_fsa", emoji: "🇬🇧", example: "fish and chips", locationLabel: "United Kingdom" },
   { label: "Boston, MA", region: "massachusetts", countyId: "boston", emoji: "🦞", example: "restaurant" },
   { label: "Houston, TX", region: "texas", countyId: "houston", emoji: "🤠", example: "barbecue" },
+  { label: "Modesto / Stanislaus Co., CA", region: "california", countyId: "stanislaus", emoji: "🌾", example: "restaurant", locationLabel: "Modesto, CA" },
 ];
 
 export default function Home() {

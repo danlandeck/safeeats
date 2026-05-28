@@ -12,6 +12,7 @@ import {
   processTorontoResults, torontoToDetailRows,
   processBostonResults, bostonToDetailRows,
   processHoustonResults, houstonToDetailRows,
+  processStanislausResults, stanislausToDetailRows,
 } from "./inspectionProcessors";
 
 const PROCESSORS = {
@@ -77,7 +78,8 @@ STRICT RULES:
 3. latest_score: 0–100 (real data). latest_result: real inspection outcome. violations: real only.
 4. NEVER return results from outside ${location}.
 5. Better to return 3 verified results than 10 with any location mismatch.
-6. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
+6. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).
+7. For California locations, check the California DPH environmental health records, local county health portal, and Yelp/Google health inspection summaries.`;
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the web for real health inspection records for "${query}" anywhere in the world.
@@ -256,6 +258,13 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: filterByNameRelevance(processBostonResults(records), query), isAI: false };
   }
 
+  // Stanislaus County CA (scraped portal)
+  if (countyId === "stanislaus") {
+    const res = await base44.functions.invoke("stanislausInspections", { action: "search", name: query });
+    const facilities = res.data?.facilities || [];
+    return { results: filterByNameRelevance(processStanislausResults(facilities), query), isAI: false };
+  }
+
   // Houston (CKAN — needs backend proxy)
   if (countyId === "houston") {
     const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
@@ -342,6 +351,11 @@ export async function fetchDetail(restaurant) {
       const res = await base44.functions.invoke("bostonFoodInspections", { action: "detail", licenseno: business_id });
       return bostonToDetailRows(res.data?.records || []);
     } catch { return []; }
+  }
+
+  // Stanislaus County
+  if (source === "stanislaus") {
+    return stanislausToDetailRows(restaurant);
   }
 
   // Houston — CKAN detail fetch

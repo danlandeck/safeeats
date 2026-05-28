@@ -961,6 +961,56 @@ export function houstonToDetailRows(records) {
   });
 }
 
+// ── Stanislaus County CA ────────────────────────────────────────────────────
+export function processStanislausResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f, i) => {
+    const isClosed = /closed/i.test(f.permit_status);
+    const safetyScore = isClosed ? 25 : 85;
+    // Parse MM/DD/YYYY date to ISO
+    let latestDate = f.latest_date || "";
+    if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(latestDate)) {
+      const [mm, dd, yyyy] = latestDate.split("/");
+      latestDate = `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+    }
+    return {
+      business_id: `stanislaus-${i}-${f.name}`,
+      name: f.name.charAt(0) + f.name.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
+      address: f.address,
+      city: f.city.charAt(0) + f.city.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
+      zip_code: "", phone: "", description: f.inspection_type || "",
+      safetyScore, grade: getGrade(safetyScore),
+      totalInspections: 1,
+      latestDate,
+      latestResult: isClosed ? "Closed" : "Open / Pass",
+      latitude: null, longitude: null,
+      isLLMData: false, source: "stanislaus",
+      ada_compliance: "unknown",
+      _rawFacility: f,
+    };
+  });
+}
+
+export function stanislausToDetailRows(restaurant) {
+  const f = restaurant._rawFacility || {};
+  let latestDate = f.latest_date || "";
+  if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(latestDate)) {
+    const [mm, dd, yyyy] = latestDate.split("/");
+    latestDate = `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+  }
+  const isClosed = /closed/i.test(f.permit_status);
+  return [{
+    inspection_serial_num: `stanislaus-${restaurant.business_id}`,
+    inspection_date: latestDate,
+    inspection_score: isClosed ? "75" : "15",
+    inspection_result: isClosed ? "Closed" : "Open / Pass",
+    inspection_type: f.inspection_type || "Routine",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}
+
 // ── Reverse Geocoding ─────────────────────────────────────────────────────────
 // Given lat/lng, returns { city, county, state, country } using Nominatim
 export async function reverseGeocode(lat, lng) {
