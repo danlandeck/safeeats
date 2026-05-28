@@ -10,6 +10,8 @@ import {
   processDelawareResults, delawareToDetailRows,
   processNYStateResults, nyStateToDetailRows,
   processTorontoResults, torontoToDetailRows,
+  processBostonResults, bostonToDetailRows,
+  processHoustonResults, houstonToDetailRows,
 } from "./inspectionProcessors";
 
 const PROCESSORS = {
@@ -31,6 +33,7 @@ const SOURCE_TO_COUNTY = {
   sf: "sf", la: "la", dubai: "dubai", llm: "llm",
   uk_fsa: "uk_fsa", delaware: "delaware",
   ny_state: "ny_state", toronto: "toronto",
+  boston: "boston", houston: "houston",
 };
 
 const LLM_SCHEMA = {
@@ -246,6 +249,20 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: processTorontoResults(records), isAI: false };
   }
 
+  // Boston (CKAN — needs backend proxy)
+  if (countyId === "boston") {
+    const res = await base44.functions.invoke("bostonFoodInspections", { action: "search", name: query });
+    const records = res.data?.records || [];
+    return { results: filterByNameRelevance(processBostonResults(records), query), isAI: false };
+  }
+
+  // Houston (CKAN — needs backend proxy)
+  if (countyId === "houston") {
+    const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
+    const records = res.data?.records || [];
+    return { results: filterByNameRelevance(processHoustonResults(records), query), isAI: false };
+  }
+
   // Live government API
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
@@ -316,6 +333,22 @@ export async function fetchDetail(restaurant) {
       const res = await base44.functions.invoke("torontoDineSafe", { action: "detail", establishmentId: business_id });
       const records = res.data?.records || [];
       return torontoToDetailRows(records);
+    } catch { return []; }
+  }
+
+  // Boston — CKAN detail fetch
+  if (source === "boston") {
+    try {
+      const res = await base44.functions.invoke("bostonFoodInspections", { action: "detail", licenseno: business_id });
+      return bostonToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  // Houston — CKAN detail fetch
+  if (source === "houston") {
+    try {
+      const res = await base44.functions.invoke("houstonFoodInspections", { action: "detail", facilityAccountNumber: business_id });
+      return houstonToDetailRows(res.data?.records || []);
     } catch { return []; }
   }
 

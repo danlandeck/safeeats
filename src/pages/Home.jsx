@@ -278,6 +278,21 @@ const CITY_TO_COUNTY = {
   "rosedale": { region: "texas", countyId: "travis" },
   "tarrytown": { region: "texas", countyId: "travis" },
   "north loop austin": { region: "texas", countyId: "travis" },
+  // Houston
+  "houston": { region: "texas", countyId: "houston" },
+  "downtown houston": { region: "texas", countyId: "houston" },
+  "montrose": { region: "texas", countyId: "houston" },
+  "the heights": { region: "texas", countyId: "houston" },
+  "midtown houston": { region: "texas", countyId: "houston" },
+  "galleria houston": { region: "texas", countyId: "houston" },
+  "river oaks": { region: "texas", countyId: "houston" },
+  "medical center houston": { region: "texas", countyId: "houston" },
+  "memorial houston": { region: "texas", countyId: "houston" },
+  "katy": { region: "texas", countyId: "houston" },
+  "pearland": { region: "texas", countyId: "houston" },
+  "sugar land": { region: "texas", countyId: "houston" },
+  "pasadena tx": { region: "texas", countyId: "houston" },
+  "baytown": { region: "texas", countyId: "houston" },
   // San Francisco
   "san francisco": { region: "california", countyId: "sf" },
   "sf": { region: "california", countyId: "sf" },
@@ -451,6 +466,18 @@ const CITY_TO_COUNTY = {
   "palms": { region: "california", countyId: "la" },
   "sawtelle": { region: "california", countyId: "la" },
   "century city": { region: "california", countyId: "la" },
+  // Boston
+  "boston": { region: "massachusetts", countyId: "boston" },
+  "allston": { region: "massachusetts", countyId: "boston" },
+  "back bay": { region: "massachusetts", countyId: "boston" },
+  "fenway boston": { region: "massachusetts", countyId: "boston" },
+  "jamaica plain": { region: "massachusetts", countyId: "boston" },
+  "dorchester": { region: "massachusetts", countyId: "boston" },
+  "roxbury": { region: "massachusetts", countyId: "boston" },
+  "south boston": { region: "massachusetts", countyId: "boston" },
+  "east boston": { region: "massachusetts", countyId: "boston" },
+  "north end boston": { region: "massachusetts", countyId: "boston" },
+  "beacon hill": { region: "massachusetts", countyId: "boston" },
   // Canada
   "canada": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
   "canadian": { region: "canada", countyId: "toronto", locationLabel: "Canada" },
@@ -697,6 +724,8 @@ const LIVE_API_CITIES = [
   { label: "Delaware", region: "delaware", countyId: "delaware", emoji: "🦅", example: "Subway", locationLabel: "Delaware" },
   { label: "Dubai 🇦🇪", region: "uae", countyId: "dubai", emoji: "🏙️", example: "restaurant", locationLabel: "Dubai, UAE" },
   { label: "United Kingdom 🇬🇧", region: "uk", countyId: "uk_fsa", emoji: "🇬🇧", example: "fish and chips", locationLabel: "United Kingdom" },
+  { label: "Boston, MA", region: "massachusetts", countyId: "boston", emoji: "🦞", example: "restaurant" },
+  { label: "Houston, TX", region: "texas", countyId: "houston", emoji: "🤠", example: "barbecue" },
 ];
 
 export default function Home() {
@@ -888,7 +917,7 @@ export default function Home() {
     const resolvedCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
     const locationCtx = locationQuery.trim() || resolvedCounty.name;
 
-    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state"].includes(searchCounty)) {
+    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston"].includes(searchCounty)) {
       setIsAISearch(true);
     }
 

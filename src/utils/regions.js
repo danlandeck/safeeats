@@ -139,6 +139,7 @@ export const REGIONS = {
     { id: "howard", name: "Howard County (Columbia)", city: "Ellicott City", hasPublicApi: true },
   ]},
   massachusetts: { name: "Massachusetts", abbr: "MA", counties: [
+    { id: "boston", name: "City of Boston", city: "Boston", hasPublicApi: true },
     { id: "suffolk", name: "Suffolk County (Boston)", city: "Boston", hasPublicApi: true },
     { id: "middlesex", name: "Middlesex County (Cambridge)", city: "Cambridge", hasPublicApi: true },
     { id: "worcester", name: "Worcester County", city: "Worcester", hasPublicApi: true },
@@ -289,6 +290,7 @@ export const REGIONS = {
     { id: "rutherford", name: "Rutherford County (Murfreesboro)", city: "Murfreesboro", hasPublicApi: true },
   ]},
   texas: { name: "Texas", abbr: "TX", counties: [
+    { id: "houston", name: "City of Houston", city: "Houston", hasPublicApi: true },
     { id: "harris", name: "Harris County (Houston)", city: "Houston", hasPublicApi: true },
     { id: "dallas", name: "Dallas County", city: "Dallas", hasPublicApi: true },
     { id: "travis", name: "Travis County (Austin)", city: "Austin", hasPublicApi: true },
@@ -606,6 +608,8 @@ export const SOURCE_TO_STATE = {
   montgomery_md: "MD",
   montgomery:    "MD",
   delaware:      "DE",
+  boston:        "MA",
+  houston:       "TX",
   toronto:       null,  // Canada
   dubai:         null,  // UAE
   uk_fsa:        null,  // UK

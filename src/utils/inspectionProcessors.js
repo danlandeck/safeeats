@@ -800,6 +800,167 @@ export function torontoToDetailRows(records) {
   return rows;
 }
 
+// ── Boston (CKAN) ───────────────────────────────────────────────────────────────
+export function processBostonResults(records) {
+  if (!Array.isArray(records) || records.length === 0) return [];
+  const businesses = {};
+  records.forEach((row) => {
+    const id = row.licenseno;
+    if (!id) return;
+    if (!businesses[id]) {
+      const locMatch = (row.location || "").match(/\(([\-\d.]+),\s*([\-\d.]+)\)/);
+      businesses[id] = {
+        business_id: id,
+        name: row.dbaname || row.businessname || "",
+        address: row.address || "",
+        city: row.city ? row.city.charAt(0) + row.city.slice(1).toLowerCase() : "Boston",
+        zip_code: row.zip || "",
+        phone: "", description: row.descript || "",
+        inspections: {}, allRows: [],
+        latitude: locMatch ? locMatch[1] : null,
+        longitude: locMatch ? locMatch[2] : null,
+      };
+    }
+    businesses[id].allRows.push(row);
+    // Group violations by inspection date
+    const rawDate = (row.resultdttm || "");
+    const dateKey = rawDate.split("T")[0] || rawDate.split(" ")[0] || "";
+    if (dateKey) {
+      if (!businesses[id].inspections[dateKey]) {
+        const resultRaw = row.result || "";
+        businesses[id].inspections[dateKey] = {
+          result: resultRaw === "HE_Pass" ? "Pass" : resultRaw === "HE_Fail" ? "Fail" : resultRaw === "HE_Filed" ? "Violations Filed" : resultRaw,
+          critical: 0, minor: 0,
+        };
+      }
+      if (row.violdesc && row.violdesc.trim()) {
+        if ((row.viol_level || "") === "**") businesses[id].inspections[dateKey].critical++;
+        else businesses[id].inspections[dateKey].minor++;
+      }
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    const inspList = Object.entries(biz.inspections)
+      .map(([date, insp]) => ({ date, ...insp }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = inspList[0];
+    const pts = (latest?.critical || 0) * 8 + (latest?.minor || 0) * 2;
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts));
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: inspList.length,
+      latestDate: latest?.date || "",
+      latestResult: latest?.result || "Unknown",
+      isLLMData: false, source: "boston", ada_compliance: "unknown",
+    };
+  });
+}
+
+export function bostonToDetailRows(records) {
+  const inspMap = {};
+  records.forEach((row) => {
+    const rawDate = (row.resultdttm || "");
+    const dateKey = rawDate.split("T")[0] || rawDate.split(" ")[0] || "unknown";
+    if (!inspMap[dateKey]) {
+      const resultRaw = row.result || "";
+      inspMap[dateKey] = {
+        inspection_serial_num: `boston-${row.licenseno}-${dateKey}`,
+        inspection_date: dateKey,
+        inspection_score: "0",
+        inspection_result: resultRaw === "HE_Pass" ? "Pass" : resultRaw === "HE_Fail" ? "Fail" : resultRaw === "HE_Filed" ? "Violations Filed" : resultRaw,
+        inspection_type: row.descript || "Routine",
+        violations: [],
+      };
+    }
+    if (row.violdesc && row.violdesc.trim()) {
+      inspMap[dateKey].violations.push({
+        description: row.comments ? `${row.violdesc.trim()}: ${row.comments}` : row.violdesc.trim(),
+        level: row.viol_level || "",
+      });
+    }
+  });
+  const rows = [];
+  Object.values(inspMap).forEach((insp) => {
+    const criticals = insp.violations.filter((v) => v.level === "**").length;
+    const minors = insp.violations.filter((v) => v.level !== "**").length;
+    insp.inspection_score = String(criticals * 8 + minors * 2);
+    if (insp.violations.length === 0) {
+      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
+    } else {
+      insp.violations.forEach((v) => {
+        rows.push({ ...insp, violation_description: v.description, violation_type: v.level === "**" ? "RED" : "BLUE", violation_points: v.level === "**" ? "8" : "2" });
+      });
+    }
+  });
+  return rows;
+}
+
+// ── Houston (CKAN) ───────────────────────────────────────────────────────────────
+export function processHoustonResults(records) {
+  if (!Array.isArray(records) || records.length === 0) return [];
+  const businesses = {};
+  records.forEach((row) => {
+    const id = row.FacilityAccountNumber;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: id,
+        name: row.FacilityName || "",
+        address: row.FacilityFullStreetAddress || "",
+        city: row.FacilityCity ? row.FacilityCity.charAt(0) + row.FacilityCity.slice(1).toLowerCase() : "Houston",
+        zip_code: row.FacilityZip || "",
+        phone: row.FacilityPhone || "",
+        description: row.EstablishmentType || "",
+        cuisine: row.Cuisine ? row.Cuisine.split(", ")[0].toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "",
+        inspections: [], allRows: [],
+      };
+    }
+    businesses[id].allRows.push(row);
+    const dateKey = (row.InspectionDate || "").split(" ")[0];
+    const uid = row.InspectionUID || dateKey;
+    if (uid && !businesses[id].inspections.find((i) => i.serial === uid)) {
+      businesses[id].inspections.push({
+        serial: uid, date: dateKey,
+        score: parseInt(row.InspectionScore) || 0,
+        status: row.InspectionStatus || "",
+        type: row.InspectionType || "",
+      });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = biz.inspections[0];
+    const pts = latest?.score || 0;
+    const safetyScore = Math.max(0, Math.min(100, 100 - pts * 4));
+    const isPassing = /pass/i.test(latest?.status || "");
+    return {
+      ...biz, safetyScore, grade: getGrade(safetyScore),
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date || "",
+      latestResult: isPassing ? "Pass" : "Fail",
+      latitude: null, longitude: null, isLLMData: false, source: "houston", ada_compliance: "unknown",
+    };
+  });
+}
+
+export function houstonToDetailRows(records) {
+  return records.map((row) => {
+    const dateKey = (row.InspectionDate || "").split(" ")[0];
+    const pts = parseInt(row.InspectionScore) || 0;
+    const isPassing = /pass/i.test(row.InspectionStatus || "");
+    return {
+      inspection_serial_num: row.InspectionUID || `houston-${dateKey}`,
+      inspection_date: dateKey,
+      inspection_score: String(pts),
+      inspection_result: isPassing ? "Pass" : "Fail",
+      inspection_type: row.InspectionType || "",
+      violation_description: row.InspectionComments || "",
+      violation_type: isPassing ? "BLUE" : "RED",
+      violation_points: String(pts),
+    };
+  });
+}
+
 // ── Reverse Geocoding ─────────────────────────────────────────────────────────
 // Given lat/lng, returns { city, county, state, country } using Nominatim
 export async function reverseGeocode(lat, lng) {
