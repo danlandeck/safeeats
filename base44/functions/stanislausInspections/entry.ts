@@ -16,7 +16,8 @@ function parseHtmlTable(html, nameFilter) {
   const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
 
   let passedHeader = false;
-  const filterLower = nameFilter ? nameFilter.toLowerCase() : null;
+  const normalize = (s) => (s || "").toLowerCase().replace(/[''\-]/g, "").replace(/\s+/g, " ").trim();
+  const filterNorm = nameFilter ? normalize(nameFilter) : null;
 
   let rowMatch;
   while ((rowMatch = rowRegex.exec(html)) !== null) {
@@ -37,8 +38,8 @@ function parseHtmlTable(html, nameFilter) {
     const name = cells[0];
     if (!name || name.length < 2) continue;
 
-    // Filter by name if provided
-    if (filterLower && !name.toLowerCase().includes(filterLower)) continue;
+    // Filter by name if provided (normalize apostrophes/dashes before comparing)
+    if (filterNorm && !normalize(name).includes(filterNorm)) continue;
 
     // Actual column layout from live response:
     // 0: Facility Name
