@@ -299,36 +299,47 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
   };
 }
 
-// ── Los Angeles CA ───────────────────────────────────────────────────────────
+// ── Los Angeles CA (ArcGIS Feature Service, 2023–present) ────────────────────
+// Fields (uppercase): FACILITY_ID, FACILITY_NAME, FACILITY_ADDRESS, FACILITY_CITY,
+// FACILITY_ZIP, SCORE (0-100, higher=better), GRADE (A/B/C), ACTIVITY_DATE (epoch ms)
 export function processLAResults(data) {
   if (!Array.isArray(data) || data.length === 0) return [];
   const businesses = {};
   data.forEach((row) => {
-    const id = row.facility_id;
+    const id = row.FACILITY_ID;
     if (!id) return;
     if (!businesses[id]) {
       businesses[id] = {
-        business_id: id, name: row.facility_name,
-        address: row.facility_address || "", city: row.facility_city || "Los Angeles",
-        zip_code: row.facility_zip || "", phone: "", description: row.pe_description || "",
-        inspections: [], allRows: [],
+        business_id: id,
+        name: row.FACILITY_NAME || "",
+        address: row.FACILITY_ADDRESS || "",
+        city: row.FACILITY_CITY || "Los Angeles",
+        zip_code: row.FACILITY_ZIP || "",
+        phone: "", description: "",
+        inspections: [],
       };
     }
-    businesses[id].allRows.push(row);
-    const serial = row.serial_number;
-    if (serial && !businesses[id].inspections.find((i) => i.serial === serial)) {
-      const score = parseInt(row.score) || 0; // LA score is 0-100 direct (higher=better)
-      businesses[id].inspections.push({ serial, date: row.activity_date, score, result: row.grade || "", type: row.service_description || "" });
+    const dateMs = row.ACTIVITY_DATE;
+    const dateStr = dateMs ? new Date(dateMs).toISOString().split("T")[0] : "";
+    if (dateStr && !businesses[id].inspections.find((i) => i.date === dateStr)) {
+      businesses[id].inspections.push({
+        date: dateStr,
+        score: row.SCORE ?? null,
+        grade: row.GRADE || "U",
+        type: row.SERVICE_DESCRIPTION || "",
+      });
     }
   });
   return Object.values(businesses).map((biz) => {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
-    const safetyScore = latest?.score || 0; // already 0-100
+    const score = latest?.score ?? null;
+    const grade = latest?.grade || "U";
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore: score, grade,
       totalInspections: biz.inspections.length,
-      latestDate: latest?.date, latestResult: latest?.result,
+      latestDate: latest?.date,
+      latestResult: grade !== "U" ? `Grade ${grade}` : "Unknown",
       latitude: null, longitude: null, isLLMData: false, source: "la",
       ada_compliance: "unknown",
     };
@@ -336,22 +347,29 @@ export function processLAResults(data) {
 }
 
 export function laToDetailRows(data) {
-  const inspMap = {};
+  if (!Array.isArray(data) || data.length === 0) return [];
+  const seen = new Set();
+  const rows = [];
   data.forEach((row) => {
-    const serial = row.serial_number || `${row.activity_date}-${row.facility_id}`;
-    if (!inspMap[serial]) {
-      const score = parseInt(row.score) || 0;
-      inspMap[serial] = {
-        inspection_serial_num: serial,
-        inspection_date: row.activity_date,
-        inspection_score: String(100 - score), // convert to penalty points for display
-        inspection_result: row.grade || "",
-        inspection_type: row.service_description || "",
-        violations: [],
-      };
-    }
+    const dateMs = row.ACTIVITY_DATE;
+    const dateStr = dateMs ? new Date(dateMs).toISOString().split("T")[0] : "unknown";
+    const serial = `la-${row.FACILITY_ID}-${dateStr}`;
+    if (seen.has(serial)) return;
+    seen.add(serial);
+    const score = row.SCORE ?? 0;
+    const grade = row.GRADE || "U";
+    rows.push({
+      inspection_serial_num: serial,
+      inspection_date: dateStr,
+      inspection_score: String(100 - score),
+      inspection_result: grade !== "U" ? `Grade ${grade} (Score: ${score}/100)` : `Score: ${score}/100`,
+      inspection_type: row.SERVICE_DESCRIPTION || "Routine Inspection",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    });
   });
-  return Object.values(inspMap).map((insp) => ({ ...insp, violation_description: "", violation_type: "", violation_points: "0" }));
+  return rows;
 }
 
 // ── Austin TX ────────────────────────────────────────────────────────────────

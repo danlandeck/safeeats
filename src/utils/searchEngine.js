@@ -293,6 +293,15 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: restaurants, isAI: true };
   }
 
+  // Los Angeles County (ArcGIS Feature Service via backend proxy)
+  if (countyId === "la") {
+    const res = await base44.functions.invoke("laCountyInspections", { action: "search", name: query });
+    const records = res.data?.records || [];
+    const liveResults = filterByNameRelevance(processLAResults(records), query);
+    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+  }
+
   // Houston (CKAN — needs backend proxy)
   if (countyId === "houston") {
     const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
@@ -385,6 +394,14 @@ export async function fetchDetail(restaurant) {
     try {
       const res = await base44.functions.invoke("bostonFoodInspections", { action: "detail", licenseno: business_id });
       return bostonToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  // Los Angeles County (ArcGIS)
+  if (source === "la") {
+    try {
+      const res = await base44.functions.invoke("laCountyInspections", { action: "detail", facilityId: business_id });
+      return laToDetailRows(res.data?.records || []);
     } catch { return []; }
   }
 
