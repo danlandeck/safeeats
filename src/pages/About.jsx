@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility, Droplets } from "lucide-react";
+import { ShieldCheck, Shield, Database, TrendingUp, ArrowLeft, Heart, AlertTriangle, Globe, Search, Ban, FileText, Camera, Languages, Baby, Award, Accessibility, Droplets, FlaskConical, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -212,6 +212,28 @@ export default function About() {
               </div>
             </div>
           </Section>
+
+          {/* ── Deep dives: Methodology & Enterprise ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link to="/Methodology" className="group">
+              <div className="h-full p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  <FlaskConical className="w-5 h-5 text-[#4CAF50]" />
+                  <p className="font-extrabold text-slate-900">Data Methodology & Trust</p>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">Exactly how every grade is earned — source-by-source normalization, the data pipeline, and our quality controls. Fully auditable.</p>
+              </div>
+            </Link>
+            <Link to="/Enterprise" className="group">
+              <div className="h-full p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  <Building2 className="w-5 h-5 text-[#4CAF50]" />
+                  <p className="font-extrabold text-slate-900">Enterprise & API</p>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed">The world's food safety data, ready to integrate. API access, licensing tiers, and use cases for maps, guides, travel, and risk platforms.</p>
+              </div>
+            </Link>
+          </div>
 
           {/* ── UAE / Dubai spotlight ── */}
           <Section className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-green-50 overflow-hidden relative">

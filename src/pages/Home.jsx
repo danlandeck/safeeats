@@ -1248,6 +1248,21 @@ export default function Home() {
               </div>
               <p className="text-center text-xs text-slate-500 mt-3">🌍 Everywhere else is covered by AI-powered search of public health records. Just type any city or country!</p>
             </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/Methodology" className="flex-1 max-w-md mx-auto sm:mx-0">
+                <div className="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all text-center sm:text-left">
+                  <p className="font-extrabold text-slate-900 text-sm">🔬 Data Methodology & Trust</p>
+                  <p className="text-xs text-slate-500 mt-0.5">How every grade is earned — fully auditable.</p>
+                </div>
+              </Link>
+              <Link to="/Enterprise" className="flex-1 max-w-md mx-auto sm:mx-0">
+                <div className="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all text-center sm:text-left">
+                  <p className="font-extrabold text-slate-900 text-sm">🏢 Enterprise & API</p>
+                  <p className="text-xs text-slate-500 mt-0.5">The world's food safety data, ready to integrate.</p>
+                </div>
+              </Link>
+            </div>
           </div>
         )}
 

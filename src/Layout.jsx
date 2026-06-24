@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { ShieldCheck, Info, BarChart2, Globe, Map } from "lucide-react";
+import { ShieldCheck, Info, BarChart2, Globe, Map, Building2, FlaskConical } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
@@ -32,6 +32,8 @@ export default function Layout({ children, currentPageName }) {
 
               <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
               <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Global coverage map"><Map className="w-4 h-4" aria-hidden="true" /><span>Map</span></Link></div>
+              <div role="listitem"><Link to="/methodology" className={navPill} aria-label="Data methodology and trust"><FlaskConical className="w-4 h-4" aria-hidden="true" /><span>Methodology</span></Link></div>
+              <div role="listitem"><Link to="/enterprise" className={navPill} aria-label="Enterprise and API"><Building2 className="w-4 h-4" aria-hidden="true" /><span>Enterprise</span></Link></div>
               <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
               <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
@@ -55,8 +57,11 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-slate-500">
                 Empowering informed dining decisions through transparency
               </p>
-              <div className="flex gap-3 mt-2">
+              <div className="flex gap-3 mt-2 flex-wrap">
                 <Link to="/About" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">About</Link>
+                <Link to="/methodology" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Methodology</Link>
+                <Link to="/enterprise" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Enterprise</Link>
+                <Link to="/global-coverage" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Coverage</Link>
                 <Link to="/contact" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Contact</Link>
               </div>
             </div>
