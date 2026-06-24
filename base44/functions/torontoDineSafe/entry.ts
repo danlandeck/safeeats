@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const CKAN_BASE = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search";
-const RESOURCE_ID = "4df989e6-e9b3-4e98-ba13-5ecfddaa8ae2";
+const RESOURCE_ID = "ad342031-a0eb-4f5e-a2c6-61a499047993"; // Updated 2026-06: current DineSafe datastore resource (old ID retired)
 
 Deno.serve(async (req) => {
   try {
