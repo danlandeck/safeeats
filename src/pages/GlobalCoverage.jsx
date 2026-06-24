@@ -239,11 +239,8 @@ export default function GlobalCoverage() {
 
         <div className="text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <Link to="/Methodology">
-              <Button variant="outline">Data Methodology</Button>
-            </Link>
-            <Link to="/Enterprise">
-              <Button variant="outline">Enterprise & API</Button>
+            <Link to="/About">
+              <Button variant="outline">The Full Story</Button>
             </Link>
             <Link to="/About">
               <Button variant="outline">Read About SafeEats</Button>

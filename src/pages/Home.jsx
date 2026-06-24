@@ -1250,16 +1250,10 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/Methodology" className="flex-1 max-w-md mx-auto sm:mx-0">
+              <Link to="/About" className="flex-1 max-w-md mx-auto sm:mx-0">
                 <div className="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all text-center sm:text-left">
-                  <p className="font-extrabold text-slate-900 text-sm">🔬 Data Methodology & Trust</p>
-                  <p className="text-xs text-slate-500 mt-0.5">How every grade is earned — fully auditable.</p>
-                </div>
-              </Link>
-              <Link to="/Enterprise" className="flex-1 max-w-md mx-auto sm:mx-0">
-                <div className="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all text-center sm:text-left">
-                  <p className="font-extrabold text-slate-900 text-sm">🏢 Enterprise & API</p>
-                  <p className="text-xs text-slate-500 mt-0.5">The world's food safety data, ready to integrate.</p>
+                  <p className="font-extrabold text-slate-900 text-sm">📖 The Full Story</p>
+                  <p className="text-xs text-slate-500 mt-0.5">How every grade is earned, our trust controls, and enterprise & API — all in one place.</p>
                 </div>
               </Link>
             </div>
@@ -1372,7 +1366,7 @@ export default function Home() {
                                 {hasLLM && !hasLive && "🔍 Results below were verified via live web search of public health records by AI (Gemini 3.1 Pro). Each card shows its confidence level. Always verify with the official source before deciding."}
                                 {hasLive && hasLLM && "📊 Results below combine live government API data (green badge) with AI web-search verified data (blue/amber badge). Tap any restaurant to see its full source of truth."}
                                 {" "}
-                                <Link to="/methodology" className="text-blue-600 hover:underline font-semibold">How does this work?</Link>
+                                <Link to="/About" className="text-blue-600 hover:underline font-semibold">How does this work?</Link>
                               </p>
                             </div>
                           );
