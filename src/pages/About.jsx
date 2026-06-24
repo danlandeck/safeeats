@@ -159,7 +159,7 @@ export default function About() {
                   bg: "bg-slate-900",
                   title: "AI-Assisted Research",
                   pill: { text: "EVERYWHERE ELSE", color: "bg-slate-500 text-white" },
-                  body: "For jurisdictions without a live API, our AI reads official health department websites, publicly posted inspection PDFs, and verified local news. Results are clearly labeled as AI-estimated — never presented as official government data.",
+                  body: "For jurisdictions without a live API, our AI reads official health department websites, publicly posted inspection PDFs, and verified local news. Preliminary results are powered by Anthropic's Claude Opus — the highest-quality AI model available — for the most accurate restaurant identification, while live web search uses Gemini to pull real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never presented as official government data.",
                 },
                 {
                   icon: <Languages className="w-5 h-5 text-white" />,
