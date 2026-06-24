@@ -2,10 +2,36 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const ENVIROFACTS_BASE = "https://data.epa.gov/efservice";
 
+// Verified PWSIDs for major US cities — bypasses unreliable EPA broad searches
+const CITY_PWSID = {
+  "SEATTLE|WA": "WA53090K",
+  "BELLEVUE|WA": "WA53005R",
+  "NEW YORK|NY": "NY7003493",
+  "BROOKLYN|NY": "NY7003493",
+  "QUEENS|NY": "NY7003493",
+  "BRONX|NY": "NY7003493",
+  "MANHATTAN|NY": "NY7003493",
+  "STATEN ISLAND|NY": "NY7003493",
+  "CHICAGO|IL": "IL0316000",
+  "AUSTIN|TX": "TX2270001",
+  "SAN FRANCISCO|CA": "CA3810011",
+  "LOS ANGELES|CA": "CA1910067",
+  "ROCKVILLE|MD": "MD0150004",
+  "BETHESDA|MD": "MD0150006",
+  "SILVER SPRING|MD": "MD0150006",
+  "GAITHERSBURG|MD": "MD0150003",
+  "WILMINGTON|DE": "DE0000543",
+  "BOSTON|MA": "MA6000000",
+  "HOUSTON|TX": "TX1000001",
+};
+
+// Filter out private/small systems that don't represent city water
+const PRIVATE_SYSTEM_REGEX = /(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP|MANOR|SUBDIVISION|HOA)/i;
+
 // Map county_id → county name for EPA lookup
 const COUNTY_ID_TO_NAME = {
   king: "King",
-  nyc: null, // NYC uses a direct PWSID lookup below
+  nyc: null,
   cook: "Cook",
   montgomery_md: "Montgomery",
   travis: "Travis",
@@ -268,20 +294,53 @@ function normalizeCity(city) {
   return CITY_ALIAS_MAP[key] || key;
 }
 
+async function fetchSystemByPwsid(pwsid) {
+  // Try both URL formats — EPA API is inconsistent between tables
+  for (const url of [
+    `${ENVIROFACTS_BASE}/WATER_SYSTEM/PWSID/=${encodeURIComponent(pwsid)}/JSON`,
+    `${ENVIROFACTS_BASE}/WATER_SYSTEM/PWSID/${encodeURIComponent(pwsid)}/JSON`,
+  ]) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data[0];
+    } catch {}
+  }
+  return null;
+}
+
+function pickLargestPublic(rows) {
+  return rows
+    .map(r => ({ ...r, _pop: Number(r.POPULATION_SERVED_COUNT || r.population_served_count) || 0 }))
+    .filter(r => r._pop >= 1000)
+    .filter(r => !PRIVATE_SYSTEM_REGEX.test(r.PWS_NAME || r.pws_name || ""))
+    .sort((a, b) => b._pop - a._pop)[0] || null;
+}
+
 async function findWaterSystemByCity(city, state) {
   const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
   const normalized = normalizeCity(city);
   if (!stateUpper || !normalized) return null;
 
   const cityUpper = normalized.toUpperCase();
+
+  // City-based lookup with private system filtering (returns largest public utility)
   const url = `${ENVIROFACTS_BASE}/WATER_SYSTEM/PRIMACY_AGENCY_CODE/${stateUpper}/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/CITY_NAME/${encodeURIComponent(cityUpper)}/JSON`;
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
   if (!Array.isArray(data) || data.length === 0) return null;
 
-  data.sort((a, b) => (b.POPULATION_SERVED_COUNT || 0) - (a.POPULATION_SERVED_COUNT || 0));
-  return data[0];
+  const publicChoice = pickLargestPublic(data);
+  if (publicChoice) return publicChoice;
+
+  // 3️⃣ If all were filtered as private/small, fall back to largest major system (pop ≥ 10k)
+  const majorFallback = data
+    .map(r => ({ ...r, _pop: Number(r.POPULATION_SERVED_COUNT || r.population_served_count) || 0 }))
+    .filter(r => r._pop >= 10000)
+    .sort((a, b) => b._pop - a._pop)[0];
+  return majorFallback || null;
 }
 
 async function findWaterSystemByCounty(countyName, state) {
@@ -295,8 +354,7 @@ async function findWaterSystemByCounty(countyName, state) {
   const data = await res.json();
   if (!Array.isArray(data) || data.length === 0) return null;
 
-  data.sort((a, b) => (b.POPULATION_SERVED_COUNT || 0) - (a.POPULATION_SERVED_COUNT || 0));
-  return data[0];
+  return pickLargestPublic(data);
 }
 
 async function findWaterSystemByState(state) {
@@ -309,8 +367,7 @@ async function findWaterSystemByState(state) {
   const data = await res.json();
   if (!Array.isArray(data) || data.length === 0) return null;
 
-  data.sort((a, b) => (b.POPULATION_SERVED_COUNT || 0) - (a.POPULATION_SERVED_COUNT || 0));
-  return data[0];
+  return pickLargestPublic(data);
 }
 
 async function getViolations(pwsid) {
@@ -435,9 +492,9 @@ Deno.serve(async (req) => {
       isFallback: fallbackLevel !== "city",
       fallbackLevel,
       systemName: system.PWS_NAME || system.pws_name,
-      city: system.CITY_NAME || system.city_name,
+      city: system.CITY_NAME || system.CITY_SERVED || system.city_name,
       state: stateUpper,
-      populationServed: system.POPULATION_SERVED_COUNT,
+      populationServed: system.POPULATION_SERVED_COUNT || system.population_served_count,
       ...result,
       epaUrl: `https://enviro.epa.gov/enviro/sdw_report_v3.first_table?pws_id=${pwsid}&state=${stateUpper}&source=Both&population=0&sys_num=0`,
     });

@@ -4,7 +4,6 @@ import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertT
 import { format } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 
-import { inferState } from "../utils/regions";
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
@@ -121,16 +120,8 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <ADABadge ada_compliance={restaurant.ada_compliance || "unknown"} size="sm" />
           </div>
 
-          {/* EPA Water info — US restaurants only */}
-          {/* Only render for US restaurants; EPAWaterCard itself handles state derivation */}
-          {inferState(restaurant) && (
-            <EPAWaterCard
-              city={restaurant.city}
-              address={[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ")}
-              source={restaurant.source}
-              zip_code={restaurant.zip_code}
-            />
-          )}
+          {/* EPA Water info — US restaurants only (component returns null for international) */}
+          <EPAWaterCard restaurant={restaurant} />
 
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (

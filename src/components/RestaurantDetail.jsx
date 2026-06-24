@@ -281,12 +281,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           )}
 
           {/* Water Quality */}
-          <EPAWaterCard
-            city={restaurant.city}
-            address={[restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ")}
-            source={restaurant.source}
-            zip_code={restaurant.zip_code}
-          />
+          <EPAWaterCard restaurant={restaurant} />
 
 
         </div>
