@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 
 import FailRiskBadge from "./FailRiskBadge";
@@ -104,7 +104,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             </span>
 
             {/* Last inspected */}
-            {latestDate && (
+            {latestDate && isValid(new Date(latestDate)) && (
               <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-bold">
                 <Calendar className="w-2.5 h-2.5" />
                 {format(new Date(latestDate), "MMM d, yyyy")}
