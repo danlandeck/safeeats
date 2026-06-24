@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, MapPin, Globe, Share2, Heart,
   ChevronDown, ChevronUp, Info, Calendar, ShieldCheck,
-  ExternalLink, Award, TrendingUp
+  ExternalLink, Award, TrendingUp, BadgeCheck, AlertCircle
 } from "lucide-react";
 import ScoreGauge from "./ScoreGauge";
 import GradeBadge from "./GradeBadge";
@@ -18,6 +18,7 @@ import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 import KofiButton from "./KofiButton";
+import DataSourceBadge from "./DataSourceBadge";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -314,6 +315,10 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 className="overflow-hidden"
               >
                 <div id="data-source-panel" className="px-6 pb-5 text-xs text-slate-500 space-y-2">
+                  {/* Source-of-truth badge — always visible */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <DataSourceBadge restaurant={restaurant} size="md" />
+                  </div>
                   {sourceInfo ? (
                     <p className="flex items-start gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-600 mt-0.5" />
@@ -323,6 +328,31 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                         {sourceInfo.name} <ExternalLink className="w-2.5 h-2.5" />
                       </a>
                     </p>
+                  ) : restaurant.isLLMData ? (
+                    <div className="space-y-1.5">
+                      <p className="flex items-start gap-1.5">
+                        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                        This data was retrieved via live web search of publicly available health department records by AI (Gemini 3.1 Pro).
+                      </p>
+                      {restaurant.verification_source && (
+                        <p className="flex items-start gap-1.5">
+                          <BadgeCheck className="w-3.5 h-3.5 flex-shrink-0 text-blue-600 mt-0.5" />
+                          Verification source: <span className="font-semibold text-slate-700">{restaurant.verification_source}</span>
+                        </p>
+                      )}
+                      {restaurant.is_currently_operating === false && (
+                        <p className="flex items-start gap-1.5 text-amber-700">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                          This restaurant may be permanently closed — please verify before visiting.
+                        </p>
+                      )}
+                      {restaurant.data_confidence === "low" && (
+                        <p className="flex items-start gap-1.5 text-amber-700">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                          Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable.
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <p className="flex items-start gap-1.5">
                       <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />

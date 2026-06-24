@@ -223,11 +223,18 @@ export default function MapView({ restaurants, onSelectRestaurant, onFilterByGra
 
                     {/* Latest inspection */}
                     {restaurant.latestDate && (
-                      <div style={{ fontSize: 11, color: "#475569", marginBottom: 8, fontWeight: 600 }}>
+                      <div style={{ fontSize: 11, color: "#475569", marginBottom: 4, fontWeight: 600 }}>
                         🗓️ Last inspected: {restaurant.latestDate}
                         {restaurant.latestResult ? ` — ${restaurant.latestResult}` : ""}
                       </div>
                     )}
+
+                    {/* Source of truth */}
+                    <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8, fontWeight: 700 }}>
+                      {restaurant.isLLMData
+                        ? "🔍 AI web-verified · tap for confidence details"
+                        : "✅ Live government data"}
+                    </div>
 
                     {/* CTA button */}
                     <button

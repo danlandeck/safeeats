@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
 import { FixedSizeList as VirtualList } from "react-window";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, GitCompareArrows, LocateFixed, Loader2 } from "lucide-react";
+import { X, GitCompareArrows, LocateFixed, Loader2, ShieldCheck } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
@@ -1359,6 +1359,24 @@ export default function Home() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Data transparency banner */}
+                        {(() => {
+                          const hasLLM = filteredAndSortedResults.some(r => r.isLLMData);
+                          const hasLive = filteredAndSortedResults.some(r => !r.isLLMData);
+                          return (
+                            <div className="flex items-start gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs text-slate-600">
+                              <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-600 mt-0.5" />
+                              <p className="leading-relaxed">
+                                {hasLive && !hasLLM && "✅ All results below are live, real-time data from official government health department APIs — fully authoritative."}
+                                {hasLLM && !hasLive && "🔍 Results below were verified via live web search of public health records by AI (Gemini 3.1 Pro). Each card shows its confidence level. Always verify with the official source before deciding."}
+                                {hasLive && hasLLM && "📊 Results below combine live government API data (green badge) with AI web-search verified data (blue/amber badge). Tap any restaurant to see its full source of truth."}
+                                {" "}
+                                <Link to="/methodology" className="text-blue-600 hover:underline font-semibold">How does this work?</Link>
+                              </p>
+                            </div>
+                          );
+                        })()}
 
                         {viewMode === "map" ? (
                           <Suspense fallback={<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /></div>}>

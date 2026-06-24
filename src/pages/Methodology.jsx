@@ -31,7 +31,7 @@ const NORMALIZATION = [
   { source: "Singapore SFA", native: "Grades A–D", method: "Mapped to SafeEats bands with minor calibration for the D threshold." },
   { source: "Denmark Smiley", native: "4-tier smiley (☺–☹)", method: "Top smiley → A; descending tiers map to B, C, D/F." },
   { source: "Dubai Municipality", native: "High/Medium/Low risk + compliance", method: "Compliance outcome + risk tier → normalized score; grade from band." },
-  { source: "AI-assisted (no live API)", native: "Estimated from public records", method: "LLM reads official sources; score flagged as AI-estimated, never presented as official." },
+  { source: "AI-assisted (no live API)", native: "Estimated from public records", method: "Gemini 3.1 Pro performs live web search of official sources; each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out." },
 ];
 
 const TRUST = [
@@ -41,6 +41,8 @@ const TRUST = [
   { icon: <Clock className="w-5 h-5" />, title: "Freshness tracking", body: "Live-API results are queried at request time. Cached records carry a cached_at timestamp so staleness is visible, not hidden." },
   { icon: <GitBranch className="w-5 h-5" />, title: "Relevance filtering", body: "Post-fetch name-relevance filtering removes false matches from permissive government search APIs — so 'Chipotle' returns Chipotle, not adjacent records." },
   { icon: <ShieldCheck className="w-5 h-5" />, title: "No review contamination", body: "SafeEats never uses consumer reviews (Yelp, Google Reviews) as a safety signal. Scores are inspector-issued only." },
+  { icon: <CheckCircle2 className="w-5 h-5" />, title: "AI confidence labeling", body: "Every AI-sourced result is tagged with a confidence level — High (official record found), Medium (restaurant confirmed), Low (found, no inspection details), or None (unverified, filtered out). The confidence is shown on every card and detail page." },
+  { icon: <Globe2 className="w-5 h-5" />, title: "Verification sourcing", body: "AI results include the source URL where the restaurant was confirmed (health dept site, official listing). Closed restaurants are flagged. No hallucinated data — if it can't be verified, it's not shown." },
 ];
 
 export default function Methodology() {

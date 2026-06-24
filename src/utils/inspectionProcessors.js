@@ -296,6 +296,9 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
     is_gluten_free_options: r.is_gluten_free_options || false,
     dietary_tags: r.dietary_tags || [],
     ada_compliance: r.ada_compliance || "unknown",
+    data_confidence: r.data_confidence || "unknown",
+    is_currently_operating: r.is_currently_operating !== undefined ? r.is_currently_operating : null,
+    verification_source: r.verification_source || "",
   };
 }
 

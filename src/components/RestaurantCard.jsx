@@ -9,6 +9,7 @@ import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
+import DataSourceBadge from "./DataSourceBadge";
 
 
 
@@ -90,6 +91,9 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <span className="text-[11px] font-extrabold text-slate-600">
               {GRADE_LABELS[grade]}
             </span>
+
+            {/* Source-of-truth badge */}
+            <DataSourceBadge restaurant={restaurant} size="sm" />
 
             {/* Risk badge */}
             {inspectionHistory && <FailRiskBadge inspections={inspectionHistory} />}
