@@ -232,7 +232,8 @@ function llmCall(prompt, internet = false) {
     prompt,
     add_context_from_internet: internet,
     response_json_schema: LLM_SCHEMA,
-    ...(internet ? { model: "gemini_3_flash" } : {}),
+    // Web search requires Gemini models; training-data-only fast results use Claude Sonnet
+    ...(internet ? { model: "gemini_3_flash" } : { model: "claude_sonnet_4_6" }),
   });
 }
 

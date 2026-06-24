@@ -95,50 +95,6 @@
       "default": "unknown",
       "description": "ADA accessibility status"
     },
-    "water_system_name": {
-      "type": "string",
-      "description": "Washington State drinking water system name"
-    },
-    "water_system_id": {
-      "type": "string",
-      "description": "Washington State water system ID (WSID)"
-    },
-    "water_source_type": {
-      "type": "string",
-      "enum": [
-        "surface",
-        "groundwater",
-        "well",
-        "unknown"
-      ],
-      "description": "Type of water source"
-    },
-    "sanitary_survey_score": {
-      "type": "number",
-      "description": "Sanitary survey score from WA DOH"
-    },
-    "monitoring_violations": {
-      "type": "number",
-      "description": "Number of monitoring violations (last 3 years)"
-    },
-    "water_quality_violations": {
-      "type": "number",
-      "description": "Number of water quality violations (last 3 years)"
-    },
-    "health_advisories": {
-      "type": "number",
-      "description": "Number of active health advisories"
-    },
-    "water_safety_grade": {
-      "type": "string",
-      "enum": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ],
-      "description": "Water safety grade (A=Safe, B=Generally Safe, C=Caution, D=Unsafe)"
-    },
     "cuisine": {
       "type": "string",
       "description": "Cuisine type"
@@ -190,5 +146,36 @@
     "business_id",
     "name",
     "source"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
