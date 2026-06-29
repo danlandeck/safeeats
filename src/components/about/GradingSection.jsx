@@ -12,6 +12,7 @@ const GRADE_TABLE = [
 const NORMALIZATION = [
   { source: "NYC DOHMH", native: "Letter grade A/B/C", method: "Mapped directly to SafeEats A–F; numeric score derived from violation points." },
   { source: "LA County DPH", native: "Penalty point score", method: "Inverted to 0–100 (100 − penalty points); letter grade from resulting band." },
+  { source: "King County, WA (Seattle)", native: "Penalty point score + inspection result", method: "Inverted to 0–100 (100 − penalty points); letter grade from resulting band. Inspection result (Complete, Incomplete, etc.) shown on the detail page." },
   { source: "Chicago CDPH", native: "Pass / Fail + violation codes", method: "Pass → high score; Fail → F; weighted by violation severity and count." },
   { source: "UK FSA (FHRS)", native: "0–5 star rating", method: "Linear scale to 0–100 (5★ → 90–100, 0★ → < 60); grade from band." },
   { source: "Singapore SFA", native: "Grades A–D", method: "Mapped to SafeEats bands with minor calibration for the D threshold." },
