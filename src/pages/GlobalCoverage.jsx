@@ -117,12 +117,12 @@ export default function GlobalCoverage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <Link to="/">
-          <Button variant="ghost" className="mb-8 text-slate-500 hover:text-slate-800 -ml-2 group">
+        <Button variant="ghost" asChild className="mb-8 text-slate-500 hover:text-slate-800 -ml-2 group">
+          <Link to="/">
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" />
             Back to Home
-          </Button>
-        </Link>
+          </Link>
+        </Button>
 
         {/* Hero */}
         <div className="text-center mb-10">
@@ -170,11 +170,14 @@ export default function GlobalCoverage() {
         <div className="space-y-4 mb-10">
           {LIVE_MARKETS.map((market, idx) => {
             const isOpen = expanded === idx;
+            const regionId = `region-${idx}`;
             return (
-              <div key={idx} className={`rounded-2xl border-2 overflow-hidden ${market.color}`}>
+              <div key={market.region} className={`rounded-2xl border-2 overflow-hidden ${market.color}`}>
                 <button
                   className="w-full flex items-center justify-between px-5 py-4 text-left hover:opacity-80 transition-opacity"
                   onClick={() => setExpanded(isOpen ? null : idx)}
+                  aria-expanded={isOpen}
+                  aria-controls={regionId}
                 >
                   <div className="flex items-center gap-3">
                     <h2 className="text-base font-extrabold text-slate-900">{market.region}</h2>
@@ -185,7 +188,7 @@ export default function GlobalCoverage() {
                   {isOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 space-y-3">
+                  <div id={regionId} role="region" aria-label={`${market.region} sources`} className="px-5 pb-5 space-y-3">
                     {market.sources.map((src, i) => (
                       <div key={i} className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
                         <div className="flex items-start justify-between gap-3">
@@ -216,9 +219,9 @@ export default function GlobalCoverage() {
         <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Search className="w-5 h-5 text-amber-600" />
-            <h2 className="text-base font-extrabold text-slate-900">On the Radar — In Active Development</h2>
+            <h2 className="text-base font-extrabold text-slate-900">On the Radar — Partial or No Open Data</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-4">These markets have food safety data that is partially public or becoming available. SafeEats is actively integrating these.</p>
+          <p className="text-xs text-slate-500 mb-4">These markets have varying levels of public food safety data — from live government portals to licensing-only databases. None are currently wired as live API sources; results come from AI-estimated research.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {COMING_SOON.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-amber-100 p-3 shadow-sm">
@@ -239,16 +242,13 @@ export default function GlobalCoverage() {
 
         <div className="text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <Link to="/About">
-              <Button variant="outline">The Full Story</Button>
-            </Link>
-            <Link to="/About">
-              <Button variant="outline">Read About SafeEats</Button>
-            </Link>
+            <Button variant="outline" asChild>
+              <Link to="/About">The Full Story</Link>
+            </Button>
           </div>
-          <Link to="/">
-            <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white">Search a Restaurant →</Button>
-          </Link>
+          <Button asChild className="bg-[#4CAF50] hover:bg-[#43A047] text-white">
+            <Link to="/">Search a Restaurant →</Link>
+          </Button>
         </div>
       </div>
     </div>
