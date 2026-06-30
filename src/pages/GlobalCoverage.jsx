@@ -1,22 +1,14 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Database, Globe, Search, ExternalLink, ChevronDown, ChevronUp, Zap, FileCheck, Bot } from "lucide-react";
+import { ArrowLeft, Database, Globe, Search, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import WorldCoverageMap from "@/components/WorldCoverageMap";
-import { COVERAGE_TIERS } from "@/utils/countryCoverage";
-
-// Tier style maps — keep in sync with the map colors
-const TIER_STYLES = {
-  green:  { border: "border-green-300 bg-green-50",   pill: "bg-green-600 text-white",   icon: Zap },
-  yellow: { border: "border-amber-300 bg-amber-50",   pill: "bg-amber-500 text-white",   icon: FileCheck },
-  blue:   { border: "border-blue-300 bg-blue-50",     pill: "bg-blue-500 text-white",    icon: Bot },
-};
 
 // Confirmed open food safety data sources — verified via research
 const LIVE_MARKETS = [
   {
     region: "🇺🇸 United States",
-    tier: "green",
+    color: "border-blue-200 bg-blue-50",
+    pill: "bg-blue-600 text-white",
     sources: [
       { city: "New York City, NY", note: "NYC DOHMH — letter grades A/B/C, full violation history", url: "https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j" },
       { city: "Los Angeles County, CA", note: "LA County DPH — penalty point scores, letter grades", url: "http://ehservices.publichealth.lacounty.gov/" },
@@ -34,7 +26,8 @@ const LIVE_MARKETS = [
   },
   {
     region: "🇬🇧 United Kingdom",
-    tier: "green",
+    color: "border-red-200 bg-red-50",
+    pill: "bg-red-700 text-white",
     sources: [
       { city: "England, Wales & Northern Ireland", note: "Food Standards Agency — FHRS 0–5 star ratings via free public API, updated daily. Every food establishment, every local authority.", url: "https://ratings.food.gov.uk/open-data" },
       { city: "Scotland", note: "FSA Food Hygiene Information Scheme (FHIS) — Pass/Improvement Required ratings, public API", url: "https://ratings.food.gov.uk/open-data" },
@@ -43,7 +36,8 @@ const LIVE_MARKETS = [
   },
   {
     region: "🇦🇪 UAE & Middle East",
-    tier: "green",
+    color: "border-green-200 bg-green-50",
+    pill: "bg-green-700 text-white",
     sources: [
       { city: "Dubai", note: "Dubai Municipality via Dubai Pulse open data API — real-time food establishment inspection data, compliance ratings. One of the most advanced municipal food safety platforms globally.", url: "https://www.dubaipulse.gov.ae/" },
       { city: "Abu Dhabi", note: "Abu Dhabi Agriculture and Food Safety Authority (ADAFSA) — inspection and compliance data", url: "https://www.adafsa.gov.ae/" },
@@ -52,7 +46,8 @@ const LIVE_MARKETS = [
   },
   {
     region: "🇨🇦 Canada",
-    tier: "green",
+    color: "border-red-200 bg-red-50",
+    pill: "bg-red-600 text-white",
     sources: [
       { city: "Toronto, Ontario", note: "Toronto Public Health DineSafe — full open data API with Pass/Conditional/Closed inspection results for every food establishment in the city", url: "https://open.toronto.ca/dataset/dinesafe/" },
       { city: "Vancouver, BC", note: "Vancouver Coastal Health — restaurant inspection data publicly available", url: "https://opendata.vancouver.ca/" },
@@ -62,7 +57,8 @@ const LIVE_MARKETS = [
   },
   {
     region: "🇦🇺 Australia & New Zealand",
-    tier: "green",
+    color: "border-yellow-200 bg-yellow-50",
+    pill: "bg-yellow-600 text-white",
     sources: [
       { city: "NSW — Scores on Doors", note: "NSW Food Authority — public hygiene rating system for restaurants, takeaways, bakeries, cafés. Displayed as 1–5 stars.", url: "https://www.foodauthority.nsw.gov.au/retail/scoresondoors" },
       { city: "South Australia", note: "SA Health Food Safety Rating Scheme — public compliance ratings for food businesses", url: "https://www.sahealth.sa.gov.au/" },
@@ -71,28 +67,32 @@ const LIVE_MARKETS = [
   },
   {
     region: "🇩🇰 Denmark",
-    tier: "yellow",
+    color: "border-slate-200 bg-slate-50",
+    pill: "bg-slate-700 text-white",
     sources: [
       { city: "All of Denmark — Smiley Scheme", note: "Danish Veterinary and Food Administration — findsmiley.dk publishes inspection results for EVERY food establishment in Denmark. Smiley ratings (☺ ☹) displayed at premises by law since 2001. One of the oldest and most comprehensive open systems in the world.", url: "https://findsmiley.dk/English/Pages/FrontPage.aspx" },
     ]
   },
   {
     region: "🇸🇬 Singapore",
-    tier: "green",
+    color: "border-red-200 bg-red-50",
+    pill: "bg-red-600 text-white",
     sources: [
       { city: "Singapore", note: "Singapore Food Agency (SFA) — SAFE (Safety Assurance for Food Establishments) grading system. Grades A/B/C/D publicly searchable. QR codes on every licensed establishment. Data published on data.gov.sg.", url: "https://www.sfa.gov.sg/tools-and-resources" },
     ]
   },
   {
     region: "🇰🇷 South Korea",
-    tier: "yellow",
+    color: "border-blue-200 bg-blue-50",
+    pill: "bg-blue-700 text-white",
     sources: [
       { city: "Seoul & Nationwide", note: "Seoul Open Data Plaza — food sanitation business data publicly open since 2013. Ministry of Food and Drug Safety (MFDS) — national hygiene rating and inspection records at data.go.kr", url: "https://data.seoul.go.kr/" },
     ]
   },
   {
     region: "🇪🇺 European Union",
-    tier: "yellow",
+    color: "border-blue-200 bg-indigo-50",
+    pill: "bg-indigo-600 text-white",
     sources: [
       { city: "EU-wide — RASFF", note: "EU Rapid Alert System for Food and Feed — real-time food safety alerts across all 27 member states + Norway, Iceland, Liechtenstein. Public API available.", url: "https://food.ec.europa.eu/safety/rasff-food-and-feed-safety-alerts_en" },
       { city: "Netherlands", note: "Dutch NVWA (Netherlands Food and Consumer Product Safety Authority) — inspection results published publicly", url: "https://www.nvwa.nl/" },
@@ -153,11 +153,6 @@ export default function GlobalCoverage() {
           </div>
         </div>
 
-        {/* Interactive world map */}
-        <div className="mb-8">
-          <WorldCoverageMap />
-        </div>
-
         {/* Key insight banner */}
         <div className="bg-slate-900 text-white rounded-2xl p-6 mb-8">
           <div className="flex gap-4 items-start">
@@ -171,30 +166,20 @@ export default function GlobalCoverage() {
           </div>
         </div>
 
-        {/* Live markets — detailed source list */}
-        <div className="mb-4 flex items-center gap-2">
-          <Database className="w-5 h-5 text-slate-700" />
-          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Detailed Source Directory</h2>
-        </div>
-        <p className="text-sm text-slate-500 mb-6">
-          The map above is the overview. Below are the actual government data sources behind each green and yellow country — click any region to expand its sources.
-        </p>
+        {/* Live markets */}
         <div className="space-y-4 mb-10">
           {LIVE_MARKETS.map((market, idx) => {
             const isOpen = expanded === idx;
-            const tierStyle = TIER_STYLES[market.tier] || TIER_STYLES.blue;
-            const TierIcon = tierStyle.icon;
             return (
-              <div key={idx} className={`rounded-2xl border-2 overflow-hidden ${tierStyle.border}`}>
+              <div key={idx} className={`rounded-2xl border-2 overflow-hidden ${market.color}`}>
                 <button
                   className="w-full flex items-center justify-between px-5 py-4 text-left hover:opacity-80 transition-opacity"
                   onClick={() => setExpanded(isOpen ? null : idx)}
                 >
                   <div className="flex items-center gap-3">
-                    <TierIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
                     <h2 className="text-base font-extrabold text-slate-900">{market.region}</h2>
-                    <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${tierStyle.pill}`}>
-                      {COVERAGE_TIERS[market.tier].label.toUpperCase()}
+                    <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${market.pill}`}>
+                      {market.sources.length} SOURCE{market.sources.length !== 1 ? "S" : ""}
                     </span>
                   </div>
                   {isOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
@@ -244,14 +229,11 @@ export default function GlobalCoverage() {
           </div>
         </div>
 
-        {/* AI coverage note — ties to the blue map tier */}
-        <div className="bg-blue-600 text-white rounded-2xl p-6 mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Bot className="w-5 h-5" />
-            <h2 className="font-extrabold text-base">Blue Countries — AI-Powered Search</h2>
-          </div>
-          <p className="text-blue-50 text-sm leading-relaxed">
-            For the 180+ blue countries on the map where no live government API exists, SafeEats uses AI to read official health department websites, inspection PDFs, and verified local sources. Results are clearly labeled as AI-estimated. We never fabricate a score — if we can't verify it, we say so.
+        {/* AI coverage note */}
+        <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
+          <h2 className="font-extrabold text-base mb-2">🌍 Everywhere Else — AI-Powered</h2>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            For the remaining 180+ countries where live government APIs don't yet exist, SafeEats uses AI to read official health department websites, publicly posted inspection PDFs, local health bulletins, and verified sources — and presents those results clearly labeled as AI-estimated. Preliminary restaurant identification is powered by Anthropic's Claude Opus for maximum accuracy, with live web search via Gemini pulling real-time data from official sources. We never fabricate a score. If we can't verify it, we say so.
           </p>
         </div>
 
