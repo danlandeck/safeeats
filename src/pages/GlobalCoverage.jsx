@@ -102,12 +102,12 @@ const LIVE_MARKETS = [
 ];
 
 const COMING_SOON = [
-  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance — partial data available, full API in development" },
-  { city: "France", note: "Alim'confiance — national food safety rating system with public disclosure, expanding dataset" },
-  { city: "Germany", note: "Hygiene-Ampel (hygiene traffic light) system — regional implementations, Berlin most advanced" },
-  { city: "Brazil (São Paulo)", note: "ANVISA national food safety authority — open data portal includes some establishment records" },
-  { city: "India (Mumbai, Delhi)", note: "FSSAI (Food Safety Standards Authority of India) — national licensing database with compliance status" },
-  { city: "Hong Kong", note: "FEHD (Food and Environmental Hygiene Department) — inspection results publicly searchable online" },
+  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance, but no public API or downloadable dataset exists. Results are AI-estimated from official sources only." },
+  { city: "France", note: "Alim'confiance — a live, public national food safety rating system (every establishment's last 3 inspections). The data is available; SafeEats has not yet built a dedicated API connector." },
+  { city: "Germany", note: "No nationwide hygiene rating system. Some cities (Berlin) run local 'Hygiene-Ampel' pilot programs, but data is not standardized or publicly downloadable." },
+  { city: "Brazil (São Paulo)", note: "ANVISA oversees national food safety regulation but does not publish per-establishment inspection scores as open data. Municipal-level data is partial." },
+  { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database — it tracks whether a business holds a valid license, not inspection results or hygiene scores. No inspection dataset is publicly available." },
+  { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises on a searchable website, but no structured API or bulk download is offered. Results are AI-estimated." },
 ];
 
 export default function GlobalCoverage() {
