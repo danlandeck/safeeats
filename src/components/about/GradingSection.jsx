@@ -15,9 +15,9 @@ const NORMALIZATION = [
   { source: "King County, WA (Seattle)", native: "Penalty point score + inspection result", method: "Inverted to 0–100 (100 − penalty points); letter grade from resulting band. Inspection result (Complete, Incomplete, etc.) shown on the detail page." },
   { source: "Chicago CDPH", native: "Pass / Fail + violation codes", method: "Pass → high score; Fail → F; weighted by violation severity and count." },
   { source: "UK FSA (FHRS)", native: "0–5 star rating", method: "Linear scale to 0–100 (5★ → 90–100, 0★ → < 60); grade from band." },
-  { source: "Singapore SFA", native: "Grades A–D", method: "Mapped to SafeEats bands with minor calibration for the D threshold." },
-  { source: "Denmark Smiley", native: "4-tier smiley (☺–☹)", method: "Top smiley → A; descending tiers map to B, C, D/F." },
-  { source: "Dubai Municipality", native: "High/Medium/Low risk + compliance", method: "Compliance outcome + risk tier → normalized score; grade from band." },
+  { source: "Singapore SFA (AI-estimated)", native: "Grades A–D", method: "SFA's SAFE grades exist publicly but no per-establishment API. AI reads official sources; mapped to SafeEats bands." },
+  { source: "Denmark Smiley (AI-estimated)", native: "4-tier smiley (☺–☹)", method: "findsmiley.dk publishes results for all establishments. AI reads the public database; top smiley → A." },
+  { source: "Dubai Municipality (AI-estimated)", native: "High/Medium/Low risk + compliance", method: "Dubai Pulse exists but no direct API connector. AI reads official sources; compliance + risk tier → normalized score." },
   { source: "AI-assisted (no live API)", native: "Estimated from public records", method: "Gemini 3 Flash performs live web search of official sources; each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out." },
 ];
 

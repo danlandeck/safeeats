@@ -1,43 +1,23 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Singapore food hygiene data via data.gov.sg CKAN API
-// We first discover available food-related resources, then search within them.
-const CKAN_BASE = "https://data.gov.sg/api/action";
+// Singapore food safety data via data.gov.sg
+//
+// data.gov.sg migrated to a new v2 API in late 2025. The old CKAN package_search
+// endpoint is deprecated and returns empty. The new API uses:
+//   Listing: https://api-production.data.gov.sg/v2/public/api/datasets?page=N
+//   Search:  https://data.gov.sg/api/action/datastore_search?resource_id=d_xxx
+//
+// REALITY: SFA's SAFE (Safety Assurance for Food Establishments) grading system
+// launched January 2026, but no per-establishment inspection dataset is published
+// on data.gov.sg as a searchable datastore resource. The only food-related
+// dataset is "Licensed Food Establishments by Category, Annual" — aggregate counts,
+// not per-restaurant.
+//
+// This function returns empty gracefully; the search engine falls back to
+// AI-estimated results via Gemini 3 Flash web search.
 
-async function discoverFoodResourceIds() {
-  // Search for food-related packages on data.gov.sg
-  const res = await fetch(
-    `${CKAN_BASE}/package_search?q=food+hygiene+grade+establishment&rows=10`,
-    { headers: { "User-Agent": "SafeEats/1.0" }, signal: AbortSignal.timeout(8000) }
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  if (!data.success) return [];
-  const ids = [];
-  for (const pkg of (data.result?.results || [])) {
-    for (const resource of (pkg.resources || [])) {
-      if (resource.id && /food|hygiene|establish|grade|restaurant|hawker/i.test(
-        (pkg.title || "") + " " + (resource.name || "") + " " + (pkg.notes || "")
-      )) {
-        ids.push({ id: resource.id, name: resource.name || pkg.title });
-      }
-    }
-  }
-  return ids;
-}
-
-async function searchResource(resourceId, name) {
-  try {
-    const url = `${CKAN_BASE}/datastore_search?resource_id=${resourceId}&q=${encodeURIComponent(name)}&limit=30`;
-    const res = await fetch(url, { headers: { "User-Agent": "SafeEats/1.0" }, signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.success || !data.result?.records?.length) return null;
-    return { records: data.result.records, resourceId };
-  } catch {
-    return null;
-  }
-}
+// Known per-establishment food dataset IDs — add here when SFA publishes one.
+const FOOD_DATASET_IDS: string[] = [];
 
 Deno.serve(async (req) => {
   try {
@@ -51,16 +31,23 @@ Deno.serve(async (req) => {
     if (action === "search") {
       if (!name?.trim()) return Response.json({ records: [], resourceId: null });
 
-      // Discover food datasets and search each
-      const resources = await discoverFoodResourceIds();
-      for (const { id } of resources) {
-        const result = await searchResource(id, name);
-        if (result && result.records.length > 0) {
-          return Response.json(result);
-        }
+      for (const resourceId of FOOD_DATASET_IDS) {
+        try {
+          const url = `https://data.gov.sg/api/action/datastore_search?resource_id=${resourceId}&q=${encodeURIComponent(name)}&limit=30`;
+          const res = await fetch(url, {
+            headers: { "User-Agent": "SafeEats/1.0" },
+            signal: AbortSignal.timeout(6000),
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data.success && data.result?.records?.length) {
+            return Response.json({ records: data.result.records, resourceId });
+          }
+        } catch { continue; }
       }
 
-      return Response.json({ records: [], resourceId: null, discovered: resources.length });
+      // No per-establishment dataset available — return empty for AI fallback.
+      return Response.json({ records: [], resourceId: null });
     }
 
     return Response.json({ error: "Unknown action" }, { status: 400 });

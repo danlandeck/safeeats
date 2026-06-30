@@ -2,10 +2,10 @@ import { Shield, Globe } from "lucide-react";
 import { Section, Pill } from "./SectionPrimitives";
 
 const UAE_COVERAGE = [
-  { icon: "🏙️", title: "Dubai Municipality", desc: "Live inspection data via Dubai Pulse open API — real-time compliance ratings for every licensed food establishment in Dubai." },
-  { icon: "📊", title: "Normalized A–F Grading", desc: "Dubai's High/Medium/Low risk matrix and compliance outcomes are normalized to SafeEats' universal 0–100 score and A–F grade." },
+  { icon: "🏙️", title: "Dubai Municipality", desc: "Dubai Pulse publishes food establishment data publicly. SafeEats uses AI web search (Gemini 3 Flash) to read official Dubai Municipality sources — results clearly labeled as AI-estimated." },
+  { icon: "📊", title: "Normalized A–F Grading", desc: "Dubai's risk matrix and compliance outcomes are normalized to SafeEats' universal 0–100 score and A–F grade." },
   { icon: "🕌", title: "Halal Verification Flags", desc: "SafeEats surfaces halal certification status where published, critical for dining decisions across the UAE." },
-  { icon: "🌍", title: "All Seven Emirates", desc: "Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain — covered via AI-assisted research where live APIs don't yet exist." },
+  { icon: "🌍", title: "All Seven Emirates", desc: "Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain — covered via AI-assisted research." },
 ];
 
 export default function GlobalSpotlight() {
@@ -20,10 +20,10 @@ export default function GlobalSpotlight() {
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <h2 className="text-xl font-extrabold text-slate-900">UAE & Dubai — A World Leader in Food Safety</h2>
-              <Pill color="bg-green-700 text-white">LIVE DATA</Pill>
+              <Pill color="bg-indigo-600 text-white">AI-ENHANCED</Pill>
             </div>
             <p className="text-slate-600 leading-relaxed text-sm mb-4">
-              Dubai Municipality is one of the most digitally advanced food safety authorities on the planet. Their open-data platform — <strong>Dubai Pulse</strong> — publishes real-time food establishment inspection records publicly via API, making Dubai one of only a handful of cities in the world to proactively expose this data at scale.
+              Dubai Municipality is one of the most digitally advanced food safety authorities on the planet. Their open-data platform — <strong>Dubai Pulse</strong> — publishes food establishment data publicly. SafeEats uses AI web search to read official Dubai Municipality sources and present results on the same normalized A–F scale as New York, London, and Toronto. Results are clearly labeled as AI-estimated.
             </p>
             <div className="bg-white rounded-2xl border border-yellow-200 p-5 mb-4 shadow-sm">
               <p className="text-xs font-extrabold text-green-700 uppercase tracking-widest mb-3">What SafeEats Covers for the UAE</p>
@@ -42,7 +42,7 @@ export default function GlobalSpotlight() {
             <div className="bg-slate-900 rounded-2xl p-4 text-white">
               <p className="text-sm font-bold mb-1">🏆 Why Dubai Is a Model for the World</p>
               <p className="text-slate-300 text-xs leading-relaxed">
-                Dubai's approach to open food safety data is a global benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats is proud to integrate this data and extend it to a global audience — putting Dubai's safety record on the same screen as New York, London, and Tokyo.
+                Dubai's approach to open food safety data is a global benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats uses AI to read these official sources and present them on the same screen as New York, London, and Toronto — clearly labeled as AI-estimated where no direct API connector exists yet.
               </p>
             </div>
           </div>

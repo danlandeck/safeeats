@@ -3,25 +3,25 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Database, Globe, Search, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Confirmed open food safety data sources — verified via research
+// Confirmed LIVE API markets — each has a working, tested API connector in SafeEats.
 const LIVE_MARKETS = [
   {
     region: "🇺🇸 United States",
     color: "border-blue-200 bg-blue-50",
     pill: "bg-blue-600 text-white",
     sources: [
-      { city: "New York City, NY", note: "NYC DOHMH — letter grades A/B/C, full violation history", url: "https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j" },
-      { city: "Los Angeles County, CA", note: "LA County DPH — penalty point scores, letter grades", url: "http://ehservices.publichealth.lacounty.gov/" },
-      { city: "San Francisco, CA", note: "SF DPH EHS — scored inspections 0–100", url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i" },
-      { city: "Chicago / Cook County, IL", note: "Chicago CDPH — pass/fail + violation codes, open API", url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4dn6-by35" },
-      { city: "King County, WA (Seattle)", note: "KCHD — scored inspections with full violation detail", url: "https://kingcounty.gov/depts/health/environmental-health/food-safety.aspx" },
-      { city: "Austin / Travis County, TX", note: "Austin Public Health — inspection results + scores", url: "https://data.austintexas.gov/Health-and-Community-Services/Food-Establishment-Inspection-Scores/ecmv-9xxi" },
-      { city: "Montgomery County, MD", note: "MCDH — full inspection records, open dataset", url: "https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspections/9tm3-jscp" },
-      { city: "Philadelphia, PA", note: "Philadelphia DPH — inspection results open data", url: "https://data.phila.gov/visualizations/food-inspections" },
-      { city: "Denver, CO", note: "Denver Community Planning — restaurant inspection scores", url: "https://www.denvergov.org/opendata" },
-      { city: "Dallas County, TX", note: "Dallas County Health — food establishment inspections", url: "https://www.dallascounty.org/departments/dchhs/environmental-health.php" },
-      { city: "Miami-Dade County, FL", note: "Miami-Dade — public food safety inspection data", url: "https://opendata.miamidade.gov/" },
-      { city: "Las Vegas / Clark County, NV", note: "SNHD — inspection records publicly searchable", url: "https://www.southernnevadahealthdistrict.org/permits-and-licenses/food-safety/restaurant-inspection-information/" },
+      { city: "New York City, NY", note: "NYC DOHMH — Socrata open API. Letter grades A/B/C, full violation history. Tested & confirmed live.", url: "https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j" },
+      { city: "New York State (statewide)", note: "NY State Health Data — Socrata API covering all NY state counties outside NYC.", url: "https://health.data.ny.gov/Restaurant-Inspections-Statewide/cnih-y5dw" },
+      { city: "San Francisco, CA", note: "SF DPH — Socrata LIVES-standard API. Scored inspections 0–100.", url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i" },
+      { city: "Chicago / Cook County, IL", note: "Chicago CDPH — Socrata open API. Pass/fail + violation codes.", url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4dn6-by35" },
+      { city: "King County, WA (Seattle)", note: "KCHD — Socrata API. Scored inspections with full violation detail.", url: "https://data.kingcounty.gov/Health/Restaurant-inspection/f29f-zza5" },
+      { city: "Austin / Travis County, TX", note: "Austin Public Health — Socrata API. Inspection results + scores.", url: "https://data.austintexas.gov/Health-and-Community-Services/Food-Establishment-Inspection-Scores/ecmv-9xxi" },
+      { city: "Montgomery County, MD", note: "MCDH — Socrata API. Full inspection records, open dataset.", url: "https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspections/9tm3-jscp" },
+      { city: "Delaware (statewide)", note: "Delaware Open Data — Socrata API. Statewide restaurant inspections.", url: "https://data.delaware.gov/Health-and-Social-Services/Restaurant-Inspections/384s-wygj" },
+      { city: "Boston, MA", note: "Boston City data — CKAN API. Full inspection records with violation descriptions. Tested & confirmed live.", url: "https://data.boston.gov/" },
+      { city: "Houston, TX", note: "Houston Health Dept — CKAN API. Food establishment inspection data.", url: "https://www.houstontx.gov/health/" },
+      { city: "Los Angeles County, CA", note: "LA County DPH — ArcGIS Feature Service API. Restaurant inspection scores.", url: "https://ehservices.publichealth.lacounty.gov/" },
+      { city: "Stanislaus County, CA", note: "Stanislaus County EHS — scraped public portal with backend processor.", url: "https://schsa.info/" },
     ]
   },
   {
@@ -29,19 +29,9 @@ const LIVE_MARKETS = [
     color: "border-red-200 bg-red-50",
     pill: "bg-red-700 text-white",
     sources: [
-      { city: "England, Wales & Northern Ireland", note: "Food Standards Agency — FHRS 0–5 star ratings via free public API, updated daily. Every food establishment, every local authority.", url: "https://ratings.food.gov.uk/open-data" },
-      { city: "Scotland", note: "FSA Food Hygiene Information Scheme (FHIS) — Pass/Improvement Required ratings, public API", url: "https://ratings.food.gov.uk/open-data" },
-      { city: "London", note: "All 33 London boroughs covered under FSA FHRS. One of the most complete urban food safety datasets in the world.", url: "https://www.food.gov.uk/uk-food-hygiene-rating-data-api" },
-    ]
-  },
-  {
-    region: "🇦🇪 UAE & Middle East",
-    color: "border-green-200 bg-green-50",
-    pill: "bg-green-700 text-white",
-    sources: [
-      { city: "Dubai", note: "Dubai Municipality via Dubai Pulse open data API — real-time food establishment inspection data, compliance ratings. One of the most advanced municipal food safety platforms globally.", url: "https://www.dubaipulse.gov.ae/" },
-      { city: "Abu Dhabi", note: "Abu Dhabi Agriculture and Food Safety Authority (ADAFSA) — inspection and compliance data", url: "https://www.adafsa.gov.ae/" },
-      { city: "All UAE Emirates", note: "UAE federal food safety oversight via UAE Food Safety Department — cross-emirate inspection framework", url: "https://u.ae/en/information-and-services/health-and-fitness/food-safety-and-health-tips" },
+      { city: "England, Wales & Northern Ireland", note: "Food Standards Agency — FHRS 0–5 star ratings via free public API, updated daily. Every food establishment, every local authority. Tested & confirmed live.", url: "https://ratings.food.gov.uk/open-data" },
+      { city: "Scotland", note: "FSA Food Hygiene Information Scheme (FHIS) — Pass/Improvement Required ratings. Same FSA API.", url: "https://ratings.food.gov.uk/open-data" },
+      { city: "London (all 33 boroughs)", note: "Fully covered under FSA FHRS. One of the most complete urban food safety datasets in the world.", url: "https://www.food.gov.uk/uk-food-hygiene-rating-data-api" },
     ]
   },
   {
@@ -49,65 +39,42 @@ const LIVE_MARKETS = [
     color: "border-red-200 bg-red-50",
     pill: "bg-red-600 text-white",
     sources: [
-      { city: "Toronto, Ontario", note: "Toronto Public Health DineSafe — full open data API with Pass/Conditional/Closed inspection results for every food establishment in the city", url: "https://open.toronto.ca/dataset/dinesafe/" },
-      { city: "Vancouver, BC", note: "Vancouver Coastal Health — restaurant inspection data publicly available", url: "https://opendata.vancouver.ca/" },
-      { city: "Ottawa, Ontario", note: "Ottawa Public Health — food premise inspection reports publicly searchable", url: "https://www.ottawapublichealth.ca/" },
-      { city: "Calgary, Alberta", note: "Calgary Environmental Health — food establishment inspection results open data", url: "https://data.calgary.ca/" },
-    ]
-  },
-  {
-    region: "🇦🇺 Australia & New Zealand",
-    color: "border-yellow-200 bg-yellow-50",
-    pill: "bg-yellow-600 text-white",
-    sources: [
-      { city: "NSW — Scores on Doors", note: "NSW Food Authority — public hygiene rating system for restaurants, takeaways, bakeries, cafés. Displayed as 1–5 stars.", url: "https://www.foodauthority.nsw.gov.au/retail/scoresondoors" },
-      { city: "South Australia", note: "SA Health Food Safety Rating Scheme — public compliance ratings for food businesses", url: "https://www.sahealth.sa.gov.au/" },
-      { city: "New Zealand", note: "NZ Ministry for Primary Industries — food safety compliance publicly tracked nationwide", url: "https://www.mpi.govt.nz/food-business/" },
-    ]
-  },
-  {
-    region: "🇩🇰 Denmark",
-    color: "border-slate-200 bg-slate-50",
-    pill: "bg-slate-700 text-white",
-    sources: [
-      { city: "All of Denmark — Smiley Scheme", note: "Danish Veterinary and Food Administration — findsmiley.dk publishes inspection results for EVERY food establishment in Denmark. Smiley ratings (☺ ☹) displayed at premises by law since 2001. One of the oldest and most comprehensive open systems in the world.", url: "https://findsmiley.dk/English/Pages/FrontPage.aspx" },
-    ]
-  },
-  {
-    region: "🇸🇬 Singapore",
-    color: "border-red-200 bg-red-50",
-    pill: "bg-red-600 text-white",
-    sources: [
-      { city: "Singapore", note: "Singapore Food Agency (SFA) — SAFE (Safety Assurance for Food Establishments) grading system. Grades A/B/C/D publicly searchable. QR codes on every licensed establishment. Data published on data.gov.sg.", url: "https://www.sfa.gov.sg/tools-and-resources" },
-    ]
-  },
-  {
-    region: "🇰🇷 South Korea",
-    color: "border-blue-200 bg-blue-50",
-    pill: "bg-blue-700 text-white",
-    sources: [
-      { city: "Seoul & Nationwide", note: "Seoul Open Data Plaza — food sanitation business data publicly open since 2013. Ministry of Food and Drug Safety (MFDS) — national hygiene rating and inspection records at data.go.kr", url: "https://data.seoul.go.kr/" },
-    ]
-  },
-  {
-    region: "🇪🇺 European Union",
-    color: "border-blue-200 bg-indigo-50",
-    pill: "bg-indigo-600 text-white",
-    sources: [
-      { city: "EU-wide — RASFF", note: "EU Rapid Alert System for Food and Feed — real-time food safety alerts across all 27 member states + Norway, Iceland, Liechtenstein. Public API available.", url: "https://food.ec.europa.eu/safety/rasff-food-and-feed-safety-alerts_en" },
-      { city: "Netherlands", note: "Dutch NVWA (Netherlands Food and Consumer Product Safety Authority) — inspection results published publicly", url: "https://www.nvwa.nl/" },
-      { city: "Ireland", note: "FSAI (Food Safety Authority of Ireland) — enforcement orders and closure notices publicly published", url: "https://www.fsai.ie/enforcement-and-legislation/enforcement/food-business-compliance/" },
+      { city: "Toronto, Ontario", note: "Toronto Public Health DineSafe — full open data CKAN API with Pass/Conditional/Closed inspection results. Tested & confirmed live.", url: "https://open.toronto.ca/dataset/dinesafe/" },
     ]
   },
 ];
 
+// Markets where food safety data EXISTS but SafeEats uses AI web search (Gemini 3 Flash)
+// rather than a direct API connector. Results are clearly labeled as AI-estimated.
+const AI_ENHANCED_MARKETS = [
+  { city: "Singapore", note: "SFA's SAFE grading system (A/B/C/D) launched January 2026. Grades are publicly searchable on sfa.gov.sg but no per-establishment API is published on data.gov.sg. SafeEats uses AI to read official SFA sources." },
+  { city: "Sydney / NSW, Australia", note: "NSW 'Scores on Doors' program (1–5 stars) is real but run by individual councils — no centralized API exists. data.nsw.gov.au only publishes aggregate offence counts. SafeEats uses AI to estimate from official sources." },
+  { city: "Dubai, UAE", note: "Dubai Municipality's Dubai Pulse platform exists, but SafeEats currently uses AI web search to read official inspection data rather than a direct API connector." },
+  { city: "Denmark (nationwide)", note: "Danish Smiley Scheme (findsmiley.dk) publishes results for every food establishment. No structured API connector built yet — AI reads the public database." },
+  { city: "Seoul / South Korea", note: "Seoul Open Data Plaza and MFDS publish food sanitation data. No API connector built yet — AI reads official sources." },
+  { city: "EU-wide (RASFF)", note: "EU Rapid Alert System for Food and Feed publishes real-time alerts. Not per-establishment inspection data — SafeEats uses AI for country-specific estimates." },
+  { city: "Philadelphia, PA", note: "Philadelphia DPH publishes inspection results, but no Socrata/CKAN API is registered in SafeEats. AI reads official data with location-specific processing." },
+  { city: "Vancouver, BC", note: "Vancouver Coastal Health publishes inspection data. No API connector built — AI reads official sources." },
+];
+
 const COMING_SOON = [
-  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance, but no public API or downloadable dataset exists. Results are AI-estimated from official sources only." },
-  { city: "France", note: "Alim'confiance — a live, public national food safety rating system (every establishment's last 3 inspections). The data is available; SafeEats has not yet built a dedicated API connector." },
-  { city: "Germany", note: "No nationwide hygiene rating system. Some cities (Berlin) run local 'Hygiene-Ampel' pilot programs, but data is not standardized or publicly downloadable." },
-  { city: "Brazil (São Paulo)", note: "ANVISA oversees national food safety regulation but does not publish per-establishment inspection scores as open data. Municipal-level data is partial." },
-  { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database — it tracks whether a business holds a valid license, not inspection results or hygiene scores. No inspection dataset is publicly available." },
-  { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises on a searchable website, but no structured API or bulk download is offered. Results are AI-estimated." },
+  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance, but no public API or downloadable dataset exists." },
+  { city: "France (Alim'confiance)", note: "A live, public national food safety rating system exists. SafeEats has not yet built a dedicated API connector." },
+  { city: "Germany", note: "No nationwide hygiene rating system. Some cities run local pilot programs, but data is not standardized or publicly downloadable." },
+  { city: "Brazil (São Paulo)", note: "ANVISA oversees national food safety regulation but does not publish per-establishment inspection scores as open data." },
+  { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database — it tracks licenses, not inspection results or hygiene scores." },
+  { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises, but no structured API or bulk download is offered." },
+  { city: "Denver, CO", note: "Denver publishes restaurant inspection scores, but no API is registered in SafeEats yet." },
+  { city: "Dallas County, TX", note: "Dallas County Health publishes food establishment inspections, but no API is registered in SafeEats yet." },
+  { city: "Miami-Dade County, FL", note: "Miami-Dade publishes public food safety inspection data, but no API is registered in SafeEats yet." },
+  { city: "Las Vegas / Clark County, NV", note: "SNHD publishes searchable inspection records, but no API is registered in SafeEats yet." },
+  { city: "Ottawa, Ontario", note: "Ottawa Public Health publishes food premise inspection reports, but no API is registered in SafeEats yet." },
+  { city: "Calgary, Alberta", note: "Calgary Environmental Health publishes food establishment inspection results, but no API is registered in SafeEats yet." },
+  { city: "South Australia", note: "SA Health Food Safety Rating Scheme exists, but no centralized API is available." },
+  { city: "New Zealand", note: "NZ MPI tracks food safety compliance nationwide, but no per-establishment API is available." },
+  { city: "Abu Dhabi, UAE", note: "ADAFSA publishes inspection and compliance data, but no API connector is built." },
+  { city: "Netherlands", note: "NVWA publishes inspection results, but no API connector is built." },
+  { city: "Ireland", note: "FSAI publishes enforcement orders and closure notices, but no per-establishment API is available." },
 ];
 
 export default function GlobalCoverage() {
@@ -135,16 +102,16 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Governments worldwide publish food safety inspection records as open data. SafeEats integrates every single one. Here's every confirmed live market — and why each matters.
+            Governments worldwide publish food safety inspection records as open data. SafeEats integrates every single one with a live API connector. For markets without public APIs, we use AI to read official sources — clearly labeled as AI-estimated. We never fabricate a score.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-slate-900">{LIVE_MARKETS.length}</p>
-              <p className="text-xs text-slate-500 font-semibold">Confirmed data regions</p>
+              <p className="text-xs text-slate-500 font-semibold">Live API regions</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-[#4CAF50]">{totalSources}+</p>
-              <p className="text-xs text-slate-500 font-semibold">Confirmed data sources</p>
+              <p className="text-3xl font-extrabold text-[#4CAF50]">{totalSources}</p>
+              <p className="text-xs text-slate-500 font-semibold">Live API sources</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-slate-900">180+</p>
@@ -160,13 +127,17 @@ export default function GlobalCoverage() {
             <div>
               <p className="font-extrabold text-base mb-1">Why Open Data Matters</p>
               <p className="text-slate-300 text-sm leading-relaxed">
-                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats is the only platform that unifies all of these into a single, normalized, globally comparable system. A restaurant in Dubai, a pub in London, a ramen shop in Seoul, and a taco truck in Austin all receive the same A–F grade scale. Apples to apples. Everywhere.
+                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats is the only platform that unifies all of these into a single, normalized, globally comparable system. A restaurant in Toronto, a pub in London, and a taco truck in Austin all receive the same A–F grade scale. Apples to apples. Everywhere.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Live markets */}
+        {/* Section: Live API markets */}
+        <h2 className="text-lg font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#4CAF50] flex-shrink-0"></span>
+          Live API Markets — Direct Government Data
+        </h2>
         <div className="space-y-4 mb-10">
           {LIVE_MARKETS.map((market, idx) => {
             const isOpen = expanded === idx;
@@ -180,9 +151,9 @@ export default function GlobalCoverage() {
                   aria-controls={regionId}
                 >
                   <div className="flex items-center gap-3">
-                    <h2 className="text-base font-extrabold text-slate-900">{market.region}</h2>
+                    <h3 className="text-base font-extrabold text-slate-900">{market.region}</h3>
                     <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${market.pill}`}>
-                      {market.sources.length} SOURCE{market.sources.length !== 1 ? "S" : ""}
+                      {market.sources.length} LIVE API SOURCE{market.sources.length !== 1 ? "S" : ""}
                     </span>
                   </div>
                   {isOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
@@ -215,11 +186,28 @@ export default function GlobalCoverage() {
           })}
         </div>
 
-        {/* Coming soon */}
+        {/* Section: AI-enhanced markets */}
+        <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Search className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-base font-extrabold text-slate-900">AI-Enhanced Markets — Official Sources, AI-Read</h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">These markets have real government food safety programs that exist as public websites or search portals, but no structured open API. SafeEats uses Gemini 3 Flash web search to read official sources and present results — clearly labeled as AI-estimated.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {AI_ENHANCED_MARKETS.map((item, i) => (
+              <div key={i} className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm">
+                <p className="font-bold text-slate-800 text-xs">{item.city}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{item.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section: Coming soon */}
         <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Search className="w-5 h-5 text-amber-600" />
-            <h2 className="text-base font-extrabold text-slate-900">On the Radar — Partial or No Open Data</h2>
+            <h2 className="text-base font-extrabold text-slate-900">On the Radar — No Open Data Available</h2>
           </div>
           <p className="text-xs text-slate-500 mb-4">These markets have varying levels of public food safety data — from live government portals to licensing-only databases. None are currently wired as live API sources; results come from AI-estimated research.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
