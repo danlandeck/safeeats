@@ -953,6 +953,7 @@ export default function Home() {
           setIsRefining(false);
         },
         onCountUpdate: (bizId, trueCount) => {
+          if (searchIdRef.current !== currentSearchId) return;
           setResults(prev => prev.map(r =>
             r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
           ));
@@ -973,7 +974,6 @@ export default function Home() {
     }
 
     setIsLoading(false);
-    setIsAISearch(false);
   }, [region, countyId, locationQuery, userCoords]);
 
   const handleSelectBusiness = useCallback(async (biz) => {

@@ -572,6 +572,7 @@ export function processUKFSAResults(establishments) {
       localAuthority: est.LocalAuthorityName || "",
       newRatingPending: est.NewRatingPending,
       schemeType: est.SchemeType,
+      _scores: est.scores || null,
       ada_compliance: "unknown",
     };
   });

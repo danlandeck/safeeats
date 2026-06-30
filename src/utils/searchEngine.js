@@ -200,7 +200,8 @@ Return max 8. If unsure = OMIT. ZERO non-Dubai results.`;
  * Post-fetch relevance filter: ensures search results actually match the query name.
  * Strategy:
  *   - If query is short (<=2 chars), keep all results (avoid filtering "DQ" or "AM/PM" etc)
- *   - For multi-word queries: every word must appear somewhere in the name
+ *   - For multi-word queries: ANY query word must appear in the name (so "Chipotle" matches
+ *     "Chipotle Mexican Grill")
  *   - For single-word queries: word must appear as substring in name
  *   - Punctuation in either is normalized away
  *   - Always case-insensitive
@@ -414,79 +415,81 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
 export async function search({ query, countyId, locationLabel, today, signal, onAccurateResults, onCountUpdate }) {
   // All UK cities route through the live FSA API (national search, UK-wide coverage)
   if (UK_CITY_IDS.has(countyId) || countyId === "uk_fsa") {
-    const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
-    const establishments = res.data?.establishments || [];
-    // Optionally filter by city name if user selected a specific UK city (not uk_fsa)
-    const cityFilter = countyId !== "uk_fsa" ? countyId.replace(/_/g, " ").toLowerCase() : null;
-    const filtered = cityFilter
-      ? establishments.filter(e => {
-          const auth = (e.LocalAuthorityName || "").toLowerCase();
-          const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3, e.AddressLine4].join(" ").toLowerCase();
-          return auth.includes(cityFilter) || addr.includes(cityFilter);
-        })
-      : establishments;
-    const pool = filtered.length > 0 ? filtered : establishments;
-    const liveResults = filterByNameRelevance(processUKFSAResults(pool), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
-  }
-
-  // UK FSA live API (requires backend proxy for header injection)
-  if (countyId === "uk_fsa_legacy") {
-    const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
-    const establishments = res.data?.establishments || [];
-    const liveResults = filterByNameRelevance(processUKFSAResults(establishments), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
+      const establishments = res.data?.establishments || [];
+      const cityFilter = countyId !== "uk_fsa" ? countyId.replace(/_/g, " ").toLowerCase() : null;
+      const filtered = cityFilter
+        ? establishments.filter(e => {
+            const auth = (e.LocalAuthorityName || "").toLowerCase();
+            const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3, e.AddressLine4].join(" ").toLowerCase();
+            return auth.includes(cityFilter) || addr.includes(cityFilter);
+          })
+        : establishments;
+      const pool = filtered.length > 0 ? filtered : establishments;
+      const liveResults = filterByNameRelevance(processUKFSAResults(pool), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Singapore — live data via data.gov.sg CKAN API
   if (countyId === "singapore") {
-    const res = await base44.functions.invoke("singaporeInspections", { action: "search", name: query });
-    const records = res.data?.records || [];
-    if (records.length > 0) {
-      const liveResults = filterByNameRelevance(processSingaporeResults(records, res.data?.resourceId), query);
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    }
+    try {
+      const res = await base44.functions.invoke("singaporeInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      if (records.length > 0) {
+        const liveResults = filterByNameRelevance(processSingaporeResults(records, res.data?.resourceId), query);
+        if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      }
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Australia NSW / QLD — live data via state open data portals
   if (countyId === "sydney" || countyId === "brisbane" || countyId === "gold_coast") {
-    const state = (countyId === "brisbane" || countyId === "gold_coast") ? "qld" : "nsw";
-    const res = await base44.functions.invoke("australiaFoodSafety", { action: "search", name: query, state });
-    const records = res.data?.records || [];
-    if (records.length > 0) {
-      const liveResults = filterByNameRelevance(processNSWResults(records, res.data?.state), query);
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    }
+    try {
+      const state = (countyId === "brisbane" || countyId === "gold_coast") ? "qld" : "nsw";
+      const res = await base44.functions.invoke("australiaFoodSafety", { action: "search", name: query, state });
+      const records = res.data?.records || [];
+      if (records.length > 0) {
+        const liveResults = filterByNameRelevance(processNSWResults(records, res.data?.state), query);
+        if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      }
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Toronto DineSafe (CKAN — needs backend proxy)
   if (countyId === "toronto") {
-    const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
-    const records = res.data?.records || [];
-    const liveResults = filterByNameRelevance(processTorontoResults(records), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("torontoDineSafe", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processTorontoResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Boston (CKAN — needs backend proxy)
   if (countyId === "boston") {
-    const res = await base44.functions.invoke("bostonFoodInspections", { action: "search", name: query });
-    const records = res.data?.records || [];
-    const liveResults = filterByNameRelevance(processBostonResults(records), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("bostonFoodInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processBostonResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Stanislaus County CA (scraped portal, with AI fallback)
   if (countyId === "stanislaus") {
-    const res = await base44.functions.invoke("stanislausInspections", { action: "search", name: query });
-    const facilities = res.data?.facilities || [];
-    const liveResults = filterByNameRelevance(processStanislausResults(facilities), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("stanislausInspections", { action: "search", name: query });
+      const facilities = res.data?.facilities || [];
+      const liveResults = filterByNameRelevance(processStanislausResults(facilities), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     // Not in county database — fall back to AI web search
     const location = locationLabel?.trim() || "Modesto, Stanislaus County, CA";
     const restaurants = await runWithFastResults(
@@ -501,32 +504,39 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 
   // Los Angeles County (ArcGIS Feature Service via backend proxy)
   if (countyId === "la") {
-    const res = await base44.functions.invoke("laCountyInspections", { action: "search", name: query });
-    const records = res.data?.records || [];
-    const liveResults = filterByNameRelevance(processLAResults(records), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("laCountyInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processLAResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Houston (CKAN — needs backend proxy)
   if (countyId === "houston") {
-    const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
-    const records = res.data?.records || [];
-    const liveResults = filterByNameRelevance(processHoustonResults(records), query);
-    if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    try {
+      const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processHoustonResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Live government API
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
-    const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
-    const allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+    let allResults;
+    try {
+      const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
+      allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+    } catch {
+      // Network error, CORS, or abort — fall back to AI search
+      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    }
 
     // Post-fetch relevance filter: keep only results whose name actually matches the query.
-    // The Socrata LIKE '%query%' is too permissive — it can return adjacent records or
-    // fuzzy matches when name fields are denormalized. We require the query (or each query word)
-    // to appear in the result's name, case-insensitively.
     const results = filterByNameRelevance(allResults, query);
 
     // If live API returned nothing, fall back to AI
@@ -663,15 +673,19 @@ export async function fetchDetail(restaurant) {
 
   // Delaware: business_id is "name-address", need to split and query
   if (countyId === "delaware") {
-    const [restname, ...addrParts] = business_id.split("-");
-    const restaddress = addrParts.join("-");
-    const url = `${entry.endpoint}?$where=upper(restname)='${encodeURIComponent((restname || "").toUpperCase())}' AND upper(restaddress)='${encodeURIComponent((restaddress || "").toUpperCase())}'&$limit=500&$order=${entry.dateField} DESC`;
-    const data = await fetch(url).then(r => r.json());
-    return delawareToDetailRows(Array.isArray(data) ? data : []);
+    try {
+      const [restname, ...addrParts] = business_id.split("-");
+      const restaddress = addrParts.join("-");
+      const url = `${entry.endpoint}?$where=upper(restname)='${encodeURIComponent((restname || "").toUpperCase())}' AND upper(restaddress)='${encodeURIComponent((restaddress || "").toUpperCase())}'&$limit=500&$order=${entry.dateField} DESC`;
+      const data = await fetch(url).then(r => r.json());
+      return delawareToDetailRows(Array.isArray(data) ? data : []);
+    } catch { return []; }
   }
 
-  const data = await fetch(buildDetailUrl(entry, business_id)).then(r => r.json());
-  const rows = Array.isArray(data) ? data : [];
-  if (countyId === "king") return rows;
-  return PROCESSORS[countyId].toDetailRows(rows);
+  try {
+    const data = await fetch(buildDetailUrl(entry, business_id)).then(r => r.json());
+    const rows = Array.isArray(data) ? data : [];
+    if (countyId === "king") return rows;
+    return PROCESSORS[countyId].toDetailRows(rows);
+  } catch { return []; }
 }

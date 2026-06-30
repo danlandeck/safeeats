@@ -236,7 +236,7 @@ export default function GlobalCoverage() {
         <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
           <h2 className="font-extrabold text-base mb-2">🌍 Everywhere Else — AI-Powered</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
-            For the remaining 180+ countries where live government APIs don't yet exist, SafeEats uses AI to read official health department websites, publicly posted inspection PDFs, local health bulletins, and verified sources — and presents those results clearly labeled as AI-estimated. Preliminary restaurant identification is powered by Anthropic's Claude Opus for maximum accuracy, with live web search via Gemini pulling real-time data from official sources. We never fabricate a score. If we can't verify it, we say so.
+            For the remaining 180+ countries where live government APIs don't yet exist, SafeEats uses AI to read official health department websites, publicly posted inspection PDFs, local health bulletins, and verified sources — and presents those results clearly labeled as AI-estimated. Preliminary restaurant identification is powered by GPT-5 Mini for fast results, with live web search via Gemini 3 Flash pulling real-time data from official sources. We never fabricate a score. If we can't verify it, we say so.
           </p>
         </div>
 
