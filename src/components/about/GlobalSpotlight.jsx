@@ -57,10 +57,10 @@ export default function GlobalSpotlight() {
           <div>
             <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h2 className="text-xl font-extrabold text-slate-900">Built on Esri's Public GIS Standards</h2>
-              <Pill color="bg-blue-100 text-blue-700">Color scale & map tiles</Pill>
+              <Pill color="bg-blue-100 text-blue-700">Color scale</Pill>
             </div>
             <p className="text-slate-600 leading-relaxed text-sm mb-4">
-              SafeEats adopts Esri's diverging health-risk color ramp — the same green→yellow→red visual language public health agencies use worldwide — so a safety score reads instantly at a glance, even for users with color vision deficiencies. Our map basemap is served from Esri's public ArcGIS Online tiles. These are open/public GIS standards we build on; SafeEats is not formally partnered with Esri.
+              SafeEats adopts Esri's diverging health-risk color ramp — the same green→yellow→red visual language public health agencies use worldwide — so a safety score reads instantly at a glance, even for users with color vision deficiencies. This is an open/public GIS standard we build on; SafeEats is not formally partnered with Esri.
             </p>
             <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors shadow-sm">
               Learn more about Esri →
