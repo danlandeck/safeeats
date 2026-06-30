@@ -118,6 +118,8 @@ const COUNTRY_CONTEXT = {
   singapore:    "Prioritize: SFA/NEA food hygiene grades (A/B/C/D/E scale), SFA food establishment inspections (sfa.gov.sg).",
 };
 
+// Trimmed schema — only fields needed for the search results list.
+// Dietary/ADA fields removed to reduce LLM output tokens and speed up generation.
 const LLM_SCHEMA = {
   type: "object",
   properties: {
@@ -132,19 +134,11 @@ const LLM_SCHEMA = {
           zip_code:               { type: "string" },
           phone:                  { type: "string" },
           latest_score:           { type: "number" },
-          total_violation_points: { type: "number" },
           latest_date:            { type: "string" },
           latest_result:          { type: "string" },
           total_inspections:      { type: "number" },
           violations:             { type: "array", items: { type: "string" } },
           cuisine:                { type: "string" },
-          is_vegan_friendly:      { type: "boolean" },
-          is_vegetarian_friendly: { type: "boolean" },
-          is_kosher:              { type: "boolean" },
-          is_halal:               { type: "boolean" },
-          is_gluten_free_options: { type: "boolean" },
-          dietary_tags:           { type: "array", items: { type: "string" } },
-          ada_compliance:         { type: "string", enum: ["accessible", "partially_accessible", "not_accessible", "unknown"] },
           data_confidence:        { type: "string", enum: ["high", "medium", "low", "none"] },
           is_currently_operating: { type: "boolean" },
           verification_source:   { type: "string" },
@@ -155,45 +149,39 @@ const LLM_SCHEMA = {
 };
 
 const PROMPT_LOCATION = (query, location, today) =>
-  `Today is ${today}. Search the LIVE WEB for real, current health inspection records for "${query}" in ${location} ONLY.
-ABSOLUTE ACCURACY RULES — ZERO TOLERANCE FOR HALLUCINATION:
-1. ONLY return restaurants you can VERIFY exist today via web search results. If you cannot find concrete evidence a restaurant exists and is currently operating, OMIT it entirely.
-2. EVERY result MUST have city="${location}" or a city name that starts with the same word as "${location}". NEVER return results from outside ${location}.
-3. latest_score: 0–100 from REAL inspection data found on the web. latest_date: the REAL date of the most recent inspection you found. latest_result: the REAL inspection outcome. violations: REAL violations only — never invent.
-4. If you cannot find a real inspection score for a restaurant, set latest_score to null and data_confidence to "none". Do NOT guess or fabricate a score.
-5. data_confidence: "high" = found official inspection record with score and date; "medium" = found the restaurant confirmed operating with some inspection reference; "low" = found the restaurant but no inspection details; "none" = could not verify.
-6. is_currently_operating: true ONLY if you have evidence the restaurant is open today. false if confirmed closed. If unknown, set true only if you found a current website/listing.
-7. verification_source: the URL or name of the source where you confirmed this restaurant exists (e.g. "yelp.com", "google.com", official health dept site).
-8. Better to return 3 verified results than 10 with any uncertainty. ZERO fabricated data.
-9. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).
-10. For California locations, check the California DPH environmental health records, local county health portal, and Yelp/Google health inspection summaries.`;
+  `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" in ${location} ONLY.
+RULES:
+1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.
+2. city MUST be "${location}" or start with the same word. NEVER return results from outside ${location}.
+3. latest_score: 0–100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.
+4. data_confidence: "high"=official inspection record found; "medium"=restaurant confirmed with inspection reference; "low"=found but no inspection details; "none"=unverified.
+5. is_currently_operating: true ONLY if evidence it's open today.
+6. verification_source: URL/name where you confirmed it exists.
+7. Return max 8 verified results. ZERO fabricated data. Identify cuisine type.`;
 
 const PROMPT_GLOBAL = (query, today) =>
-  `Today is ${today}. Search the LIVE WEB for real, current health inspection records for "${query}" anywhere in the world.
-ABSOLUTE ACCURACY RULES — ZERO TOLERANCE FOR HALLUCINATION:
-1. ONLY return restaurants you can VERIFY exist today via web search results. If you cannot find concrete evidence, OMIT it entirely.
-2. Return up to 8 real, verifiable businesses. No invented data. No fabricated inspection scores.
-3. latest_score: 0–100 from REAL inspection data found on the web. If you cannot find a real score, set latest_score to null and data_confidence to "none".
-4. latest_date: the REAL date of the most recent inspection. latest_result: the REAL outcome. violations: REAL only.
-5. data_confidence: "high" = found official inspection record with score and date; "medium" = found restaurant with some inspection reference; "low" = found restaurant but no inspection details; "none" = could not verify.
-6. is_currently_operating: true ONLY if you have evidence the restaurant is open today.
-7. verification_source: the URL or name of the source where you confirmed this restaurant exists.
-8. Better to return 3 verified results than 8 with any uncertainty. ZERO fabricated data.
-9. For each restaurant, identify: cuisine type, is_vegan_friendly, is_vegetarian_friendly, is_kosher, is_halal, is_gluten_free_options, dietary_tags, and ADA compliance status (accessible/partially_accessible/not_accessible/unknown).`;
+  `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" anywhere in the world.
+RULES:
+1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.
+2. Return up to 8 real, verifiable businesses. No invented data or fabricated scores.
+3. latest_score: 0–100 from REAL inspection data. If not found, set null and data_confidence to "none".
+4. latest_date/latest_result/violations: REAL only.
+5. data_confidence: "high"=official record; "medium"=some reference; "low"=found but no details; "none"=unverified.
+6. is_currently_operating: true ONLY if evidence it's open today.
+7. verification_source: URL/name where you confirmed it exists.
+8. Identify cuisine type.`;
 
 const PROMPT_DUBAI = (query, today) =>
-  `Today is ${today}. Search the LIVE WEB for ONLY real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE.
-ZERO TOLERANCE RULES:
-1. BLOCK EVERYTHING: Miami, New York, Boston, Chicago, Los Angeles, San Francisco, Austin, London, Paris, Tokyo, Abu Dhabi, Sharjah — ANY US city or non-UAE location = REJECTED.
-2. city MUST be exactly "Dubai" for EVERY result.
-3. Address MUST include: Jumeirah, Deira, Bur Dubai, Marina, Downtown Dubai, JBR, DIFC, Business Bay, Palm Jumeirah, Sheikh Zayed, or "Dubai, UAE".
-4. Verify EVERY result is actually in Dubai before returning it. If unsure = OMIT.
-5. ONLY return restaurants you can VERIFY exist today via web search. If you cannot find concrete evidence, OMIT it.
-6. latest_score: 0–100 from REAL inspection data. If no real score found, set latest_score to null and data_confidence to "none". Never fabricate.
-7. data_confidence: "high" = official inspection record; "medium" = restaurant confirmed with inspection reference; "low" = restaurant found but no inspection details; "none" = unverified.
-8. is_currently_operating: true ONLY if you have evidence the restaurant is open today.
-9. verification_source: the URL or name of the source where you confirmed this restaurant exists.
-10. Return max 8 real verified Dubai restaurants only. ZERO results from outside Dubai. ZERO fabricated data.`;
+  `Today is ${today}. Search the LIVE WEB for real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE ONLY.
+RULES:
+1. BLOCK all US cities, London, Paris, Tokyo, Abu Dhabi, Sharjah — ANY non-UAE location = REJECTED.
+2. city MUST be exactly "Dubai". Address MUST include: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, or "Dubai, UAE".
+3. ONLY return restaurants you can VERIFY exist via web search. If unsure = OMIT.
+4. latest_score: 0–100 from REAL inspection data. If not found, set null. Never fabricate.
+5. data_confidence: "high"=official record; "medium"=confirmed with reference; "low"=found no details; "none"=unverified.
+6. is_currently_operating: true ONLY if evidence it's open today.
+7. verification_source: URL/name where you confirmed it exists.
+8. Return max 8 verified Dubai restaurants only.`;
 
 const FAST_PROMPT = (query, location) => location
   ? `List up to 8 real restaurants matching "${query}" in ${location}. Training data only. Only results physically in ${location}.`
@@ -296,9 +284,9 @@ function llmCall(prompt, internet = false) {
     prompt,
     add_context_from_internet: internet,
     response_json_schema: LLM_SCHEMA,
-    // Web search uses Gemini 3.1 Pro (highest-quality web-search model) for maximum accuracy;
-    // training-data-only fast results use Claude Opus 4.8 for best preliminary quality.
-    ...(internet ? { model: "gemini_3_1_pro" } : { model: "claude_opus_4_8" }),
+    // Gemini 3 Flash: supports web search, much faster than 3.1 Pro.
+    // GPT-5 Mini: fast training-data-only lookup for preliminary results.
+    ...(internet ? { model: "gemini_3_flash" } : { model: "gpt_5_mini" }),
   });
 }
 

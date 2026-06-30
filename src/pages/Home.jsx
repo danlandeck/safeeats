@@ -718,6 +718,11 @@ const CITY_TO_COUNTY = {
   "saratoga springs": { region: "new_york", countyId: "ny_state", locationLabel: "Saratoga Springs, New York" },
   "poughkeepsie": { region: "new_york", countyId: "ny_state", locationLabel: "Poughkeepsie, New York" },
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
+  // Pennsylvania — AI search with proper location label
+  "philadelphia": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
+  "philly": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
+  "pittsburgh": { region: "pennsylvania", countyId: "philly", locationLabel: "Pittsburgh, Pennsylvania" },
+  "pennsylvania": { region: "pennsylvania", countyId: "philly", locationLabel: "Pennsylvania" },
 };
 
 const LIVE_API_CITIES = [
@@ -1363,7 +1368,7 @@ export default function Home() {
                               <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-600 mt-0.5" />
                               <p className="leading-relaxed">
                                 {hasLive && !hasLLM && "✅ All results below are live, real-time data from official government health department APIs — fully authoritative."}
-                                {hasLLM && !hasLive && "🔍 Results below were verified via live web search of public health records by AI (Gemini 3.1 Pro). Each card shows its confidence level. Always verify with the official source before deciding."}
+                                {hasLLM && !hasLive && "🔍 Results below were verified via live web search of public health records by AI (Gemini 3 Flash). Each card shows its confidence level. Always verify with the official source before deciding."}
                                 {hasLive && hasLLM && "📊 Results below combine live government API data (green badge) with AI web-search verified data (blue/amber badge). Tap any restaurant to see its full source of truth."}
                                 {" "}
                                 <Link to="/About" className="text-blue-600 hover:underline font-semibold">How does this work?</Link>
