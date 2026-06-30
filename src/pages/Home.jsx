@@ -13,7 +13,6 @@ import SmartSearchPanel from "../components/SmartSearchPanel";
 import FuzzySearchBar from "../components/FuzzySearchBar";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
-import AISearchStatus from "../components/AISearchStatus";
 import RestaurantDetail from "../components/RestaurantDetail";
 
 // Lazy-load heavy components so initial bundle is smaller
@@ -749,6 +748,7 @@ export default function Home() {
   const [region, setRegion]                     = useState("global");
   const [countyId, setCountyId]                 = useState("global");
   const pendingSearchRef                        = useRef(null);
+  const searchIdRef                             = useRef(0);
   const [results, setResults]                   = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [detailRows, setDetailRows]             = useState([]);
@@ -773,7 +773,7 @@ export default function Home() {
   const [locationQuery, setLocationQuery]       = useState("");
   const [isAISearch, setIsAISearch]             = useState(false);
   const [searchError, setSearchError]           = useState("");
-  const [fastResults, setFastResults]           = useState(null);
+  const [isRefining, setIsRefining]             = useState(false);
   const [fuzzyFilters, setFuzzyFilters]         = useState({ cuisine: "", city: "", minGrade: "" });
   const [fuzzySelected, setFuzzySelected]       = useState(null);
 
@@ -841,12 +841,12 @@ export default function Home() {
     regionRef.current = "global"; setRegion("global");
     countyIdRef.current = "global"; setCountyId("global");
     setSelectedBusiness(null);
-    setFastResults(null);
     window.history.pushState({}, '', window.location.pathname);
     setViewMode("list");
     setCompareList([]);
     setShowCompare(false);
     setGradeFilter(null);
+    setIsRefining(false);
     setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
     setFuzzySelected(null);
   };
@@ -921,20 +921,22 @@ export default function Home() {
     abortRef.current = controller;
     const signal = controller.signal;
 
+    searchIdRef.current++;
+    const currentSearchId = searchIdRef.current;
+
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast"].includes(searchCounty);
+
     setIsLoading(true);
-    setFastResults(null);
     setHasSearched(true);
     setSearchQuery(rawQuery);
     setSelectedBusiness(null);
     setViewMode("list");
     setSearchError("");
+    setIsAISearch(isAICounty);
+    setIsRefining(false);
 
     const resolvedCounty = (REGIONS[searchRegion]?.counties || []).find((c) => c.id === searchCounty) || { name: searchCounty };
     const locationCtx = locationQuery.trim() || resolvedCounty.name;
-
-    if (searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston"].includes(searchCounty)) {
-      setIsAISearch(true);
-    }
 
     try {
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -945,7 +947,11 @@ export default function Home() {
         locationLabel: locationCtx,
         today,
         signal,
-        onFastResults: (fast) => setFastResults(fast),
+        onAccurateResults: (accurate) => {
+          if (searchIdRef.current !== currentSearchId) return;
+          setResults(accurate);
+          setIsRefining(false);
+        },
         onCountUpdate: (bizId, trueCount) => {
           setResults(prev => prev.map(r =>
             r.business_id === bizId ? { ...r, totalInspections: trueCount } : r
@@ -953,12 +959,15 @@ export default function Home() {
         },
       });
 
+      // If this is an AI search with results, the web search is still running in background
+      if (isAI && fetchedResults.length > 0) setIsRefining(true);
       setIsAISearch(isAI);
       setResults(fetchedResults);
     } catch (e) {
       if (e.name === "AbortError") return;
       setIsLoading(false);
       setIsAISearch(false);
+      setIsRefining(false);
       setSearchError("Search failed. Please try again in a moment.");
       return;
     }
@@ -1171,7 +1180,7 @@ export default function Home() {
                 setResults([]);
                 setHasSearched(false);
                 setSelectedBusiness(null);
-                setFastResults(null);
+                setIsRefining(false);
                 setGradeFilter(null);
                 setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
                 setFuzzySelected(null);
@@ -1283,27 +1292,10 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
                     {isLoading ? (
-                      isAISearch ? (
-                        <AISearchStatus
-                          hasFastResults={fastResults !== null && fastResults.length > 0}
-                          onAcceptFast={() => {
-                            if (abortRef.current) abortRef.current.abort();
-                            setResults(fastResults);
-                            setFastResults(null);
-                            setIsLoading(false);
-                          }}
-                          onCancel={() => {
-                            if (abortRef.current) abortRef.current.abort();
-                            setIsLoading(false);
-                            setFastResults(null);
-                          }}
-                        />
-                      ) : (
                         <div className="flex flex-col items-center justify-center py-20">
                           <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-sm text-slate-400">Searching live government database…</p>
+                          <p className="text-sm text-slate-400">{isAISearch ? "Searching the web for real inspection data…" : "Searching live government database…"}</p>
                         </div>
-                      )
                     ) : searchError ? (
                       <div className="flex flex-col items-center justify-center py-16">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1332,6 +1324,7 @@ export default function Home() {
                               {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""}
                               {searchQuery ? ` for "${searchQuery}"` : ""}
                               {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
+                              {isRefining && <span className="ml-1 text-amber-600 animate-pulse"> · verifying with live web search…</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">

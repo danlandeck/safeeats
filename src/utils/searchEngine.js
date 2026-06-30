@@ -290,7 +290,7 @@ function llmCall(prompt, internet = false) {
   });
 }
 
-async function aiSearchFallback(query, countyId, locationLabel, today, onFastResults) {
+async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults) {
   const location = locationLabel?.trim() || null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
   const ctx = getCountryContext(countyId);
@@ -300,7 +300,8 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onFastRes
     llmCall(FAST_PROMPT(query, location), false),
     llmCall(enhancedPrompt, true),
     (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity),
-    onFastResults
+    false,
+    onAccurateResults
   );
   return { results: restaurants, isAI: true };
 }
@@ -371,21 +372,37 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
   return { ...built, _wrongLocation: isWrongLocation };
 }
 
-async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastResults, isDubaiSearch = false) {
-  let fastDelivered = false;
-  fastPromise.then((res) => {
-    if (fastDelivered) return;
-    let fast = (res?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
-    if (isDubaiSearch) {
-      fast = fast.filter(r => isDubaiLocation(r.city, r.address));
-    }
-    fast = deduplicateResults(fast);
-    if (fast.length > 0 && onFastResults) { fastDelivered = true; onFastResults(fast); }
-  }).catch(() => {});
+/**
+ * FAST-FIRST STRATEGY: return the fast (training-data) LLM results immediately
+ * so the user sees results in 2-4 seconds. The accurate (web-search) LLM runs
+ * in the background and silently updates results via onAccurateResults when done.
+ * Only if fast results are empty do we wait for the web search.
+ */
+async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubaiSearch = false, onAccurateResults) {
+  // Await fast results — this returns in 2-4 seconds
+  const fastRes = await fastPromise;
+  let fast = (fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  if (isDubaiSearch) {
+    fast = fast.filter(r => isDubaiLocation(r.city, r.address));
+  }
+  fast = deduplicateResults(fast);
+
+  // If fast results exist, return them immediately and fire web search in background
+  if (fast.length > 0) {
+    accuratePromise.then((res) => {
+      const verified = filterUnverified(res?.restaurants || []);
+      let accurate = verified.map(buildFn).filter(r => !r._wrongLocation);
+      if (isDubaiSearch) {
+        accurate = accurate.filter(r => isDubaiLocation(r.city, r.address));
+      }
+      accurate = deduplicateResults(accurate);
+      if (accurate.length > 0 && onAccurateResults) onAccurateResults(accurate);
+    }).catch(() => {});
+    return fast;
+  }
+
+  // No fast results — wait for web search to get something to show
   const result = await accuratePromise;
-  fastDelivered = true;
-  // Filter out unverified/hallucinated results from the web-search response,
-  // then deduplicate to remove redundant entries.
   const verified = filterUnverified(result?.restaurants || []);
   let restaurants = verified.map(buildFn).filter(r => !r._wrongLocation);
   if (isDubaiSearch) {
@@ -394,7 +411,7 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, onFastR
   return deduplicateResults(restaurants);
 }
 
-export async function search({ query, countyId, locationLabel, today, signal, onFastResults, onCountUpdate }) {
+export async function search({ query, countyId, locationLabel, today, signal, onAccurateResults, onCountUpdate }) {
   // All UK cities route through the live FSA API (national search, UK-wide coverage)
   if (UK_CITY_IDS.has(countyId) || countyId === "uk_fsa") {
     const res = await base44.functions.invoke("ukFoodRatings", { action: "search", name: query });
@@ -411,7 +428,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const pool = filtered.length > 0 ? filtered : establishments;
     const liveResults = filterByNameRelevance(processUKFSAResults(pool), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // UK FSA live API (requires backend proxy for header injection)
@@ -420,7 +437,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const establishments = res.data?.establishments || [];
     const liveResults = filterByNameRelevance(processUKFSAResults(establishments), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Singapore — live data via data.gov.sg CKAN API
@@ -431,7 +448,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processSingaporeResults(records, res.data?.resourceId), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     }
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Australia NSW / QLD — live data via state open data portals
@@ -443,7 +460,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processNSWResults(records, res.data?.state), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     }
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Toronto DineSafe (CKAN — needs backend proxy)
@@ -452,7 +469,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const records = res.data?.records || [];
     const liveResults = filterByNameRelevance(processTorontoResults(records), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Boston (CKAN — needs backend proxy)
@@ -461,7 +478,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const records = res.data?.records || [];
     const liveResults = filterByNameRelevance(processBostonResults(records), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Stanislaus County CA (scraped portal, with AI fallback)
@@ -476,7 +493,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       llmCall(FAST_PROMPT(query, location), false),
       llmCall(PROMPT_LOCATION(query, location, today), true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location, "Modesto"),
-      onFastResults
+      false,
+      onAccurateResults
     );
     return { results: restaurants, isAI: true };
   }
@@ -487,7 +505,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const records = res.data?.records || [];
     const liveResults = filterByNameRelevance(processLAResults(records), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Houston (CKAN — needs backend proxy)
@@ -496,7 +514,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     const records = res.data?.records || [];
     const liveResults = filterByNameRelevance(processHoustonResults(records), query);
     if (liveResults.length > 0) return { results: liveResults, isAI: false };
-    return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
   // Live government API
@@ -513,7 +531,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 
     // If live API returned nothing, fall back to AI
     if (results.length === 0) {
-      return aiSearchFallback(query, countyId, locationLabel, today, onFastResults);
+      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
     }
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
@@ -547,8 +565,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       llmCall(FAST_PROMPT_DUBAI(query), false),
       llmCall(PROMPT_DUBAI(query, today), true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
-      onFastResults,
-      true  // isDubaiSearch flag for aggressive filtering
+      true,
+      onAccurateResults
     );
     return { results: restaurants, isAI: true };
   }
@@ -559,7 +577,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     llmCall(FAST_PROMPT(query, location), false),
     llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
     (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
-    onFastResults
+    false,
+    onAccurateResults
   );
   return { results: restaurants, isAI: true };
 }
