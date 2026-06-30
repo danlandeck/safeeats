@@ -31,7 +31,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-0.5 flex-wrap justify-end" role="list">
 
               <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
-              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Global coverage map"><Map className="w-4 h-4" aria-hidden="true" /><span>Map</span></Link></div>
+              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Map className="w-4 h-4" aria-hidden="true" /><span>Coverage</span></Link></div>
 
               <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
               <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
