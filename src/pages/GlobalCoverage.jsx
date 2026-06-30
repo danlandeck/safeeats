@@ -140,14 +140,14 @@ export default function GlobalCoverage() {
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-slate-900">{LIVE_MARKETS.length}</p>
-              <p className="text-xs text-slate-500 font-semibold">Regions with live APIs</p>
+              <p className="text-xs text-slate-500 font-semibold">Confirmed data regions</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-[#4CAF50]">{totalSources}+</p>
               <p className="text-xs text-slate-500 font-semibold">Confirmed data sources</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-slate-900">195+</p>
+              <p className="text-3xl font-extrabold text-slate-900">180+</p>
               <p className="text-xs text-slate-500 font-semibold">Countries via AI search</p>
             </div>
           </div>

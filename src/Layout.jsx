@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { ShieldCheck, Info, Globe, Map } from "lucide-react";
+import { ShieldCheck, Info, Globe, Database } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
@@ -31,7 +31,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-0.5 flex-wrap justify-end" role="list">
 
               <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
-              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Map className="w-4 h-4" aria-hidden="true" /><span>Coverage</span></Link></div>
+              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Database className="w-4 h-4" aria-hidden="true" /><span>Coverage</span></Link></div>
 
               <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
               <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
