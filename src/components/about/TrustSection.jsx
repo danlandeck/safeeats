@@ -12,7 +12,7 @@ const TRUST = [
   { icon: <MapPin className="w-5 h-5" />, title: "Geo-fencing", body: "Location validation runs on raw AI output before any field override. A result whose city/address doesn't match the requested region is rejected — so a Dubai search never returns a Miami strip mall." },
   { icon: <ShieldCheck className="w-5 h-5" />, title: "No review contamination", body: "SafeEats never uses consumer reviews (Yelp, Google Reviews) as a safety signal. Scores are inspector-issued only — opinions never move a grade." },
   { icon: <AlertTriangle className="w-5 h-5" />, title: "Honest uncertainty", body: "AI-estimated scores are always labeled. A 'U' (Unknown) grade means no records were found — never a fabricated score. We say so when we don't know." },
-  { icon: <Cpu className="w-5 h-5" />, title: "Tiered model accuracy", body: "Web-search results use Gemini 3.1 Pro for maximum retrieval accuracy; fast preliminary results use Claude Opus 4.8. The right model for each step — never a single weak model for everything." },
+  { icon: <Cpu className="w-5 h-5" />, title: "Tiered model accuracy", body: "Web-search results use Gemini 3 Flash for fast, real-time retrieval from official sources; preliminary results use GPT-5 Mini for instant restaurant identification. The right model for each step — never a single weak model for everything." },
 ];
 
 export default function TrustSection() {

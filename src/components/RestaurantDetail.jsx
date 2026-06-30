@@ -327,7 +327,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                     <div className="space-y-1.5">
                       <p className="flex items-start gap-1.5">
                         <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                        This data was retrieved via live web search of publicly available health department records by AI (Gemini 3.1 Pro).
+                        This data was retrieved via live web search of publicly available health department records by AI (Gemini 3 Flash).
                       </p>
                       {restaurant.verification_source && (
                         <p className="flex items-start gap-1.5">

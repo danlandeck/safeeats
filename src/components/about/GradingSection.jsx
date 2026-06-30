@@ -18,7 +18,7 @@ const NORMALIZATION = [
   { source: "Singapore SFA", native: "Grades A–D", method: "Mapped to SafeEats bands with minor calibration for the D threshold." },
   { source: "Denmark Smiley", native: "4-tier smiley (☺–☹)", method: "Top smiley → A; descending tiers map to B, C, D/F." },
   { source: "Dubai Municipality", native: "High/Medium/Low risk + compliance", method: "Compliance outcome + risk tier → normalized score; grade from band." },
-  { source: "AI-assisted (no live API)", native: "Estimated from public records", method: "Gemini 3.1 Pro performs live web search of official sources; each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out." },
+  { source: "AI-assisted (no live API)", native: "Estimated from public records", method: "Gemini 3 Flash performs live web search of official sources; each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out." },
 ];
 
 export default function GradingSection() {
