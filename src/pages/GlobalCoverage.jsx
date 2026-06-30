@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Database, Globe, Search, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import WorldCoverageMap from "@/components/WorldCoverageMap";
 
 // Confirmed open food safety data sources — verified via research
 const LIVE_MARKETS = [
@@ -151,6 +152,11 @@ export default function GlobalCoverage() {
               <p className="text-xs text-slate-500 font-semibold">Countries via AI search</p>
             </div>
           </div>
+        </div>
+
+        {/* Interactive world map */}
+        <div className="mb-8">
+          <WorldCoverageMap />
         </div>
 
         {/* Key insight banner */}
