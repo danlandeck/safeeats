@@ -153,7 +153,7 @@ const PROMPT_LOCATION = (query, location, today) =>
 RULES:
 1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.
 2. city MUST be "${location}" or start with the same word. NEVER return results from outside ${location}.
-3. latest_score: 0–0100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.
+3. latest_score: 0–100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.
 4. data_confidence: "high"=official inspection record found; "medium"=restaurant confirmed with inspection reference; "low"=found but no inspection details; "none"=unverified.
 5. is_currently_operating: true ONLY if evidence it's open today.
 6. verification_source: URL/name where you confirmed it exists.
