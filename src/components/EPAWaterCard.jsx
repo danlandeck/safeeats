@@ -93,7 +93,10 @@ export default function EPAWaterCard({ restaurant }) {
       >
         <div className="flex items-center gap-1.5 text-blue-800 font-bold min-w-0">
           <Droplets className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-          <span>💧 Tap Water Quality</span>
+          <div className="min-w-0">
+            <span>💧 Tap Water Quality</span>
+            <div className="text-[9px] text-slate-500 font-semibold">EPA data unavailable for this area — check EWG by zip code</div>
+          </div>
         </div>
         <a
           href={ewgUrl}
