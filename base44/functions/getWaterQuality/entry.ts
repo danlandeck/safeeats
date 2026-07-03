@@ -2,29 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const ENVIROFACTS_BASE = "https://data.epa.gov/efservice";
 
-// Verified PWSIDs for major US cities — bypasses unreliable EPA broad searches
-const CITY_PWSID = {
-  "SEATTLE|WA": "WA53090K",
-  "BELLEVUE|WA": "WA53005R",
-  "NEW YORK|NY": "NY7003493",
-  "BROOKLYN|NY": "NY7003493",
-  "QUEENS|NY": "NY7003493",
-  "BRONX|NY": "NY7003493",
-  "MANHATTAN|NY": "NY7003493",
-  "STATEN ISLAND|NY": "NY7003493",
-  "CHICAGO|IL": "IL0316000",
-  "AUSTIN|TX": "TX2270001",
-  "SAN FRANCISCO|CA": "CA3810011",
-  "LOS ANGELES|CA": "CA1910067",
-  "ROCKVILLE|MD": "MD0150004",
-  "BETHESDA|MD": "MD0150006",
-  "SILVER SPRING|MD": "MD0150006",
-  "GAITHERSBURG|MD": "MD0150003",
-  "WILMINGTON|DE": "DE0000543",
-  "BOSTON|MA": "MA6000000",
-  "HOUSTON|TX": "TX1000001",
-};
-
 // Filter out private/small systems that don't represent city water
 const PRIVATE_SYSTEM_REGEX = /(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP|MANOR|SUBDIVISION|HOA)/i;
 
@@ -39,10 +16,6 @@ const COUNTY_ID_TO_NAME = {
   la: "Los Angeles",
   delaware: null,
 };
-
-// Some jurisdictions are best looked up by a known PWSID directly
-// (used when city/county name lookups are ambiguous in the EPA DB)
-const COUNTY_ID_TO_PWSID = {}; // reserved for future use
 
 // Many neighborhoods/suburbs are served by their parent city's water utility.
 // Map any known alias → the city name the EPA uses for that water system.
@@ -345,23 +318,13 @@ async function findWaterSystemByCity(city, state) {
 
 async function findWaterSystemByCounty(countyName, state) {
   const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
-  const countyUpper = (countyName || "").toUpperCase().trim();
+  const countyUpper = (countyName || "").toUpperCase().trim().replace(/\s+COUNTY$/i, "");
   if (!stateUpper || !countyUpper) return null;
 
-  const url = `${ENVIROFACTS_BASE}/WATER_SYSTEM/PRIMACY_AGENCY_CODE/${stateUpper}/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/COUNTY_SERVED/${encodeURIComponent(countyUpper)}/JSON`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (!Array.isArray(data) || data.length === 0) return null;
-
-  return pickLargestPublic(data);
-}
-
-async function findWaterSystemByState(state) {
-  const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
-  if (!stateUpper) return null;
-
-  const url = `${ENVIROFACTS_BASE}/WATER_SYSTEM/PRIMACY_AGENCY_CODE/${stateUpper}/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/JSON`;
+  // NOTE: COUNTY_SERVED on the WATER_SYSTEM table is silently ignored by the
+  // EPA API (verified: it returns all systems in the state). County data lives
+  // in the GEOGRAPHIC_AREA table; join it to WATER_SYSTEM for name/population.
+  const url = `${ENVIROFACTS_BASE}/GEOGRAPHIC_AREA/AREA_TYPE_CODE/CN/COUNTY_SERVED/${encodeURIComponent(countyUpper)}/PRIMACY_AGENCY_CODE/${stateUpper}/WATER_SYSTEM/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/JSON`;
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
@@ -431,6 +394,7 @@ async function geocodeFullAddress(fullAddress) {
     city: addr.city || addr.town || addr.village || addr.hamlet || null,
     state: addr.state_code || null,
     zip: addr.postcode || null,
+    county: addr.county ? addr.county.replace(/\s+County$/i, "") : null,
   };
 }
 
@@ -439,14 +403,16 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { city: rawCity, state: rawState, country, county_id, full_address } = await req.json();
 
-    // If a full address is provided, geocode it to get precise city/state
+    // If a full address is provided, geocode it to get precise city/state/county
     let city = rawCity;
     let state = rawState;
+    let geoCounty = null;
     if (full_address) {
       const geo = await geocodeFullAddress(full_address);
       if (geo) {
         if (geo.city) city = geo.city;
         if (geo.state) state = geo.state;
+        if (geo.county) geoCounty = geo.county;
       }
     }
 
@@ -464,23 +430,20 @@ Deno.serve(async (req) => {
     let system = city ? await findWaterSystemByCity(city, state) : null;
     let fallbackLevel = system ? "city" : null;
 
-    // 2️⃣ County-level
-    if (!system && county_id) {
-      const countyName = COUNTY_ID_TO_NAME[county_id];
+    // 2️⃣ County-level: prefer the geocoded county, fall back to the county_id map
+    if (!system) {
+      const countyName = geoCounty || (county_id ? COUNTY_ID_TO_NAME[county_id] : null);
       if (countyName) {
         system = await findWaterSystemByCounty(countyName, state);
         if (system) fallbackLevel = "county";
       }
     }
 
-    // 3️⃣ State-level
+    // 3️⃣ No state-level fallback: grading a rural restaurant on the largest
+    // system in the state is wrong data. Say EPA data is unavailable instead;
+    // the client falls back to the zip-accurate EWG link.
     if (!system) {
-      system = await findWaterSystemByState(state);
-      if (system) fallbackLevel = "state";
-    }
-
-    if (!system) {
-      return Response.json({ available: false, reason: "No water system data found for this location." });
+      return Response.json({ available: false, reason: "EPA data unavailable for this area — the city and county aren't in the EPA SDWIS database." });
     }
 
     const pwsid = system.PWSID || system.pwsid;
