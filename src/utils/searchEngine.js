@@ -153,11 +153,12 @@ const PROMPT_LOCATION = (query, location, today) =>
 RULES:
 1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.
 2. city MUST be "${location}" or start with the same word. NEVER return results from outside ${location}.
-3. latest_score: 0–100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.
+3. latest_score: 0–0100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.
 4. data_confidence: "high"=official inspection record found; "medium"=restaurant confirmed with inspection reference; "low"=found but no inspection details; "none"=unverified.
 5. is_currently_operating: true ONLY if evidence it's open today.
 6. verification_source: URL/name where you confirmed it exists.
-7. Return max 8 verified results. ZERO fabricated data. Identify cuisine type.`;
+7. address: full street address REQUIRED for every result. If you cannot find the street address, OMIT the restaurant entirely.
+8. Return max 8 verified results. ZERO fabricated data. Identify cuisine type.`;
 
 const PROMPT_GLOBAL = (query, today) =>
   `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" anywhere in the world.
@@ -169,7 +170,8 @@ RULES:
 5. data_confidence: "high"=official record; "medium"=some reference; "low"=found but no details; "none"=unverified.
 6. is_currently_operating: true ONLY if evidence it's open today.
 7. verification_source: URL/name where you confirmed it exists.
-8. Identify cuisine type.`;
+8. address: full street address REQUIRED for every result. If you cannot find the street address, OMIT the restaurant entirely.
+9. Identify cuisine type.`;
 
 const PROMPT_DUBAI = (query, today) =>
   `Today is ${today}. Search the LIVE WEB for real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE ONLY.
@@ -277,7 +279,11 @@ function filterUnverified(results) {
     return true;
   });
   // Fail-open: if filtering removes everything, return original (better to show something)
-  return filtered.length > 0 ? filtered : results;
+  const base = filtered.length > 0 ? filtered : results;
+  // HARD requirement (no fail-open): AI results must have a street address.
+  // An entry with no address can't be tied to a real location — showing it as
+  // "Unknown" with no address erodes trust more than showing nothing.
+  return base.filter(r => (r.address || "").trim().length >= 5);
 }
 
 function llmCall(prompt, internet = false) {
