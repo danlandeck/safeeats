@@ -13,6 +13,7 @@ import EmbedGenerator from './pages/EmbedGenerator';
 
 
 import Feedback from './pages/Feedback';
+import PitchDeck from './pages/PitchDeck';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -75,6 +76,7 @@ const AuthenticatedApp = () => {
       <Route path="/global-coverage" element={<LayoutWrapper currentPageName="GlobalCoverage"><GlobalCoverage /></LayoutWrapper>} />
 
       <Route path="/contact" element={<LayoutWrapper currentPageName="Feedback"><Feedback /></LayoutWrapper>} />
+      <Route path="/pitch" element={<LayoutWrapper currentPageName="PitchDeck"><PitchDeck /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
