@@ -7,19 +7,13 @@ import { Link } from "react-router-dom";
  */
 export default function DubaiSpotlight({ onSearchDubai }) {
   const FEATURED = [
-    { name: "Nobu Dubai", area: "Atlantis, The Palm", grade: "A", score: 94, emoji: "🍣" },
-    { name: "Zuma Dubai", area: "DIFC", grade: "A", score: 91, emoji: "🥢" },
-    { name: "Nusr-Et Steakhouse", area: "Jumeirah", grade: "B", score: 83, emoji: "🥩" },
-    { name: "Shakespeare and Co.", area: "Dubai Mall", grade: "A", score: 96, emoji: "☕" },
-    { name: "Ravi Restaurant", area: "Satwa", grade: "B", score: 88, emoji: "🍛" },
-    { name: "Al Fanar", area: "Festival City", grade: "A", score: 92, emoji: "🫕" },
+    { name: "Nobu Dubai", area: "Atlantis, The Palm", emoji: "🍣" },
+    { name: "Zuma Dubai", area: "DIFC", emoji: "🥢" },
+    { name: "Nusr-Et Steakhouse", area: "Jumeirah", emoji: "🥩" },
+    { name: "Shakespeare and Co.", area: "Dubai Mall", emoji: "☕" },
+    { name: "Ravi Restaurant", area: "Satwa", emoji: "🍛" },
+    { name: "Al Fanar", area: "Festival City", emoji: "🫕" },
   ];
-
-  const gradeColor = (g) => ({
-    A: "bg-green-700 text-white",
-    B: "bg-green-400 text-white",
-    C: "bg-yellow-400 text-slate-800",
-  }[g] || "bg-slate-400 text-white");
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0a1628] via-[#0d2240] to-[#1a3a2a] border border-[#c9a227]/30 shadow-2xl">
@@ -36,7 +30,7 @@ export default function DubaiSpotlight({ onSearchDubai }) {
         </div>
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">🇦🇪</span>
@@ -51,10 +45,6 @@ export default function DubaiSpotlight({ onSearchDubai }) {
               Dubai Municipality inspects every licensed establishment. SafeEats reads official sources via AI.
             </p>
           </div>
-          <div className="text-right flex-shrink-0">
-            <p className="text-2xl font-extrabold text-[#f0d060]">15,000+</p>
-            <p className="text-[10px] text-slate-400 font-semibold">Licensed eateries</p>
-          </div>
         </div>
 
         {/* Featured restaurants */}
@@ -65,11 +55,8 @@ export default function DubaiSpotlight({ onSearchDubai }) {
               onClick={() => onSearchDubai(r.name)}
               className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#c9a227]/40 rounded-xl p-2.5 text-left transition-all"
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center mb-1">
                 <span className="text-base">{r.emoji}</span>
-                <span className={`text-[10px] font-extrabold w-6 h-6 rounded-lg flex items-center justify-center ${gradeColor(r.grade)}`}>
-                  {r.grade}
-                </span>
               </div>
               <p className="text-xs font-extrabold text-white leading-tight truncate group-hover:text-[#f0d060] transition-colors">{r.name}</p>
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">{r.area}</p>

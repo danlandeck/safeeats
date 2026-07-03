@@ -1,10 +1,10 @@
 import { Globe, Database, ShieldCheck, TrendingUp } from "lucide-react";
 
 const METRICS = [
-  { icon: Globe, value: "195+", label: "Countries", sub: "Global coverage" },
   { icon: Database, value: "16", label: "Live API sources", sub: "Direct government data" },
-  { icon: ShieldCheck, value: "1M+", label: "Establishments", sub: "Normalized & indexed" },
-  { icon: TrendingUp, value: "∞", label: "Scalable", sub: "Plug-in architecture" },
+  { icon: Globe, value: "3", label: "Live API countries", sub: "US, UK, Canada" },
+  { icon: ShieldCheck, value: "180+", label: "Countries via AI", sub: "AI-assisted search" },
+  { icon: TrendingUp, value: "1", label: "Universal grade", sub: "A–F scale worldwide" },
 ];
 
 export default function PitchMetrics() {

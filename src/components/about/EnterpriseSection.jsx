@@ -4,9 +4,9 @@ import { Section, Pill } from "./SectionPrimitives";
 import { Button } from "@/components/ui/button";
 
 const STATS = [
-  { value: "195+", label: "Countries covered", sub: "Live APIs + AI-assisted research" },
-  { value: "1M+", label: "Establishments tracked", sub: "Globally normalized" },
-  { value: "15+", label: "Live government APIs", sub: "Real-time, direct-source" },
+  { value: "16", label: "Live API sources", sub: "Direct government data" },
+  { value: "3", label: "Countries with live APIs", sub: "US, UK, Canada" },
+  { value: "180+", label: "Countries via AI search", sub: "AI-assisted research" },
   { value: "1", label: "Universal A–F grade", sub: "Apples-to-apples, worldwide" },
 ];
 

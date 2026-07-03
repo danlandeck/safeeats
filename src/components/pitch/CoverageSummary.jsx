@@ -17,7 +17,7 @@ const TIERS = [
     title: "AI-Enhanced Markets",
     stat: "180+ countries",
     body: "For jurisdictions with public food safety programs but no structured API, Gemini 3 Flash reads official health department websites and portals in real time. Every result carries a confidence level and verification source — unverified entries are filtered out.",
-    items: ["Singapore SFA, NSW, Dubai", "Denmark Smiley, Korea, France", "Geo-fenced & deduplicated"],
+    items: ["Singapore SFA, NSW, Dubai", "Denmark Smiley, Korea, Vancouver", "Geo-fenced & deduplicated"],
   },
   {
     icon: AlertCircle,

@@ -1241,10 +1241,10 @@ export default function Home() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "195+", label: "Countries covered", emoji: "🌍" },
-                { value: "1M+", label: "Establishments tracked", emoji: "🍽️" },
+                { value: "16", label: "Live API sources", emoji: "🟢" },
+                { value: "180+", label: "Countries via AI search", emoji: "🌍" },
+                { value: "A–F", label: "Universal grade", emoji: "📋" },
                 { value: "100%", label: "Free, always", emoji: "✅" },
-                { value: "♿", label: "ADA accessibility checked", emoji: "" },
               ].map(({ value, label, emoji }) => (
                 <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
                   <p className="text-2xl font-extrabold text-slate-900">{emoji} {value}</p>
@@ -1256,7 +1256,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🇦🇪 Dubai, UAE", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

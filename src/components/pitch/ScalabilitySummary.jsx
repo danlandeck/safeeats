@@ -28,7 +28,7 @@ const ARCHITECTURE = [
   },
   {
     icon: Zap,
-    title: "Zero Marginal Cost",
+    title: "Low Marginal Cost",
     body: "Adding the 17th, 50th, or 100th market follows the same proven pattern. The infrastructure scales horizontally — no new servers, no new frontend, no new schema. Just a new connector file.",
   },
 ];

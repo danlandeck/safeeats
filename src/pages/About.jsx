@@ -37,7 +37,7 @@ export default function About() {
               <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              195+ countries. 1M+ establishments. Real government inspection data — unified, normalized, and in plain English. SafeEats is the definitive global arbiter of safe eating.
+              16 live government API sources across the US, UK, and Canada. 180+ additional countries via AI-assisted research. Real inspection data — unified, normalized, and in plain English.
             </p>
           </div>
 
@@ -53,7 +53,7 @@ export default function About() {
               Every jurisdiction grades differently. A "Pass" in Chicago, 94 penalty points in LA, a letter grade in NYC, a score in Tokyo, a compliance rating in London — they all mean different things. SafeEats normalizes everything to a 0–100 scale so you're always comparing apples to apples, whether you're in Austin or Auckland.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              SafeEats is the world's definitive source of truth for restaurant and food establishment safety — the global standard for consumers, travelers, parents, and anyone who refuses to gamble with what goes into their body.
+              SafeEats brings restaurant and food establishment safety data together — for consumers, travelers, parents, and anyone who wants to make informed decisions about what goes into their body.
             </p>
           </Section>
 
