@@ -13,6 +13,19 @@ const GRADE_STYLES = {
   not_recommended:  { bg: "bg-red-50", border: "border-red-200", text: "text-red-800", dot: "bg-red-500" },
 };
 
+// Extract a 5-digit zip from an address string (last 5-digit group wins,
+// handles "WA 98101" and "98101-1234" formats)
+function extractZip(address) {
+  if (!address) return null;
+  const matches = String(address).match(/\b(\d{5})(?:-\d{4})?\b/g);
+  if (!matches) return null;
+  return matches[matches.length - 1].slice(0, 5);
+}
+
+function ewgUrlForZip(zip) {
+  return `https://www.ewg.org/tapwater/search-results.php?zip5=${zip}&searchtype=zip`;
+}
+
 function loadCache() {
   try { return JSON.parse(localStorage.getItem("epa-water-cache") || "{}"); } catch { return {}; }
 }
@@ -26,7 +39,7 @@ export default function EPAWaterCard({ restaurant }) {
 
   const state = inferState(restaurant);
   const city = restaurant.city;
-  const zip = restaurant.zip_code;
+  const zip = restaurant.zip_code || extractZip(restaurant.address);
   const source = restaurant.source;
   const shouldSkip = NO_WATER_DATA_SOURCES.includes(source) || !state;
 
@@ -72,7 +85,7 @@ export default function EPAWaterCard({ restaurant }) {
   // No data available — fall back to EWG link
   if (!data || !data.available) {
     if (!zip) return null;
-    const ewgUrl = `https://www.ewg.org/tapwater/search-results.php?zip5=${zip}`;
+    const ewgUrl = ewgUrlForZip(zip);
     return (
       <div
         className="mt-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[11px] flex items-center justify-between gap-2 flex-wrap"
@@ -118,17 +131,30 @@ export default function EPAWaterCard({ restaurant }) {
             )}
           </div>
         </div>
-        {data.epaUrl && (
-          <a
-            href={data.epaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[10px]"
-            aria-label="View full EPA water system report (opens in new tab)"
-          >
-            EPA Report <ExternalLink className="w-2.5 h-2.5" />
-          </a>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {zip && (
+            <a
+              href={ewgUrlForZip(zip)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[10px]"
+              aria-label={`View EWG tap water report for zip code ${zip} (opens in new tab)`}
+            >
+              EWG Report <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          )}
+          {data.epaUrl && (
+            <a
+              href={data.epaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[10px]"
+              aria-label="View full EPA water system report (opens in new tab)"
+            >
+              EPA Report <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          )}
+        </div>
       </div>
       <p className={`mt-1.5 text-[10px] leading-snug ${style.text} opacity-90`}>
         {data.verdict}
