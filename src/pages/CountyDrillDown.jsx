@@ -80,12 +80,29 @@ const LLM_ITEM_SCHEMA = {
   },
 };
 
-async function fetchLLM(stateName, stateAbbr, countyName) {
+// 24h localStorage cache so repeat county visits render instantly
+const COUNTY_CACHE_TTL = 24 * 60 * 60 * 1000;
+function loadCountyCache(key) {
+  try {
+    const hit = JSON.parse(localStorage.getItem(key) || "null");
+    if (hit && Date.now() - hit.at < COUNTY_CACHE_TTL && Array.isArray(hit.restaurants) && hit.restaurants.length > 0) return hit.restaurants;
+  } catch { /* unreadable cache */ }
+  return null;
+}
+function saveCountyCache(key, restaurants) {
+  try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), restaurants })); } catch { /* quota */ }
+}
+
+async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
   const location = countyName
     ? `${countyName.toLowerCase().includes("county") ? countyName : `${countyName} County`}, ${stateName}, ${stateAbbr}`
     : `${stateName}, ${stateAbbr}`;
 
   const today = new Date().toISOString().slice(0, 10);
+
+  const cacheKey = `county-llm-cache:${location.toLowerCase()}`;
+  const cached = loadCountyCache(cacheKey);
+  if (cached) return { restaurants: cached };
 
   // GROUND TRUTH: verified real restaurants (names, addresses, zips) via Google
   // Places. The LLM is never allowed to decide which restaurants exist.
@@ -96,65 +113,77 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
   } catch { /* Places unavailable */ }
   if (verified.length === 0) return { restaurants: [] };
 
-  // ENRICH: web-search LLM looks up official inspection records for these EXACT
-  // establishments. Missing records stay honestly ungraded — never invented.
-  let byIdx = new Map();
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Today is ${today}. Below are VERIFIED, REAL restaurants in ${location} (confirmed via Google Places — do NOT question their existence or alter their details).
+  const buildItems = (byIdx) => {
+    const restaurants = verified.map((p, i) => {
+      const insp = byIdx.get(i);
+      const hasScore = insp && insp.latest_score != null && Number(insp.latest_score) > 0;
+      const safetyScore = hasScore ? Math.max(0, Math.min(100, Number(insp.latest_score))) : null;
+      return {
+        id: `county-${i}-${p.name}`,
+        business_id: `county-${i}-${p.name}`,
+        name: p.name, address: p.address || "", city: p.city || stateName,
+        zip_code: p.zip_code || "", safetyScore,
+        grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+        totalInspections: insp?.total_inspections || 0,
+        latestDate: insp?.latest_date || "",
+        latestResult: insp?.latest_result || "",
+        violations: insp?.violations || [],
+        latitude: p.latitude ?? null,
+        longitude: p.longitude ?? null,
+        isLLMData: true, source: "llm",
+      };
+    });
+    // Graded first (best to worst), then verified-but-ungraded
+    restaurants.sort((a, b) => (b.safetyScore ?? -1) - (a.safetyScore ?? -1));
+    return restaurants;
+  };
+
+  // PHASE 2 (background): web-search LLM looks up official inspection records
+  // for these EXACT establishments. Missing records stay honestly ungraded —
+  // never invented. Updates the page and cache when done.
+  (async () => {
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Today is ${today}. Below are VERIFIED, REAL restaurants in ${location} (confirmed via Google Places — do NOT question their existence or alter their details).
 Search the LIVE WEB for OFFICIAL health inspection records for these EXACT establishments:
 ${verified.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
 RULES:
 1. Return one entry per restaurant you find an official inspection record for, keyed by "idx" (the number above).
 2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
 3. If you cannot find an official record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          inspections: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                idx: { type: "number" },
-                latest_score: { type: "number" },
-                latest_date: { type: "string" },
-                latest_result: { type: "string" },
-                total_inspections: { type: "number" },
-                violations: { type: "array", items: { type: "string" } },
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            inspections: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  idx: { type: "number" },
+                  latest_score: { type: "number" },
+                  latest_date: { type: "string" },
+                  latest_result: { type: "string" },
+                  total_inspections: { type: "number" },
+                  violations: { type: "array", items: { type: "string" } },
+                },
               },
             },
           },
         },
-      },
-    });
-    byIdx = new Map((result?.inspections || []).filter((f) => Number.isInteger(f.idx)).map((f) => [f.idx, f]));
-  } catch { /* enrichment failed — show the verified list ungraded */ }
+      });
+      const byIdx = new Map((result?.inspections || []).filter((f) => Number.isInteger(f.idx)).map((f) => [f.idx, f]));
+      const enriched = buildItems(byIdx);
+      saveCountyCache(cacheKey, enriched);
+      if (byIdx.size > 0 && onEnriched) onEnriched(enriched);
+    } catch { /* enrichment failed — the verified list stands */ }
+  })();
 
-  const restaurants = verified.map((p, i) => {
-    const insp = byIdx.get(i);
-    const hasScore = insp && insp.latest_score != null && Number(insp.latest_score) > 0;
-    const safetyScore = hasScore ? Math.max(0, Math.min(100, Number(insp.latest_score))) : null;
-    return {
-      id: `county-${i}-${p.name}`,
-      business_id: `county-${i}-${p.name}`,
-      name: p.name, address: p.address || "", city: p.city || stateName,
-      zip_code: p.zip_code || "", safetyScore,
-      grade: safetyScore !== null ? getGrade(safetyScore) : "U",
-      totalInspections: insp?.total_inspections || 0,
-      latestDate: insp?.latest_date || "",
-      latestResult: insp?.latest_result || "",
-      violations: insp?.violations || [],
-      latitude: p.latitude ?? null,
-      longitude: p.longitude ?? null,
-      isLLMData: true, source: "llm",
-    };
-  });
-
-  // Graded first (best to worst), then verified-but-ungraded
-  restaurants.sort((a, b) => (b.safetyScore ?? -1) - (a.safetyScore ?? -1));
-  return { restaurants };
+  // PHASE 1: return the verified list immediately (~1s) so the page renders
+  // without waiting on the web-search pass.
+  const immediate = buildItems(new Map());
+  saveCountyCache(cacheKey, immediate);
+  return { restaurants: immediate };
 }
 
 // ── Live API registry ─────────────────────────────────────────────────────────
@@ -267,7 +296,11 @@ export default function CountyDrillDown() {
     } else {
       setIsLive(false);
       setRegionLabel(countyName ? `${countyName}, ${stateName}` : stateName);
-      fetchLLM(stateName, stateAbbr, countyName).then(({ restaurants }) => {
+      fetchLLM(stateName, stateAbbr, countyName, (enriched) => {
+        // Background enrichment landed — update grades in place
+        setTopRated(enriched);
+        setAll(enriched);
+      }).then(({ restaurants }) => {
         setTopRated(restaurants);
         setWorstRated([]);
         setAll(restaurants);
