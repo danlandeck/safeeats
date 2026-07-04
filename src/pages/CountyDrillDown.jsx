@@ -80,6 +80,10 @@ const LLM_ITEM_SCHEMA = {
   },
 };
 
+// States verified to publish NO machine-readable inspection data — skip the
+// web-search enrichment pass entirely; the verified list is the final answer.
+const NO_DATA_STATES = new Set(["CT"]);
+
 // 24h localStorage cache so repeat county visits render instantly
 const COUNTY_CACHE_TTL = 24 * 60 * 60 * 1000;
 function loadCountyCache(key) {
@@ -140,8 +144,9 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
 
   // PHASE 2 (background): web-search LLM looks up official inspection records
   // for these EXACT establishments. Missing records stay honestly ungraded —
-  // never invented. Updates the page and cache when done.
-  (async () => {
+  // never invented. Updates the page and cache when done. Skipped entirely for
+  // states verified to publish no machine-readable data.
+  if (!NO_DATA_STATES.has((stateAbbr || "").toUpperCase())) (async () => {
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Today is ${today}. Below are VERIFIED, REAL restaurants in ${location} (confirmed via Google Places — do NOT question their existence or alter their details).
