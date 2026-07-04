@@ -273,6 +273,60 @@ function filterByNameRelevance(results, query) {
 }
 
 /**
+ * Split a raw query like "Pagliacci Pizza on Mercer Island, WA" into the
+ * restaurant-name part and a location hint. Location words inside the query
+ * poison API name-searches, so the name goes to the API and the hint goes to
+ * ranking. Handles commas ("Name, City, ST"), prepositions ("Name in/on/at/
+ * near City"), and a trailing state abbreviation.
+ */
+const US_STATE_ABBRS = /^(al|ak|az|ar|ca|co|ct|de|dc|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy)$/i;
+function parseSearchQuery(raw) {
+  let name = (raw || "").trim();
+  let hint = "";
+  const commaIdx = name.indexOf(",");
+  if (commaIdx > 0) {
+    hint = name.slice(commaIdx + 1);
+    name = name.slice(0, commaIdx);
+  } else {
+    const m = name.match(/^(.+?)\s+(?:in|on|at|near)\s+(.+)$/i);
+    if (m && m[1].trim().length >= 3) { name = m[1]; hint = m[2]; }
+  }
+  if (!hint) {
+    const st = name.match(/^(.+?)\s+([A-Za-z]{2})$/);
+    if (st && US_STATE_ABBRS.test(st[2])) { name = st[1]; hint = st[2]; }
+  }
+  return {
+    nameQuery: name.trim(),
+    locationHint: hint.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(),
+  };
+}
+
+/**
+ * Order results so the most relevant location is FIRST — no scrolling to find
+ * the right branch. Name-match strength plus location-hint presence in the
+ * result's city/address/zip. Stable sort: ties keep source order.
+ */
+function rankByQueryRelevance(results, nameQuery, locationHint) {
+  if (!Array.isArray(results) || results.length < 2) return results;
+  const norm = (s) => (s || "").toLowerCase().replace(/['\-]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const nameWords = norm(nameQuery).split(" ").filter(w => w.length >= 2);
+  const hintWords = (locationHint || "").split(" ").filter(w => w.length >= 2);
+  const scoreOf = (r) => {
+    const n = norm(r.name);
+    const loc = norm(`${r.city || ""} ${r.address || ""} ${r.zip_code || ""}`);
+    let s = 0;
+    for (const w of nameWords) if (n.includes(w)) s += 2;
+    if (nameWords.length > 0 && n === nameWords.join(" ")) s += 2;
+    for (const w of hintWords) if (loc.includes(w)) s += 3;
+    return s;
+  };
+  return results
+    .map((r, i) => ({ r, i, s: scoreOf(r) }))
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .map(x => x.r);
+}
+
+/**
  * Deduplicate results by normalized name + address prefix.
  * Removes redundant entries (same restaurant appearing twice with slight address variations).
  */
@@ -338,7 +392,7 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
 // "none" → jurisdiction publishes no machine-readable data (skip slow AI
 // enrichment — the answer is known); "unknown" → try AI enrichment.
 const GEO_ROUTE = {
-  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king" } },
+  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king", "mercer island": "king", auburn: "king", bothell: "king", kenmore: "king", newcastle: "king", "des moines": "king", seatac: "king", woodinville: "king" } },
   NY: { cities: { "new york": "nyc", brooklyn: "nyc", queens: "nyc", bronx: "nyc", "the bronx": "nyc", manhattan: "nyc", "staten island": "nyc" } },
   IL: { cities: { chicago: "cook" } },
   CA: { cities: { "san francisco": "sf", "los angeles": "la", "long beach": "la", glendale: "la", pasadena: "la", "santa monica": "la", burbank: "la", torrance: "la", modesto: "stanislaus", turlock: "stanislaus", ceres: "stanislaus" } },
@@ -711,9 +765,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   // Live government API
   if (LIVE_API_IDS.has(countyId)) {
     const entry = API_REGISTRY[countyId];
+    // Location words poison name searches ("Pagliacci Pizza on Mercer Island"
+    // matches no NAME field) — search the API with the name, rank with the hint.
+    const { nameQuery, locationHint } = parseSearchQuery(query);
     let allResults;
     try {
-      const raw = await fetch(buildSearchUrl(entry, query), signal ? { signal } : {}).then(r => r.json());
+      const raw = await fetch(buildSearchUrl(entry, nameQuery), signal ? { signal } : {}).then(r => r.json());
       allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
     } catch {
       // Network error, CORS, or abort — fall back to AI search
@@ -721,7 +778,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     }
 
     // Post-fetch relevance filter: keep only results whose name actually matches the query.
-    const results = filterByNameRelevance(allResults, query);
+    // Then rank so the right location is FIRST (e.g. the Mercer Island branch
+    // when the query says Mercer Island).
+    const results = rankByQueryRelevance(filterByNameRelevance(allResults, nameQuery), nameQuery, locationHint);
 
     // If live API returned nothing, fall back to AI
     if (results.length === 0) {
