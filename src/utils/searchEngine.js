@@ -332,6 +332,37 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
   });
 }
 
+// ── GEO-ROUTING TABLE ─────────────────────────────────────────────────────────
+// Maps a verified address (state + locality from Google Places) to the
+// inspection source that serves it. type "registry" → live API countyId;
+// "none" → jurisdiction publishes no machine-readable data (skip slow AI
+// enrichment — the answer is known); "unknown" → try AI enrichment.
+const GEO_ROUTE = {
+  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king" } },
+  NY: { cities: { "new york": "nyc", brooklyn: "nyc", queens: "nyc", bronx: "nyc", "the bronx": "nyc", manhattan: "nyc", "staten island": "nyc" } },
+  IL: { cities: { chicago: "cook" } },
+  CA: { cities: { "san francisco": "sf", "los angeles": "la", "long beach": "la", glendale: "la", pasadena: "la", "santa monica": "la", burbank: "la", torrance: "la", modesto: "stanislaus", turlock: "stanislaus", ceres: "stanislaus" } },
+  TX: { cities: { austin: "travis", houston: "houston" } },
+  MD: { cities: { rockville: "montgomery_md", bethesda: "montgomery_md", "silver spring": "montgomery_md", gaithersburg: "montgomery_md" } },
+  MA: { cities: { boston: "boston" } },
+  DE: { default: "delaware" },
+  CT: { none: true }, // verified: no statewide machine-readable inspection data
+};
+
+function geoRoute(state, city) {
+  const entry = GEO_ROUTE[(state || "").toUpperCase().trim()];
+  if (!entry) return { type: "unknown" };
+  if (entry.none) return { type: "none" };
+  const c = (city || "").toLowerCase().trim();
+  if (entry.cities && entry.cities[c]) return { type: "registry", countyId: entry.cities[c] };
+  if (entry.default) return { type: "registry", countyId: entry.default };
+  return { type: "unknown" };
+}
+
+// Re-entrancy guard: a geo-routed search() call that itself falls back to AI
+// must not geo-route again.
+let _geoRouting = false;
+
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults) {
   const location = locationLabel?.trim() || null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
@@ -390,6 +421,30 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
       grounded = deduplicateResults(grounded);
 
       if (grounded.length > 0) {
+        // GEO-ROUTING: derive the inspection jurisdiction from the verified
+        // address rather than the user's dropdown selection.
+        const route = geoRoute(verified[0].state, verified[0].city);
+
+        // Address sits in live-API territory → query the real source (no LLM)
+        if (route.type === "registry" && route.countyId !== countyId && !_geoRouting) {
+          _geoRouting = true;
+          try {
+            const routed = await search({ query, countyId: route.countyId, locationLabel, today, onAccurateResults });
+            if (routed?.results?.length > 0 && !routed.isAI) {
+              saveCache(routed.results);
+              return routed;
+            }
+          } catch { /* routed source failed — continue with grounded flow */ }
+          finally { _geoRouting = false; }
+        }
+
+        // Jurisdiction is known to publish nothing machine-readable → the
+        // grounded list IS the final answer; skip the slow web-search pass.
+        if (route.type === "none") {
+          saveCache(grounded);
+          return { results: grounded, isAI: true };
+        }
+
         // Background: inspection enrichment for the verified list only
         llmCall(PROMPT_ENRICH(groundedRaw, location, today), true, INSPECTION_SCHEMA)
           .then((res) => {
