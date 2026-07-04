@@ -148,6 +148,41 @@ const LLM_SCHEMA = {
   },
 };
 
+// Schema for the inspection-enrichment pass: the LLM only reports inspection
+// records for restaurants ALREADY verified via Google Places, keyed by idx.
+const INSPECTION_SCHEMA = {
+  type: "object",
+  properties: {
+    inspections: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          idx:                 { type: "number" },
+          latest_score:        { type: "number" },
+          latest_date:         { type: "string" },
+          latest_result:       { type: "string" },
+          total_inspections:   { type: "number" },
+          violations:          { type: "array", items: { type: "string" } },
+          data_confidence:     { type: "string", enum: ["high", "medium", "low"] },
+          verification_source: { type: "string" },
+        },
+      },
+    },
+  },
+};
+
+const PROMPT_ENRICH = (list, location, today) =>
+  `Today is ${today}. Below are VERIFIED, REAL restaurants${location ? ` in ${location}` : ""} (confirmed via Google Places — do NOT question their existence or alter their details).
+Search the LIVE WEB for OFFICIAL health inspection records for these EXACT establishments:
+${list.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
+RULES:
+1. Return one entry per restaurant you find inspection data for, keyed by "idx" (the number above).
+2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
+3. If you cannot find an official inspection record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.
+4. data_confidence: "high"=official record found; "medium"=inspection referenced secondhand; "low"=uncertain match.
+5. verification_source: the URL or agency name where you found the record.`;
+
 const PROMPT_LOCATION = (query, location, today) =>
   `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" in ${location} ONLY.
 RULES:
@@ -286,11 +321,11 @@ function filterUnverified(results) {
   return base.filter(r => (r.address || "").trim().length >= 5);
 }
 
-function llmCall(prompt, internet = false) {
+function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
   return base44.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: internet,
-    response_json_schema: LLM_SCHEMA,
+    response_json_schema: schema,
     // Gemini 3 Flash: supports web search, much faster than 3.1 Pro.
     // GPT-5 Mini: fast training-data-only lookup for preliminary results.
     ...(internet ? { model: "gemini_3_flash" } : { model: "gpt_5_mini" }),
@@ -301,12 +336,70 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   const location = locationLabel?.trim() || null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
   const ctx = getCountryContext(countyId);
+  const buildFn = (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity);
+
+  // GROUNDED PATH — Google Places establishes which restaurants exist and where
+  // (real names, addresses, zips, operating status). The LLM's only job is then
+  // finding inspection records for those exact establishments. This prevents
+  // hallucinated/address-less entries in jurisdictions with no live API.
+  try {
+    const placesRes = await base44.functions.invoke("placesRestaurantSearch", { query, location });
+    const verified = placesRes.data?.restaurants || [];
+    if (verified.length > 0) {
+      const groundedRaw = verified.map(p => ({
+        name: p.name,
+        address: p.address,
+        city: p.city || primaryCity,
+        zip_code: p.zip_code || "",
+        cuisine: p.cuisine || "",
+        data_confidence: "low", // verified to exist; no inspection record (yet)
+        is_currently_operating: p.business_status === "OPERATIONAL" ? true : null,
+        verification_source: "Google Places",
+      }));
+      const overlay = (built, i) => ({
+        ...built,
+        latitude: verified[i].latitude,
+        longitude: verified[i].longitude,
+        place_id: verified[i].place_id,
+      });
+      let grounded = groundedRaw.map((r, i) => overlay(buildFn(r, i), i)).filter(r => !r._wrongLocation);
+      grounded = deduplicateResults(grounded);
+
+      if (grounded.length > 0) {
+        // Background: inspection enrichment for the verified list only
+        llmCall(PROMPT_ENRICH(groundedRaw, location, today), true, INSPECTION_SCHEMA)
+          .then((res) => {
+            const found = Array.isArray(res?.inspections) ? res.inspections : [];
+            const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
+            const enriched = groundedRaw.map((raw, i) => {
+              const insp = byIdx.get(i);
+              const merged = insp ? {
+                ...raw,
+                latest_score: insp.latest_score ?? null,
+                latest_date: insp.latest_date || "",
+                latest_result: insp.latest_result || "",
+                total_inspections: insp.total_inspections || null,
+                violations: insp.violations || [],
+                data_confidence: insp.data_confidence || "low",
+                verification_source: insp.verification_source || "Google Places",
+              } : raw;
+              return overlay(buildFn(merged, i), i);
+            }).filter(r => !r._wrongLocation);
+            const finalResults = deduplicateResults(enriched);
+            if (finalResults.length > 0 && onAccurateResults) onAccurateResults(finalResults);
+          }).catch(() => {});
+        return { results: grounded, isAI: true };
+      }
+    }
+  } catch { /* Places unavailable — fall through to pure-AI flow */ }
+
+  // PURE-AI PATH (previous behavior): only when Places fails or returns nothing
   const basePrompt = location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today);
-  const enhancedPrompt = ctx ? `${basePrompt}\n8. ${ctx}` : basePrompt;
+  const enhancedPrompt = ctx ? `${basePrompt}\n- ${ctx}` : basePrompt;
   const restaurants = await runWithFastResults(
     llmCall(FAST_PROMPT(query, location), false),
     llmCall(enhancedPrompt, true),
-    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity),
+    buildFn,
     false,
     onAccurateResults
   );
