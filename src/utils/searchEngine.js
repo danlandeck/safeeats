@@ -363,10 +363,16 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         place_id: verified[i].place_id,
       });
       // Places addresses are authoritative. A result is in-location if the strict
-      // city check passes OR the expected city appears in the formatted address
-      // (handles village-vs-town locality mismatches, e.g. Willimantic → Windham CT).
-      const inLocation = (r) => !r._wrongLocation ||
-        (primaryCity && (r.address || "").toLowerCase().includes(primaryCity.toLowerCase()));
+      // city check passes OR the searched city/county appears in the result's
+      // address or locality (handles village-vs-town mismatches like
+      // Willimantic → Windham CT, and "Windham County" vs locality "Windham").
+      const needle = (primaryCity || "").toLowerCase().replace(/\s+county$/i, "").trim();
+      const inLocation = (r) => {
+        if (!needle) return true;
+        if (!r._wrongLocation) return true;
+        return (r.address || "").toLowerCase().includes(needle) ||
+               (r.city || "").toLowerCase().includes(needle);
+      };
       let grounded = groundedRaw.map((r, i) => overlay(buildFn(r, i), i)).filter(inLocation);
       grounded = deduplicateResults(grounded);
 
@@ -484,9 +490,11 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
  * Only if fast results are empty do we wait for the web search.
  */
 async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubaiSearch = false, onAccurateResults) {
-  // Await fast results — this returns in 2-4 seconds
+  // Await fast results — this returns in 2-4 seconds.
+  // Fast (training-data) results get the SAME verification filter as accurate
+  // results — address-less or unverified entries must never reach the UI.
   const fastRes = await fastPromise;
-  let fast = (fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  let fast = filterUnverified(fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
   if (isDubaiSearch) {
     fast = fast.filter(r => isDubaiLocation(r.city, r.address));
   }
