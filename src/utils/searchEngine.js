@@ -13,6 +13,7 @@ import {
   processBostonResults, bostonToDetailRows,
   processHoustonResults, houstonToDetailRows,
   processStanislausResults, stanislausToDetailRows,
+  processVancouverBCResults, vancouverBCToDetailRows,
   processSingaporeResults, singaporeToDetailRows,
   processNSWResults, nswToDetailRows,
 } from "./inspectionProcessors";
@@ -401,6 +402,8 @@ const GEO_ROUTE = {
   MA: { cities: { boston: "boston" } },
   DE: { default: "delaware" },
   CT: { none: true }, // verified: no statewide machine-readable inspection data
+  // Canada — Vancouver Coastal Health region (BC localities Google returns)
+  BC: { cities: { vancouver: "vancouver", richmond: "vancouver", "north vancouver": "vancouver", "west vancouver": "vancouver", squamish: "vancouver", whistler: "vancouver", pemberton: "vancouver", sechelt: "vancouver", gibsons: "vancouver", "powell river": "vancouver", "bowen island": "vancouver" } },
 };
 
 function geoRoute(state, city) {
@@ -698,6 +701,22 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
 
+  // Vancouver, BC — live data from Vancouver Coastal Health disclosure portal
+  if (countyId === "vancouver") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("vancouverBCInspections", { action: "search", name: nameQuery });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processVancouverBCResults(facilities), nameQuery),
+        nameQuery,
+        locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+  }
+
   // Toronto DineSafe (CKAN — needs backend proxy)
   if (countyId === "toronto") {
     try {
@@ -846,6 +865,14 @@ export async function fetchDetail(restaurant) {
       const res = await base44.functions.invoke("torontoDineSafe", { action: "detail", establishmentId: business_id });
       const records = res.data?.records || [];
       return torontoToDetailRows(records);
+    } catch { return []; }
+  }
+
+  // Vancouver, BC — VCH disclosure portal inspection history
+  if (source === "vancouver_bc") {
+    try {
+      const res = await base44.functions.invoke("vancouverBCInspections", { action: "detail", facilityId: business_id });
+      return vancouverBCToDetailRows(res.data?.inspections || []);
     } catch { return []; }
   }
 

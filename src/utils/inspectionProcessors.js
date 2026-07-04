@@ -1212,3 +1212,70 @@ export async function geocodeAddress(address, city, stateOrCountry) {
   }
   return null;
 }
+// ── Vancouver, BC (Vancouver Coastal Health disclosure portal) ─────────────────
+// Public API exposes outstanding critical/non-critical infraction counts and
+// closure status per facility; per-inspection counts come via detail fetch.
+export function processVancouverBCResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities
+    .map((f) => {
+      const crit = Number(f.outstandingCriticalInfractions) || 0;
+      const noncrit = Number(f.outstandingNonCriticalInfractions) || 0;
+      const closed = !!f.closure;
+      // Outstanding-infraction scoring: criticals dominate; a closure order is severe.
+      let score = 100 - crit * 15 - noncrit * 4 - (closed ? 40 : 0);
+      score = Math.max(0, Math.min(100, score));
+      const postal = ((f.siteAddress || "").match(/[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d/) || [""])[0].toUpperCase();
+      const community = (f.community || "").split(" - ")[0].trim() || "Vancouver";
+      return {
+        business_id: f.id,
+        name: (f.facilityName || "").trim(),
+        address: (f.siteAddress || "").trim(),
+        city: community,
+        zip_code: postal,
+        phone: f.phoneNumber || "",
+        description: f.facilityType || "",
+        latitude: f.latitude ?? null,
+        longitude: f.longitude ?? null,
+        safetyScore: score,
+        grade: getGrade(score),
+        totalInspections: Number(f.numberOfInspections) || 0,
+        latestDate: f.lastInspectionDate || "",
+        latestResult: closed
+          ? "Closed by health authority"
+          : crit > 0
+            ? `${crit} outstanding critical infraction${crit > 1 ? "s" : ""}`
+            : "No outstanding critical infractions",
+        violations: [],
+        isLLMData: false,
+        source: "vancouver_bc",
+        ada_compliance: "unknown",
+      };
+    })
+    .filter((r) => r.name && r.address);
+}
+
+export function vancouverBCToDetailRows(inspections) {
+  return (inspections || [])
+    .map((insp) => {
+      const crit = Number(insp.criticalInfractionCount) || 0;
+      const noncrit = Number(insp.nonCriticalInfractionCount) || 0;
+      const date = (insp.inspectionDate || "").slice(0, 10);
+      const actions = Array.isArray(insp.actionsTakenList) ? insp.actionsTakenList.join("; ") : "";
+      const summary =
+        crit + noncrit === 0
+          ? ""
+          : `${crit} critical and ${noncrit} non-critical infraction(s) found${actions ? ` — actions taken: ${actions}` : ""}`;
+      return {
+        inspection_serial_num: insp.inspectionNumber || `vch-${date}`,
+        inspection_date: date,
+        inspection_score: String(crit * 15 + noncrit * 4),
+        inspection_result: crit > 0 ? "Critical infractions found" : noncrit > 0 ? "Non-critical infractions found" : "Pass",
+        inspection_type: insp.inspectionType || "Inspection",
+        violation_description: summary,
+        violation_type: crit > 0 ? "RED" : "BLUE",
+        violation_points: String(crit * 15 + noncrit * 4),
+      };
+    })
+    .sort((a, b) => new Date(b.inspection_date) - new Date(a.inspection_date));
+}
