@@ -338,6 +338,19 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   const ctx = getCountryContext(countyId);
   const buildFn = (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity);
 
+  // 24h result cache: repeat searches render instantly. Enriched results
+  // overwrite grounded-only results as they land.
+  const seCacheKey = `se-ai-cache:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  try {
+    const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
+    if (hit && Date.now() - hit.at < 24 * 60 * 60 * 1000 && Array.isArray(hit.results) && hit.results.length > 0) {
+      return { results: hit.results, isAI: true };
+    }
+  } catch { /* unreadable cache — proceed */ }
+  const saveCache = (results) => {
+    try { localStorage.setItem(seCacheKey, JSON.stringify({ at: Date.now(), results })); } catch { /* quota */ }
+  };
+
   // GROUNDED PATH — Google Places establishes which restaurants exist and where
   // (real names, addresses, zips, operating status). The LLM's only job is then
   // finding inspection records for those exact establishments. This prevents
@@ -397,8 +410,12 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
               return overlay(buildFn(merged, i), i);
             }).filter(inLocation);
             const finalResults = deduplicateResults(enriched);
-            if (finalResults.length > 0 && onAccurateResults) onAccurateResults(finalResults);
+            if (finalResults.length > 0) {
+              saveCache(finalResults);
+              if (onAccurateResults) onAccurateResults(finalResults);
+            }
           }).catch(() => {});
+        saveCache(grounded);
         return { results: grounded, isAI: true };
       }
     }
