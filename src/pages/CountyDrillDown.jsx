@@ -86,73 +86,75 @@ async function fetchLLM(stateName, stateAbbr, countyName) {
     : `${stateName}, ${stateAbbr}`;
 
   const today = new Date().toISOString().slice(0, 10);
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `From your knowledge of food safety inspection records in ${location}, return:
-1. top_rated: 3 well-known restaurants with excellent safety records
-2. worst_rated: 3 restaurants known for health violations or poor inspection scores
 
-No overlap. Real establishments only. For each: name, address, city, safetyScore (0-100), latest_date (YYYY-MM-DD), latest_result, total_inspections, violations (up to 2 short strings).`,
-    response_json_schema: {
-      type: "object",
-      properties: {
-        top_rated: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              address: { type: "string" },
-              city: { type: "string" },
-              zip_code: { type: "string" },
-              safetyScore: { type: "number" },
-              latest_date: { type: "string" },
-              latest_result: { type: "string" },
-              total_inspections: { type: "number" },
-              violations: { type: "array", items: { type: "string" } },
-            },
-          },
-        },
-        worst_rated: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              address: { type: "string" },
-              city: { type: "string" },
-              zip_code: { type: "string" },
-              safetyScore: { type: "number" },
-              latest_date: { type: "string" },
-              latest_result: { type: "string" },
-              total_inspections: { type: "number" },
-              violations: { type: "array", items: { type: "string" } },
+  // GROUND TRUTH: verified real restaurants (names, addresses, zips) via Google
+  // Places. The LLM is never allowed to decide which restaurants exist.
+  let verified = [];
+  try {
+    const res = await base44.functions.invoke("placesRestaurantSearch", { query: "popular", location });
+    verified = res.data?.restaurants || [];
+  } catch { /* Places unavailable */ }
+  if (verified.length === 0) return { restaurants: [] };
+
+  // ENRICH: web-search LLM looks up official inspection records for these EXACT
+  // establishments. Missing records stay honestly ungraded — never invented.
+  let byIdx = new Map();
+  try {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Today is ${today}. Below are VERIFIED, REAL restaurants in ${location} (confirmed via Google Places — do NOT question their existence or alter their details).
+Search the LIVE WEB for OFFICIAL health inspection records for these EXACT establishments:
+${verified.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
+RULES:
+1. Return one entry per restaurant you find an official inspection record for, keyed by "idx" (the number above).
+2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
+3. If you cannot find an official record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          inspections: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                idx: { type: "number" },
+                latest_score: { type: "number" },
+                latest_date: { type: "string" },
+                latest_result: { type: "string" },
+                total_inspections: { type: "number" },
+                violations: { type: "array", items: { type: "string" } },
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+    byIdx = new Map((result?.inspections || []).filter((f) => Number.isInteger(f.idx)).map((f) => [f.idx, f]));
+  } catch { /* enrichment failed — show the verified list ungraded */ }
 
-  const mapItem = (r, prefix, i) => {
-    const safetyScore = Math.max(0, Math.min(100, Number(r.safetyScore) || 75));
+  const restaurants = verified.map((p, i) => {
+    const insp = byIdx.get(i);
+    const hasScore = insp && insp.latest_score != null && Number(insp.latest_score) > 0;
+    const safetyScore = hasScore ? Math.max(0, Math.min(100, Number(insp.latest_score))) : null;
     return {
-      id: `${prefix}-${i}-${r.name}`,
-      business_id: `${prefix}-${i}-${r.name}`,
-      name: r.name, address: r.address || "", city: r.city || stateName,
-      zip_code: r.zip_code || "", safetyScore,
-      grade: getGrade(safetyScore),
-      totalInspections: r.total_inspections || 1,
-      latestDate: r.latest_date || "",
-      latestResult: r.latest_result || "",
-      violations: r.violations || [],
+      id: `county-${i}-${p.name}`,
+      business_id: `county-${i}-${p.name}`,
+      name: p.name, address: p.address || "", city: p.city || stateName,
+      zip_code: p.zip_code || "", safetyScore,
+      grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      totalInspections: insp?.total_inspections || 0,
+      latestDate: insp?.latest_date || "",
+      latestResult: insp?.latest_result || "",
+      violations: insp?.violations || [],
+      latitude: p.latitude ?? null,
+      longitude: p.longitude ?? null,
       isLLMData: true, source: "llm",
     };
-  };
+  });
 
-  return {
-    topRated:   (result?.top_rated   || []).map((r, i) => mapItem(r, "top",   i)).sort((a, b) => b.safetyScore - a.safetyScore),
-    worstRated: (result?.worst_rated || []).map((r, i) => mapItem(r, "worst", i)).sort((a, b) => a.safetyScore - b.safetyScore),
-  };
+  // Graded first (best to worst), then verified-but-ungraded
+  restaurants.sort((a, b) => (b.safetyScore ?? -1) - (a.safetyScore ?? -1));
+  return { restaurants };
 }
 
 // ── Live API registry ─────────────────────────────────────────────────────────
@@ -200,7 +202,11 @@ function RestaurantRow({ restaurant, rank, onClick }) {
       onClick={onClick}
     >
       <div className="text-slate-400 font-bold text-sm w-5 text-center flex-shrink-0">#{rank}</div>
-      <ScoreGauge score={restaurant.safetyScore} size="sm" />
+      {restaurant.safetyScore != null ? (
+        <ScoreGauge score={restaurant.safetyScore} size="sm" />
+      ) : (
+        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-extrabold text-sm flex-shrink-0">U</div>
+      )}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-slate-900 text-sm truncate">{restaurant.name}</p>
         <p className="text-xs text-slate-500 truncate flex items-center gap-1">
@@ -210,7 +216,7 @@ function RestaurantRow({ restaurant, rank, onClick }) {
       </div>
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
         <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${getGradeColor(grade)}`}>{grade}</span>
-        <span className="text-xs text-slate-400">{restaurant.safetyScore}/100</span>
+        <span className="text-xs text-slate-400">{restaurant.safetyScore != null ? `${restaurant.safetyScore}/100` : "No public record"}</span>
       </div>
     </div>
   );
@@ -261,10 +267,10 @@ export default function CountyDrillDown() {
     } else {
       setIsLive(false);
       setRegionLabel(countyName ? `${countyName}, ${stateName}` : stateName);
-      fetchLLM(stateName, stateAbbr, countyName).then(({ topRated: t, worstRated: w }) => {
-        setTopRated(t);
-        setWorstRated(w);
-        setAll([...t, ...w]);
+      fetchLLM(stateName, stateAbbr, countyName).then(({ restaurants }) => {
+        setTopRated(restaurants);
+        setWorstRated([]);
+        setAll(restaurants);
         clearInterval(timer);
         setLoading(false);
       });
@@ -272,8 +278,9 @@ export default function CountyDrillDown() {
     return () => clearInterval(timer);
   }, [stateAbbr, stateName, countyName]);
 
-  const avgScore = allRestaurants.length > 0
-    ? Math.round(allRestaurants.reduce((s, r) => s + Number(r.safetyScore), 0) / allRestaurants.length)
+  const gradedRestaurants = allRestaurants.filter((r) => r.safetyScore != null);
+  const avgScore = gradedRestaurants.length > 0
+    ? Math.round(gradedRestaurants.reduce((s, r) => s + Number(r.safetyScore), 0) / gradedRestaurants.length)
     : null;
 
   return (
@@ -321,15 +328,15 @@ export default function CountyDrillDown() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className={`grid grid-cols-1 ${worstRated.length > 0 ? "lg:grid-cols-2" : ""} gap-8`}>
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-extrabold text-slate-900">Top Rated</h2>
-                    <p className="text-xs text-slate-500">Highest average safety scores</p>
+                    <h2 className="text-lg font-extrabold text-slate-900">{worstRated.length > 0 ? "Top Rated" : "Verified Restaurants"}</h2>
+                    <p className="text-xs text-slate-500">{worstRated.length > 0 ? "Highest average safety scores" : "Confirmed via Google Places · graded when official records exist"}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -339,6 +346,7 @@ export default function CountyDrillDown() {
                 </div>
               </div>
 
+              {worstRated.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
@@ -355,13 +363,14 @@ export default function CountyDrillDown() {
                   ))}
                 </div>
               </div>
+              )}
             </div>
 
             {!isLive && (
               <div className="mt-8 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-amber-800 leading-relaxed">
-                  <strong>AI-Assisted Data:</strong> {stateName} does not have a real-time public API. Results are sourced from official health department records via AI lookup and may not reflect the very latest inspections.
+                  <strong>AI-Assisted Data:</strong> {stateName} does not publish machine-readable inspection data. Restaurants shown are verified real via Google Places; a safety grade appears only when an official inspection record was found. "U" means no published record is available — it is not a bad score.
                 </p>
               </div>
             )}
