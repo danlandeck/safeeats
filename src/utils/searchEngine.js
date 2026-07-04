@@ -362,7 +362,12 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         longitude: verified[i].longitude,
         place_id: verified[i].place_id,
       });
-      let grounded = groundedRaw.map((r, i) => overlay(buildFn(r, i), i)).filter(r => !r._wrongLocation);
+      // Places addresses are authoritative. A result is in-location if the strict
+      // city check passes OR the expected city appears in the formatted address
+      // (handles village-vs-town locality mismatches, e.g. Willimantic → Windham CT).
+      const inLocation = (r) => !r._wrongLocation ||
+        (primaryCity && (r.address || "").toLowerCase().includes(primaryCity.toLowerCase()));
+      let grounded = groundedRaw.map((r, i) => overlay(buildFn(r, i), i)).filter(inLocation);
       grounded = deduplicateResults(grounded);
 
       if (grounded.length > 0) {
@@ -384,7 +389,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
                 verification_source: insp.verification_source || "Google Places",
               } : raw;
               return overlay(buildFn(merged, i), i);
-            }).filter(r => !r._wrongLocation);
+            }).filter(inLocation);
             const finalResults = deduplicateResults(enriched);
             if (finalResults.length > 0 && onAccurateResults) onAccurateResults(finalResults);
           }).catch(() => {});
