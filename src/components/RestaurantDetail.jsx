@@ -17,6 +17,7 @@ import ReportIssueButton from "./ReportIssueButton";
 import ADAAccessibilityBadge from "./ADAAccessibilityBadge";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
+import SafetyFactors from "./SafetyFactors";
 import KofiButton from "./KofiButton";
 import DataSourceBadge from "./DataSourceBadge";
 import { base44 } from "@/api/base44Client";
@@ -266,6 +267,11 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               repeatCount={totalRepeatCount}
               totalInspections={uniqueInspections.length}
             />
+          </div>
+
+          {/* Factor-by-factor breakdown: handwashing, temps, pests, cross-contamination, cleanliness */}
+          <div className="mt-4">
+            <SafetyFactors restaurant={restaurant} inspections={uniqueInspections} />
           </div>
 
           {/* ADA Accessibility */}
