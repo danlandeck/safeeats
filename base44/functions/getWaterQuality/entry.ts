@@ -341,44 +341,75 @@ async function getViolations(pwsid) {
   return Array.isArray(data) ? data : [];
 }
 
+// Case-insensitive field access — Envirofacts returns UPPERCASE or lowercase
+// keys depending on table/endpoint version. Reading only one casing silently
+// drops every violation and grades everything "Excellent" (false reassurance).
+function gv(row, field) {
+  return row?.[field] ?? row?.[field.toLowerCase()] ?? null;
+}
+
+// Public Notification Tier 1 = acute: contaminants that can make people sick
+// right away (E. coli, nitrate, etc). Column may be absent on some rows.
+function isAcute(v) {
+  return Number(gv(v, "PUBLIC_NOTIFICATION_TIER")) === 1;
+}
+
+function isUnresolved(v) {
+  const status = String(gv(v, "VIOLATION_STATUS") || "").toLowerCase();
+  if (status === "resolved" || status === "archived") return false;
+  return !gv(v, "RETURN_TO_COMPLIANCE_DATE");
+}
+
 function computeWaterGrade(violations) {
   const cutoff = new Date();
   cutoff.setFullYear(cutoff.getFullYear() - 5);
 
   const recent = violations.filter(v => {
-    const d = v.COMPL_PER_BEGIN_DATE ? new Date(v.COMPL_PER_BEGIN_DATE) : null;
-    return d && d >= cutoff;
+    const raw = gv(v, "COMPL_PER_BEGIN_DATE");
+    const d = raw ? new Date(raw) : null;
+    return d && !isNaN(d) && d >= cutoff;
   });
 
-  const unresolved = recent.filter(v => !v.RETURN_TO_COMPLIANCE_DATE);
-  const resolved   = recent.filter(v =>  v.RETURN_TO_COMPLIANCE_DATE);
+  const unresolved = recent.filter(isUnresolved);
+  const resolved   = recent.filter(v => !isUnresolved(v));
+  const acuteUnresolved = unresolved.filter(isAcute);
+  const counts = { unresolvedCount: unresolved.length, resolvedCount: resolved.length };
 
-  if (unresolved.length >= 2) return {
+  // Acute contaminant OR multiple unfixed health rules → clear "no" (the Flint case)
+  if (acuteUnresolved.length > 0 || unresolved.length >= 2) return {
     grade: "not_recommended", label: "Not Recommended", emoji: "🚫",
-    verdict: "Order a bottle or can — tap water has unresolved health violations.",
-    detail: `${unresolved.length} unresolved EPA health-based violations in the past 5 years.`,
+    verdict: "Skip the tap here — order bottled or canned drinks.",
+    detail: acuteUnresolved.length > 0
+      ? "This water system is currently violating a federal rule for a contaminant that can make people sick right away."
+      : `This water system is currently violating ${unresolved.length} federal health rules that haven't been fixed yet.`,
     violations: unresolved.slice(0, 3),
+    ...counts,
   };
 
+  // One unfixed health rule is still an active violation — say so plainly.
   if (unresolved.length === 1) return {
-    grade: "drinkable", label: "Drinkable", emoji: "⚠️",
-    verdict: "Drinkable, but consider a bottled option if you're cautious.",
-    detail: `1 unresolved EPA health-based violation. Resolved violations: ${resolved.length} in the past 5 years.`,
+    grade: "drinkable", label: "Use Caution", emoji: "⚠️",
+    verdict: "This water system is currently breaking one federal health rule. Bottled is the safer choice until it's fixed.",
+    detail: `1 unfixed EPA health violation. ${resolved.length} past violation(s) were fixed in the last 5 years.`,
     violations: unresolved.slice(0, 3),
+    ...counts,
   };
 
-  if (resolved.length >= 3) return {
+  // Any resolved history → "good" (honest: problems happened, they were fixed)
+  if (resolved.length > 0) return {
     grade: "good", label: "Good", emoji: "✅",
-    verdict: "Tap water (including soda fountains) is safe to drink.",
-    detail: `No current violations. ${resolved.length} past violations were resolved. Water meets all EPA standards.`,
+    verdict: "Tap water here meets federal health rules today. Past problems were found and fixed.",
+    detail: `No current violations. ${resolved.length} past violation(s) were fixed within the last 5 years.`,
     violations: [],
+    ...counts,
   };
 
   return {
     grade: "excellent", label: "Excellent", emoji: "💧",
-    verdict: "Tap water is excellent — order freely from the tap or soda fountain.",
-    detail: "No health-based violations found in the past 5 years. This water system meets or exceeds all EPA standards.",
+    verdict: "No federal health violations in the past 5 years — drink from the tap with confidence.",
+    detail: "This water system has a clean EPA record for the past 5 years.",
     violations: [],
+    ...counts,
   };
 }
 
@@ -459,6 +490,8 @@ Deno.serve(async (req) => {
       state: stateUpper,
       populationServed: system.POPULATION_SERVED_COUNT || system.population_served_count,
       ...result,
+      checkedAt: new Date().toISOString(),
+      dataWindowYears: 5,
       epaUrl: `https://enviro.epa.gov/enviro/sdw_report_v3.first_table?pws_id=${pwsid}&state=${stateUpper}&source=Both&population=0&sys_num=0`,
     });
 
