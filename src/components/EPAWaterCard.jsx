@@ -26,11 +26,21 @@ function ewgUrlForZip(zip) {
   return `https://www.ewg.org/tapwater/search-results.php?zip5=${zip}&searchtype=zip`;
 }
 
+// v2: versioned key invalidates verdicts cached under the old grading logic,
+// and a TTL keeps water status from going stale forever.
+const CACHE_KEY = "epa-water-cache-v2";
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 function loadCache() {
-  try { return JSON.parse(localStorage.getItem("epa-water-cache") || "{}"); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch { return {}; }
 }
 function saveCache(cache) {
-  try { localStorage.setItem("epa-water-cache", JSON.stringify(cache)); } catch {}
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
+}
+function getCached(cache, key) {
+  const entry = cache[key];
+  if (!entry || !entry.ts || Date.now() - entry.ts > CACHE_TTL_MS) return null;
+  return entry.data;
 }
 
 export default function EPAWaterCard({ restaurant }) {
@@ -48,8 +58,9 @@ export default function EPAWaterCard({ restaurant }) {
   useEffect(() => {
     if (shouldSkip || !city || !state) return;
     const cache = loadCache();
-    if (cache[cacheKey]) {
-      setData(cache[cacheKey]);
+    const cached = getCached(cache, cacheKey);
+    if (cached) {
+      setData(cached);
       return;
     }
     setLoading(true);
@@ -61,7 +72,7 @@ export default function EPAWaterCard({ restaurant }) {
     }).then((res) => {
       const d = res.data || {};
       const cache = loadCache();
-      cache[cacheKey] = d;
+      cache[cacheKey] = { data: d, ts: Date.now() };
       saveCache(cache);
       setData(d);
     }).catch(() => {
@@ -95,7 +106,7 @@ export default function EPAWaterCard({ restaurant }) {
           <Droplets className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
           <div className="min-w-0">
             <span>💧 Tap Water Quality</span>
-            <div className="text-[9px] text-slate-500 font-semibold">EPA data unavailable for this area — check EWG by zip code</div>
+            <div className="text-[9px] text-slate-500 font-semibold">No public water system on file here — this area may use private well water, which the EPA doesn't test. Check EWG by zip:</div>
           </div>
         </div>
         <a
@@ -162,10 +173,16 @@ export default function EPAWaterCard({ restaurant }) {
       <p className={`mt-1.5 text-[10px] leading-snug ${style.text} opacity-90`}>
         {data.verdict}
       </p>
-      <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60">
-        <ShieldCheck className="w-2.5 h-2.5 text-slate-400" />
-        <span className="text-[9px] text-slate-400 font-semibold">
-          Live EPA SDWIS data · {data.detail ? "verified violations history" : "no violations found"}
+      <div className="flex flex-col gap-0.5 mt-1.5 pt-1.5 border-t border-slate-200/60">
+        <div className="flex items-center gap-1">
+          <ShieldCheck className="w-2.5 h-2.5 text-slate-400 flex-shrink-0" />
+          <span className="text-[9px] text-slate-400 font-semibold">
+            Live EPA SDWIS data · last 5 years of health violations
+            {data.checkedAt ? ` · checked ${new Date(data.checkedAt).toLocaleDateString()}` : ""}
+          </span>
+        </div>
+        <span className="text-[9px] text-slate-400">
+          EWG uses stricter health guidelines than federal law, so its report may flag more than the EPA does.
         </span>
       </div>
     </div>
