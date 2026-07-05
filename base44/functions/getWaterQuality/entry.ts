@@ -334,7 +334,10 @@ async function findWaterSystemByCounty(countyName, state) {
 }
 
 async function getViolations(pwsid) {
-  const url = `${ENVIROFACTS_BASE}/VIOLATION/PWSID/${pwsid}/IS_HEALTH_BASED_IND/Y/JSON`;
+  // Fetch ALL violations, not just health-based ones. Monitoring/reporting
+  // violations mean the system skipped required tests — and a system that
+  // doesn't test can't generate health violations. Silence ≠ safety.
+  const url = `${ENVIROFACTS_BASE}/VIOLATION/PWSID/${pwsid}/JSON`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
@@ -370,10 +373,22 @@ function computeWaterGrade(violations) {
     return d && !isNaN(d) && d >= cutoff;
   });
 
-  const unresolved = recent.filter(isUnresolved);
-  const resolved   = recent.filter(v => !isUnresolved(v));
+  // Split health-based violations (the water actually broke a health rule)
+  // from monitoring/reporting violations (the system skipped or botched
+  // required tests). Missed tests can't find problems.
+  const isHealth = v => String(gv(v, "IS_HEALTH_BASED_IND") || "").toUpperCase() === "Y";
+  const health = recent.filter(isHealth);
+  const monitoring = recent.filter(v => !isHealth(v));
+
+  const unresolved = health.filter(isUnresolved);
+  const resolved   = health.filter(v => !isUnresolved(v));
   const acuteUnresolved = unresolved.filter(isAcute);
-  const counts = { unresolvedCount: unresolved.length, resolvedCount: resolved.length };
+  const missedTests = monitoring.filter(isUnresolved);
+  const counts = {
+    unresolvedCount: unresolved.length,
+    resolvedCount: resolved.length,
+    missedTestCount: missedTests.length,
+  };
 
   // Acute contaminant OR multiple unfixed health rules → clear "no" (the Flint case)
   if (acuteUnresolved.length > 0 || unresolved.length >= 2) return {
@@ -399,15 +414,27 @@ function computeWaterGrade(violations) {
   if (resolved.length > 0) return {
     grade: "good", label: "Good", emoji: "✅",
     verdict: "Tap water here meets federal health rules today. Past problems were found and fixed.",
-    detail: `No current violations. ${resolved.length} past violation(s) were fixed within the last 5 years.`,
+    detail: `No current violations. ${resolved.length} past violation(s) were fixed within the last 5 years.` +
+      (missedTests.length > 0 ? ` Note: this system has also missed ${missedTests.length} required test(s), so its record may be incomplete.` : ""),
+    violations: [],
+    ...counts,
+  };
+
+  // Cap rule: a clean health record built on skipped tests isn't "Excellent".
+  // No test, no violation — the EPA record only shows problems a test would catch.
+  if (missedTests.length > 0) return {
+    grade: "good", label: "Good", emoji: "✅",
+    verdict: "No health violations on record — but this system has missed some required water tests, so its record may be incomplete.",
+    detail: `${missedTests.length} unresolved monitoring/reporting violation(s). A system that skips testing can't find problems.`,
+    monitoringGap: true,
     violations: [],
     ...counts,
   };
 
   return {
     grade: "excellent", label: "Excellent", emoji: "💧",
-    verdict: "No federal health violations in the past 5 years — drink from the tap with confidence.",
-    detail: "This water system has a clean EPA record for the past 5 years.",
+    verdict: "No federal health violations on record in the past 5 years.",
+    detail: "No health violations and no missed tests on record with the EPA for this system in the past 5 years.",
     violations: [],
     ...counts,
   };
