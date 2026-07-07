@@ -1,3 +1,5 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+
 // vancouverBCInspections — live restaurant inspection data from Vancouver
 // Coastal Health's public disclosure portal (inspections.vch.ca).
 // Covers Vancouver, Richmond, North Shore, Squamish, Whistler, Sunshine Coast.
@@ -25,6 +27,10 @@ const HEADERS = {
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { action, name, facilityId } = await req.json();
 
     if (action === "search") {

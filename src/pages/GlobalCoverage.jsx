@@ -40,6 +40,7 @@ const LIVE_MARKETS = [
     pill: "bg-red-600 text-white",
     sources: [
       { city: "Toronto, Ontario", note: "Toronto Public Health DineSafe — full open data CKAN API with Pass/Conditional/Closed inspection results. Tested & confirmed live.", url: "https://open.toronto.ca/dataset/dinesafe/" },
+      { city: "Vancouver, BC", note: "Vancouver Coastal Health — public disclosure portal API (inspections.vch.ca). Covers Vancouver, Richmond, North Shore, Sea-to-Sky. Full inspection history with critical/non-critical infraction counts. Tested & confirmed live.", url: "https://inspections.vch.ca/" },
     ]
   },
 ];
@@ -54,7 +55,6 @@ const AI_ENHANCED_MARKETS = [
   { city: "Seoul / South Korea", note: "Seoul Open Data Plaza and MFDS publish food sanitation data. No API connector built yet — AI reads official sources." },
   { city: "EU-wide (RASFF)", note: "EU Rapid Alert System for Food and Feed publishes real-time alerts. Not per-establishment inspection data — SafeEats uses AI for country-specific estimates." },
   { city: "Philadelphia, PA", note: "Philadelphia DPH publishes inspection results, but no Socrata/CKAN API is registered in SafeEats. AI reads official data with location-specific processing." },
-  { city: "Vancouver, BC", note: "Vancouver Coastal Health publishes inspection data. No API connector built — AI reads official sources." },
 ];
 
 const COMING_SOON = [
