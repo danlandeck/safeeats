@@ -529,6 +529,14 @@ export const REGIONS = {
     { id: "singapore", name: "Singapore (City-State)", city: "Singapore", hasPublicApi: true },
   ]},
 
+  ireland: { name: "Ireland", abbr: "IE", counties: [
+    { id: "dublin", name: "Dublin, Leinster", city: "Dublin", hasPublicApi: true },
+    { id: "cork", name: "Cork, Munster", city: "Cork", hasPublicApi: true },
+    { id: "galway", name: "Galway, Connacht", city: "Galway", hasPublicApi: true },
+    { id: "limerick", name: "Limerick, Munster", city: "Limerick", hasPublicApi: true },
+    { id: "waterford", name: "Waterford, Munster", city: "Waterford", hasPublicApi: true },
+  ]},
+
   netherlands: { name: "Netherlands", abbr: "NL", counties: [
     { id: "amsterdam", name: "Amsterdam, North Holland", city: "Amsterdam", hasPublicApi: true },
     { id: "rotterdam", name: "Rotterdam, South Holland", city: "Rotterdam", hasPublicApi: true },

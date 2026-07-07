@@ -57,24 +57,24 @@ const AI_ENHANCED_MARKETS = [
   { city: "Philadelphia, PA", note: "Philadelphia DPH publishes inspection results, but no Socrata/CKAN API is registered in SafeEats. AI reads official data with location-specific processing." },
 ];
 
-const COMING_SOON = [
-  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance, but no public API or downloadable dataset exists." },
-  { city: "France (Alim'confiance)", note: "A live, public national food safety rating system exists. SafeEats has not yet built a dedicated API connector." },
-  { city: "Germany", note: "No nationwide hygiene rating system. Some cities run local pilot programs, but data is not standardized or publicly downloadable." },
-  { city: "Brazil (São Paulo)", note: "ANVISA oversees national food safety regulation but does not publish per-establishment inspection scores as open data." },
-  { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database — it tracks licenses, not inspection results or hygiene scores." },
-  { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises, but no structured API or bulk download is offered." },
-  { city: "Denver, CO", note: "Denver publishes restaurant inspection scores, but no API is registered in SafeEats yet." },
-  { city: "Dallas County, TX", note: "Dallas County Health publishes food establishment inspections, but no API is registered in SafeEats yet." },
-  { city: "Miami-Dade County, FL", note: "Miami-Dade publishes public food safety inspection data, but no API is registered in SafeEats yet." },
-  { city: "Las Vegas / Clark County, NV", note: "SNHD publishes searchable inspection records, but no API is registered in SafeEats yet." },
-  { city: "Ottawa, Ontario", note: "Ottawa Public Health publishes food premise inspection reports, but no API is registered in SafeEats yet." },
-  { city: "Calgary, Alberta", note: "Calgary Environmental Health publishes food establishment inspection results, but no API is registered in SafeEats yet." },
-  { city: "South Australia", note: "SA Health Food Safety Rating Scheme exists, but no centralized API is available." },
-  { city: "New Zealand", note: "NZ MPI tracks food safety compliance nationwide, but no per-establishment API is available." },
-  { city: "Abu Dhabi, UAE", note: "ADAFSA publishes inspection and compliance data, but no API connector is built." },
-  { city: "Netherlands", note: "NVWA publishes inspection results, but no API connector is built." },
-  { city: "Ireland", note: "FSAI publishes enforcement orders and closure notices, but no per-establishment API is available." },
+const AI_RESEARCH_MARKETS = [
+  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance via local 保健所 (health centers). No public API — SafeEats uses AI to read official Japanese health inspection records." },
+  { city: "France (Alim'confiance)", note: "A live public national food safety rating system (alim-confiance.gouv.fr) with 4-tier results. No API connector — AI reads the official DGCCRF database." },
+  { city: "Germany", note: "No nationwide hygiene rating system. Local Lebensmittelüberwachung offices publish some results. AI reads verbraucherportal.de and state health authority records." },
+  { city: "Brazil (São Paulo)", note: "ANVISA oversees national regulation; VISA São Paulo publishes inspection records. No per-establishment API — AI reads Vigilância Sanitária records." },
+  { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database (fssai.gov.in). AI reads FSSAI registration data and municipal corporation food safety records." },
+  { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises (fehd.gov.hk). No structured API — AI reads official FEHD records." },
+  { city: "Denver, CO", note: "Denver publishes restaurant inspection scores publicly. No API registered — AI reads official Denver Environmental Health records." },
+  { city: "Dallas County, TX", note: "Dallas County Health publishes food establishment inspections. No API registered — AI reads official county health records." },
+  { city: "Miami-Dade County, FL", note: "Miami-Dade publishes public food safety inspection data. No API registered — AI reads official county health records." },
+  { city: "Las Vegas / Clark County, NV", note: "SNHD publishes searchable inspection records. No API registered — AI reads official Southern Nevada Health District records." },
+  { city: "Ottawa, Ontario", note: "Ottawa Public Health publishes food premise inspection reports. No API registered — AI reads official Ottawa Public Health records." },
+  { city: "Calgary, Alberta", note: "Calgary Environmental Health (Alberta Health Services) publishes inspection results. No API — AI reads official AHS records." },
+  { city: "South Australia", note: "SA Health Food Safety Rating Scheme exists. No centralized API — AI reads official SA Health and council records." },
+  { city: "New Zealand", note: "NZ MPI tracks food safety compliance nationwide. No per-establishment API — AI reads official council FoodSafe verification records." },
+  { city: "Abu Dhabi, UAE", note: "ADAFSA publishes inspection and compliance data. No API connector — AI reads official Abu Dhabi Agriculture & Food Safety Authority records." },
+  { city: "Netherlands", note: "NVWA publishes inspection results (inspectieresultaten.nl). No API connector — AI reads official NVWA records." },
+  { city: "Ireland", note: "FSAI publishes enforcement orders and closure notices (fsai.ie). No per-establishment API — AI reads official Food Safety Authority of Ireland records." },
 ];
 
 export default function GlobalCoverage() {
@@ -211,7 +211,7 @@ export default function GlobalCoverage() {
           </div>
           <p className="text-xs text-slate-500 mb-4">These markets have varying levels of public food safety data — from live government portals to licensing-only databases. None are currently wired as live API sources; results come from AI-estimated research.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {COMING_SOON.map((item, i) => (
+            {AI_RESEARCH_MARKETS.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-amber-100 p-3 shadow-sm">
                 <p className="font-bold text-slate-800 text-xs">{item.city}</p>
                 <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{item.note}</p>

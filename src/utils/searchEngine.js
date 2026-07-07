@@ -117,6 +117,19 @@ const COUNTRY_CONTEXT = {
   sharjah:      "Prioritize: Sharjah City Municipality food safety inspection records.",
   // Singapore handled by live API — keep as LLM fallback description
   singapore:    "Prioritize: SFA/NEA food hygiene grades (A/B/C/D/E scale), SFA food establishment inspections (sfa.gov.sg).",
+  // US cities without live API connectors — AI reads official portals
+  denver:       "Prioritize: Denver Environmental Health & Safety restaurant inspection scores (denvergov.org). Score is 0-100 or Pass/Fail.",
+  dallas:       "Prioritize: Dallas County Health and Human Services food establishment inspection records (dallascounty.org).",
+  miami:        "Prioritize: Miami-Dade County food inspection database (miamidade.gov). Look for inspection scores and violation details.",
+  las_vegas:    "Prioritize: Southern Nevada Health District (SNHD) restaurant inspection database (snhd.info). Clark County inspections.",
+  // Canada — cities without live API
+  ottawa:       "Prioritize: Ottawa Public Health food premise inspection reports (ottawapublichealth.ca). Look for Pass/Conditional/Closed results.",
+  // Ireland
+  dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
+  cork:         "Prioritize: FSAI (fsai.ie) and Cork City Council food safety inspection records.",
+  galway:       "Prioritize: FSAI (fsai.ie) and Galway City Council food safety inspection records.",
+  limerick:     "Prioritize: FSAI (fsai.ie) and Limerick City Council food safety inspection records.",
+  waterford:    "Prioritize: FSAI (fsai.ie) and Waterford City Council food safety inspection records.",
 };
 
 // Trimmed schema — only fields needed for the search results list.
