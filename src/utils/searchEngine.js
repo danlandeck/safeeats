@@ -124,6 +124,23 @@ const COUNTRY_CONTEXT = {
   las_vegas:    "Prioritize: Southern Nevada Health District (SNHD) restaurant inspection database (snhd.info). Clark County inspections.",
   // Canada — cities without live API
   ottawa:       "Prioritize: Ottawa Public Health food premise inspection reports (ottawapublichealth.ca). Look for Pass/Conditional/Closed results.",
+  // US cities without live API — county/city health departments
+  tacoma:       "Prioritize: Tacoma-Pierce County Health Department (tpchd.org) restaurant inspection database. Search for inspection scores, critical violations, and blue/red card ratings.",
+  spokane:      "Prioritize: Spokane Regional Health District (srhd.org) restaurant inspection records and food safety scores.",
+  portland:     "Prioritize: Multnomah County Environmental Health (multco.us) restaurant inspection scores and Oregon Health Authority food safety records.",
+  phoenix:      "Prioritize: Maricopa County Environmental Services (maricopa.gov) restaurant inspection database — search by facility name and address.",
+  orlando:      "Prioritize: Florida DBPR (myfloridalicense.com) Division of Hotels and Restaurants inspection reports — search by business name and address.",
+  philadelphia: "Prioritize: Philadelphia Department of Public Health (phila.gov) restaurant inspection database and PA Department of Agriculture food safety records.",
+  atlanta:      "Prioritize: Fulton County Environmental Health Services restaurant inspection scores and Georgia Department of Public Health food safety records.",
+  nashville:    "Prioritize: Nashville/Davidson County Metro Public Health Department restaurant inspection scores.",
+  charlotte:    "Prioritize: Mecklenburg County Environmental Health restaurant inspection database (mecknc.gov).",
+  raleigh:      "Prioritize: Wake County Environmental Health (wake.gov) restaurant inspection scores and NC Department of Agriculture food safety records.",
+  columbus:     "Prioritize: Columbus Public Health (columbus.gov) restaurant inspection database and Ohio Department of Agriculture food safety records.",
+  minneapolis:  "Prioritize: Minneapolis Environmental Health (minneapolismn.gov) and Hennepin County Environmental Health restaurant inspection records.",
+  pittsburgh:   "Prioritize: Allegheny County Health Department (achd.net) restaurant inspection database and PA Department of Agriculture records.",
+  sacramento:   "Prioritize: Sacramento County Environmental Management Department (emd.saccounty.gov) restaurant inspection database.",
+  san_diego:    "Prioritize: San Diego County Department of Environmental Health (sdcounty.ca.gov) food inspection database.",
+  seattle_no_kc: "Prioritize: Washington State Department of Health (doh.wa.gov) and local county health department restaurant inspection records.",
   // Ireland
   dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
   cork:         "Prioritize: FSAI (fsai.ie) and Cork City Council food safety inspection records.",
@@ -186,11 +203,11 @@ const INSPECTION_SCHEMA = {
   },
 };
 
-const PROMPT_ENRICH = (list, location, today) =>
+const PROMPT_ENRICH = (list, location, today, ctx = "") =>
   `Today is ${today}. Below are VERIFIED, REAL restaurants${location ? ` in ${location}` : ""} (confirmed via Google Places — do NOT question their existence or alter their details).
 Search the LIVE WEB for OFFICIAL health inspection records for these EXACT establishments:
 ${list.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
-RULES:
+${ctx ? `SOURCE GUIDANCE: ${ctx}\n` : ""}RULES:
 1. Return one entry per restaurant you find inspection data for, keyed by "idx" (the number above).
 2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
 3. If you cannot find an official inspection record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.
@@ -240,6 +257,19 @@ const FAST_PROMPT = (query, location) => location
 
 function getCountryContext(countyId) {
   return COUNTRY_CONTEXT[countyId] || "";
+}
+
+/**
+ * Look up enrichment context by countyId first, then by city name slug.
+ * Lets the grounded-enrichment pass hint Gemini at the right health
+ * department even when countyId is "global".
+ */
+function getContextForLocation(countyId, locationLabel) {
+  const direct = getCountryContext(countyId);
+  if (direct) return direct;
+  if (!locationLabel) return "";
+  const city = locationLabel.split(",")[0].toLowerCase().trim().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, "_").trim();
+  return COUNTRY_CONTEXT[city] || "";
 }
 
 const FAST_PROMPT_DUBAI = (query) =>
@@ -452,7 +482,11 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
     }
   } catch { /* unreadable cache — proceed */ }
   const saveCache = (results) => {
-    try { localStorage.setItem(seCacheKey, JSON.stringify({ at: Date.now(), results })); } catch { /* quota */ }
+    try { localStorage.setItem(seCacheKey, JSON.stringify({ at: Date.now(), ttl: 24 * 60 * 60 * 1000, results })); } catch { /* quota */ }
+  };
+  // Short-lived cache (5 min) for grounded-only results before enrichment completes.
+  const saveCacheShort = (results) => {
+    try { localStorage.setItem(seCacheKey, JSON.stringify({ at: Date.now(), ttl: 5 * 60 * 1000, results })); } catch { /* quota */ }
   };
 
   // GROUNDED PATH — Google Places establishes which restaurants exist and where
@@ -518,8 +552,10 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           return { results: grounded, isAI: true };
         }
 
-        // Background: inspection enrichment for the verified list only
-        llmCall(PROMPT_ENRICH(groundedRaw, location, today), true, INSPECTION_SCHEMA)
+        // Background: inspection enrichment for the verified list only.
+        // Pass location context so Gemini knows which health department to search.
+        const enrichCtx = getContextForLocation(countyId, location);
+        llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
           .then((res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];
             const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
@@ -543,7 +579,10 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
               if (onAccurateResults) onAccurateResults(finalResults);
             }
           }).catch(() => {});
-        saveCache(grounded);
+        // Cache grounded-only results with a SHORT TTL (5 min) so a slow/failed
+        // enrichment doesn't lock users into "U" grades for 24 hours. When the
+        // enrichment completes above, saveCache overwrites with enriched results.
+        saveCacheShort(grounded);
         return { results: grounded, isAI: true };
       }
     }
