@@ -470,6 +470,8 @@ async function writeCache(base44, lookup_key, row) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const { city: rawCity, state: rawState, country, county_id, full_address } = await req.json();
 
     // Geocoding is now a lazy fallback (see step 2), not an every-request toll:
