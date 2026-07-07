@@ -16,7 +16,9 @@ import {
   processVancouverBCResults, vancouverBCToDetailRows,
   processSingaporeResults, singaporeToDetailRows,
   processNSWResults, nswToDetailRows,
+  processTacomaPierceResults, tacomaPierceToDetailRows,
 } from "./inspectionProcessors";
+import { getGrade } from "./grading";
 
 const PROCESSORS = {
   king:          { process: processKingCountyResults,  toDetailRows: null },
@@ -39,6 +41,7 @@ const SOURCE_TO_COUNTY = {
   ny_state: "ny_state", toronto: "toronto",
   boston: "boston", houston: "houston",
   stanislaus: "stanislaus",
+  tacoma_pierce: "pierce",
   singapore: "singapore",
   australia_nsw: "sydney", australia_qld: "brisbane",
 };
@@ -125,7 +128,8 @@ const COUNTRY_CONTEXT = {
   // Canada — cities without live API
   ottawa:       "Prioritize: Ottawa Public Health food premise inspection reports (ottawapublichealth.ca). Look for Pass/Conditional/Closed results.",
   // US cities without live API — county/city health departments
-  tacoma:       "Prioritize: Tacoma-Pierce County Health Department (tpchd.org) restaurant inspection database. Search for inspection scores, critical violations, and blue/red card ratings.",
+  pierce:       "Tacoma-Pierce County Health Department (tpchd.org). TPCHD rating system based on red critical violation points from last 4 routine inspections: Great (≤135 red points)→score 90-100, Okay (136-299 red points)→score 70-89, Needs to Improve (≥300 red points)→score 40-69, Closed→score 0-39. Inspection reports at aca-prod.accela.com/TPCHD. Blue=non-critical, Red=critical violations likely to cause foodborne illness. Inspections 1-4 times/year.",
+  tacoma:       "Tacoma-Pierce County Health Department (tpchd.org). TPCHD rating system based on red critical violation points from last 4 routine inspections: Great (≤135 red points)→score 90-100, Okay (136-299 red points)→score 70-89, Needs to Improve (≥300 red points)→score 40-69, Closed→score 0-39. Inspection reports at aca-prod.accela.com/TPCHD. Blue=non-critical, Red=critical violations likely to cause foodborne illness.",
   spokane:      "Prioritize: Spokane Regional Health District (srhd.org) restaurant inspection records and food safety scores.",
   portland:     "Prioritize: Multnomah County Environmental Health (multco.us) restaurant inspection scores and Oregon Health Authority food safety records.",
   phoenix:      "Prioritize: Maricopa County Environmental Services (maricopa.gov) restaurant inspection database — search by facility name and address.",
@@ -436,7 +440,7 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
 // "none" → jurisdiction publishes no machine-readable data (skip slow AI
 // enrichment — the answer is known); "unknown" → try AI enrichment.
 const GEO_ROUTE = {
-  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king", "mercer island": "king", auburn: "king", bothell: "king", kenmore: "king", newcastle: "king", "des moines": "king", seatac: "king", woodinville: "king" } },
+  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king", "mercer island": "king", auburn: "king", bothell: "king", kenmore: "king", newcastle: "king", "des moines": "king", seatac: "king", woodinville: "king", tacoma: "pierce", puyallup: "pierce", lakewood: "pierce", "university place": "pierce", fircrest: "pierce", parkland: "pierce", spanaway: "pierce", sumner: "pierce", "bonney lake": "pierce", "gig harbor": "pierce", dupont: "pierce", steilacoom: "pierce", milton: "pierce", edgewood: "pierce", orting: "pierce", eatonville: "pierce", roy: "pierce" } },
   NY: { cities: { "new york": "nyc", brooklyn: "nyc", queens: "nyc", bronx: "nyc", "the bronx": "nyc", manhattan: "nyc", "staten island": "nyc" } },
   IL: { cities: { chicago: "cook" } },
   CA: { cities: { "san francisco": "sf", "los angeles": "la", "long beach": "la", glendale: "la", pasadena: "la", "santa monica": "la", burbank: "la", torrance: "la", modesto: "stanislaus", turlock: "stanislaus", ceres: "stanislaus" } },
@@ -886,6 +890,56 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results, isAI: false };
   }
 
+  // Tacoma-Pierce County (Accela Citizen Access portal)
+  if (countyId === "pierce") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("tacomaPierceInspections", { action: "search", name: nameQuery });
+      const facilities = res.data?.facilities || [];
+      if (facilities.length > 0) {
+        const liveResults = rankByQueryRelevance(
+          filterByNameRelevance(processTacomaPierceResults(facilities), nameQuery),
+          nameQuery, locationHint
+        );
+        if (liveResults.length > 0) {
+          // Background AI enrichment to find TPCHD inspection scores.
+          // Accela returns facility permit data but not inspection scores —
+          // the LLM searches the web for actual TPCHD ratings (Great/Okay/
+          // Needs to Improve) and converts them to 0-100 scores.
+          if (onAccurateResults) {
+            const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : "Tacoma, WA";
+            const enrichCtx = getContextForLocation("pierce", location);
+            const groundedRaw = facilities.map(f => ({
+              name: f.name, address: f.address, city: f.city, zip_code: f.zip,
+            }));
+            llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
+              .then((enrichRes) => {
+                const found = Array.isArray(enrichRes?.inspections) ? enrichRes.inspections : [];
+                const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
+                const enriched = liveResults.map((r, i) => {
+                  const insp = byIdx.get(i);
+                  if (!insp) return r;
+                  const score = insp.latest_score ?? null;
+                  return {
+                    ...r,
+                    safetyScore: score,
+                    grade: score !== null ? getGrade(score) : "U",
+                    latestDate: insp.latest_date || "",
+                    latestResult: insp.latest_result || "",
+                    totalInspections: insp.total_inspections || 0,
+                    violations: insp.violations || [],
+                  };
+                });
+                onAccurateResults(enriched);
+              }).catch(() => {});
+          }
+          return { results: liveResults, isAI: false };
+        }
+      }
+    } catch { /* Accela search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+  }
+
   // Dubai — fully isolated path
   if (countyId === "dubai") {
     const restaurants = await runWithFastResults(
@@ -957,6 +1011,11 @@ export async function fetchDetail(restaurant) {
   // Stanislaus County
   if (source === "stanislaus") {
     return stanislausToDetailRows(restaurant);
+  }
+
+  // Tacoma-Pierce County — detail from enrichment data stored on restaurant
+  if (source === "tacoma_pierce") {
+    return tacomaPierceToDetailRows(restaurant);
   }
 
   // Houston — CKAN detail fetch

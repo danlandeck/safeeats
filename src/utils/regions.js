@@ -618,6 +618,8 @@ export const SOURCE_TO_STATE = {
   delaware:      "DE",
   boston:        "MA",
   houston:       "TX",
+  pierce:        "WA",
+  tacoma_pierce: "WA",
   toronto:       null,  // Canada
   dubai:         null,  // UAE
   uk_fsa:        null,  // UK

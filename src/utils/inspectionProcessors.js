@@ -1255,6 +1255,60 @@ export function processVancouverBCResults(facilities) {
     .filter((r) => r.name && r.address);
 }
 
+// ── Tacoma-Pierce County (Accela Citizen Access portal) ──────────────────────
+// The Accela portal returns facility permit data (name, address, PR ID) but
+// NOT inspection scores in the search results. Inspection scores are found
+// via AI enrichment (Gemini web search) and merged into the restaurant objects.
+export function processTacomaPierceResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities
+    .map((f) => ({
+      business_id: f.prId,
+      name: (f.name || "").trim(),
+      address: (f.address || "").trim(),
+      city: (f.city || "").trim() || "Pierce County",
+      zip_code: (f.zip || "").trim(),
+      phone: "",
+      description: (f.facilityType || "").trim(),
+      safetyScore: null,
+      grade: "U",
+      totalInspections: 0,
+      latestDate: "",
+      latestResult: "",
+      isLLMData: false,
+      source: "tacoma_pierce",
+      ada_compliance: "unknown",
+    }))
+    .filter((r) => r.name && r.address);
+}
+
+export function tacomaPierceToDetailRows(restaurant) {
+  // If enrichment data was merged onto the restaurant object, build detail rows
+  if (restaurant.violations && Array.isArray(restaurant.violations) && restaurant.violations.length > 0) {
+    return [{
+      inspection_serial_num: `tpchd-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: String(restaurant.safetyScore ?? ""),
+      inspection_result: restaurant.latestResult || "",
+      inspection_type: "Routine",
+      violation_description: restaurant.violations.join("; "),
+      violation_type: "RED",
+      violation_points: String(restaurant.safetyScore ?? ""),
+    }];
+  }
+  // No enrichment data — return a single row showing the facility is registered
+  return [{
+    inspection_serial_num: `tpchd-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: "",
+    inspection_result: restaurant.latestResult || "Facility registered with Tacoma-Pierce County Health Department — inspection data pending",
+    inspection_type: "",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "",
+  }];
+}
+
 export function vancouverBCToDetailRows(inspections) {
   return (inspections || [])
     .map((insp) => {
