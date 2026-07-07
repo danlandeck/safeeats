@@ -530,19 +530,40 @@ Deno.serve(async (req) => {
     }
 
     const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
+
     // 3️⃣ County-level: prefer the geocoded county, fall back to the county_id map
     if (!system) {
+      const countyName = geoCounty || (county_id ? COUNTY_ID_TO_NAME[county_id] : null);
+      if (countyName) {
+        system = await findWaterSystemByCounty(countyName, state);
+        if (system) fallbackLevel = "county";
+      }
+    }
+
+    // 4️⃣ No state-level fallback: grading a rural restaurant on the largest
     // system in the state is wrong data. Say EPA data is unavailable instead;
     // the client falls back to the zip-accurate EWG link.
+    // Cache the miss too — the notFound path is the slowest (it exhausts every
+    // fallback), so repeat lookups for rural areas benefit the most.
     if (!system) {
-      return Response.json({ available: false, reason: "EPA data unavailable for this area — the city and county aren't in the EPA SDWIS database." });
+      const miss = { available: false, reason: "EPA data unavailable for this area — the city and county aren't in the EPA SDWIS database." };
+      await writeCache(base44, cacheKey, {
+        lookup_key: cacheKey,
+        city: String(city || "").toUpperCase(),
+        state: stateUpper,
+        pwsid: "NONE",
+        name: "No public water system found",
+        last_updated: new Date().toISOString(),
+        cached_response: JSON.stringify(miss),
+      });
+      return Response.json(miss);
     }
 
     const pwsid = system.PWSID || system.pwsid;
     const violations = await getViolations(pwsid);
     const result = computeWaterGrade(violations);
 
-    return Response.json({
+    const payload = {
       available: true,
       isFallback: fallbackLevel !== "city",
       fallbackLevel,
@@ -554,7 +575,20 @@ Deno.serve(async (req) => {
       checkedAt: new Date().toISOString(),
       dataWindowYears: 5,
       epaUrl: `https://enviro.epa.gov/enviro/sdw_report_v3.first_table?pws_id=${pwsid}&state=${stateUpper}&source=Both&population=0&sys_num=0`,
+    };
+
+    await writeCache(base44, cacheKey, {
+      lookup_key: cacheKey,
+      city: String(city || "").toUpperCase(),
+      state: stateUpper,
+      pwsid: String(pwsid),
+      name: payload.systemName || "Unknown",
+      population_served: Number(payload.populationServed) || 0,
+      last_updated: new Date().toISOString(),
+      cached_response: JSON.stringify(payload),
     });
+
+    return Response.json(payload);
 
   } catch (error) {
     return Response.json({ available: false, reason: error.message }, { status: 500 });
