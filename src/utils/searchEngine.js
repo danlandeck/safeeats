@@ -421,7 +421,10 @@ function geoRoute(state, city) {
 let _geoRouting = false;
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults) {
-  const location = locationLabel?.trim() || null;
+  // "Worldwide (AI Search)" is a UI placeholder, not a place — passing it to
+  // Google Places poisons the query ("...restaurant in Worldwide (AI Search)").
+  const rawLabel = locationLabel?.trim() || "";
+  const location = rawLabel && rawLabel !== "Worldwide (AI Search)" ? rawLabel : null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
   const ctx = getCountryContext(countyId);
   const buildFn = (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity);
@@ -843,16 +846,13 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results: restaurants, isAI: true };
   }
 
-  // AI global/location search
+  // AI global/location search — route through the Places-grounded fallback so
+  // uncovered cities (e.g. "Subway in Ellensburg, WA") return verified real
+  // restaurants (with addresses/zips that unlock the water card) instead of
+  // the pure-LLM path. Places also autocorrects typos ("ellenburg" → Ellensburg).
+  // aiSearchFallback degrades to the pure-AI path itself if Places finds nothing.
   const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : null;
-  const restaurants = await runWithFastResults(
-    llmCall(FAST_PROMPT(query, location), false),
-    llmCall(location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today), true),
-    (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", location || ""),
-    false,
-    onAccurateResults
-  );
-  return { results: restaurants, isAI: true };
+  return aiSearchFallback(query, countyId, location, today, onAccurateResults);
 }
 
 export async function fetchDetail(restaurant) {
