@@ -456,26 +456,73 @@ async function geocodeFullAddress(fullAddress) {
   };
 }
 
+// Best-effort cross-user cache write — never let a cache failure break the response.
+async function writeCache(base44, lookup_key, row) {
+  if (!lookup_key) return;
+  try {
+    const svc = base44.asServiceRole?.entities?.WaterSystem ?? base44.entities.WaterSystem;
+    const existing = await base44.entities.WaterSystem.filter({ lookup_key }).catch(() => []);
+    if (existing && existing[0]) await svc.update(existing[0].id, row);
+    else await svc.create(row);
+  } catch {}
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { city: rawCity, state: rawState, country, county_id, full_address } = await req.json();
 
-    // If a full address is provided, geocode it to get precise city/state/county
+    // Geocoding is now a lazy fallback (see step 2), not an every-request toll:
+    // Nominatim allows 1 req/s total — calling it per card was a scaling time bomb.
     let city = rawCity;
     let state = rawState;
     let geoCounty = null;
-    if (full_address) {
-      const geo = await geocodeFullAddress(full_address);
-      if (geo) {
-        if (geo.city) city = geo.city;
-        if (geo.state) state = geo.state;
-        if (geo.county) geoCounty = geo.county;
-      }
-    }
 
     if (country && !["us", "usa", "united states"].includes((country || "").toLowerCase())) {
       return Response.json({ available: false, reason: "Water quality data via EPA is only available for US locations." });
+    }
+
+    if (!state && !full_address) {
+      return Response.json({ available: false, reason: "State is required." });
+    }
+
+    // 0️⃣ Cross-user cache: one EPA computation per city|state per 24h, shared
+    // by every visitor — keyed the same way future requests will arrive.
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    const cacheKey = (city && state)
+      ? `${String(normalizeCity(city)).toUpperCase()}|${state.toUpperCase().trim().slice(0, 2)}`
+      : null;
+    if (cacheKey) {
+      try {
+        const hits = await base44.entities.WaterSystem.filter({ lookup_key: cacheKey });
+        const hit = hits && hits[0];
+        if (hit?.cached_response && hit.last_updated &&
+            Date.now() - new Date(hit.last_updated).getTime() < CACHE_TTL_MS) {
+          return Response.json({ ...JSON.parse(hit.cached_response), cached: true });
+        }
+      } catch {}
+    }
+
+    // 1️⃣ City-level first (with neighborhood → city normalization) — the card
+    // already sends city/state, so try the direct lookup before geocoding.
+    let system = (city && state) ? await findWaterSystemByCity(city, state) : null;
+    let fallbackLevel = system ? "city" : null;
+
+    // 2️⃣ Lazy geocode: only when the direct lookup missed
+    if (!system && full_address) {
+      const geo = await geocodeFullAddress(full_address);
+      if (geo) {
+        if (geo.county) geoCounty = geo.county;
+        if (geo.state && !state) state = geo.state;
+        const differs = geo.city && (
+          geo.city.toLowerCase() !== String(city || "").toLowerCase() ||
+          (geo.state && geo.state !== rawState)
+        );
+        if (differs) {
+          system = await findWaterSystemByCity(geo.city, geo.state || state);
+          if (system) fallbackLevel = "city";
+        }
+      }
     }
 
     if (!state) {
@@ -483,21 +530,8 @@ Deno.serve(async (req) => {
     }
 
     const stateUpper = (state || "").toUpperCase().trim().slice(0, 2);
-
-    // 1️⃣ City-level (with neighborhood → city normalization)
-    let system = city ? await findWaterSystemByCity(city, state) : null;
-    let fallbackLevel = system ? "city" : null;
-
-    // 2️⃣ County-level: prefer the geocoded county, fall back to the county_id map
+    // 3️⃣ County-level: prefer the geocoded county, fall back to the county_id map
     if (!system) {
-      const countyName = geoCounty || (county_id ? COUNTY_ID_TO_NAME[county_id] : null);
-      if (countyName) {
-        system = await findWaterSystemByCounty(countyName, state);
-        if (system) fallbackLevel = "county";
-      }
-    }
-
-    // 3️⃣ No state-level fallback: grading a rural restaurant on the largest
     // system in the state is wrong data. Say EPA data is unavailable instead;
     // the client falls back to the zip-accurate EWG link.
     if (!system) {
