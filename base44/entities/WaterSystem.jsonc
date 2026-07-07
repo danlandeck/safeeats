@@ -2,6 +2,10 @@
   "description": "EPA Community Water System data with computed water quality grade. Keyed by city|state. Public read access.",
   "name": "WaterSystem",
   "properties": {
+    "cached_response": {
+      "description": "Full getWaterQuality JSON response, cached for 24h cross-user reuse",
+      "type": "string"
+    },
     "city": {
       "description": "City name in title case",
       "type": "string"
