@@ -60,6 +60,24 @@ const CITY_TO_COUNTY = {
   "algona": { region: "washington", countyId: "king" },
   "pacific": { region: "washington", countyId: "king" },
   "milton": { region: "washington", countyId: "king" },
+  // Pierce County, WA (Tacoma-Pierce County Health Department via Accela)
+  "tacoma": { region: "washington", countyId: "pierce", locationLabel: "Tacoma, WA" },
+  "pierce county": { region: "washington", countyId: "pierce", locationLabel: "Pierce County, WA" },
+  "puyallup": { region: "washington", countyId: "pierce", locationLabel: "Puyallup, WA" },
+  "lakewood wa": { region: "washington", countyId: "pierce", locationLabel: "Lakewood, WA" },
+  "university place": { region: "washington", countyId: "pierce", locationLabel: "University Place, WA" },
+  "fircrest": { region: "washington", countyId: "pierce", locationLabel: "Fircrest, WA" },
+  "parkland wa": { region: "washington", countyId: "pierce", locationLabel: "Parkland, WA" },
+  "spanaway": { region: "washington", countyId: "pierce", locationLabel: "Spanaway, WA" },
+  "sumner": { region: "washington", countyId: "pierce", locationLabel: "Sumner, WA" },
+  "bonney lake": { region: "washington", countyId: "pierce", locationLabel: "Bonney Lake, WA" },
+  "gig harbor": { region: "washington", countyId: "pierce", locationLabel: "Gig Harbor, WA" },
+  "dupont wa": { region: "washington", countyId: "pierce", locationLabel: "DuPont, WA" },
+  "steilacoom": { region: "washington", countyId: "pierce", locationLabel: "Steilacoom, WA" },
+  "edgewood wa": { region: "washington", countyId: "pierce", locationLabel: "Edgewood, WA" },
+  "orting": { region: "washington", countyId: "pierce", locationLabel: "Orting, WA" },
+  "eatonville": { region: "washington", countyId: "pierce", locationLabel: "Eatonville, WA" },
+  "roy wa": { region: "washington", countyId: "pierce", locationLabel: "Roy, WA" },
   "medina": { region: "washington", countyId: "king" },
   "clyde hill": { region: "washington", countyId: "king" },
   "yarrow point": { region: "washington", countyId: "king" },
@@ -740,6 +758,7 @@ const LIVE_API_CITIES = [
   { label: "Boston, MA", region: "massachusetts", countyId: "boston", emoji: "🦞", example: "restaurant" },
   { label: "Houston, TX", region: "texas", countyId: "houston", emoji: "🤠", example: "barbecue" },
   { label: "Modesto / Stanislaus Co., CA", region: "california", countyId: "stanislaus", emoji: "🌾", example: "restaurant", locationLabel: "Modesto, CA" },
+  { label: "Tacoma / Pierce Co., WA", region: "washington", countyId: "pierce", emoji: "🏔️", example: "Sonic", locationLabel: "Tacoma, WA" },
 ];
 
 export default function Home() {
@@ -924,7 +943,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);

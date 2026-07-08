@@ -909,10 +909,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
           if (onAccurateResults) {
             const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : "Tacoma, WA";
             const enrichCtx = getContextForLocation("pierce", location);
-            const groundedRaw = facilities.map(f => ({
-              name: f.name, address: f.address, city: f.city, zip_code: f.zip,
+            // Build enrichment list from liveResults (already filtered+ranked)
+            // so idx values match the array we map over below.
+            const enrichList = liveResults.map(r => ({
+              name: r.name, address: r.address, city: r.city, zip_code: r.zip_code,
             }));
-            llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
+            llmCall(PROMPT_ENRICH(enrichList, location, today, enrichCtx), true, INSPECTION_SCHEMA)
               .then((enrichRes) => {
                 const found = Array.isArray(enrichRes?.inspections) ? enrichRes.inspections : [];
                 const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
