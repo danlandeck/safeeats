@@ -146,6 +146,8 @@ const COUNTRY_CONTEXT = {
   sacramento:   "Prioritize: Sacramento County Environmental Management Department (emd.saccounty.gov) restaurant inspection database.",
   san_diego:    "Prioritize: San Diego County Department of Environmental Health (sdcounty.ca.gov) food inspection database.",
   seattle_no_kc: "Prioritize: Washington State Department of Health (doh.wa.gov) and local county health department restaurant inspection records.",
+  // Connecticut — local health departments publish PDFs; AI finds data via web search
+  manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs. Also check decadeonline.com which aggregates CT inspection data. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   // Ireland
   dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
   cork:         "Prioritize: FSAI (fsai.ie) and Cork City Council food safety inspection records.",
@@ -451,7 +453,7 @@ const GEO_ROUTE = {
   MD: { cities: { rockville: "montgomery_md", bethesda: "montgomery_md", "silver spring": "montgomery_md", gaithersburg: "montgomery_md" } },
   MA: { cities: { boston: "boston" } },
   DE: { default: "delaware" },
-  CT: { none: true }, // verified: no statewide machine-readable inspection data
+  CT: {}, // CT publishes PDFs only — AI enrichment finds data via web search (decadeonline.com, manchesterct.gov)
   // Canada — Vancouver Coastal Health region (BC localities Google returns)
   BC: { cities: { vancouver: "vancouver", richmond: "vancouver", "north vancouver": "vancouver", "west vancouver": "vancouver", squamish: "vancouver", whistler: "vancouver", pemberton: "vancouver", sechelt: "vancouver", gibsons: "vancouver", "powell river": "vancouver", "bowen island": "vancouver" } },
 };
@@ -564,7 +566,17 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         }
 
         // Background: inspection enrichment for the verified list only.
-        // Pass location context so Gemini knows which health department to search.
+        // CT uses training-data-only enrichment (~5s) — web search is too slow
+        // for CT's PDF-based inspection system (30-120s timeouts).
+        if (verified[0]?.state === "CT") {
+          enrichResults(grounded, "manchester_ct", (enriched) => {
+            if (enriched && enriched.length > 0) {
+              saveCache(enriched);
+              if (onAccurateResults) onAccurateResults(enriched);
+            }
+          });
+        } else {
+        // Other locales: web-search enrichment with location context.
         const enrichCtx = getContextForLocation(countyId, location);
         llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
           .then((res) => {
@@ -590,6 +602,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
               if (onAccurateResults) onAccurateResults(finalResults);
             }
           }).catch(() => {});
+        }
         // Cache grounded-only results with a SHORT TTL (5 min) so a slow/failed
         // enrichment doesn't lock users into "U" grades for 24 hours. When the
         // enrichment completes above, saveCache overwrites with enriched results.

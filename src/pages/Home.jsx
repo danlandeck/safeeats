@@ -735,6 +735,8 @@ const CITY_TO_COUNTY = {
   "saratoga springs": { region: "new_york", countyId: "ny_state", locationLabel: "Saratoga Springs, New York" },
   "poughkeepsie": { region: "new_york", countyId: "ny_state", locationLabel: "Poughkeepsie, New York" },
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
+  // Connecticut — Manchester CT Health Department (AI web search)
+  "manchester ct": { region: "connecticut", countyId: "manchester_ct", locationLabel: "Manchester, CT" },
   // Pennsylvania — AI search with proper location label
   "philadelphia": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
   "philly": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
