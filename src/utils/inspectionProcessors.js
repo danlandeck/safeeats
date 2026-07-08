@@ -1283,17 +1283,23 @@ export function processTacomaPierceResults(facilities) {
 }
 
 export function tacomaPierceToDetailRows(restaurant) {
-  // If enrichment data was merged onto the restaurant object, build detail rows
-  if (restaurant.violations && Array.isArray(restaurant.violations) && restaurant.violations.length > 0) {
+  // If enrichment data was merged onto the restaurant object (safetyScore is
+  // set), build a detail row — even for clean inspections (no violations).
+  if (restaurant.safetyScore !== null && restaurant.safetyScore !== undefined) {
+    const violations = Array.isArray(restaurant.violations) ? restaurant.violations : [];
     return [{
       inspection_serial_num: `tpchd-${restaurant.business_id}`,
       inspection_date: restaurant.latestDate || "",
-      inspection_score: String(restaurant.safetyScore ?? ""),
-      inspection_result: restaurant.latestResult || "",
-      inspection_type: "Routine",
-      violation_description: restaurant.violations.join("; "),
-      violation_type: "RED",
-      violation_points: String(restaurant.safetyScore ?? ""),
+      // Leave inspection_score EMPTY — processRows in Home.jsx computes
+      // 100 - parseInt(inspection_score) for penalty-point sources (King County
+      // etc). TPCHD's safetyScore is already 0-100, so we must NOT put it
+      // here or it would be inverted. The biz.safetyScore passes through.
+      inspection_score: "",
+      inspection_result: restaurant.latestResult || (violations.length === 0 ? "No violations found" : "Violations found"),
+      inspection_type: "Routine Inspection (TPCHD)",
+      violation_description: violations.length > 0 ? violations.join("; ") : "No violations found during inspection",
+      violation_type: violations.length > 0 ? "RED" : "BLUE",
+      violation_points: "",
     }];
   }
   // No enrichment data — return a single row showing the facility is registered

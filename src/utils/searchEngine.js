@@ -896,8 +896,17 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   if (countyId === "pierce") {
     try {
       const { nameQuery, locationHint } = parseSearchQuery(query);
-      const res = await base44.functions.invoke("tacomaPierceInspections", { action: "search", name: nameQuery });
-      const facilities = res.data?.facilities || [];
+      // Accela does a contains-match but fails on long multi-word queries.
+      // Try the full name first; if nothing, fall back to first word only.
+      let res = await base44.functions.invoke("tacomaPierceInspections", { action: "search", name: nameQuery });
+      let facilities = res.data?.facilities || [];
+      if (facilities.length === 0) {
+        const firstWord = nameQuery.split(/\s+/)[0];
+        if (firstWord && firstWord.length >= 3 && firstWord.toLowerCase() !== nameQuery.toLowerCase()) {
+          res = await base44.functions.invoke("tacomaPierceInspections", { action: "search", name: firstWord });
+          facilities = res.data?.facilities || [];
+        }
+      }
       if (facilities.length > 0) {
         const liveResults = rankByQueryRelevance(
           filterByNameRelevance(processTacomaPierceResults(facilities), nameQuery),

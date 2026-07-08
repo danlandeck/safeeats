@@ -970,6 +970,21 @@ export default function Home() {
           if (searchIdRef.current !== currentSearchId) return;
           setResults(accurate);
           setIsRefining(false);
+          // If user is already viewing a restaurant detail, update it with
+          // the enriched score/grade so the detail page refreshes live.
+          setSelectedBusiness(prev => {
+            if (!prev) return prev;
+            const enriched = accurate.find(r => r.business_id === prev.business_id);
+            if (!enriched) return prev;
+            // Re-fetch detail rows with the enriched restaurant so the
+            // inspection timeline and violation data also update.
+            engineFetchDetail(enriched).then(rows => {
+              if (searchIdRef.current !== currentSearchId) return;
+              setDetailRows(rows);
+              setSelectedBusiness(p => p ? { ...p, inspectionHistory: rows } : p);
+            });
+            return { ...prev, ...enriched, inspectionHistory: prev.inspectionHistory };
+          });
         },
         onCountUpdate: (bizId, trueCount) => {
           if (searchIdRef.current !== currentSearchId) return;

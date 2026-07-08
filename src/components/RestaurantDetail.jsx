@@ -62,6 +62,7 @@ const SOURCE_REGISTRY = {
   delaware:       { name: "Delaware Division of Public Health — Office of Food Protection", url: "https://www.dhss.delaware.gov/dph/hsp/hspfoodborneil.html" },
   ny_state:       { name: "New York State Dept. of Health — Food Service Establishments", url: "https://health.data.ny.gov/Health/Food-Service-Establishment-Last-Inspection/cnih-y5dw" },
   toronto:        { name: "Toronto Public Health — DineSafe", url: "https://www.toronto.ca/community-people/health-wellness-care/health-programs-advice/food-safety/dinesafe/" },
+  tacoma_pierce:  { name: "Tacoma-Pierce County Health Department", url: "https://www.tpchd.org/healthy-communities/food-safety" },
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
@@ -113,8 +114,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   }, [uniqueInspections]);
 
   const isConsistentPerformer = cleanStreak >= 3 || (uniqueInspections.length >= 3 && uniqueInspections.every((i) => {
-    const raw = i.inspection_score !== undefined ? i.inspection_score : i.score;
-    const s = raw !== undefined ? Math.max(0, 100 - parseInt(raw)) : restaurant.safetyScore;
+    const raw = (i.inspection_score !== undefined && i.inspection_score !== "") ? i.inspection_score : i.score;
+    const s = raw !== undefined && raw !== "" ? Math.max(0, 100 - parseInt(raw)) : restaurant.safetyScore;
     return s >= 85;
   }));
 
