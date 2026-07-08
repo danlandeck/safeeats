@@ -214,9 +214,11 @@ ${list.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
 ${ctx ? `SOURCE GUIDANCE: ${ctx}\n` : ""}RULES:
 1. Return one entry per restaurant you find inspection data for, keyed by "idx" (the number above).
 2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
-3. If you cannot find an official inspection record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.
-4. data_confidence: "high"=official record found; "medium"=inspection referenced secondhand; "low"=uncertain match.
-5. verification_source: the URL or agency name where you found the record.`;
+3. If the inspection was CLEAN (no violations found), return latest_score: 100, latest_result: "No violations found", violations: [].
+4. If the source uses a rating system instead of numeric scores, CONVERT to a 0-100 score: "Great/Excellent/A grade" → 90-100, "Okay/Satisfactory/B grade" → 70-89, "Needs to Improve/C grade" → 40-69, "Closed/Failed/F grade" → 0-39. Always return a numeric latest_score.
+5. If you cannot find an official inspection record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.
+6. data_confidence: "high"=official record found; "medium"=inspection referenced secondhand; "low"=uncertain match.
+7. verification_source: the URL or agency name where you found the record.`;
 
 const PROMPT_LOCATION = (query, location, today) =>
   `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" in ${location} ONLY.
@@ -921,15 +923,33 @@ export async function search({ query, countyId, locationLabel, today, signal, on
                 const enriched = liveResults.map((r, i) => {
                   const insp = byIdx.get(i);
                   if (!insp) return r;
-                  const score = insp.latest_score ?? null;
+                  // Infer score: use numeric score if provided, otherwise infer
+                  // from result text / violation count (TPCHD uses Great/Okay/
+                  // Needs to Improve ratings which may not come back as numbers)
+                  let score = insp.latest_score ?? null;
+                  const resultText = (insp.latest_result || "").toLowerCase();
+                  const violations = insp.violations || [];
+                  if (score === null) {
+                    if (resultText.includes("great") || resultText.includes("excellent") || resultText.includes("a grade") || resultText.includes("no violations") || resultText.includes("clean") || violations.length === 0 && resultText) {
+                      score = 95;
+                    } else if (resultText.includes("okay") || resultText.includes("satisfactory") || resultText.includes("b grade") || resultText.includes("minor")) {
+                      score = 82;
+                    } else if (resultText.includes("needs to improve") || resultText.includes("poor") || resultText.includes("d grade") || resultText.includes("critical")) {
+                      score = 55;
+                    } else if (resultText.includes("closed") || resultText.includes("f grade") || resultText.includes("shut down")) {
+                      score = 25;
+                    } else if (violations.length === 0) {
+                      score = 95; // clean inspection, no violations
+                    }
+                  }
                   return {
                     ...r,
                     safetyScore: score,
                     grade: score !== null ? getGrade(score) : "U",
                     latestDate: insp.latest_date || "",
                     latestResult: insp.latest_result || "",
-                    totalInspections: insp.total_inspections || 0,
-                    violations: insp.violations || [],
+                    totalInspections: insp.total_inspections || (score !== null ? 1 : 0),
+                    violations,
                   };
                 });
                 onAccurateResults(enriched);
