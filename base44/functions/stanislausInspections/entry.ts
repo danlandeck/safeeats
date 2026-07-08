@@ -15,15 +15,14 @@ function parseHtmlTable(html, nameFilter) {
   const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
   const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
 
-  let passedHeader = false;
   const normalize = (s) => (s || "").toLowerCase().replace(/[''\-]/g, "").replace(/\s+/g, " ").trim();
   const filterNorm = nameFilter ? normalize(nameFilter) : null;
 
   let rowMatch;
   while ((rowMatch = rowRegex.exec(html)) !== null) {
     const rowHtml = rowMatch[1];
-    if (/<th/i.test(rowHtml)) { passedHeader = true; continue; }
-    if (!passedHeader) continue;
+    // Skip header rows
+    if (/<th/i.test(rowHtml)) continue;
 
     const cells = [];
     let cellMatch;

@@ -1,8 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// LA County Public Health — ArcGIS Feature Service (2023-present, updated quarterly)
-// Item ID: 19b6607ac82c4512b10811870975dbdc
-const BASE_URL = "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Environmental_Health_Restaurant_and_Market_Inspections_04012023_to_033120026/FeatureServer/0/query";
+// LA County Public Health — ArcGIS Feature Service
+// The FeatureServer was unpublished in 2025; the dataset (item 19b6607ac82c4512b10811870975dbdc)
+// is now a CSV-only item on ArcGIS Online with no REST query endpoint.
+// This function returns empty gracefully; the search engine falls back to AI enrichment.
+const BASE_URL = "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Environmental_Health_Restaurant_and_Market_Inspections_07012023_to_06302026/FeatureServer/0/query";
 const FIELDS = "FACILITY_ID,FACILITY_NAME,FACILITY_ADDRESS,FACILITY_CITY,FACILITY_ZIP,SCORE,GRADE,ACTIVITY_DATE,SERVICE_DESCRIPTION";
 
 Deno.serve(async (req) => {

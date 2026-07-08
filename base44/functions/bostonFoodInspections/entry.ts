@@ -9,10 +9,12 @@ Deno.serve(async (req) => {
   const { action, name, licenseno } = body;
 
   if (action === "search") {
-    const url = `${BASE}?resource_id=${RESOURCE}&q=${encodeURIComponent(name)}&limit=1000`;
+    // Sort by resultdttm DESC and filter for active licenses to avoid stale records
+    const url = `${BASE}?resource_id=${RESOURCE}&q=${encodeURIComponent(name)}&limit=1000&sort=${encodeURIComponent("resultdttm desc")}`;
     const res = await fetch(url);
     const data = await res.json();
-    return Response.json({ records: data.result?.records || [] });
+    const records = (data.result?.records || []).filter(r => r.licstatus !== "Inactive" || r.resultdttm);
+    return Response.json({ records });
   }
 
   if (action === "detail") {

@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
   const { action, name, facilityAccountNumber } = body;
 
   if (action === "search") {
-    const url = `${BASE}?resource_id=${RESOURCE}&q=${encodeURIComponent(name)}&limit=1000`;
+    // Sort by InspectionDate DESC to get most recent inspections first
+    const url = `${BASE}?resource_id=${RESOURCE}&q=${encodeURIComponent(name)}&limit=1000&sort=${encodeURIComponent("InspectionDate desc")}`;
     const res = await fetch(url);
     const data = await res.json();
     return Response.json({ records: data.result?.records || [] });
