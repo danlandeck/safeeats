@@ -483,10 +483,11 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 
   // 24h result cache: repeat searches render instantly. Enriched results
   // overwrite grounded-only results as they land.
-  const seCacheKey = `se-ai-cache:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  const seCacheKey = `se-ai-cache-v2:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
   try {
     const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
-    if (hit && Date.now() - hit.at < 24 * 60 * 60 * 1000 && Array.isArray(hit.results) && hit.results.length > 0) {
+    const hitTtl = hit?.ttl || 5 * 60 * 1000;
+    if (hit && Date.now() - hit.at < hitTtl && Array.isArray(hit.results) && hit.results.length > 0) {
       // Cached results are final — no background enrichment is running.
       // isAI: false prevents a phantom "verifying" spinner that never resolves.
       return { results: hit.results, isAI: false };

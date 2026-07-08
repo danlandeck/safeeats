@@ -118,6 +118,14 @@ If you don't have data for a restaurant, OMIT it from the array.`;
         totalInspections: insp.total_inspections || r.totalInspections || (score !== null ? 1 : 0),
         violations,
         isLLMData: true,
+        allInspections: insp.latest_date ? [{
+          date: insp.latest_date,
+          score: score,
+          result: insp.latest_result || "",
+          type: "Routine",
+          violation_points: score !== null ? Math.max(0, 100 - score) : 0,
+          violations: (insp.violations || []).map(v => ({ description: v, severity: "minor", points: 0 })),
+        }] : (r.allInspections || []),
       };
     });
     onAccurateResults(enriched);
