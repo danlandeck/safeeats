@@ -19,6 +19,7 @@ import {
   processTacomaPierceResults, tacomaPierceToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
+import { enrichResults, isStale } from "./backgroundEnrich";
 
 const PROCESSORS = {
   king:          { process: processKingCountyResults,  toDetailRows: null },
@@ -773,7 +774,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         nameQuery,
         locationHint
       );
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      if (liveResults.length > 0) {
+        // VCH returns infraction counts but often null lastInspectionDate —
+        // background LLM enrichment fills in dates and current inspection results.
+        enrichResults(liveResults, "vancouver", onAccurateResults);
+        return { results: liveResults, isAI: false };
+      }
     } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
@@ -795,7 +801,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const res = await base44.functions.invoke("bostonFoodInspections", { action: "search", name: query });
       const records = res.data?.records || [];
       const liveResults = filterByNameRelevance(processBostonResults(records), query);
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      if (liveResults.length > 0) {
+        // Boston CKAN has current data but scores are computed from violation
+        // counts. Enrichment adds any missing dates/scores from LLM training data.
+        enrichResults(liveResults, "boston", onAccurateResults);
+        return { results: liveResults, isAI: false };
+      }
     } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
@@ -806,7 +817,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const res = await base44.functions.invoke("stanislausInspections", { action: "search", name: query });
       const facilities = res.data?.facilities || [];
       const liveResults = filterByNameRelevance(processStanislausResults(facilities), query);
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      if (liveResults.length > 0) {
+        // Stanislaus portal returns dates + permit status but no numeric scores.
+        // Background LLM enrichment fills in inspection scores.
+        enrichResults(liveResults, "stanislaus", onAccurateResults);
+        return { results: liveResults, isAI: false };
+      }
     } catch { /* live API failed — fall through to AI */ }
     // Not in county database — fall back to AI web search
     const location = locationLabel?.trim() || "Modesto, Stanislaus County, CA";
@@ -837,7 +853,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
       const records = res.data?.records || [];
       const liveResults = filterByNameRelevance(processHoustonResults(records), query);
-      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      if (liveResults.length > 0) {
+        // Houston CKAN data is frozen at 2012 — background LLM enrichment
+        // provides current inspection scores from training data.
+        enrichResults(liveResults, "houston", onAccurateResults);
+        return { results: liveResults, isAI: false };
+      }
     } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
   }
@@ -889,6 +910,12 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         });
         }
 
+    // If any results have stale or missing inspection dates, run background
+    // LLM enrichment to provide current scores from training data.
+    if (results.some(r => isStale(r.latestDate) || r.safetyScore === null)) {
+      enrichResults(results, countyId, onAccurateResults);
+    }
+
     return { results, isAI: false };
   }
 
@@ -913,58 +940,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
           nameQuery, locationHint
         );
         if (liveResults.length > 0) {
-          // Background AI enrichment to find TPCHD inspection scores.
+          // Background LLM enrichment for TPCHD inspection scores.
           // Accela returns facility permit data but not inspection scores.
-          // Use gemini_3_flash WITHOUT web search (fast, ~5s) — TPCHD ratings
-          // are public info that restaurants must post, so the model can
-          // return them from training data. Web search times out at 90s.
-          if (onAccurateResults) {
-            const enrichList = liveResults.map(r => ({
-              name: r.name, address: r.address, city: r.city, zip_code: r.zip_code,
-            }));
-            const enrichPrompt = `For each restaurant below, return the Tacoma-Pierce County Health Department (TPCHD) food safety rating if you know it. TPCHD requires restaurants to post ratings: Great, Okay, Needs to Improve, or Closed. These are based on red critical violation points from the last 4 routine inspections.
-${enrichList.map((r, i) => `${i}. ${r.name} — ${r.address}, ${r.city}, WA ${r.zip_code}`).join("\n")}
-Return JSON with inspections array. Convert ratings to score: Great=95, Okay=80, Needs to Improve=55, Closed=25. Only return restaurants you have data for. OMIT others. Do NOT guess or fabricate.`;
-            base44.integrations.Core.InvokeLLM({
-              prompt: enrichPrompt,
-              add_context_from_internet: false,
-              response_json_schema: INSPECTION_SCHEMA,
-              model: "gemini_3_flash",
-            }).then((enrichRes) => {
-                const found = Array.isArray(enrichRes?.inspections) ? enrichRes.inspections : [];
-                const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
-                const enriched = liveResults.map((r, i) => {
-                  const insp = byIdx.get(i);
-                  if (!insp) return r;
-                  let score = insp.latest_score ?? null;
-                  const resultText = (insp.latest_result || "").toLowerCase();
-                  const violations = insp.violations || [];
-                  if (score === null) {
-                    if (resultText.includes("great") || resultText.includes("excellent") || resultText.includes("a grade") || resultText.includes("no violations") || resultText.includes("clean") || violations.length === 0 && resultText) {
-                      score = 95;
-                    } else if (resultText.includes("okay") || resultText.includes("satisfactory") || resultText.includes("b grade") || resultText.includes("minor")) {
-                      score = 82;
-                    } else if (resultText.includes("needs to improve") || resultText.includes("poor") || resultText.includes("d grade") || resultText.includes("critical")) {
-                      score = 55;
-                    } else if (resultText.includes("closed") || resultText.includes("f grade") || resultText.includes("shut down")) {
-                      score = 25;
-                    } else if (violations.length === 0) {
-                      score = 95;
-                    }
-                  }
-                  return {
-                    ...r,
-                    safetyScore: score,
-                    grade: score !== null ? getGrade(score) : "U",
-                    latestDate: insp.latest_date || "",
-                    latestResult: insp.latest_result || "",
-                    totalInspections: insp.total_inspections || (score !== null ? 1 : 0),
-                    violations,
-                  };
-                });
-                onAccurateResults(enriched);
-              }).catch(() => {});
-          }
+          enrichResults(liveResults, "pierce", onAccurateResults);
           return { results: liveResults, isAI: true };
         }
       }
