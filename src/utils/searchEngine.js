@@ -485,7 +485,9 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   try {
     const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
     if (hit && Date.now() - hit.at < 24 * 60 * 60 * 1000 && Array.isArray(hit.results) && hit.results.length > 0) {
-      return { results: hit.results, isAI: true };
+      // Cached results are final — no background enrichment is running.
+      // isAI: false prevents a phantom "verifying" spinner that never resolves.
+      return { results: hit.results, isAI: false };
     }
   } catch { /* unreadable cache — proceed */ }
   const saveCache = (results) => {
@@ -554,9 +556,11 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 
         // Jurisdiction is known to publish nothing machine-readable → the
         // grounded list IS the final answer; skip the slow web-search pass.
+        // Return isAI: false so the UI doesn't show a "verifying" spinner
+        // for a background task that was never started.
         if (route.type === "none") {
           saveCache(grounded);
-          return { results: grounded, isAI: true };
+          return { results: grounded, isAI: false };
         }
 
         // Background: inspection enrichment for the verified list only.
