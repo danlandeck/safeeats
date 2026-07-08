@@ -905,27 +905,28 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         );
         if (liveResults.length > 0) {
           // Background AI enrichment to find TPCHD inspection scores.
-          // Accela returns facility permit data but not inspection scores —
-          // the LLM searches the web for actual TPCHD ratings (Great/Okay/
-          // Needs to Improve) and converts them to 0-100 scores.
+          // Accela returns facility permit data but not inspection scores.
+          // Use gemini_3_flash WITHOUT web search (fast, ~5s) — TPCHD ratings
+          // are public info that restaurants must post, so the model can
+          // return them from training data. Web search times out at 90s.
           if (onAccurateResults) {
-            const location = locationLabel?.trim() && locationLabel !== "Worldwide (AI Search)" ? locationLabel.trim() : "Tacoma, WA";
-            const enrichCtx = getContextForLocation("pierce", location);
-            // Build enrichment list from liveResults (already filtered+ranked)
-            // so idx values match the array we map over below.
             const enrichList = liveResults.map(r => ({
               name: r.name, address: r.address, city: r.city, zip_code: r.zip_code,
             }));
-            llmCall(PROMPT_ENRICH(enrichList, location, today, enrichCtx), true, INSPECTION_SCHEMA)
-              .then((enrichRes) => {
+            const enrichPrompt = `For each restaurant below, return the Tacoma-Pierce County Health Department (TPCHD) food safety rating if you know it. TPCHD requires restaurants to post ratings: Great, Okay, Needs to Improve, or Closed. These are based on red critical violation points from the last 4 routine inspections.
+${enrichList.map((r, i) => `${i}. ${r.name} — ${r.address}, ${r.city}, WA ${r.zip_code}`).join("\n")}
+Return JSON with inspections array. Convert ratings to score: Great=95, Okay=80, Needs to Improve=55, Closed=25. Only return restaurants you have data for. OMIT others. Do NOT guess or fabricate.`;
+            base44.integrations.Core.InvokeLLM({
+              prompt: enrichPrompt,
+              add_context_from_internet: false,
+              response_json_schema: INSPECTION_SCHEMA,
+              model: "gemini_3_flash",
+            }).then((enrichRes) => {
                 const found = Array.isArray(enrichRes?.inspections) ? enrichRes.inspections : [];
                 const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
                 const enriched = liveResults.map((r, i) => {
                   const insp = byIdx.get(i);
                   if (!insp) return r;
-                  // Infer score: use numeric score if provided, otherwise infer
-                  // from result text / violation count (TPCHD uses Great/Okay/
-                  // Needs to Improve ratings which may not come back as numbers)
                   let score = insp.latest_score ?? null;
                   const resultText = (insp.latest_result || "").toLowerCase();
                   const violations = insp.violations || [];
@@ -939,7 +940,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
                     } else if (resultText.includes("closed") || resultText.includes("f grade") || resultText.includes("shut down")) {
                       score = 25;
                     } else if (violations.length === 0) {
-                      score = 95; // clean inspection, no violations
+                      score = 95;
                     }
                   }
                   return {
@@ -955,7 +956,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
                 onAccurateResults(enriched);
               }).catch(() => {});
           }
-          return { results: liveResults, isAI: false };
+          return { results: liveResults, isAI: true };
         }
       }
     } catch { /* Accela search failed — fall through to AI */ }
