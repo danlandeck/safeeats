@@ -20,6 +20,7 @@ import {
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
+import { resolveJurisdiction } from "./routing";
 
 const PROCESSORS = {
   king:          { process: processKingCountyResults,  toDetailRows: kingToDetailRows },
@@ -439,34 +440,8 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
   });
 }
 
-// ── GEO-ROUTING TABLE ─────────────────────────────────────────────────────────
-// Maps a verified address (state + locality from Google Places) to the
-// inspection source that serves it. type "registry" → live API countyId;
-// "none" → jurisdiction publishes no machine-readable data (skip slow AI
-// enrichment — the answer is known); "unknown" → try AI enrichment.
-const GEO_ROUTE = {
-  WA: { cities: { seattle: "king", bellevue: "king", kent: "king", renton: "king", redmond: "king", kirkland: "king", "federal way": "king", sammamish: "king", shoreline: "king", burien: "king", tukwila: "king", issaquah: "king", "mercer island": "king", auburn: "king", bothell: "king", kenmore: "king", newcastle: "king", "des moines": "king", seatac: "king", woodinville: "king", tacoma: "pierce", puyallup: "pierce", lakewood: "pierce", "university place": "pierce", fircrest: "pierce", parkland: "pierce", spanaway: "pierce", sumner: "pierce", "bonney lake": "pierce", "gig harbor": "pierce", dupont: "pierce", steilacoom: "pierce", milton: "pierce", edgewood: "pierce", orting: "pierce", eatonville: "pierce", roy: "pierce" } },
-  NY: { cities: { "new york": "nyc", brooklyn: "nyc", queens: "nyc", bronx: "nyc", "the bronx": "nyc", manhattan: "nyc", "staten island": "nyc" } },
-  IL: { cities: { chicago: "cook" } },
-  CA: { cities: { "san francisco": "sf", "los angeles": "la", "long beach": "la", glendale: "la", pasadena: "la", "santa monica": "la", burbank: "la", torrance: "la", modesto: "stanislaus", turlock: "stanislaus", ceres: "stanislaus" } },
-  TX: { cities: { austin: "travis", houston: "houston" } },
-  MD: { cities: { rockville: "montgomery_md", bethesda: "montgomery_md", "silver spring": "montgomery_md", gaithersburg: "montgomery_md" } },
-  MA: { cities: { boston: "boston" } },
-  DE: { default: "delaware" },
-  CT: {}, // CT publishes PDFs only — AI enrichment finds data via web search (decadeonline.com, manchesterct.gov)
-  // Canada — Vancouver Coastal Health region (BC localities Google returns)
-  BC: { cities: { vancouver: "vancouver", richmond: "vancouver", "north vancouver": "vancouver", "west vancouver": "vancouver", squamish: "vancouver", whistler: "vancouver", pemberton: "vancouver", sechelt: "vancouver", gibsons: "vancouver", "powell river": "vancouver", "bowen island": "vancouver" } },
-};
-
-function geoRoute(state, city) {
-  const entry = GEO_ROUTE[(state || "").toUpperCase().trim()];
-  if (!entry) return { type: "unknown" };
-  if (entry.none) return { type: "none" };
-  const c = (city || "").toLowerCase().trim();
-  if (entry.cities && entry.cities[c]) return { type: "registry", countyId: entry.cities[c] };
-  if (entry.default) return { type: "registry", countyId: entry.default };
-  return { type: "unknown" };
-}
+// GEO-ROUTING: now handled by src/utils/routing.js (backed by src/config/dataSources.json)
+// resolveJurisdiction(state, city) → { type: "registry"|"none"|"unknown", countyId? }
 
 // Re-entrancy guard: a geo-routed search() call that itself falls back to AI
 // must not geo-route again.
@@ -542,7 +517,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
       if (grounded.length > 0) {
         // GEO-ROUTING: derive the inspection jurisdiction from the verified
         // address rather than the user's dropdown selection.
-        const route = geoRoute(verified[0].state, verified[0].city);
+        const route = resolveJurisdiction(verified[0].state, verified[0].city);
 
         // Address sits in live-API territory → query the real source (no LLM)
         if (route.type === "registry" && route.countyId !== countyId && !_geoRouting) {

@@ -1,11 +1,12 @@
 import { getGrade } from "./grading";
+import { standardizeDate, extractDate } from "./date";
+import { buildDetailRowsFromMap } from "./detailRowBuilder";
 
 // ── King County ──────────────────────────────────────────────────────────────
 export function processKingCountyResults(data) {
   // ArcGIS returns { features: [{ attributes: {...} }] } — extract attributes
   const rows = Array.isArray(data) ? data : (data?.features?.map(f => f.attributes) || []);
   if (!Array.isArray(rows) || rows.length === 0) return [];
-  const toDateStr = (ts) => ts ? new Date(ts).toISOString().split('T')[0] : '';
   const businesses = {};
   rows.forEach((row) => {
     const id = row.PROGRAM_IDENTIFIER || row.NAME;
@@ -20,7 +21,7 @@ export function processKingCountyResults(data) {
       };
     }
     businesses[id].allRows.push(row);
-    const dateStr = toDateStr(row.DATE_INSPECTION);
+    const dateStr = standardizeDate(row.DATE_INSPECTION);
     const serial = `${dateStr}-${row.TYPE_INSPECTION}`;
     if (!businesses[id].inspections.find((i) => i.serial === serial)) {
       businesses[id].inspections.push({
@@ -53,10 +54,9 @@ export function processKingCountyResults(data) {
 
 export function kingToDetailRows(data) {
   const rows = Array.isArray(data) ? data : (data?.features?.map(f => f.attributes) || []);
-  const toDateStr = (ts) => ts ? new Date(ts).toISOString().split('T')[0] : '';
   return rows.map((row) => ({
-    inspection_serial_num: `${toDateStr(row.DATE_INSPECTION)}-${row.TYPE_INSPECTION}-${row.FEATURE_ID || row.OBJECTID || Math.random()}`,
-    inspection_date: toDateStr(row.DATE_INSPECTION),
+    inspection_serial_num: `${standardizeDate(row.DATE_INSPECTION)}-${row.TYPE_INSPECTION}-${row.FEATURE_ID || row.OBJECTID || Math.random()}`,
+    inspection_date: standardizeDate(row.DATE_INSPECTION),
     inspection_score: String(row.SCORE_INSPECTION || 0),
     inspection_result: row.RESULT_INSPECTION || "",
     inspection_type: row.TYPE_INSPECTION || "",
@@ -337,8 +337,7 @@ export function processLAResults(data) {
         inspections: [],
       };
     }
-    const dateMs = row.ACTIVITY_DATE;
-    const dateStr = dateMs ? new Date(dateMs).toISOString().split("T")[0] : "";
+    const dateStr = standardizeDate(row.ACTIVITY_DATE);
     if (dateStr && !businesses[id].inspections.find((i) => i.date === dateStr)) {
       businesses[id].inspections.push({
         date: dateStr,
@@ -369,8 +368,7 @@ export function laToDetailRows(data) {
   const seen = new Set();
   const rows = [];
   data.forEach((row) => {
-    const dateMs = row.ACTIVITY_DATE;
-    const dateStr = dateMs ? new Date(dateMs).toISOString().split("T")[0] : "unknown";
+    const dateStr = standardizeDate(row.ACTIVITY_DATE) || "unknown";
     const serial = `la-${row.FACILITY_ID}-${dateStr}`;
     if (seen.has(serial)) return;
     seen.add(serial);
@@ -451,7 +449,7 @@ export function processSFResults(data) {
       };
     }
     businesses[id].allRows.push(row);
-    const dateKey = (row.inspection_date || "").split("T")[0];
+    const dateKey = extractDate(row.inspection_date || "");
     if (dateKey && !businesses[id].inspections.find((i) => i.date === dateKey)) {
       const status = row.facility_rating_status || "";
       const violCount = parseInt(row.violation_count) || 0;
@@ -480,7 +478,7 @@ export function processSFResults(data) {
 export function sfToDetailRows(data) {
   const inspMap = {};
   data.forEach((row) => {
-    const dateKey = (row.inspection_date || "unknown").split("T")[0];
+    const dateKey = extractDate(row.inspection_date || "unknown");
     const status = row.facility_rating_status || "";
     const isClosed = /closure/i.test(status);
     const isConditional = /conditional/i.test(status);
@@ -641,7 +639,7 @@ export function processDelawareResults(data) {
     if (!businesses[key].inspections.find((i) => i.serial === dateKey)) {
       businesses[key].inspections.push({
         serial: dateKey,
-        date: row.insp_date ? row.insp_date.split("T")[0] : "",
+        date: extractDate(row.insp_date || ""),
         violation: row.violation || "",
         type: row.insp_type || "",
       });
@@ -675,7 +673,7 @@ export function delawareToDetailRows(data) {
   const inspMap = {};
   data.forEach((row) => {
     const dateKey = `${row.insp_date}-${row.insp_type}`;
-    const date = row.insp_date ? row.insp_date.split("T")[0] : "";
+    const date = extractDate(row.insp_date || "");
     if (!inspMap[dateKey]) {
       inspMap[dateKey] = { date, type: row.insp_type || "", violations: [] };
     }
@@ -717,7 +715,7 @@ export function processNYStateResults(data) {
       };
     }
     businesses[id].allRows.push(row);
-    const dateKey = row.date ? row.date.split("T")[0] : "";
+    const dateKey = extractDate(row.date || "");
     if (dateKey && !businesses[id].inspections.find((i) => i.serial === dateKey)) {
       const criticals = parseInt(row.total_critical_violations) || 0;
       const nonCriticals = parseInt(row.total_noncritical_violations) || 0;
@@ -750,7 +748,7 @@ export function processNYStateResults(data) {
 export function nyStateToDetailRows(data) {
   const inspMap = {};
   data.forEach((row) => {
-    const dateKey = row.date ? row.date.split("T")[0] : "unknown";
+    const dateKey = extractDate(row.date || "unknown");
     if (!inspMap[dateKey]) {
       const c = parseInt(row.total_critical_violations) || 0;
       const nc = parseInt(row.total_noncritical_violations) || 0;
@@ -830,18 +828,17 @@ export function processTorontoResults(records) {
 export function torontoToDetailRows(records) {
   const inspMap = {};
   records.forEach((row) => {
-    // Support both old and new schema
     const dateKey = row.inspectionDate || row["Inspection Date"] || "unknown";
     const status = row.inspectionStatus || row.Action || "";
     if (!inspMap[dateKey]) {
       const isConditional = /conditional/i.test(status);
       const isClosed = /closed/i.test(status);
       inspMap[dateKey] = {
-        inspection_serial_num: `toronto-${dateKey}`,
-        inspection_date: dateKey,
-        inspection_score: isClosed ? "40" : isConditional ? "20" : "0",
-        inspection_result: isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass",
-        inspection_type: "DineSafe Inspection",
+        serial: `toronto-${dateKey}`,
+        date: dateKey,
+        score: isClosed ? "40" : isConditional ? "20" : "0",
+        result: isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass",
+        type: "DineSafe Inspection",
         violations: [],
       };
     }
@@ -851,17 +848,7 @@ export function torontoToDetailRows(records) {
       inspMap[dateKey].violations.push({ description: infraction, isConditional });
     }
   });
-  const rows = [];
-  Object.values(inspMap).forEach((insp) => {
-    if (insp.violations.length === 0) {
-      rows.push({ ...insp, violation_description: "", violation_type: "BLUE", violation_points: "0" });
-    } else {
-      insp.violations.forEach((v) => {
-        rows.push({ ...insp, violation_description: v.description, violation_type: v.isConditional ? "RED" : "BLUE", violation_points: v.isConditional ? "10" : "2" });
-      });
-    }
-  });
-  return rows;
+  return buildDetailRowsFromMap(inspMap);
 }
 
 // ── Boston (CKAN) ───────────────────────────────────────────────────────────────
@@ -887,8 +874,7 @@ export function processBostonResults(records) {
     }
     businesses[id].allRows.push(row);
     // Group violations by inspection date
-    const rawDate = (row.resultdttm || "");
-    const dateKey = rawDate.split("T")[0] || rawDate.split(" ")[0] || "";
+    const dateKey = extractDate(row.resultdttm || "");
     if (dateKey) {
       if (!businesses[id].inspections[dateKey]) {
         const resultRaw = row.result || "";
@@ -923,40 +909,35 @@ export function processBostonResults(records) {
 export function bostonToDetailRows(records) {
   const inspMap = {};
   records.forEach((row) => {
-    const rawDate = (row.resultdttm || "");
-    const dateKey = rawDate.split("T")[0] || rawDate.split(" ")[0] || "unknown";
+    const dateKey = extractDate(row.resultdttm || "") || "unknown";
     if (!inspMap[dateKey]) {
       const resultRaw = row.result || "";
       inspMap[dateKey] = {
-        inspection_serial_num: `boston-${row.licenseno}-${dateKey}`,
-        inspection_date: dateKey,
-        inspection_score: "0",
-        inspection_result: resultRaw === "HE_Pass" ? "Pass" : resultRaw === "HE_Fail" ? "Fail" : resultRaw === "HE_Filed" ? "Violations Filed" : resultRaw,
-        inspection_type: row.descript || "Routine",
+        serial: `boston-${row.licenseno}-${dateKey}`,
+        date: dateKey,
+        score: "0",
+        result: resultRaw === "HE_Pass" ? "Pass" : resultRaw === "HE_Fail" ? "Fail" : resultRaw === "HE_Filed" ? "Violations Filed" : resultRaw,
+        type: row.descript || "Routine",
         violations: [],
       };
     }
     if (row.violdesc && row.violdesc.trim()) {
+      const isCritical = (row.viol_level || "") === "**";
       inspMap[dateKey].violations.push({
         description: row.comments ? `${row.violdesc.trim()}: ${row.comments}` : row.violdesc.trim(),
-        level: row.viol_level || "",
+        isCritical,
+        points: isCritical ? "8" : "2",
+        type: isCritical ? "RED" : "BLUE",
       });
     }
   });
-  const rows = [];
+  // Compute aggregate score per inspection
   Object.values(inspMap).forEach((insp) => {
-    const criticals = insp.violations.filter((v) => v.level === "**").length;
-    const minors = insp.violations.filter((v) => v.level !== "**").length;
-    insp.inspection_score = String(criticals * 8 + minors * 2);
-    if (insp.violations.length === 0) {
-      rows.push({ ...insp, violation_description: "", violation_type: "", violation_points: "0" });
-    } else {
-      insp.violations.forEach((v) => {
-        rows.push({ ...insp, violation_description: v.description, violation_type: v.level === "**" ? "RED" : "BLUE", violation_points: v.level === "**" ? "8" : "2" });
-      });
-    }
+    const criticals = insp.violations.filter((v) => v.isCritical).length;
+    const minors = insp.violations.filter((v) => !v.isCritical).length;
+    insp.score = String(criticals * 8 + minors * 2);
   });
-  return rows;
+  return buildDetailRowsFromMap(inspMap);
 }
 
 // ── Houston (CKAN) ───────────────────────────────────────────────────────────────
@@ -980,7 +961,7 @@ export function processHoustonResults(records) {
       };
     }
     businesses[id].allRows.push(row);
-    const dateKey = (row.InspectionDate || "").split(" ")[0];
+    const dateKey = extractDate(row.InspectionDate || "");
     const uid = row.InspectionUID || dateKey;
     if (uid && !businesses[id].inspections.find((i) => i.serial === uid)) {
       businesses[id].inspections.push({
@@ -1009,7 +990,7 @@ export function processHoustonResults(records) {
 
 export function houstonToDetailRows(records) {
   return records.map((row) => {
-    const dateKey = (row.InspectionDate || "").split(" ")[0];
+    const dateKey = extractDate(row.InspectionDate || "");
     const pts = parseInt(row.InspectionScore) || 0;
     const isPassing = /pass/i.test(row.InspectionStatus || "");
     return {
@@ -1031,12 +1012,7 @@ export function processStanislausResults(facilities) {
   return facilities.map((f, i) => {
     const isClosed = /closed/i.test(f.permit_status);
     const safetyScore = isClosed ? 25 : 85;
-    // Parse MM/DD/YYYY date to ISO
-    let latestDate = f.latest_date || "";
-    if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(latestDate)) {
-      const [mm, dd, yyyy] = latestDate.split("/");
-      latestDate = `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
-    }
+    const latestDate = standardizeDate(f.latest_date || "");
     return {
       business_id: `stanislaus-${i}-${f.name}`,
       name: f.name.charAt(0) + f.name.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
@@ -1057,11 +1033,7 @@ export function processStanislausResults(facilities) {
 
 export function stanislausToDetailRows(restaurant) {
   const f = restaurant._rawFacility || {};
-  let latestDate = f.latest_date || "";
-  if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(latestDate)) {
-    const [mm, dd, yyyy] = latestDate.split("/");
-    latestDate = `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
-  }
+  const latestDate = standardizeDate(f.latest_date || "");
   const isClosed = /closed/i.test(f.permit_status);
   return [{
     inspection_serial_num: `stanislaus-${restaurant.business_id}`,
@@ -1149,7 +1121,7 @@ export function processNSWResults(records, state = "NSW") {
       };
     }
     businesses[id].allRows.push(row);
-    const dateKey = (row.inspection_date || row.date || row.compliance_date || "").split("T")[0];
+    const dateKey = extractDate(row.inspection_date || row.date || row.compliance_date || "");
     const result = row.result || row.outcome || row.compliance_status || "";
     if (dateKey && !businesses[id].inspections.find((insp) => insp.date === dateKey)) {
       const isFail = /fail|notice|order|prohibition/i.test(result);
