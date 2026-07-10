@@ -1,8 +1,0 @@
-{
-  "region_code": "ME",
-  "cities": {
-    "portland": "me_cumberland",
-    "bangor": "me_penobscot"
-  },
-  "default_sid": null
-}

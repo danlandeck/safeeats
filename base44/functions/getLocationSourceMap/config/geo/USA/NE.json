@@ -1,8 +1,0 @@
-{
-  "region_code": "NE",
-  "cities": {
-    "omaha": "ne_douglas",
-    "lincoln": "ne_lancaster"
-  },
-  "default_sid": null
-}

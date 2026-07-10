@@ -1,9 +1,0 @@
-{
-  "region_code": "NM",
-  "cities": {
-    "albuquerque": "albuquerque",
-    "las cruces": "nm_dona_ana",
-    "santa fe": "nm_santa_fe"
-  },
-  "default_sid": null
-}

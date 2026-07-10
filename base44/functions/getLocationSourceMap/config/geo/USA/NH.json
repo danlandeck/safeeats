@@ -1,9 +1,0 @@
-{
-  "region_code": "NH",
-  "cities": {
-    "manchester": "nh_hillsborough",
-    "nashua": "nh_rockingham",
-    "concord": "nh_merrimack"
-  },
-  "default_sid": null
-}

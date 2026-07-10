@@ -1,9 +1,0 @@
-{
-  "region_code": "AR",
-  "cities": {
-    "little rock": "ar_pulaski",
-    "bentonville": "ar_benton",
-    "fayetteville": "ar_washington"
-  },
-  "default_sid": null
-}

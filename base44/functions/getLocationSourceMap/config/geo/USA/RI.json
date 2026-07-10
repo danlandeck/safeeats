@@ -1,8 +1,0 @@
-{
-  "region_code": "RI",
-  "cities": {
-    "providence": "ri_providence",
-    "warwick": "ri_kent"
-  },
-  "default_sid": null
-}

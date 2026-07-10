@@ -1,8 +1,0 @@
-{
-  "region_code": "SD",
-  "cities": {
-    "sioux falls": "sd_minnehaha",
-    "rapid city": "sd_pennington"
-  },
-  "default_sid": null
-}

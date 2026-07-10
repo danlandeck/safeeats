@@ -1,9 +1,0 @@
-{
-  "region_code": "AK",
-  "cities": {
-    "anchorage": "anchorage",
-    "fairbanks": "ak_fairbanks",
-    "juneau": "ak_juneau"
-  },
-  "default_sid": null
-}

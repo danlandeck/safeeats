@@ -1,9 +1,0 @@
-{
-  "region_code": "KY",
-  "cities": {
-    "louisville": "louisville",
-    "lexington": "ky_fayette",
-    "burlington": "ky_boone"
-  },
-  "default_sid": null
-}

@@ -283,7 +283,7 @@ const SOURCES = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const GEO_TABLE = [
-  // ── US entries migrated to config/geo/USA/*.json — resolved by loadGeoConfig() ──
+  // ── US entries migrated to US_GEO_CONFIG (inline hash map) — resolved by resolveGeo() ──
 
   // ── Canada ──
   { state: "BC", city: "vancouver", sid: "vancouver" }, { state: "BC", city: "richmond", sid: "vancouver" },
@@ -495,7 +495,8 @@ const US_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // US GEO CONFIG — nested hash map for O(1) city → source_id lookup
-// Replaces the flat GEO_TABLE array for all US states
+// All 50 US states + DC. Inlined because external JSON files can't be loaded
+// by Deno deploy functions (only entry.ts deploys).
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const US_GEO_CONFIG = {
@@ -552,6 +553,8 @@ const US_GEO_CONFIG = {
   DC: { cities: {}, defaultSid: null },
 };
 
+// loadGeoConfig: returns the inline config for a US state (O(1) lookup).
+// Not file-based — external JSON files don't deploy with Deno functions.
 function loadGeoConfig(stateUp) {
   return US_GEO_CONFIG[stateUp] || null;
 }
@@ -565,13 +568,13 @@ function resolveGeo(state, city) {
   if (US_STATES.has(stateUp)) {
     const config = loadGeoConfig(stateUp);
     if (config) {
-      // State is migrated — resolve exclusively from the JSON file
+      // State is migrated — resolve from inline US_GEO_CONFIG
       const sid = (config.cities && config.cities[cityLow]) || config.defaultSid;
       if (sid) {
         const source = SOURCES.find(s => s.id === sid);
         if (source) return source;
       }
-      // City not in file and no default_sid — use US state-level fallback
+      // City not in config and no defaultSid — use US state-level fallback
       const info = US_STATE_INFO[stateUp];
       if (info) {
         return {
