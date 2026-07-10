@@ -1168,7 +1168,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 sm:pt-14 sm:pb-10">
           <div className="text-center mb-7">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
-              🛡️ #1 Global Food Safety Platform · 195+ Countries
+              🛡️ #1 Global Food Safety Platform · 25 Countries Covered
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
               Is your restaurant
@@ -1278,7 +1278,7 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { value: "16", label: "Live API sources", emoji: "🟢" },
-                { value: "180+", label: "Countries via AI search", emoji: "🌍" },
+                { value: "24+", label: "International regions", emoji: "🌍" },
                 { value: "A–F", label: "Universal grade", emoji: "📋" },
                 { value: "100%", label: "Free, always", emoji: "✅" },
               ].map(({ value, label, emoji }) => (
