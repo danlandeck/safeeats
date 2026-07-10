@@ -95,11 +95,11 @@ const SOURCES = [
   { id: "halifax", dept: "Halifax Regional Municipality / NS Health", city: "Halifax", state: "NS", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Halifax Regional Municipality / Nova Scotia Health food inspection records." },
 
   // ─── NORTH AMERICA: MEXICO ─────────────────────────────────────────────────
-  { id: "mexico_city", dept: "COFEPRIS (Federal Commission for Protection Against Sanitary Risks)", city: "Mexico City", state: null, country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme (compliant/non-compliant) with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS (cofepris.gob.mx) food safety inspection. Focus on food handling conditions, temperature controls, supplier traceability." },
-  { id: "guadalajara", dept: "COFEPRIS / Jalisco Health Dept", city: "Guadalajara", state: "JAL", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Jalisco State Health Department food inspection records." },
-  { id: "monterrey", dept: "COFEPRIS / Nuevo León Health Dept", city: "Monterrey", state: "NL", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Nuevo León State Health Department food inspection records." },
-  { id: "cancun", dept: "COFEPRIS / Quintana Roo Health Dept", city: "Cancún", state: "QR", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Quintana Roo State Health Department food inspection records." },
-  { id: "tijuana", dept: "COFEPRIS / Baja California Health Dept", city: "Tijuana", state: "BC", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Baja California State Health Department food inspection records." },
+  { id: "mexico_city", dept: "COFEPRIS (Federal Commission for Protection Against Sanitary Risks)", city: "Mexico City", state: "CMX", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme (compliant/non-compliant) with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS (cofepris.gob.mx) food safety inspection. Focus on food handling conditions, temperature controls, supplier traceability." },
+  { id: "guadalajara", dept: "COFEPRIS / Jalisco Health Dept", city: "Guadalajara", state: "JAL", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Jalisco State Health Department (salud.jalisco.gob.mx) food inspection records." },
+  { id: "monterrey", dept: "COFEPRIS / Nuevo León Health Dept", city: "Monterrey", state: "NLE", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Nuevo León State Health Department (salud.nl.gob.mx) food inspection records." },
+  { id: "cancun", dept: "COFEPRIS / Quintana Roo Health Dept", city: "Cancún", state: "ROO", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Quintana Roo State Health Department (saludqroo.gob.mx) food inspection records." },
+  { id: "tijuana", dept: "COFEPRIS / Baja California Health Dept", city: "Tijuana", state: "BCN", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Baja California State Health Department (ssabc.gob.mx) food inspection records." },
 
   // ─── SOUTH AMERICA ──────────────────────────────────────────────────────────
   { id: "sao_paulo", dept: "VISA São Paulo (Vigilância Sanitária)", city: "São Paulo", state: null, country: "BR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme with violation details.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VISA São Paulo (cvs.saude.sp.gov.br) Vigilância Sanitária restaurant inspection records." },
@@ -287,12 +287,7 @@ const GEO_TABLE = [
 
   // ── Canada entries migrated to CA_GEO_CONFIG (inline hash map) ──
 
-  // ── Mexico ──
-  { state: null, city: "mexico city", sid: "mexico_city" },
-  { state: null, city: "guadalajara", sid: "guadalajara" },
-  { state: null, city: "monterrey", sid: "monterrey" },
-  { state: null, city: "cancún", sid: "cancun" }, { state: null, city: "cancun", sid: "cancun" },
-  { state: null, city: "tijuana", sid: "tijuana" },
+  // ── Mexico entries migrated to MX_GEO_CONFIG (inline hash map) ──
 
   // ── UK (all route through uk_fsa) ──
   ...["london", "birmingham", "manchester", "leeds", "glasgow", "edinburgh", "liverpool", "bristol", "sheffield", "cardiff", "belfast"]
@@ -430,6 +425,8 @@ const US_STATES = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA
 
 const CA_PROVINCES = new Set(["AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"]);
 
+const MX_STATES = new Set(["AGU","BCN","BCS","CAM","CHH","CHP","CMX","COA","COL","DUR","GRO","GUA","HID","JAL","MEX","MIC","MOR","NAY","NLE","OAX","PUE","QRO","ROO","SIN","SLP","SON","TAB","TAM","TLA","VER","YUC","ZAC"]);
+
 const US_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:string}> = {
   AL: { dept:"AL county health depts (ADPH)", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Alabama: county health departments under Alabama Department of Public Health (alabamapublichealth.gov). Score: Pass/Fail." },
   AK: { dept:"Alaska DEC", rating:"Pass/Unsatisfactory/Fail", scale:"Pass/Fail → 0-100", ctx:"Alaska: Alaska Dept of Environmental Conservation (dec.alaska.gov/eh). Statewide. Score: Pass/Unsatisfactory/Fail." },
@@ -501,6 +498,46 @@ const CA_PROVINCE_INFO: Record<string, {dept:string;rating:string;scale:string;c
   QC: { dept:"MAPAQ (Ministère de l'Agriculture, des Pêcheries et de l'Alimentation)", rating:"Pass/Conditional/Fail with A/B/C", scale:"A/B/C or Pass/Fail → 0-100", ctx:"Quebec: MAPAQ (quebec.ca/agriculture). Provincial food inspection. Letter grade A/B/C." },
   SK: { dept:"Saskatchewan Health Authority", rating:"Pass/Conditional/Closed", scale:"Pass/Fail → 0-100", ctx:"Saskatchewan: Saskatchewan Health Authority (saskhealthauthority.ca). Provincial. Score: Pass/Conditional/Closed." },
   YT: { dept:"Yukon Health and Social Services", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Yukon: Yukon Health and Social Services (yukon.ca/health). Provincial. Score: Pass/Fail." },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MEXICO STATE-LEVEL FALLBACK — any MX state resolves to AI enrichment
+// Mexico has 32 states (estados). Food safety regulated by COFEPRIS (federal)
+// and state-level Secretarías de Salud.
+// ═══════════════════════════════════════════════════════════════════════════════
+const MX_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:string}> = {
+  AGU: { dept:"Secretaría de Salud de Aguascalientes / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Aguascalientes: State Secretariat of Health (salud.aguascalientes.gob.mx) and COFEPRIS federal food safety inspections." },
+  BCN: { dept:"Secretaría de Salud de Baja California / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Baja California: State Secretariat of Health (ssabc.gob.mx) and COFEPRIS. Major cities: Tijuana, Mexicali, Ensenada." },
+  BCS: { dept:"Secretaría de Salud de Baja California Sur / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Baja California Sur: State Secretariat of Health and COFEPRIS. Major cities: La Paz, Los Cabos." },
+  CAM: { dept:"Secretaría de Salud de Campeche / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Campeche: State Secretariat of Health (salud.campeche.gob.mx) and COFEPRIS." },
+  CHH: { dept:"Secretaría de Salud de Chihuahua / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Chihuahua: State Secretariat of Health (salud.chihuahua.gob.mx) and COFEPRIS. Major cities: Ciudad Juárez, Chihuahua." },
+  CHP: { dept:"Secretaría de Salud de Chiapas / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Chiapas: State Secretariat of Health (saludchiapas.gob.mx) and COFEPRIS." },
+  CMX: { dept:"COFEPRIS / Secretaría de Salud de la CDMX", rating:"Conforme/No conforme with violation categories", scale:"Pass/Fail → 0-100", ctx:"Ciudad de México: COFEPRIS (cofepris.gob.mx) and CDMX Secretariat of Health (salud.cdmx.gob.mx). Federal and city-level food safety inspections." },
+  COA: { dept:"Secretaría de Salud de Coahuila / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Coahuila: State Secretariat of Health (saludcoahuila.gob.mx) and COFEPRIS. Major cities: Saltillo, Torreón, Monclova." },
+  COL: { dept:"Secretaría de Salud de Colima / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Colima: State Secretariat of Health (salud.col.gob.mx) and COFEPRIS. Major cities: Colima, Manzanillo." },
+  DUR: { dept:"Secretaría de Salud de Durango / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Durango: State Secretariat of Health (salud.durango.gob.mx) and COFEPRIS." },
+  GRO: { dept:"Secretaría de Salud de Guerrero / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Guerrero: State Secretariat of Health (guerrerosalud.gob.mx) and COFEPRIS. Major cities: Acapulco, Chilpancingo." },
+  GUA: { dept:"Secretaría de Salud de Guanajuato / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Guanajuato: State Secretariat of Health (salud.guanajuato.gob.mx) and COFEPRIS. Major cities: León, Guanajuato City, Irapuato." },
+  HID: { dept:"Secretaría de Salud de Hidalgo / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Hidalgo: State Secretariat of Health (ssh.hidalgo.gob.mx) and COFEPRIS." },
+  JAL: { dept:"Secretaría de Salud de Jalisco / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Jalisco: State Secretariat of Health (salud.jalisco.gob.mx) and COFEPRIS. Major cities: Guadalajara, Zapopan, Puerto Vallarta." },
+  MEX: { dept:"Secretaría de Salud del Estado de México / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Estado de México: State Secretariat of Health (salud.edomex.gob.mx) and COFEPRIS. Surrounds CDMX. Major cities: Ecatepec, Naucalpan, Toluca." },
+  MIC: { dept:"Secretaría de Salud de Michoacán / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Michoacán: State Secretariat of Health (salud.michoacan.gob.mx) and COFEPRIS. Major cities: Morelia, Uruapan, Lázaro Cárdenas." },
+  MOR: { dept:"Secretaría de Salud de Morelos / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Morelos: State Secretariat of Health (salud.morelos.gob.mx) and COFEPRIS. Major cities: Cuernavaca, Cuautla." },
+  NAY: { dept:"Secretaría de Salud de Nayarit / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Nayarit: State Secretariat of Health (salud.nayarit.gob.mx) and COFEPRIS. Major cities: Tepic, Sayulita, Nuevo Vallarta." },
+  NLE: { dept:"Secretaría de Salud de Nuevo León / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Nuevo León: State Secretariat of Health (salud.nl.gob.mx) and COFEPRIS. Major cities: Monterrey, San Pedro Garza García, Guadalupe." },
+  OAX: { dept:"Secretaría de Salud de Oaxaca / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Oaxaca: State Secretariat of Health (saludoaxaca.com) and COFEPRIS. Major cities: Oaxaca City, Huatulco, Puerto Escondido." },
+  PUE: { dept:"Secretaría de Salud de Puebla / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Puebla: State Secretariat of Health (salud.puebla.gob.mx) and COFEPRIS. Major cities: Puebla City, Tehuacán." },
+  QRO: { dept:"Secretaría de Salud de Querétaro / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Querétaro: State Secretariat of Health (salud.queretaro.gob.mx) and COFEPRIS. Major cities: Santiago de Querétaro, San Juan del Río." },
+  ROO: { dept:"Secretaría de Salud de Quintana Roo / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Quintana Roo: State Secretariat of Health (saludqroo.gob.mx) and COFEPRIS. Major cities: Cancún, Playa del Carmen, Tulum, Chetumal." },
+  SIN: { dept:"Secretaría de Salud de Sinaloa / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Sinaloa: State Secretariat of Health (salud.sinaloa.gob.mx) and COFEPRIS. Major cities: Culiacán, Mazatlán, Los Mochis." },
+  SLP: { dept:"Secretaría de Salud de San Luis Potosí / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"San Luis Potosí: State Secretariat of Health (salud.slp.gob.mx) and COFEPRIS." },
+  SON: { dept:"Secretaría de Salud de Sonora / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Sonora: State Secretariat of Health (salud.sonora.gob.mx) and COFEPRIS. Major cities: Hermosillo, Ciudad Obregón, Nogales, Guaymas." },
+  TAB: { dept:"Secretaría de Salud de Tabasco / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Tabasco: State Secretariat of Health (salud.tabasco.gob.mx) and COFEPRIS. Major cities: Villahermosa, Cárdenas." },
+  TAM: { dept:"Secretaría de Salud de Tamaulipas / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Tamaulipas: State Secretariat of Health (salud.tamaulipas.gob.mx) and COFEPRIS. Major cities: Tampico, Reynosa, Nuevo Laredo, Matamoros." },
+  TLA: { dept:"Secretaría de Salud de Tlaxcala / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Tlaxcala: State Secretariat of Health (saludtlaxcala.gob.mx) and COFEPRIS." },
+  VER: { dept:"Secretaría de Salud de Veracruz / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Veracruz: State Secretariat of Health (ssver.gob.mx) and COFEPRIS. Major cities: Veracruz City, Xalapa, Córdoba, Poza Rica." },
+  YUC: { dept:"Secretaría de Salud de Yucatán / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Yucatán: State Secretariat of Health (salud.yucatan.gob.mx) and COFEPRIS. Major cities: Mérida, Valladolid, Progreso." },
+  ZAC: { dept:"Secretaría de Salud de Zacatecas / COFEPRIS", rating:"Conforme/No conforme", scale:"Pass/Fail → 0-100", ctx:"Zacatecas: State Secretariat of Health (salud.zacatecas.gob.mx) and COFEPRIS. Major cities: Zacatecas City, Fresnillo." },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -583,6 +620,45 @@ const CA_GEO_CONFIG = {
   NU: { cities: {}, defaultSid: null },
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MEXICO GEO CONFIG — nested hash map for O(1) city → source_id lookup
+// All 32 Mexican states (estados). Inlined (external JSON files don't deploy).
+// ═══════════════════════════════════════════════════════════════════════════════
+const MX_GEO_CONFIG = {
+  CMX: { cities: { "mexico city":"mexico_city" }, defaultSid: null },
+  JAL: { cities: { guadalajara:"guadalajara", zapopan:"guadalajara", "puerto vallarta":"guadalajara" }, defaultSid: null },
+  NLE: { cities: { monterrey:"monterrey", "san pedro garza garcía":"monterrey", guadalupe:"monterrey", "san nicolás de los garza":"monterrey", apodaca:"monterrey" }, defaultSid: null },
+  ROO: { cities: { cancún:"cancun", cancun:"cancun", "playa del carmen":"cancun", tulum:"cancun", chetumal:"cancun" }, defaultSid: null },
+  BCN: { cities: { tijuana:"tijuana", mexicali:"tijuana", ensenada:"tijuana", rosarito:"tijuana" }, defaultSid: null },
+  AGU: { cities: {}, defaultSid: null },
+  BCS: { cities: {}, defaultSid: null },
+  CAM: { cities: {}, defaultSid: null },
+  CHH: { cities: {}, defaultSid: null },
+  CHP: { cities: {}, defaultSid: null },
+  COA: { cities: {}, defaultSid: null },
+  COL: { cities: {}, defaultSid: null },
+  DUR: { cities: {}, defaultSid: null },
+  GRO: { cities: {}, defaultSid: null },
+  GUA: { cities: {}, defaultSid: null },
+  HID: { cities: {}, defaultSid: null },
+  MEX: { cities: {}, defaultSid: null },
+  MIC: { cities: {}, defaultSid: null },
+  MOR: { cities: {}, defaultSid: null },
+  NAY: { cities: {}, defaultSid: null },
+  OAX: { cities: {}, defaultSid: null },
+  PUE: { cities: {}, defaultSid: null },
+  QRO: { cities: {}, defaultSid: null },
+  SIN: { cities: {}, defaultSid: null },
+  SLP: { cities: {}, defaultSid: null },
+  SON: { cities: {}, defaultSid: null },
+  TAB: { cities: {}, defaultSid: null },
+  TAM: { cities: {}, defaultSid: null },
+  TLA: { cities: {}, defaultSid: null },
+  VER: { cities: {}, defaultSid: null },
+  YUC: { cities: {}, defaultSid: null },
+  ZAC: { cities: {}, defaultSid: null },
+};
+
 // loadGeoConfig: returns the inline config for a US state (O(1) lookup).
 // Not file-based — external JSON files don't deploy with Deno functions.
 function loadGeoConfig(stateUp) {
@@ -657,6 +733,37 @@ function resolveGeo(state, city) {
     }
   }
 
+  // PHASE 1.75: Try inline MX_GEO_CONFIG for Mexican states (O(1) lookup)
+  if (MX_STATES.has(stateUp)) {
+    const config = MX_GEO_CONFIG[stateUp];
+    if (config) {
+      const sid = (config.cities && config.cities[cityLow]) || config.defaultSid;
+      if (sid) {
+        const source = SOURCES.find(s => s.id === sid);
+        if (source) return source;
+      }
+      // City not in config and no defaultSid — use MX state-level fallback
+      const info = MX_STATE_INFO[stateUp];
+      if (info) {
+        return {
+          id: stateUp.toLowerCase(),
+          dept: info.dept,
+          city: cityLow ? cityLow.charAt(0).toUpperCase() + cityLow.slice(1) : "Statewide",
+          state: stateUp,
+          country: "MX",
+          type: "ai_enrichment",
+          api: null,
+          fn: "placesRestaurantSearch",
+          rating: info.rating,
+          scale: info.scale,
+          enrich: true,
+          ctx: info.ctx,
+        };
+      }
+      return null; // State migrated but no resolution possible
+    }
+  }
+
   // PHASE 2: Fall back to legacy GEO_TABLE for unmigrated states and international
   // Try exact state + city match
   let match = GEO_TABLE.find(g =>
@@ -684,6 +791,27 @@ function resolveGeo(state, city) {
         city: cityLow ? cityLow.charAt(0).toUpperCase() + cityLow.slice(1) : "Statewide",
         state: stateUp,
         country: "US",
+        type: "ai_enrichment",
+        api: null,
+        fn: "placesRestaurantSearch",
+        rating: info.rating,
+        scale: info.scale,
+        enrich: true,
+        ctx: info.ctx,
+      };
+    }
+  }
+
+  // MX state-level fallback: any MX state not in SOURCES gets AI enrichment
+  if (!source && MX_STATES.has(stateUp)) {
+    const info = MX_STATE_INFO[stateUp];
+    if (info) {
+      return {
+        id: stateUp.toLowerCase(),
+        dept: info.dept,
+        city: cityLow ? cityLow.charAt(0).toUpperCase() + cityLow.slice(1) : "Statewide",
+        state: stateUp,
+        country: "MX",
         type: "ai_enrichment",
         api: null,
         fn: "placesRestaurantSearch",
