@@ -457,7 +457,7 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
 // must not geo-route again.
 let _geoRouting = false;
 
-async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults) {
+async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {
   // "Worldwide (AI Search)" is a UI placeholder, not a place — passing it to
   // Google Places poisons the query ("...restaurant in Worldwide (AI Search)").
   const rawLabel = locationLabel?.trim() || "";
@@ -494,6 +494,9 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
     const placesRes = await base44.functions.invoke("placesRestaurantSearch", { query, location });
     const verified = placesRes.data?.restaurants || [];
     if (verified.length > 0) {
+      const liveApiNote = fetchInfo.liveApiFailed
+        ? "Live government data source was temporarily unavailable. "
+        : "";
       const groundedRaw = verified.map(p => ({
         name: p.name,
         address: p.address,
@@ -501,6 +504,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         zip_code: p.zip_code || "",
         cuisine: p.cuisine || "",
         data_confidence: "low", // verified to exist; no inspection record (yet)
+        data_fetch_notes: liveApiNote,
         is_currently_operating: p.business_status === "OPERATIONAL" ? true : null,
         verification_source: "Google Places",
       }));
@@ -521,7 +525,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         return (r.address || "").toLowerCase().includes(needle) ||
                (r.city || "").toLowerCase().includes(needle);
       };
-      let grounded = groundedRaw.map((r, i) => overlay(buildFn(r, i), i)).filter(inLocation);
+      let grounded = groundedRaw.map((r, i) => ({ ...overlay(buildFn(r, i), i), data_fetch_notes: r.data_fetch_notes || "" })).filter(inLocation);
       grounded = deduplicateResults(grounded);
 
       if (grounded.length > 0) {
@@ -579,15 +583,23 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
                 violations: insp.violations || [],
                 data_confidence: insp.data_confidence || "low",
                 verification_source: insp.verification_source || "Google Places",
-              } : raw;
-              return overlay(buildFn(merged, i), i);
+              } : {
+                ...raw,
+                data_fetch_notes: (raw.data_fetch_notes || "") + "No public inspection records found by AI web search.",
+              };
+              return { ...overlay(buildFn(merged, i), i), data_fetch_notes: merged.data_fetch_notes || "" };
             }).filter(inLocation);
             const finalResults = deduplicateResults(enriched);
             if (finalResults.length > 0) {
               saveCache(finalResults);
               if (onAccurateResults) onAccurateResults(finalResults);
             }
-          }).catch(() => {});
+          }).catch(() => {
+            try {
+              const failed = grounded.map(r => ({ ...r, data_fetch_notes: (r.data_fetch_notes || "") + "AI web search was unable to complete — please try again later." }));
+              saveCache(failed);
+            } catch {}
+          });
         }
         // Cache grounded-only results with a SHORT TTL (5 min) so a slow/failed
         // enrichment doesn't lock users into "U" grades for 24 hours. When the
@@ -736,7 +748,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processUKFSAResults(pool), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Singapore — live data via data.gov.sg CKAN API
@@ -749,7 +761,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         if (liveResults.length > 0) return { results: liveResults, isAI: false };
       }
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Australia NSW / QLD — live data via state open data portals
@@ -763,7 +775,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         if (liveResults.length > 0) return { results: liveResults, isAI: false };
       }
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Vancouver, BC — live data from Vancouver Coastal Health disclosure portal
@@ -784,7 +796,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         return { results: liveResults, isAI: false };
       }
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Toronto DineSafe (CKAN — needs backend proxy)
@@ -795,7 +807,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processTorontoResults(records), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Boston (CKAN — needs backend proxy)
@@ -811,7 +823,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         return { results: liveResults, isAI: false };
       }
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Stanislaus County CA (scraped portal, with AI fallback)
@@ -847,7 +859,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processLAResults(records), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Houston (CKAN — needs backend proxy)
@@ -863,7 +875,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         return { results: liveResults, isAI: false };
       }
     } catch { /* live API failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Live government API
@@ -878,7 +890,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       allResults = PROCESSORS[countyId].process(raw);
     } catch {
       // Network error, CORS, or abort — fall back to AI search
-      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
     }
 
     // Post-fetch relevance filter: keep only results whose name actually matches the query.
@@ -888,7 +900,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
 
     // If live API returned nothing, fall back to AI
     if (results.length === 0) {
-      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+      return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
     }
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
@@ -950,7 +962,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         }
       }
     } catch { /* Accela search failed — fall through to AI */ }
-    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
   // Dubai — fully isolated path

@@ -352,7 +352,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                       {restaurant.data_confidence === "low" && (
                         <p className="flex items-start gap-1.5 text-amber-700">
                           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                          Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable.
+                          {restaurant.data_fetch_notes || "Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable."}
                         </p>
                       )}
                     </div>
@@ -432,9 +432,15 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <span className="text-amber-500 text-lg mt-0.5">⚠</span>
             <div>
               <p className="text-sm font-bold text-amber-800">No official inspection records in our database</p>
-              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                The score shown is an AI estimate from public sources — not a live government record. It may be outdated. Always call the restaurant or check your local health department's website to verify.
-              </p>
+              {restaurant.data_fetch_notes ? (
+                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                  {restaurant.data_fetch_notes} Always verify directly with the local health department.
+                </p>
+              ) : (
+                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                  The score shown is an AI estimate from public sources — not a live government record. It may be outdated. Always call the restaurant or check your local health department's website to verify.
+                </p>
+              )}
             </div>
           </div>
         ) : (
