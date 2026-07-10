@@ -1,680 +1,505 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// ── CENTRAL SOURCE MAPPING TABLE ──────────────────────────────────────────────
-// Single authoritative record of every location SafeEats covers, which health
-// department serves it, what rating system that department uses, and how the
-// app should retrieve/process its data.
+// ═══════════════════════════════════════════════════════════════════════════════
+// SAFE EATS — GLOBAL HEALTH DEPARTMENT SOURCE MAP (SOURCE OF TRUTH)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Every entry maps a city/municipality to its governing health department and
+// the rating system that department uses, so the app always knows which scoring
+// system to apply for any given location.
 //
-// source_type values:
-//   "live_api"        – direct browser fetch to a Socrata/ArcGIS open-data endpoint
-//   "backend_proxy"   – server-side function (CORS-protected or CKAN/scraped portal)
-//   "ai_enrichment"   – Google Places grounds the restaurant list; LLM finds inspection scores
-//   "ai_only"         – pure LLM (fast training-data + web search), no Places grounding
+// source_type:
+//   "live_api"      — direct browser fetch to Socrata/ArcGIS open-data endpoint
+//   "backend_proxy" — server-side function (CORS-protected / CKAN / scraped portal)
+//   "ai_enrichment" — Google Places grounds the list; LLM finds inspection scores
+//   "ai_only"       — pure LLM (training data + web search), no Places grounding
 //
-// rating_scale values describe the native system so the frontend/LLM can convert
-// to SafeEats' unified 0-100 score.
+// rating_scale describes the NATIVE system; the app converts everything to a
+// unified 0-100 SafeEats score.
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const SOURCE_MAP = [
-  // ═══ LIVE API (direct browser fetch) ═══════════════════════════════════════
-  {
-    source_id: "king",
-    health_department: "Public Health — Seattle & King County",
-    location: { city: "Seattle", state: "WA", country: "US", coverage: ["Seattle", "Bellevue", "Kent", "Renton", "Redmond", "Kirkland", "Federal Way", "Sammamish", "Shoreline", "Burien", "Tukwila", "Issaquah", "Mercer Island", "Auburn", "Bothell", "Kenmore", "Newcastle", "Des Moines", "SeaTac", "Woodinville"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "king",
-      backend_function: null,
-      endpoint_description: "ArcGIS Feature Service — King County Restaurant Inspections",
-      rating_system: "Red/Blue violation point deduction from 100. Red = critical violations, Blue = non-critical. Lower deduction = higher score.",
-      rating_scale: "0-100 numeric (100 = perfect, deductions per violation)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "nyc",
-    health_department: "NYC Department of Health and Mental Hygiene",
-    location: { city: "New York", state: "NY", country: "US", coverage: ["Manhattan", "Brooklyn", "Queens", "Bronx", "Staten Island"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "nyc",
-      backend_function: null,
-      endpoint_description: "NYC Open Data — DOHMH Restaurant Inspections",
-      rating_system: "Letter grade A/B/C based on violation points. 0-13 = A, 14-27 = B, 28+ = C.",
-      rating_scale: "A/B/C letter grade (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "cook",
-    health_department: "Chicago Department of Public Health",
-    location: { city: "Chicago", state: "IL", country: "US", coverage: ["Chicago"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "cook",
-      backend_function: null,
-      endpoint_description: "Chicago Data Portal — Food Inspections",
-      rating_system: "Pass / Pass w/ Conditions / Fail. Risk level 1-3.",
-      rating_scale: "Pass/Fail (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "montgomery_md",
-    health_department: "Montgomery County Department of Health and Human Services",
-    location: { city: "Rockville", state: "MD", country: "US", coverage: ["Rockville", "Bethesda", "Silver Spring", "Gaithersburg"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "montgomery_md",
-      backend_function: null,
-      endpoint_description: "Montgomery County Open Data — Food Inspection",
-      rating_system: "Numeric score 0-100 based on critical and non-critical violations.",
-      rating_scale: "0-100 numeric"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "travis",
-    health_department: "Austin Public Health",
-    location: { city: "Austin", state: "TX", country: "US", coverage: ["Austin"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "travis",
-      backend_function: null,
-      endpoint_description: "Austin Open Data — Restaurant Inspections",
-      rating_system: "Score 0-100 based on demerit points deducted from 100.",
-      rating_scale: "0-100 numeric"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "sf",
-    health_department: "San Francisco Department of Public Health",
-    location: { city: "San Francisco", state: "CA", country: "US", coverage: ["San Francisco"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "sf",
-      backend_function: null,
-      endpoint_description: "SF Open Data — Health Inspection Scores",
-      rating_system: "Numeric score 0-100. Inspection results: Satisfactory, Unsatisfactory, Incomplete.",
-      rating_scale: "0-100 numeric"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "delaware",
-    health_department: "Delaware Health and Social Services",
-    location: { city: "Statewide", state: "DE", country: "US", coverage: ["Wilmington", "Dover", "Newark", "Statewide"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "delaware",
-      backend_function: null,
-      endpoint_description: "Delaware Open Data — Food Inspections",
-      rating_system: "Compliant / Non-Compliant with violation details.",
-      rating_scale: "Pass/Fail (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "ny_state",
-    health_department: "New York State Department of Health",
-    location: { city: "Statewide", state: "NY", country: "US", coverage: ["Statewide (excluding NYC)"] },
-    data_source: {
-      source_type: "live_api",
-      api_registry_id: "ny_state",
-      backend_function: null,
-      endpoint_description: "NY State Health Data — Food Service Establishment Inspections",
-      rating_system: "Critical / Non-Critical violations. Pass/Fail outcome.",
-      rating_scale: "Pass/Fail (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
+const SOURCES = [
+  // ─── NORTH AMERICA: UNITED STATES (LIVE API) ───────────────────────────────
+  { id: "king", dept: "Public Health — Seattle & King County", city: "Seattle", state: "WA", country: "US", type: "live_api", api: "king", fn: null, rating: "Red/Blue violation point deduction from 100. Red = critical, Blue = non-critical.", scale: "0-100 numeric (100 = perfect)", enrich: false, ctx: "" },
+  { id: "nyc", dept: "NYC Department of Health and Mental Hygiene", city: "New York", state: "NY", country: "US", type: "live_api", api: "nyc", fn: null, rating: "Letter grade A/B/C based on violation points. 0-13 = A, 14-27 = B, 28+ = C.", scale: "A/B/C letter grade → 0-100", enrich: false, ctx: "" },
+  { id: "cook", dept: "Chicago Department of Public Health", city: "Chicago", state: "IL", country: "US", type: "live_api", api: "cook", fn: null, rating: "Pass / Pass w/ Conditions / Fail. Risk level 1-3.", scale: "Pass/Fail → 0-100", enrich: false, ctx: "" },
+  { id: "montgomery_md", dept: "Montgomery County DHHS", city: "Rockville", state: "MD", country: "US", type: "live_api", api: "montgomery_md", fn: null, rating: "Numeric score 0-100 based on critical and non-critical violations.", scale: "0-100 numeric", enrich: false, ctx: "" },
+  { id: "travis", dept: "Austin Public Health", city: "Austin", state: "TX", country: "US", type: "live_api", api: "travis", fn: null, rating: "Score 0-100 based on demerit points deducted from 100.", scale: "0-100 numeric", enrich: false, ctx: "" },
+  { id: "sf", dept: "San Francisco Department of Public Health", city: "San Francisco", state: "CA", country: "US", type: "live_api", api: "sf", fn: null, rating: "Numeric score 0-100. Results: Satisfactory, Unsatisfactory, Incomplete.", scale: "0-100 numeric", enrich: false, ctx: "" },
+  { id: "delaware", dept: "Delaware Health and Social Services", city: "Statewide", state: "DE", country: "US", type: "live_api", api: "delaware", fn: null, rating: "Compliant / Non-Compliant with violation details.", scale: "Pass/Fail → 0-100", enrich: false, ctx: "" },
+  { id: "ny_state", dept: "New York State Department of Health", city: "Statewide", state: "NY", country: "US", type: "live_api", api: "ny_state", fn: null, rating: "Critical / Non-Critical violations. Pass/Fail outcome.", scale: "Pass/Fail → 0-100", enrich: false, ctx: "" },
 
-  // ═══ BACKEND PROXY (server-side fetch) ═════════════════════════════════════
-  {
-    source_id: "la",
-    health_department: "LA County Department of Public Health",
-    location: { city: "Los Angeles", state: "CA", country: "US", coverage: ["Los Angeles", "Long Beach", "Glendale", "Pasadena", "Santa Monica", "Burbank", "Torrance"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "laCountyInspections",
-      endpoint_description: "ArcGIS Feature Service — LA County Restaurant Inspections (proxied)",
-      rating_system: "Score 0-100 based on violation deductions. Grade A/B/C.",
-      rating_scale: "0-100 numeric with A/B/C grade"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "toronto",
-    health_department: "Toronto Public Health (DineSafe)",
-    location: { city: "Toronto", state: "ON", country: "CA", coverage: ["Toronto"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "torontoDineSafe",
-      endpoint_description: "Toronto Open Data CKAN — DineSafe Inspection Results",
-      rating_system: "Pass / Conditional Pass / Closed. Yellow/Red/Green sign.",
-      rating_scale: "Pass/Conditional/Closed (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "boston",
-    health_department: "City of Boston Inspectional Services Department",
-    location: { city: "Boston", state: "MA", country: "US", coverage: ["Boston"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "bostonFoodInspections",
-      endpoint_description: "Analyze Boston — Food Establishment Inspections (CKAN)",
-      rating_system: "Pass/Fail based on major and minor violation counts.",
-      rating_scale: "Pass/Fail (converted to 0-100 from violation counts)"
-    },
-    enrichment: { needed: true, context: "Boston CKAN has current data but scores are computed from violation counts. Enrichment adds any missing dates/scores from LLM training data.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "houston",
-    health_department: "Houston Health Department",
-    location: { city: "Houston", state: "TX", country: "US", coverage: ["Houston"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "houstonFoodInspections",
-      endpoint_description: "Houston Open Data — Food Inspection Results (CKAN, frozen at 2012)",
-      rating_system: "0-100 ded point system where lower is better. 0-10 ded → score 90-100, 11-20 → 70-89, 21-30 → 40-69, 30+ → 0-39.",
-      rating_scale: "Deduction points (inverted to 0-100)"
-    },
-    enrichment: { needed: true, context: "Houston CKAN data is frozen at 2012 — background LLM enrichment provides current inspection scores from training data.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "stanislaus",
-    health_department: "Stanislaus County Environmental Health",
-    location: { city: "Modesto", state: "CA", country: "US", coverage: ["Modesto", "Turlock", "Ceres"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "stanislausInspections",
-      endpoint_description: "Stanislaus County Food Facility Inspection Portal (scraped)",
-      rating_system: "Permit status (Active/Inactive) with inspection dates. No numeric scores published.",
-      rating_scale: "No native score (enrichment provides 0-100)"
-    },
-    enrichment: { needed: true, context: "Stanislaus County Environmental Health (stancounty.com) food facility inspection results. Facilities are inspected 1-4 times per year. Scores based on critical and non-critical violations.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "vancouver",
-    health_department: "Vancouver Coastal Health (VCH)",
-    location: { city: "Vancouver", state: "BC", country: "CA", coverage: ["Vancouver", "Richmond", "North Vancouver", "West Vancouver", "Squamish", "Whistler", "Pemberton", "Sechelt", "Gibsons", "Powell River", "Bowen Island"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "vancouverBCInspections",
-      endpoint_description: "VCH Disclosure Portal — inspections.vch.ca",
-      rating_system: "Pass / Conditional Pass / Closed. Hazard ratings: Low/Moderate/High.",
-      rating_scale: "Pass/Conditional/Closed (converted to 0-100)"
-    },
-    enrichment: { needed: true, context: "Vancouver Coastal Health (VCH) restaurant inspection records from inspections.vch.ca. Inspection results: Pass, Conditional Pass, or Closed.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "pierce",
-    health_department: "Tacoma-Pierce County Health Department (TPCHD)",
-    location: { city: "Tacoma", state: "WA", country: "US", coverage: ["Tacoma", "Puyallup", "Lakewood", "University Place", "Fircrest", "Parkland", "Spanaway", "Sumner", "Bonney Lake", "Gig Harbor", "DuPont", "Steilacoom", "Milton", "Edgewood", "Orting", "Eatonville", "Roy"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "tacomaPierceInspections",
-      endpoint_description: "Accela Citizen Access — TPCHD facility permits",
-      rating_system: "Great (≤135 red points)→90-100, Okay (136-299 red points)→70-89, Needs to Improve (≥300 red points)→40-69, Closed→0-39. Based on red critical violation points from last 4 routine inspections.",
-      rating_scale: "Red point thresholds (converted to 0-100)"
-    },
-    enrichment: { needed: true, context: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "uk_fsa",
-    health_department: "Food Standards Agency (UK FSA)",
-    location: { city: "Multiple", state: null, country: "GB", coverage: ["London", "Birmingham", "Manchester", "Leeds", "Glasgow", "Edinburgh", "Liverpool", "Bristol", "Sheffield", "Cardiff", "Belfast"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "ukFoodRatings",
-      endpoint_description: "FSA Food Hygiene Rating Service API (FHRS)",
-      rating_system: "FHRS 0-5 scale: 0=Urgent improvement, 1=Major improvement, 2=Improvement, 3=Generally satisfactory, 4=Good, 5=Very good.",
-      rating_scale: "0-5 FHRS rating (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "singapore",
-    health_department: "Singapore Food Agency (SFA) / NEA",
-    location: { city: "Singapore", state: null, country: "SG", coverage: ["Singapore"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "singaporeInspections",
-      endpoint_description: "data.gov.sg CKAN — SFA Food Establishment Hygiene Grades",
-      rating_system: "SFA/NEA hygiene grades A/B/C/D/E scale (A=excellent, E=poor).",
-      rating_scale: "A-E letter grade (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "sydney",
-    health_department: "NSW Food Authority (Scores on Doors)",
-    location: { city: "Sydney", state: "NSW", country: "AU", coverage: ["Sydney"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "australiaFoodSafety",
-      endpoint_description: "NSW Open Data Portal — Scores on Doors ratings",
-      rating_system: "5-star rating scale: 5=Excellent, 4=Very good, 3=Good, 2=Satisfactory, 1=Needs improvement.",
-      rating_scale: "1-5 star rating (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
-  {
-    source_id: "brisbane",
-    health_department: "Brisbane City Council / Queensland Health",
-    location: { city: "Brisbane", state: "QLD", country: "AU", coverage: ["Brisbane", "Gold Coast"] },
-    data_source: {
-      source_type: "backend_proxy",
-      api_registry_id: null,
-      backend_function: "australiaFoodSafety",
-      endpoint_description: "Queensland Open Data Portal — Food Safety ratings",
-      rating_system: "Star rating or Pass/Non-compliant based on council inspection.",
-      rating_scale: "Star rating (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "", model: null }
-  },
+  // ─── NORTH AMERICA: UNITED STATES (BACKEND PROXY) ──────────────────────────
+  { id: "la", dept: "LA County Department of Public Health", city: "Los Angeles", state: "CA", country: "US", type: "backend_proxy", api: null, fn: "laCountyInspections", rating: "Score 0-100 based on violation deductions. Grade A/B/C.", scale: "0-100 numeric with A/B/C grade", enrich: false, ctx: "" },
+  { id: "houston", dept: "Houston Health Department", city: "Houston", state: "TX", country: "US", type: "backend_proxy", api: null, fn: "houstonFoodInspections", rating: "0-100 ded point system, lower is better. 0-10 ded→90-100, 11-20→70-89, 21-30→40-69, 30+→0-39.", scale: "Deduction points (inverted to 0-100)", enrich: true, ctx: "Houston CKAN data frozen at 2012 — LLM provides current scores from training data." },
+  { id: "boston", dept: "Boston Inspectional Services Department", city: "Boston", state: "MA", country: "US", type: "backend_proxy", api: null, fn: "bostonFoodInspections", rating: "Pass/Fail based on major and minor violation counts.", scale: "Pass/Fail → 0-100 from violation counts", enrich: true, ctx: "Boston CKAN has current data but scores computed from violation counts." },
+  { id: "stanislaus", dept: "Stanislaus County Environmental Health", city: "Modesto", state: "CA", country: "US", type: "backend_proxy", api: null, fn: "stanislausInspections", rating: "Permit status (Active/Inactive) with inspection dates. No numeric scores published.", scale: "No native score (enrichment provides 0-100)", enrich: true, ctx: "Stanislaus County Environmental Health (stancounty.com). Facilities inspected 1-4 times/year." },
+  { id: "pierce", dept: "Tacoma-Pierce County Health Department (TPCHD)", city: "Tacoma", state: "WA", country: "US", type: "backend_proxy", api: null, fn: "tacomaPierceInspections", rating: "Great (≤135 red pts)→90-100, Okay (136-299)→70-89, Needs to Improve (≥300)→40-69, Closed→0-39.", scale: "Red point thresholds → 0-100", enrich: true, ctx: "TPCHD rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections." },
 
-  // ═══ AI-ENRICHMENT (Google Places grounded + LLM inspection lookup) ════════
-  {
-    source_id: "manchester_ct",
-    health_department: "Manchester CT Health Department",
-    location: { city: "Manchester", state: "CT", country: "US", coverage: ["Manchester"] },
-    data_source: {
-      source_type: "ai_enrichment",
-      api_registry_id: null,
-      backend_function: "placesRestaurantSearch",
-      endpoint_description: "Google Places verifies restaurant identity; LLM finds CT inspection data from decadeonline.com and manchesterct.gov PDFs",
-      rating_system: "Green/Yellow/Red placard. Green = Pass (0-1 priority violations)→90-100, Yellow = Conditional Pass (2+ priority violations corrected on site)→70-89, Red = Closed/Fail (imminent health hazard)→0-39.",
-      rating_scale: "Green/Yellow/Red placard (converted to 0-100)"
-    },
-    enrichment: { needed: true, context: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs. Also check decadeonline.com which aggregates CT inspection data. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.", model: "gemini_3_flash" }
-  },
+  // ─── NORTH AMERICA: UNITED STATES (AI ENRICHMENT — county/city health depts) ──
+  { id: "manchester_ct", dept: "Manchester CT Health Department", city: "Manchester", state: "CT", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Green/Yellow/Red placard. Green=Pass(0-1 priority violations)→90-100, Yellow=Conditional(2+)→70-89, Red=Closed→0-39.", scale: "Green/Yellow/Red placard → 0-100", enrich: true, ctx: "Manchester CT (manchesterct.gov) Green/Yellow/Red placard system. CT DPH uses Priority (P), Priority Foundation (Pf), Core (C) categories. Also check decadeonline.com." },
+  { id: "denver", dept: "Denver Environmental Health & Safety", city: "Denver", state: "CO", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail from Denver Environmental Health.", scale: "0-100 numeric or Pass/Fail", enrich: true, ctx: "Denver Environmental Health & Safety restaurant inspection scores (denvergov.org)." },
+  { id: "dallas", dept: "Dallas County Health and Human Services", city: "Dallas", state: "TX", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Demerit-based deduction from 100.", scale: "0-100 numeric", enrich: true, ctx: "Dallas County Health and Human Services food establishment inspection records (dallascounty.org)." },
+  { id: "miami", dept: "Miami-Dade County Environmental Health", city: "Miami", state: "FL", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric inspection scores and violation details.", scale: "0-100 numeric", enrich: true, ctx: "Miami-Dade County food inspection database (miamidade.gov)." },
+  { id: "las_vegas", dept: "Southern Nevada Health District (SNHD)", city: "Las Vegas", state: "NV", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Letter grade A/B/C with demerit points. 0-10 demerits=A, 11-20=B, 21+=C.", scale: "A/B/C letter grade → 0-100", enrich: true, ctx: "SNHD restaurant inspection database (snhd.info). Clark County inspections." },
+  { id: "phoenix", dept: "Maricopa County Environmental Services", city: "Phoenix", state: "AZ", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Conditional/Fail.", scale: "0-100 numeric or Pass/Fail", enrich: true, ctx: "Maricopa County Environmental Services (maricopa.gov) restaurant inspection database." },
+  { id: "orlando", dept: "Florida DBPR Division of Hotels and Restaurants", city: "Orlando", state: "FL", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional Pass/Closed with violation details.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Florida DBPR (myfloridalicense.com) Division of Hotels and Restaurants inspection reports." },
+  { id: "philadelphia", dept: "Philadelphia Department of Public Health", city: "Philadelphia", state: "PA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Philadelphia Department of Public Health (phila.gov) restaurant inspection database." },
+  { id: "atlanta", dept: "Fulton County Environmental Health Services", city: "Atlanta", state: "GA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Letter grade A/B/C/U or numeric score.", scale: "A/B/C letter grade → 0-100", enrich: true, ctx: "Fulton County Environmental Health Services restaurant inspection scores." },
+  { id: "nashville", dept: "Nashville/Davidson County Metro Public Health Dept", city: "Nashville", state: "TN", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Nashville/Davidson County Metro Public Health Department restaurant inspection scores." },
+  { id: "charlotte", dept: "Mecklenburg County Environmental Health", city: "Charlotte", state: "NC", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Letter grade A/B/C or numeric score.", scale: "A/B/C letter grade → 0-100", enrich: true, ctx: "Mecklenburg County Environmental Health restaurant inspection database (mecknc.gov)." },
+  { id: "raleigh", dept: "Wake County Environmental Health", city: "Raleigh", state: "NC", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric score or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Wake County Environmental Health (wake.gov) restaurant inspection scores." },
+  { id: "columbus", dept: "Columbus Public Health", city: "Columbus", state: "OH", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail or numeric score.", scale: "0-100 numeric or Pass/Fail", enrich: true, ctx: "Columbus Public Health (columbus.gov) restaurant inspection database." },
+  { id: "minneapolis", dept: "Minneapolis Environmental Health / Hennepin County", city: "Minneapolis", state: "MN", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Minneapolis Environmental Health (minneapolismn.gov) and Hennepin County." },
+  { id: "pittsburgh", dept: "Allegheny County Health Department", city: "Pittsburgh", state: "PA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Allegheny County Health Department (achd.net) restaurant inspection database." },
+  { id: "sacramento", dept: "Sacramento County Environmental Management Dept", city: "Sacramento", state: "CA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric score 0-100.", scale: "0-100 numeric", enrich: true, ctx: "Sacramento County Environmental Management Department (emd.saccounty.gov)." },
+  { id: "san_diego", dept: "San Diego County Dept of Environmental Health", city: "San Diego", state: "CA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "San Diego County Department of Environmental Health (sdcounty.ca.gov)." },
+  { id: "spokane", dept: "Spokane Regional Health District", city: "Spokane", state: "WA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric score or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Spokane Regional Health District (srhd.org) restaurant inspection records." },
+  { id: "portland", dept: "Multnomah County Environmental Health", city: "Portland", state: "OR", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Multnomah County Environmental Health (multco.us) restaurant inspection scores." },
+  { id: "milwaukee", dept: "City of Milwaukee Health Department", city: "Milwaukee", state: "WI", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Letter grade A/B/C assigned to point value from routine annual inspection.", scale: "A/B/C letter grade → 0-100", enrich: true, ctx: "City of Milwaukee Health Department Food Sanitation Grading System (city.milwaukee.gov)." },
+  { id: "detroit", dept: "Detroit Health Department", city: "Detroit", state: "MI", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail with violation points.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Detroit Health Department restaurant inspection records." },
+  { id: "st_louis", dept: "St. Louis County Dept of Public Health", city: "St. Louis", state: "MO", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "St. Louis County Department of Public Health restaurant inspection records." },
+  { id: "tampa", dept: "Florida DBPR / Hillsborough County", city: "Tampa", state: "FL", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional Pass/Closed (FL DBPR standard).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Florida DBPR (myfloridalicense.com) inspection reports for Tampa/Hillsborough County." },
+  { id: "memphis", dept: "Shelby County Health Department", city: "Memphis", state: "TN", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Shelby County Health Department restaurant inspection scores." },
+  { id: "louisville", dept: "Louisville Metro Department of Public Health", city: "Louisville", state: "KY", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Louisville Metro Department of Public Health and Wellness restaurant inspections." },
+  { id: "baltimore", dept: "Baltimore City Health Department", city: "Baltimore", state: "MD", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Baltimore City Health Department restaurant inspection records." },
+  { id: "el_paso", dept: "El Paso Department of Public Health", city: "El Paso", state: "TX", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "El Paso Department of Public Health restaurant inspection records." },
+  { id: "fort_worth", dept: "Tarrant County Public Health", city: "Fort Worth", state: "TX", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Tarrant County Public Health restaurant inspection records." },
+  { id: "indianapolis", dept: "Marion County Public Health Department", city: "Indianapolis", state: "IN", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Marion County Public Health Department restaurant inspection records." },
+  { id: "jacksonville", dept: "Florida DBPR / Duval County", city: "Jacksonville", state: "FL", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional Pass/Closed (FL DBPR standard).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Florida DBPR (myfloridalicense.com) inspection reports for Jacksonville/Duval County." },
+  { id: "cleveland", dept: "Cuyahoga County Board of Health", city: "Cleveland", state: "OH", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Cuyahoga County Board of Health restaurant inspection records." },
+  { id: "cincinnati", dept: "Cincinnati Health Department", city: "Cincinnati", state: "OH", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Cincinnati Health Department restaurant inspection records." },
+  { id: "kansas_city", dept: "Kansas City Health Department", city: "Kansas City", state: "MO", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Kansas City Health Department restaurant inspection records." },
+  { id: "new_orleans", dept: "Louisiana Dept of Health / New Orleans", city: "New Orleans", state: "LA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Letter grade A/B/C or Pass/Fail.", scale: "A/B/C → 0-100", enrich: true, ctx: "Louisiana Department of Health restaurant inspection records for New Orleans." },
+  { id: "honolulu", dept: "Hawaii Department of Health", city: "Honolulu", state: "HI", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail with colored placard (green/yellow/red).", scale: "Placard → 0-100", enrich: true, ctx: "Hawaii Department of Health (health.hawaii.gov) restaurant inspection placard system." },
+  { id: "anchorage", dept: "Anchorage Health Department", city: "Anchorage", state: "AK", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Anchorage Health Department restaurant inspection records." },
+  { id: "albuquerque", dept: "Albuquerque Environmental Health Dept", city: "Albuquerque", state: "NM", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Albuquerque Environmental Health Department restaurant inspection records." },
+  { id: "tucson", dept: "Pima County Health Department", city: "Tucson", state: "AZ", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Pima County Health Department restaurant inspection records." },
+  { id: "fresno", dept: "Fresno County Department of Public Health", city: "Fresno", state: "CA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Fresno County Department of Public Health restaurant inspection records." },
+  { id: "long_beach_ca", dept: "Long Beach Department of Health and Human Services", city: "Long Beach", state: "CA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Long Beach Department of Health and Human Services restaurant inspection records." },
+  { id: "miami_beach", dept: "Miami Beach Environmental Health", city: "Miami Beach", state: "FL", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Numeric inspection scores.", scale: "0-100 numeric", enrich: true, ctx: "Miami Beach Environmental Health restaurant inspection records." },
+  { id: "arlington_va", dept: "Arlington County Dept of Human Services", city: "Arlington", state: "VA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Arlington County Department of Human Services restaurant inspection records." },
+  { id: "newark", dept: "Newark Dept of Health and Community Wellness", city: "Newark", state: "NJ", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Newark Department of Health and Community Wellness restaurant inspection records." },
+  { id: "buffalo", dept: "Erie County Dept of Health", city: "Buffalo", state: "NY", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Erie County Department of Health restaurant inspection records." },
+  { id: "richmond_va", dept: "Virginia Department of Health / Richmond", city: "Richmond", state: "VA", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Virginia Department of Health restaurant inspection records for Richmond." },
+  { id: "oklahoma_city", dept: "Oklahoma City-County Health Dept", city: "Oklahoma City", state: "OK", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Oklahoma City-County Health Department restaurant inspection records." },
+  { id: "tucson_az", dept: "Pima County Health Department", city: "Tucson", state: "AZ", country: "US", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 or Pass/Fail.", scale: "0-100 numeric", enrich: true, ctx: "Pima County Health Department restaurant inspection records." },
 
-  // ═══ AI-ONLY (pure LLM, no Places grounding) ════════════════════════════════
-  {
-    source_id: "dubai",
-    health_department: "Dubai Municipality Food Safety Department",
-    location: { city: "Dubai", state: null, country: "AE", coverage: ["Dubai"] },
-    data_source: {
-      source_type: "ai_only",
-      api_registry_id: null,
-      backend_function: null,
-      endpoint_description: "LLM web search — Dubai Municipality food safety inspection grades",
-      rating_system: "Dubai Municipality uses A/B/C/D/E grades for food establishments. A=excellent, E=poor.",
-      rating_scale: "A-E letter grade (converted to 0-100)"
-    },
-    enrichment: { needed: false, context: "Dubai Municipality food safety inspection grades A-E.", model: null }
-  },
+  // ─── NORTH AMERICA: CANADA ─────────────────────────────────────────────────
+  { id: "vancouver", dept: "Vancouver Coastal Health (VCH)", city: "Vancouver", state: "BC", country: "CA", type: "backend_proxy", api: null, fn: "vancouverBCInspections", rating: "Pass / Conditional Pass / Closed. Hazard: Low/Moderate/High.", scale: "Pass/Conditional/Closed → 0-100", enrich: true, ctx: "Vancouver Coastal Health (VCH) restaurant inspection records from inspections.vch.ca." },
+  { id: "toronto", dept: "Toronto Public Health (DineSafe)", city: "Toronto", state: "ON", country: "CA", type: "backend_proxy", api: null, fn: "torontoDineSafe", rating: "Pass / Conditional Pass / Closed. Yellow/Red/Green sign.", scale: "Pass/Conditional/Closed → 0-100", enrich: false, ctx: "" },
+  { id: "calgary", dept: "Alberta Health Services", city: "Calgary", state: "AB", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Alberta Health Services food inspection records for Calgary." },
+  { id: "edmonton", dept: "Alberta Health Services", city: "Edmonton", state: "AB", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Alberta Health Services food inspection records for Edmonton." },
+  { id: "montreal", dept: "MAPAQ (Ministère de l'Agriculture, des Pêcheries et de l'Alimentation)", city: "Montreal", state: "QC", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail. Letter grade A/B/C from MAPAQ.", scale: "A/B/C or Pass/Fail → 0-100", enrich: true, ctx: "MAPAQ Québec food inspection records and Montreal public health inspection data." },
+  { id: "ottawa", dept: "Ottawa Public Health", city: "Ottawa", state: "ON", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Conditional/Closed → 0-100", enrich: true, ctx: "Ottawa Public Health food premise inspection reports (ottawapublichealth.ca)." },
+  { id: "winnipeg", dept: "Manitoba Health / Winnipeg Regional Health Authority", city: "Winnipeg", state: "MB", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Manitoba Health / Winnipeg Regional Health Authority food inspection records." },
+  { id: "halifax", dept: "Halifax Regional Municipality / NS Health", city: "Halifax", state: "NS", country: "CA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Closed.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Halifax Regional Municipality / Nova Scotia Health food inspection records." },
 
-  // ═══ AI-ENRICHMENT (Places grounded + web search) — US cities without live APIs ═══
-  {
-    source_id: "denver",
-    health_department: "Denver Environmental Health & Safety",
-    location: { city: "Denver", state: "CO", country: "US", coverage: ["Denver"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Denver inspection scores (denvergov.org)", rating_system: "Score 0-100 or Pass/Fail from Denver Environmental Health.", rating_scale: "0-100 numeric or Pass/Fail" },
-    enrichment: { needed: true, context: "Prioritize: Denver Environmental Health & Safety restaurant inspection scores (denvergov.org). Score is 0-100 or Pass/Fail.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "dallas",
-    health_department: "Dallas County Health and Human Services",
-    location: { city: "Dallas", state: "TX", country: "US", coverage: ["Dallas"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Dallas inspection records (dallascounty.org)", rating_system: "Demerit-based deduction from 100.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Dallas County Health and Human Services food establishment inspection records (dallascounty.org).", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "miami",
-    health_department: "Miami-Dade County Environmental Health",
-    location: { city: "Miami", state: "FL", country: "US", coverage: ["Miami"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Miami-Dade inspection database (miamidade.gov)", rating_system: "Numeric inspection scores and violation details.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Miami-Dade County food inspection database (miamidade.gov). Look for inspection scores and violation details.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "las_vegas",
-    health_department: "Southern Nevada Health District (SNHD)",
-    location: { city: "Las Vegas", state: "NV", country: "US", coverage: ["Las Vegas", "Clark County"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for SNHD inspection database (snhd.info)", rating_system: "Letter grade A/B/C with demerit points. 0-10 demerits = A, 11-20 = B, 21+ = C.", rating_scale: "A/B/C letter grade (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Southern Nevada Health District (SNHD) restaurant inspection database (snhd.info). Clark County inspections.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "phoenix",
-    health_department: "Maricopa County Environmental Services",
-    location: { city: "Phoenix", state: "AZ", country: "US", coverage: ["Phoenix"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Maricopa County inspection database (maricopa.gov)", rating_system: "Score 0-100 or Pass/Conditional/Fail.", rating_scale: "0-100 numeric or Pass/Fail" },
-    enrichment: { needed: true, context: "Prioritize: Maricopa County Environmental Services (maricopa.gov) restaurant inspection database — search by facility name and address.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "orlando",
-    health_department: "Florida DBPR Division of Hotels and Restaurants",
-    location: { city: "Orlando", state: "FL", country: "US", coverage: ["Orlando"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for FL DBPR inspection reports (myfloridalicense.com)", rating_system: "Pass/Conditional Pass/Closed with violation details.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Florida DBPR (myfloridalicense.com) Division of Hotels and Restaurants inspection reports — search by business name and address.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "philadelphia",
-    health_department: "Philadelphia Department of Public Health",
-    location: { city: "Philadelphia", state: "PA", country: "US", coverage: ["Philadelphia"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Philadelphia inspection database (phila.gov)", rating_system: "Pass/Fail with violation categories.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Philadelphia Department of Public Health (phila.gov) restaurant inspection database and PA Department of Agriculture food safety records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "atlanta",
-    health_department: "Fulton County Environmental Health Services",
-    location: { city: "Atlanta", state: "GA", country: "US", coverage: ["Atlanta"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Fulton County inspection scores", rating_system: "Letter grade A/B/C/U or numeric score.", rating_scale: "A/B/C letter grade (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Fulton County Environmental Health Services restaurant inspection scores and Georgia Department of Public Health food safety records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "nashville",
-    health_department: "Nashville/Davidson County Metro Public Health Department",
-    location: { city: "Nashville", state: "TN", country: "US", coverage: ["Nashville"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Nashville inspection scores", rating_system: "Score 0-100 or Pass/Fail.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Nashville/Davidson County Metro Public Health Department restaurant inspection scores.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "charlotte",
-    health_department: "Mecklenburg County Environmental Health",
-    location: { city: "Charlotte", state: "NC", country: "US", coverage: ["Charlotte"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Mecklenburg County inspection database (mecknc.gov)", rating_system: "Letter grade A/B/C or numeric score.", rating_scale: "A/B/C letter grade (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Mecklenburg County Environmental Health restaurant inspection database (mecknc.gov).", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "raleigh",
-    health_department: "Wake County Environmental Health",
-    location: { city: "Raleigh", state: "NC", country: "US", coverage: ["Raleigh"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Wake County inspection scores (wake.gov)", rating_system: "Numeric score or Pass/Fail.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Wake County Environmental Health (wake.gov) restaurant inspection scores and NC Department of Agriculture food safety records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "columbus",
-    health_department: "Columbus Public Health",
-    location: { city: "Columbus", state: "OH", country: "US", coverage: ["Columbus"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Columbus inspection database (columbus.gov)", rating_system: "Pass/Fail or numeric score.", rating_scale: "0-100 numeric or Pass/Fail" },
-    enrichment: { needed: true, context: "Prioritize: Columbus Public Health (columbus.gov) restaurant inspection database and Ohio Department of Agriculture food safety records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "minneapolis",
-    health_department: "Minneapolis Environmental Health / Hennepin County",
-    location: { city: "Minneapolis", state: "MN", country: "US", coverage: ["Minneapolis"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Minneapolis inspection records (minneapolismn.gov)", rating_system: "Pass/Conditional/Fail.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Minneapolis Environmental Health (minneapolismn.gov) and Hennepin County Environmental Health restaurant inspection records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "pittsburgh",
-    health_department: "Allegheny County Health Department",
-    location: { city: "Pittsburgh", state: "PA", country: "US", coverage: ["Pittsburgh"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Allegheny County inspection database (achd.net)", rating_system: "Numeric score 0-100 or Pass/Fail.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Allegheny County Health Department (achd.net) restaurant inspection database and PA Department of Agriculture records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "sacramento",
-    health_department: "Sacramento County Environmental Management Department",
-    location: { city: "Sacramento", state: "CA", country: "US", coverage: ["Sacramento"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Sacramento County inspection database (emd.saccounty.gov)", rating_system: "Numeric score 0-100.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Sacramento County Environmental Management Department (emd.saccounty.gov) restaurant inspection database.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "san_diego",
-    health_department: "San Diego County Department of Environmental Health",
-    location: { city: "San Diego", state: "CA", country: "US", coverage: ["San Diego"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for San Diego County inspection database (sdcounty.ca.gov)", rating_system: "Numeric score 0-100 or Pass/Fail.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: San Diego County Department of Environmental Health (sdcounty.ca.gov) food inspection database.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "spokane",
-    health_department: "Spokane Regional Health District",
-    location: { city: "Spokane", state: "WA", country: "US", coverage: ["Spokane"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Spokane inspection records (srhd.org)", rating_system: "Numeric score or Pass/Fail.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Prioritize: Spokane Regional Health District (srhd.org) restaurant inspection records and food safety scores.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "portland",
-    health_department: "Multnomah County Environmental Health",
-    location: { city: "Portland", state: "OR", country: "US", coverage: ["Portland"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Multnomah County inspection scores (multco.us)", rating_system: "Pass/Conditional/Fail.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Multnomah County Environmental Health (multco.us) restaurant inspection scores and Oregon Health Authority food safety records.", model: "gemini_3_flash" }
-  },
+  // ─── NORTH AMERICA: MEXICO ─────────────────────────────────────────────────
+  { id: "mexico_city", dept: "COFEPRIS (Federal Commission for Protection Against Sanitary Risks)", city: "Mexico City", state: null, country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme (compliant/non-compliant) with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS (cofepris.gob.mx) food safety inspection. Focus on food handling conditions, temperature controls, supplier traceability." },
+  { id: "guadalajara", dept: "COFEPRIS / Jalisco Health Dept", city: "Guadalajara", state: "JAL", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Jalisco State Health Department food inspection records." },
+  { id: "monterrey", dept: "COFEPRIS / Nuevo León Health Dept", city: "Monterrey", state: "NL", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Nuevo León State Health Department food inspection records." },
+  { id: "cancun", dept: "COFEPRIS / Quintana Roo Health Dept", city: "Cancún", state: "QR", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Quintana Roo State Health Department food inspection records." },
+  { id: "tijuana", dept: "COFEPRIS / Baja California Health Dept", city: "Tijuana", state: "BC", country: "MX", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "COFEPRIS / Baja California State Health Department food inspection records." },
 
-  // ═══ AI-ENRICHMENT — International cities ═══════════════════════════════════
-  {
-    source_id: "paris",
-    health_department: "DGCCRF (Alim'confiance)",
-    location: { city: "Paris", state: null, country: "FR", coverage: ["Paris", "Lyon", "Marseille", "Toulouse", "Nice", "Bordeaux", "Strasbourg"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Alim'confiance (alim-confiance.gouv.fr) — official DGCCRF transparency database", rating_system: "4-tier: Très satisfaisant / Satisfaisant / À améliorer / À corriger de toute urgence.", rating_scale: "4-tier (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Alim'confiance platform (alim-confiance.gouv.fr) — official DGCCRF transparency database with 4-tier ratings.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "berlin",
-    health_department: "Berlin Senatsverwaltung Lebensmittelüberwachung",
-    location: { city: "Berlin", state: null, country: "DE", coverage: ["Berlin", "Munich", "Hamburg", "Cologne", "Frankfurt"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for verbraucherportal.de and regional Lebensmittelüberwachung records", rating_system: "Smiley-based rating (green/yellow/red) from German food safety authorities.", rating_scale: "Green/Yellow/Red smiley (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: verbraucherportal.de and Berlin Senatsverwaltung Lebensmittelüberwachung inspection records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "amsterdam",
-    health_department: "NVWA (Nederlandse Voedsel- en Warenautoriteit)",
-    location: { city: "Amsterdam", state: null, country: "NL", coverage: ["Amsterdam", "Rotterdam", "The Hague"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for NVWA (nvwa.nl) and inspectieresultaten.nl", rating_system: "Risk classification: laag/gemiddeld/hoog (low/average/high risk).", rating_scale: "3-tier risk (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: NVWA (nvwa.nl) inspection results and inspectieresultaten.nl — Dutch Food and Consumer Product Safety Authority.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "copenhagen",
-    health_department: "Fødevarestyrelsen (Danish Veterinary and Food Administration)",
-    location: { city: "Copenhagen", state: null, country: "DK", coverage: ["Copenhagen"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for findsmiley.dk — official Danish smiley scheme", rating_system: "4-tier smiley: Elite (4 smileys), Very good (3), Good (2), Satisfactory (1). Smiley-with-frown = issued report.", rating_scale: "4-tier smiley (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Smiley scheme (findsmiley.dk) from Fødevarestyrelsen — 4-tier smiley rating for Danish restaurants.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "tokyo",
-    health_department: "Tokyo Metropolitan Government (東京都) — local 保健所",
-    location: { city: "Tokyo", state: null, country: "JP", coverage: ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Sapporo", "Fukuoka", "Nagoya"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Japanese 保健所 (health center) food hygiene records", rating_system: "Pass/Fail from 食品衛生責任者 (food hygiene supervisor) inspection.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Search: Tokyo Metropolitan Government (東京都) food hygiene (食品衛生) from local 保健所 (health centers). Score is Pass/Fail from 食品衛生責任者.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "seoul",
-    health_department: "식품안전나라 (Food Safety Korea) / Seoul Metropolitan Government",
-    location: { city: "Seoul", state: null, country: "KR", coverage: ["Seoul", "Busan", "Incheon"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for 식품안전나라 (foodsafetykorea.go.kr)", rating_system: "Score 0-100 from Korean food safety inspection.", rating_scale: "0-100 numeric" },
-    enrichment: { needed: true, context: "Search: 식품안전나라 (foodsafetykorea.go.kr) and Seoul Metropolitan Government food inspection database. Score is 0-100.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "hong_kong",
-    health_department: "FEHD (Food and Environmental Hygiene Department)",
-    location: { city: "Hong Kong", state: null, country: "HK", coverage: ["Hong Kong"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for FEHD inspection records (fehd.gov.hk)", rating_system: "License grading A/B/C from FEHD inspections.", rating_scale: "A/B/C license grade (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: FEHD (Food and Environmental Hygiene Department) Hong Kong (fehd.gov.hk) inspection records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "mumbai",
-    health_department: "FSSAI (Food Safety and Standards Authority of India) / MCGM",
-    location: { city: "Mumbai", state: null, country: "IN", coverage: ["Mumbai", "Delhi", "Bangalore"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for FSSAI registration (fssai.gov.in) and MCGM food safety records", rating_system: "FSSAI license/registration status. No standardized score.", rating_scale: "License status (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: FSSAI (fssai.gov.in) registration database and Mumbai Municipal Corporation (MCGM) food safety records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "sao_paulo",
-    health_department: "VISA São Paulo (Vigilância Sanitária)",
-    location: { city: "São Paulo", state: null, country: "BR", coverage: ["São Paulo", "Rio de Janeiro"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for VISA São Paulo inspection records (cvs.saude.sp.gov.br)", rating_system: "Conforme/Não conforme (compliant/non-compliant) with violation details.", rating_scale: "Pass/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: VISA São Paulo (cvs.saude.sp.gov.br) Vigilância Sanitária restaurant inspection records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "abu_dhabi",
-    health_department: "ADAFSA (Abu Dhabi Agriculture and Food Safety Authority)",
-    location: { city: "Abu Dhabi", state: null, country: "AE", coverage: ["Abu Dhabi", "Sharjah"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for ADAFSA inspection and grading records", rating_system: "A/B/C/D grades from ADAFSA food safety inspections.", rating_scale: "A-D letter grade (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: ADAFSA (Abu Dhabi Agriculture and Food Safety Authority) restaurant inspection and grading records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "auckland",
-    health_department: "Auckland Council / MPI (Ministry for Primary Industries)",
-    location: { city: "Auckland", state: null, country: "NZ", coverage: ["Auckland", "Wellington", "Christchurch"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for Auckland Council food inspection records", rating_system: "FoodSafe verification: Pass/Conditional/Fail.", rating_scale: "Pass/Conditional/Fail (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Auckland Council food premises inspection records and FoodSafe verification scheme.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "dublin",
-    health_department: "FSAI (Food Safety Authority of Ireland)",
-    location: { city: "Dublin", state: null, country: "IE", coverage: ["Dublin", "Cork", "Galway", "Limerick", "Waterford"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for FSAI enforcement orders (fsai.ie)", rating_system: "Enforcement orders: Closure Order / Improvement Notice / Prohibition Order. No numeric score.", rating_scale: "Enforcement status (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.", model: "gemini_3_flash" }
-  },
-  {
-    source_id: "vancouver_ca_other",
-    health_department: "Various — Calgary/Edmonton (Alberta Health Services), Montreal (MAPAQ)",
-    location: { city: "Calgary", state: null, country: "CA", coverage: ["Calgary", "Edmonton", "Montreal", "Ottawa"] },
-    data_source: { source_type: "ai_enrichment", api_registry_id: null, backend_function: "placesRestaurantSearch", endpoint_description: "Google Places + LLM web search for provincial health authority inspection records", rating_system: "Varies by province: Pass/Conditional/Closed or numeric scores.", rating_scale: "Pass/Fail or numeric (converted to 0-100)" },
-    enrichment: { needed: true, context: "Prioritize: Ottawa Public Health food premise inspection reports (ottawapublichealth.ca). Look for Pass/Conditional/Closed results.", model: "gemini_3_flash" }
-  },
+  // ─── SOUTH AMERICA ──────────────────────────────────────────────────────────
+  { id: "sao_paulo", dept: "VISA São Paulo (Vigilância Sanitária)", city: "São Paulo", state: null, country: "BR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme with violation details.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VISA São Paulo (cvs.saude.sp.gov.br) Vigilância Sanitária restaurant inspection records." },
+  { id: "rio", dept: "VISA Rio de Janeiro (Vigilância Sanitária)", city: "Rio de Janeiro", state: null, country: "BR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VISA Rio de Janeiro (rio.rj.gov.br/web/cvs) food establishment inspection records." },
+  { id: "brasilia", dept: "ANVISA / VISA Distrito Federal", city: "Brasília", state: null, country: "BR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ANVISA / VISA Distrito Federal food inspection records." },
+  { id: "buenos_aires", dept: "SENASA / AGA (Buenos Aires City Health)", city: "Buenos Aires", state: null, country: "AR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Apto/No apto (suitable/not suitable).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SENASA / AGA Buenos Aires food establishment inspection records." },
+  { id: "santiago", dept: "SEREMI Health / ACHIPEG", city: "Santiago", state: null, country: "CL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Sí/No conforme. Regional SEREMI Health inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SEREMI Health (Región Metropolitana) / ACHIPEG restaurant inspection records." },
+  { id: "bogota", dept: "INVIMA (Instituto Nacional de Vigilancia de Medicamentos y Alimentos)", city: "Bogotá", state: null, country: "CO", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme with sanitary registry.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "INVIMA (invima.gov.co) food establishment inspection records." },
+  { id: "lima", dept: "DIGESA (Dirección General de Salud Ambiental)", city: "Lima", state: null, country: "PE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme. Sanitary certification required.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "DIGESA (digesa.minsa.gob.pe) food establishment inspection records." },
+  { id: "quito", dept: "ARCSA (Agencia de Regulación y Control Sanitario)", city: "Quito", state: null, country: "EC", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ARCSA Ecuador food establishment inspection records." },
+  { id: "caracas", dept: "SACS / Ministerio de Salud (Venezuela)", city: "Caracas", state: null, country: "VE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SACS / Ministerio de Salud Venezuela food establishment inspection records." },
+  { id: "montevideo", dept: "DGSS / Ministerio de Salud Pública (Uruguay)", city: "Montevideo", state: null, country: "UY", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "DGSS / Ministerio de Salud Pública Uruguay food establishment inspection records." },
+
+  // ─── EUROPE: UNITED KINGDOM & IRELAND ───────────────────────────────────────
+  { id: "uk_fsa", dept: "Food Standards Agency (UK FSA)", city: "Multiple", state: null, country: "GB", type: "backend_proxy", api: null, fn: "ukFoodRatings", rating: "FHRS 0-5: 0=Urgent improvement, 1=Major improvement, 2=Improvement, 3=Generally satisfactory, 4=Good, 5=Very good.", scale: "0-5 FHRS → 0-100", enrich: false, ctx: "" },
+  { id: "dublin", dept: "FSAI (Food Safety Authority of Ireland)", city: "Dublin", state: null, country: "IE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Enforcement orders: Closure Order / Improvement Notice / Prohibition Order. No numeric score.", scale: "Enforcement status → 0-100", enrich: true, ctx: "FSAI (fsai.ie) enforcement orders and closure notices, Dublin City Council food safety inspection records." },
+  { id: "cork", dept: "FSAI / Cork City Council", city: "Cork", state: null, country: "IE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Enforcement orders / inspection compliance.", scale: "Enforcement status → 0-100", enrich: true, ctx: "FSAI (fsai.ie) and Cork City Council food safety inspection records." },
+  { id: "galway", dept: "FSAI / Galway City Council", city: "Galway", state: null, country: "IE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Enforcement orders / inspection compliance.", scale: "Enforcement status → 0-100", enrich: true, ctx: "FSAI (fsai.ie) and Galway City Council food safety inspection records." },
+
+  // ─── EUROPE: FRANCE ─────────────────────────────────────────────────────────
+  { id: "paris", dept: "DGCCRF (Alim'confiance)", city: "Paris", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier: Très satisfaisant / Satisfaisant / À améliorer / À corriger de toute urgence.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance platform (alim-confiance.gouv.fr) — official DGCCRF transparency database." },
+  { id: "lyon", dept: "DGCCRF (Alim'confiance)", city: "Lyon", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Lyon." },
+  { id: "marseille", dept: "DGCCRF (Alim'confiance)", city: "Marseille", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Marseille." },
+  { id: "toulouse", dept: "DGCCRF (Alim'confiance)", city: "Toulouse", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Toulouse." },
+  { id: "nice", dept: "DGCCRF (Alim'confiance)", city: "Nice", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Nice." },
+  { id: "bordeaux", dept: "DGCCRF (Alim'confiance)", city: "Bordeaux", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Bordeaux." },
+  { id: "strasbourg", dept: "DGCCRF (Alim'confiance)", city: "Strasbourg", state: null, country: "FR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier Alim'confiance.", scale: "4-tier → 0-100", enrich: true, ctx: "Alim'confiance (alim-confiance.gouv.fr) — DGCCRF results for Strasbourg." },
+
+  // ─── EUROPE: GERMANY, AUSTRIA, SWITZERLAND ──────────────────────────────────
+  { id: "berlin", dept: "Berlin Senatsverwaltung (Lebensmittelüberwachung)", city: "Berlin", state: null, country: "DE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating (green/yellow/red) from German Lebensmittelüberwachung.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "verbraucherportal.de and Berlin Senatsverwaltung Lebensmittelüberwachung inspection records." },
+  { id: "munich", dept: "LGL Bayern (Landesamt für Gesundheit und Lebensmittelsicherheit)", city: "Munich", state: null, country: "DE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating from LGL Bayern.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "LGL Bayern (lgl.bayern.de) food inspection records and verbraucherportal.de." },
+  { id: "hamburg", dept: "Hamburg Lebensmittelüberwachung (LMUE)", city: "Hamburg", state: null, country: "DE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "Hamburg Lebensmittelüberwachung (hamburg.de/lmue) restaurant inspection records." },
+  { id: "cologne", dept: "Köln Veterinär- und Lebensmittelüberwachungsamt", city: "Cologne", state: null, country: "DE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "Köln Veterinär- und Lebensmittelüberwachungsamt food inspection records." },
+  { id: "frankfurt", dept: "Frankfurt am Main Lebensmittelüberwachung", city: "Frankfurt", state: null, country: "DE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "Frankfurt am Main food inspection (Lebensmittelüberwachung) records." },
+  { id: "vienna", dept: "AGES / Wiener Marktamt (Lebensmittelkontrolle)", city: "Vienna", state: null, country: "AT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley-based rating from AGES / municipal market authority.", scale: "Green/Yellow/Red smiley → 0-100", enrich: true, ctx: "AGES (ages.at) / Wiener Marktamt food inspection records. Austria uses smiley system." },
+  { id: "zurich", dept: "Kanton Zürich Lebensmittelkontrolle", city: "Zurich", state: null, country: "CH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non-conforme. Cantonal food control authority inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Kanton Zürich Lebensmittelkontrolle (lebensmittelkontrolle.zh.ch) food inspection records." },
+  { id: "geneva", dept: "Canton de Genève — Contrôle des aliments", city: "Geneva", state: null, country: "CH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non-conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Canton de Genève contrôle des aliments food inspection records." },
+
+  // ─── EUROPE: NETHERLANDS, BELGIUM, LUXEMBOURG ───────────────────────────────
+  { id: "amsterdam", dept: "NVWA (Nederlandse Voedsel- en Warenautoriteit)", city: "Amsterdam", state: null, country: "NL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Risk classification: laag/gemiddeld/hoog (low/average/high risk).", scale: "3-tier risk → 0-100", enrich: true, ctx: "NVWA (nvwa.nl) inspection results and inspectieresultaten.nl." },
+  { id: "rotterdam", dept: "NVWA", city: "Rotterdam", state: null, country: "NL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Risk classification: laag/gemiddeld/hoog.", scale: "3-tier risk → 0-100", enrich: true, ctx: "NVWA (nvwa.nl) and inspectieresultaten.nl for Rotterdam." },
+  { id: "the_hague", dept: "NVWA / GGD Den Haag", city: "The Hague", state: null, country: "NL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Risk classification: laag/gemiddeld/hoog.", scale: "3-tier risk → 0-100", enrich: true, ctx: "NVWA (nvwa.nl) food inspection records for The Hague." },
+  { id: "brussels", dept: "FAVV (Federaal Agentschap voor de Veiligheid van de Voedselketen)", city: "Brussels", state: null, country: "BE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conform/Non-conform with risk classification.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "FAVV / AFSCA (favv.be) food safety inspection records." },
+  { id: "antwerp", dept: "FAVV", city: "Antwerp", state: null, country: "BE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conform/Non-conform with risk classification.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "FAVV (favv.be) food safety inspection records for Antwerp." },
+
+  // ─── EUROPE: NORDIC COUNTRIES ───────────────────────────────────────────────
+  { id: "copenhagen", dept: "Fødevarestyrelsen (Danish Veterinary and Food Administration)", city: "Copenhagen", state: null, country: "DK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier smiley: Elite (4 smileys), Very good (3), Good (2), Satisfactory (1). Smiley-with-frown = issued report.", scale: "4-tier smiley → 0-100", enrich: true, ctx: "Smiley scheme (findsmiley.dk) from Fødevarestyrelsen." },
+  { id: "aarhus", dept: "Fødevarestyrelsen", city: "Aarhus", state: null, country: "DK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "4-tier smiley.", scale: "4-tier smiley → 0-100", enrich: true, ctx: "Smiley scheme (findsmiley.dk) for Aarhus." },
+  { id: "stockholm", dept: "Livsmedelsverket (Swedish National Food Agency)", city: "Stockholm", state: null, country: "SE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Approved with remarks/Not approved. Municipal environmental health inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Livsmedelsverket (livsmedelsverket.se) / Stockholm Stad Miljöförvaltningen food inspection records." },
+  { id: "gothenburg", dept: "Livsmedelsverket / Göteborg Miljöförvaltningen", city: "Gothenburg", state: null, country: "SE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Approved with remarks/Not approved.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Livsmedelsverket / Göteborg Stad food inspection records." },
+  { id: "oslo", dept: "Mattilsynet (Norwegian Food Safety Authority)", city: "Oslo", state: null, country: "NO", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Smiley rating: broadly approved / approved with remarks / not approved.", scale: "3-tier smiley → 0-100", enrich: true, ctx: "Mattilsynet (mattilsynet.no) food inspection records. Norway uses smiley system similar to Denmark." },
+  { id: "helsinki", dept: "Ruokavirasto (Finnish Food Authority)", city: "Helsinki", state: null, country: "FI", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Oiva rating: Excellent / Good / Correctable / Poor. Based on food safety inspection.", scale: "4-tier Oiva → 0-100", enrich: true, ctx: "Ruokavirasto (ruokavirasto.fi) / Oiva system (oivahymy.fi) food inspection records. Finland uses the Oiva smiley system." },
+  { id: "reykjavik", dept: "Matvælastofnun (Icelandic Food and Veterinary Authority)", city: "Reykjavik", state: null, country: "IS", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail from municipal health inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Matvælastofnun (mast.is) food inspection records for Reykjavik." },
+
+  // ─── EUROPE: SOUTHERN EUROPE ────────────────────────────────────────────────
+  { id: "madrid", dept: "AESAN / Comunidad de Madrid (Sanidad)", city: "Madrid", state: null, country: "ES", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme. Regional health authority inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "AESAN / Comunidad de Madrid Sanidad food inspection records." },
+  { id: "barcelona", dept: "AESAN / Generalitat de Catalunya (Sanitat)", city: "Barcelona", state: null, country: "ES", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "AESAN / Generalitat de Catalunya Sanitat food inspection records." },
+  { id: "valencia", dept: "AESAN / Generalitat Valenciana", city: "Valencia", state: null, country: "ES", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/No conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "AESAN / Generalitat Valenciana food inspection records." },
+  { id: "rome", dept: "ASL Roma (Azienda Sanitaria Locale)", city: "Rome", state: null, country: "IT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme. ASL local health authority inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ASL Roma (aslroma.it) food inspection records. Italy uses regional ASL (Azienda Sanitaria Locale) for inspections." },
+  { id: "milan", dept: "ASL Milano / ATS Milano", city: "Milan", state: null, country: "IT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ATS Milano (ats-milano.it) food inspection records." },
+  { id: "naples", dept: "ASL Napoli", city: "Naples", state: null, country: "IT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ASL Napoli food inspection records." },
+  { id: "florence", dept: "ASL Firenze", city: "Florence", state: null, country: "IT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ASL Firenze food inspection records." },
+  { id: "lisbon", dept: "ASAE (Autoridade de Segurança Alimentar e Económica)", city: "Lisbon", state: null, country: "PT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme. ASAE enforcement actions.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ASAE (asae.gov.pt) food inspection records for Lisbon." },
+  { id: "porto", dept: "ASAE", city: "Porto", state: null, country: "PT", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Não conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ASAE (asae.gov.pt) food inspection records for Porto." },
+  { id: "athens", dept: "EFET (Ενιαίος Φορέας Ελέγχου Τροφίμων)", city: "Athens", state: null, country: "GR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "EFET (efet.gr) food inspection records for Athens." },
+  { id: "thessaloniki", dept: "EFET", city: "Thessaloniki", state: null, country: "GR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "EFET (efet.gr) food inspection records for Thessaloniki." },
+
+  // ─── EUROPE: CENTRAL & EASTERN EUROPE ───────────────────────────────────────
+  { id: "warsaw", dept: "Sanepid (Powiatowa Stacja Sanitarno-Epidemiologiczna)", city: "Warsaw", state: null, country: "PL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pozytywny/Negatywny (positive/negative). Sanepid sanitary inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Sanepid (gis.gov.pl) food inspection records for Warsaw. Poland uses Sanepid (Sanitary-epidemiological stations)." },
+  { id: "krakow", dept: "Sanepid Kraków", city: "Kraków", state: null, country: "PL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pozytywny/Negatywny.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Sanepid Kraków food inspection records." },
+  { id: "prague", dept: "SZPI (Státní zemědělská a potravinářská inspekce)", city: "Prague", state: null, country: "CZ", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Vyhovuje/Nevyhovuje (compliant/non-compliant).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SZPI (szpi.gov.cz) food inspection records for Prague." },
+  { id: "budapest", dept: "NÉBIH (Nemzeti Élelmiszerlánc-biztonsági Hivatal)", city: "Budapest", state: null, country: "HU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Megfelel/Nem felel meg (compliant/non-compliant).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "NÉBIH (nebih.gov.hu) food inspection records for Budapest." },
+  { id: "bucharest", dept: "ANSVSA (Agenția Națională Sanitară Veterinară și pentru Siguranța Alimentelor)", city: "Bucharest", state: null, country: "RO", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conform/Non-conform.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ANSVSA (ansvsa.ro) food inspection records for Bucharest." },
+  { id: "sofia", dept: "Bulgarian Food Safety Agency (БАБХ)", city: "Sofia", state: null, country: "BG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Съответства/Не съответства (compliant/non-compliant).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Bulgarian Food Safety Agency (babh.government.bg) food inspection records." },
+  { id: "moscow", dept: "Rospotrebnadzor (Роспотребнадзор)", city: "Moscow", state: null, country: "RU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Соответствует/Не соответствует (compliant/non-compliant). Sanitary-epidemiological inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Rospotrebnadzor (rospotrebnadzor.gov.ru) food inspection records for Moscow." },
+  { id: "st_petersburg", dept: "Rospotrebnadzor St. Petersburg", city: "St. Petersburg", state: null, country: "RU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Соответствует/Не соответствует.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Rospotrebnadzor food inspection records for St. Petersburg." },
+  { id: "kyiv", dept: "State Service of Ukraine on Food Safety and Consumer Protection", city: "Kyiv", state: null, country: "UA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Відповідає/Не відповідає (compliant/non-compliant).", scale: "Pass/Fail → 0-100", enrich: true, ctx: "State Service of Ukraine on Food Safety (consumer.gov.ua) food inspection records." },
+
+  // ─── MIDDLE EAST ────────────────────────────────────────────────────────────
+  { id: "dubai", dept: "Dubai Municipality Food Safety Department", city: "Dubai", state: null, country: "AE", type: "ai_only", api: null, fn: null, rating: "A/B/C/D/E grades from Dubai Municipality food safety inspections. A=excellent, E=poor.", scale: "A-E letter grade → 0-100", enrich: false, ctx: "Dubai Municipality food safety inspection grades A-E." },
+  { id: "abu_dhabi", dept: "ADAFSA (Abu Dhabi Agriculture and Food Safety Authority)", city: "Abu Dhabi", state: null, country: "AE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "A/B/C/D grades from ADAFSA food safety inspections.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "ADAFSA (adafsa.gov.ae) restaurant inspection and grading records." },
+  { id: "sharjah", dept: "Sharjah City Municipality", city: "Sharjah", state: null, country: "AE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "A/B/C/D grades from Sharjah Municipality food safety inspections.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Sharjah City Municipality food safety inspection records." },
+  { id: "riyadh", dept: "SFDA (Saudi Food and Drug Authority)", city: "Riyadh", state: null, country: "SA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant with violation categories. SFDA inspects food establishments for compliance with SFDA food codes.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SFDA (sfda.gov.sa) food establishment inspection records. Evaluates food labels, ingredient safety, and production process compliance." },
+  { id: "jeddah", dept: "SFDA / Jeddah Municipality", city: "Jeddah", state: null, country: "SA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SFDA (sfda.gov.sa) / Jeddah Municipality food inspection records." },
+  { id: "mecca", dept: "SFDA / Holy Makkah Municipality", city: "Mecca", state: null, country: "SA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SFDA / Holy Makkah Municipality food inspection records." },
+  { id: "doha", dept: "Ministry of Public Health (MoPH) Qatar", city: "Doha", state: null, country: "QA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "A/B/C/D grades or Compliant/Non-compliant from MoPH food safety inspections.", scale: "A-D or Pass/Fail → 0-100", enrich: true, ctx: "Qatar Ministry of Public Health (moph.gov.qa) food establishment inspection records." },
+  { id: "kuwait_city", dept: "Kuwait Municipality — Public Health Dept", city: "Kuwait City", state: null, country: "KW", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Kuwait Municipality Public Health Department food inspection records." },
+  { id: "manama", dept: "Ministry of Health Bahrain — Environmental Health", city: "Manama", state: null, country: "BH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Ministry of Health Bahrain Environmental Health food inspection records." },
+  { id: "muscat", dept: "Muscat Municipality — Health Services", city: "Muscat", state: null, country: "OM", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Muscat Municipality Health Services food inspection records." },
+  { id: "tel_aviv", dept: "Israeli Ministry of Health — Food Service", city: "Tel Aviv", state: null, country: "IL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail. MoH environmental health inspection with violation categories.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Israeli Ministry of Health (health.gov.il) food service inspection records for Tel Aviv." },
+  { id: "jerusalem", dept: "Israeli Ministry of Health — Jerusalem District", city: "Jerusalem", state: null, country: "IL", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Israeli Ministry of Health (health.gov.il) Jerusalem District food inspection records." },
+  { id: "istanbul", dept: "Ministry of Agriculture and Forestry (Turkey)", city: "Istanbul", state: null, country: "TR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Uygun/Uygun değil (compliant/non-compliant). Municipal food inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Ministry of Agriculture and Forestry (tarimorman.gov.tr) / Istanbul Municipality food inspection records." },
+  { id: "ankara", dept: "Ministry of Agriculture and Forestry / Ankara Municipality", city: "Ankara", state: null, country: "TR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Uygun/Uygun değil.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Ministry of Agriculture and Forestry / Ankara Municipality food inspection records." },
+  { id: "cairo", dept: "Egyptian Ministry of Health — Food Safety", city: "Cairo", state: null, country: "EG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Egyptian Ministry of Health (mohp.gov.eg) food safety inspection records." },
+  { id: "amman", dept: "Jordan Food and Drug Administration (JFDA)", city: "Amman", state: null, country: "JO", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Jordan Food and Drug Administration (jfda.jo) food inspection records." },
+  { id: "beirut", dept: "Lebanese Ministry of Economy — Consumer Protection", city: "Beirut", state: null, country: "LB", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Lebanese Ministry of Economy Consumer Protection food inspection records." },
+
+  // ─── ASIA: EAST ASIA ────────────────────────────────────────────────────────
+  { id: "tokyo", dept: "Tokyo Metropolitan Government (東京都) — local 保健所", city: "Tokyo", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from 食品衛生責任者 (food hygiene supervisor) inspection. Local health center (保健所) conducts inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Tokyo Metropolitan Government (東京都) food hygiene (食品衛生) from local 保健所 (health centers)." },
+  { id: "osaka", dept: "Osaka Prefecture — local 保健所", city: "Osaka", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Osaka Prefecture food hygiene inspection records from 保健所." },
+  { id: "kyoto", dept: "Kyoto City — local 保健所", city: "Kyoto", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Kyoto City food safety inspection records from local 保健所." },
+  { id: "yokohama", dept: "Yokohama City — local 保健所", city: "Yokohama", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Yokohama City food hygiene inspection records." },
+  { id: "sapporo", dept: "Sapporo City — local 保健所", city: "Sapporo", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Sapporo City food safety inspection records." },
+  { id: "fukuoka", dept: "Fukuoka City — local 保健所", city: "Fukuoka", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Fukuoka City food hygiene inspection records." },
+  { id: "nagoya", dept: "Nagoya City — local 保健所", city: "Nagoya", state: null, country: "JP", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Fail from food hygiene inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Nagoya City food safety inspection records." },
+  { id: "seoul", dept: "식품안전나라 (Food Safety Korea) / Seoul Metropolitan Gov", city: "Seoul", state: null, country: "KR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100 from Korean food safety inspection.", scale: "0-100 numeric", enrich: true, ctx: "식품안전나라 (foodsafetykorea.go.kr) and Seoul Metropolitan Government food inspection database." },
+  { id: "busan", dept: "식품안전나라 / Busan Metropolitan City", city: "Busan", state: null, country: "KR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100.", scale: "0-100 numeric", enrich: true, ctx: "식품안전나라 (foodsafetykorea.go.kr) and Busan Metropolitan City food safety records." },
+  { id: "incheon", dept: "식품안전나라 / Incheon City", city: "Incheon", state: null, country: "KR", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Score 0-100.", scale: "0-100 numeric", enrich: true, ctx: "식품안전나라 (foodsafetykorea.go.kr) and Incheon City food hygiene inspection data." },
+  { id: "beijing", dept: "SAMR (国家市场监督管理总局) / Beijing Municipal Gov", city: "Beijing", state: null, country: "CN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "量化分级 A/B/C/D (quantitative grading A=best, D=worst).", scale: "A-D letter grade → 0-100", enrich: true, ctx: "SAMR / Beijing municipal food safety authority (北京市食品安全) inspection records." },
+  { id: "shanghai", dept: "Shanghai Municipal Food Safety Authority (上海市食品安全)", city: "Shanghai", state: null, country: "CN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "量化分级 A/B/C/D.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Shanghai municipal food safety authority inspection records." },
+  { id: "guangzhou", dept: "Guangzhou FDA / SAMR Guangdong", city: "Guangzhou", state: null, country: "CN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "量化分级 A/B/C/D.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Guangzhou FDA / SAMR Guangdong food inspection records." },
+  { id: "shenzhen", dept: "Shenzhen Market Supervision Administration", city: "Shenzhen", state: null, country: "CN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "量化分级 A/B/C/D.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Shenzhen Market Supervision Administration food inspection records." },
+  { id: "hong_kong", dept: "FEHD (Food and Environmental Hygiene Department)", city: "Hong Kong", state: null, country: "HK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "License grading A/B/C from FEHD inspections.", scale: "A/B/C license grade → 0-100", enrich: true, ctx: "FEHD Hong Kong (fehd.gov.hk) inspection records." },
+  { id: "taipei", dept: "FDA Taiwan (食品藥物管理署) / Taipei City Health Dept", city: "Taipei", state: null, country: "TW", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "優/良/普/加強改善 (Excellent/Good/Average/Needs improvement).", scale: "4-tier → 0-100", enrich: true, ctx: "FDA Taiwan (fda.gov.tw) / Taipei City Health Department food inspection records." },
+  { id: "kaohsiung", dept: "FDA Taiwan / Kaohsiung City Health Dept", city: "Kaohsiung", state: null, country: "TW", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "優/良/普/加強改善.", scale: "4-tier → 0-100", enrich: true, ctx: "FDA Taiwan / Kaohsiung City Health Department food inspection records." },
+
+  // ─── ASIA: SOUTHEAST ASIA ───────────────────────────────────────────────────
+  { id: "singapore", dept: "Singapore Food Agency (SFA) / NEA", city: "Singapore", state: null, country: "SG", type: "backend_proxy", api: null, fn: "singaporeInspections", rating: "SFA/NEA hygiene grades A/B/C/D/E scale (A=excellent, E=poor).", scale: "A-E letter grade → 0-100", enrich: false, ctx: "" },
+  { id: "bangkok", dept: "Thai FDA (อย.) / Bangkok Metropolitan Admin", city: "Bangkok", state: null, country: "TH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. Thai FDA food categorization: Specifically Controlled Food, Food with Quality/Standard Requirements, Food with Labeling Requirements.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Thai FDA (fda.moph.go.th) / Bangkok Metropolitan Administration food inspection records." },
+  { id: "chiang_mai", dept: "Thai FDA / Chiang Mai Provincial Health", city: "Chiang Mai", state: null, country: "TH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Thai FDA / Chiang Mai Provincial Health Office food inspection records." },
+  { id: "phuket", dept: "Thai FDA / Phuket Provincial Health", city: "Phuket", state: null, country: "TH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Thai FDA / Phuket Provincial Health Office food inspection records." },
+  { id: "kuala_lumpur", dept: "MOH Malaysia — Food Safety and Quality Division", city: "Kuala Lumpur", state: null, country: "MY", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. BeSS (Bersih, Selamat, Sihat) recognition for compliant establishments.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "MOH Malaysia Food Safety and Quality Division (fsq.moh.gov.my) food inspection records." },
+  { id: "penang", dept: "MOH Malaysia — Penang State Health Dept", city: "Penang", state: null, country: "MY", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "MOH Malaysia / Penang State Health Department food inspection records." },
+  { id: "jakarta", dept: "BPOM (Badan Pengawas Obat dan Makanan)", city: "Jakarta", state: null, country: "ID", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. BPOM registration required for food establishments.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "BPOM (bpom.go.id) food establishment inspection records for Jakarta." },
+  { id: "bali", dept: "BPOM / Dinas Kesehatan Bali", city: "Denpasar", state: null, country: "ID", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "BPOM / Dinas Kesehatan Bali food inspection records." },
+  { id: "manila", dept: "FDA Philippines — Center for Food Regulation", city: "Manila", state: null, country: "PH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. FDA license to operate required.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "FDA Philippines (fda.gov.ph) food establishment inspection records." },
+  { id: "cebu", dept: "FDA Philippines / Cebu City Health Dept", city: "Cebu", state: null, country: "PH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "FDA Philippines / Cebu City Health Department food inspection records." },
+  { id: "ho_chi_minh", dept: "VFA (Vietnam Food Administration)", city: "Ho Chi Minh City", state: null, country: "VN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Đạt/Không đạt (pass/fail). VFA food safety inspection.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VFA (vfa.gov.vn) food inspection records for Ho Chi Minh City." },
+  { id: "hanoi", dept: "VFA / Hanoi Health Dept", city: "Hanoi", state: null, country: "VN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Đạt/Không đạt.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VFA (vfa.gov.vn) / Hanoi Health Department food inspection records." },
+  { id: "phnom_penh", dept: "CamControl / Cambodia MoH", city: "Phnom Penh", state: null, country: "KH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "CamControl / Cambodia Ministry of Health food inspection records." },
+  { id: "yangon", dept: "FDA Myanmar / Yangon City Development Committee", city: "Yangon", state: null, country: "MM", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "FDA Myanmar / Yangon City Development Committee food inspection records." },
+  { id: "vientiane", dept: " Laos FDA / Vientiane Health Dept", city: "Vientiane", state: null, country: "LA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Laos FDA / Vientiane Health Department food inspection records." },
+
+  // ─── ASIA: SOUTH ASIA ───────────────────────────────────────────────────────
+  { id: "mumbai", dept: "FSSAI / MCGM (Mumbai Municipal Corporation)", city: "Mumbai", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status. No standardized score.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI (fssai.gov.in) registration database and Mumbai Municipal Corporation (MCGM) food safety records." },
+  { id: "delhi", dept: "FSSAI / Delhi Govt Food Safety", city: "Delhi", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI (fssai.gov.in) and Delhi government food safety inspection records." },
+  { id: "bangalore", dept: "FSSAI / BBMP (Bruhat Bengaluru Mahanagara Palike)", city: "Bangalore", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI (fssai.gov.in) and BBMP food safety inspection records." },
+  { id: "chennai", dept: "FSSAI / Greater Chennai Corporation", city: "Chennai", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI / Greater Chennai Corporation food safety inspection records." },
+  { id: "kolkata", dept: "FSSAI / Kolkata Municipal Corporation", city: "Kolkata", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI / Kolkata Municipal Corporation food safety inspection records." },
+  { id: "hyderabad", dept: "FSSAI / GHMC (Greater Hyderabad Municipal Corp)", city: "Hyderabad", state: null, country: "IN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FSSAI license/registration status.", scale: "License status → 0-100", enrich: true, ctx: "FSSAI / GHMC food safety inspection records." },
+  { id: "karachi", dept: "Punjab Food Authority (PFA) / Sindh Food Authority", city: "Karachi", state: null, country: "PK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. SFA uses A/B/C/D grades for food establishments.", scale: "A-D or Pass/Fail → 0-100", enrich: true, ctx: "Sindh Food Authority (sfa.gos.pk) / Punjab Food Authority (pfa.punjab.gov.pk) food inspection records." },
+  { id: "lahore", dept: "Punjab Food Authority (PFA)", city: "Lahore", state: null, country: "PK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "A/B/C/D grades from PFA inspections. A=excellent, D=poor.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Punjab Food Authority (pfa.punjab.gov.pk) food inspection and grading records." },
+  { id: "islamabad", dept: "Islamabad Food Authority", city: "Islamabad", state: null, country: "PK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "A/B/C/D grades.", scale: "A-D letter grade → 0-100", enrich: true, ctx: "Islamabad Food Authority food inspection and grading records." },
+  { id: "dhaka", dept: "BFSA (Bangladesh Food Safety Authority)", city: "Dhaka", state: null, country: "BD", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "BFSA (bfsa.gov.bd) food inspection records for Dhaka." },
+  { id: "colombo", dept: "PHAI (Public Health Inspectors) / Colombo Municipal Council", city: "Colombo", state: null, country: "LK", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "PHAI / Colombo Municipal Council food inspection records." },
+
+  // ─── OCEANIA ────────────────────────────────────────────────────────────────
+  { id: "sydney", dept: "NSW Food Authority (Scores on Doors)", city: "Sydney", state: "NSW", country: "AU", type: "backend_proxy", api: null, fn: "australiaFoodSafety", rating: "5-star rating: 5=Excellent, 4=Very good, 3=Good, 2=Satisfactory, 1=Needs improvement.", scale: "1-5 star → 0-100", enrich: false, ctx: "" },
+  { id: "brisbane", dept: "Brisbane City Council / Queensland Health", city: "Brisbane", state: "QLD", country: "AU", type: "backend_proxy", api: null, fn: "australiaFoodSafety", rating: "Star rating or Pass/Non-compliant based on council inspection.", scale: "Star rating → 0-100", enrich: false, ctx: "" },
+  { id: "melbourne", dept: "VicHealth / City of Melbourne (FoodSmart)", city: "Melbourne", state: "VIC", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail. FoodSmart Victoria program.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "VicHealth food safety, City of Melbourne restaurant inspections, FoodSmart Victoria." },
+  { id: "perth", dept: "WA Department of Health", city: "Perth", state: "WA", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "WA Department of Health (health.wa.gov.au) food premises inspection records." },
+  { id: "adelaide", dept: "SA Health / City of Adelaide", city: "Adelaide", state: "SA", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "SA Health food premises inspection records, City of Adelaide." },
+  { id: "gold_coast", dept: "Gold Coast City Council", city: "Gold Coast", state: "QLD", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Star rating or Pass/Non-compliant.", scale: "Star rating → 0-100", enrich: true, ctx: "Gold Coast City Council food safety inspection records." },
+  { id: "canberra", dept: "ACT Health — Health Protection Service", city: "Canberra", state: "ACT", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ACT Health (health.act.gov.au) food premises inspection records." },
+  { id: "hobart", dept: "Tasmania Health Service — Public Health", city: "Hobart", state: "TAS", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Tasmania Health Service food premises inspection records." },
+  { id: "darwin", dept: "NT Department of Health — Environmental Health", city: "Darwin", state: "NT", country: "AU", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "NT Department of Health Environmental Health food premises inspection records." },
+  { id: "auckland", dept: "Auckland Council / MPI (Ministry for Primary Industries)", city: "Auckland", state: null, country: "NZ", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "FoodSafe verification: Pass/Conditional/Fail.", scale: "Pass/Conditional/Fail → 0-100", enrich: true, ctx: "Auckland Council food premises inspection records and FoodSafe verification scheme." },
+  { id: "wellington", dept: "Wellington City Council — Environmental Health", city: "Wellington", state: null, country: "NZ", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Wellington City Council environmental health food premises inspections." },
+  { id: "christchurch", dept: "Christchurch City Council — Environmental Health", city: "Christchurch", state: null, country: "NZ", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Pass/Conditional/Fail.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Christchurch City Council food premises inspection records." },
+
+  // ─── AFRICA ─────────────────────────────────────────────────────────────────
+  { id: "cape_town", dept: "City of Cape Town — Environmental Health", city: "Cape Town", state: null, country: "ZA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. Certificate of Acceptability required under R638 regulations.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "City of Cape Town Environmental Health (capetown.gov.za) food inspection records. South Africa requires Certificate of Acceptability under R638." },
+  { id: "johannesburg", dept: "City of Johannesburg — Environmental Health", city: "Johannesburg", state: null, country: "ZA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. Certificate of Acceptability required.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "City of Johannesburg Environmental Health food inspection records." },
+  { id: "durban", dept: "eThekwini Municipality — Environmental Health", city: "Durban", state: null, country: "ZA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "eThekwini Municipality Environmental Health food inspection records." },
+  { id: "lagos", dept: "NAFDAC (National Agency for Food and Drug Administration and Control)", city: "Lagos", state: null, country: "NG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. NAFDAC registration required.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "NAFDAC (nafdac.gov.ng) food inspection records and Lagos State Ministry of Health." },
+  { id: "abuja", dept: "NAFDAC / FCT Health Dept", city: "Abuja", state: null, country: "NG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "NAFDAC / Federal Capital Territory Health Department food inspection records." },
+  { id: "nairobi", dept: "Nairobi County Health Dept / KEBS", city: "Nairobi", state: null, country: "KE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant. Public Health Act compliance.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Nairobi County Health Department / KEBS (kebs.org) food inspection records." },
+  { id: "casablanca", dept: "ONSSA (Office National de Sécurité Sanitaire des Produits Alimentaires)", city: "Casablanca", state: null, country: "MA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ONSSA (onssa.gov.ma) food inspection records for Casablanca." },
+  { id: "marrakech", dept: "ONSSA / Marrakech Municipal Health", city: "Marrakech", state: null, country: "MA", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "ONSSA / Marrakech Municipal Health food inspection records." },
+  { id: "cairo_eg", dept: "Egyptian Ministry of Health — Food Control", city: "Cairo", state: null, country: "EG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Egyptian Ministry of Health (mohp.gov.eg) Food Control Department inspection records." },
+  { id: "alexandria", dept: "Egyptian Ministry of Health — Alexandria", city: "Alexandria", state: null, country: "EG", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Egyptian Ministry of Health Alexandria branch food inspection records." },
+  { id: "nairobi", dept: "Nairobi County Health Department", city: "Nairobi", state: null, country: "KE", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Nairobi County Health Department food inspection records." },
+  { id: "addis_ababa", dept: "Ethiopian Food and Drug Authority (EFDA)", city: "Addis Ababa", state: null, country: "ET", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Ethiopian Food and Drug Authority (efda.gov.et) food inspection records." },
+  { id: "accra", dept: "Ghana Food and Drugs Authority (FDA Ghana)", city: "Accra", state: null, country: "GH", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Compliant/Non-compliant.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Ghana FDA (fdaghana.gov.gh) food inspection records." },
+  { id: "dakar", dept: "Senegal — Direction de la Protection des Consommateurs", city: "Dakar", state: null, country: "SN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Senegal Direction de la Protection des Consommateurs food inspection records." },
+  { id: "tunis", dept: "Tunisian Ministry of Health — Direction de l'Hygiène", city: "Tunis", state: null, country: "TN", type: "ai_enrichment", api: null, fn: "placesRestaurantSearch", rating: "Conforme/Non conforme.", scale: "Pass/Fail → 0-100", enrich: true, ctx: "Tunisian Ministry of Health Direction de l'Hygiène food inspection records." },
 ];
 
-// ── GEO RESOLUTION ────────────────────────────────────────────────────────────
-// Maps state + city to a source_id, mirroring the GEO_ROUTE logic in the
-// frontend searchEngine but in a single queryable table.
+// ═══════════════════════════════════════════════════════════════════════════════
+// GEO RESOLUTION TABLE — maps state + city to source_id
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const GEO_TABLE = [
-  // WA — King County cities
-  { state: "WA", city: "seattle", source_id: "king" },
-  { state: "WA", city: "bellevue", source_id: "king" },
-  { state: "WA", city: "kent", source_id: "king" },
-  { state: "WA", city: "renton", source_id: "king" },
-  { state: "WA", city: "redmond", source_id: "king" },
-  { state: "WA", city: "kirkland", source_id: "king" },
-  { state: "WA", city: "federal way", source_id: "king" },
-  { state: "WA", city: "sammamish", source_id: "king" },
-  { state: "WA", city: "shoreline", source_id: "king" },
-  { state: "WA", city: "burien", source_id: "king" },
-  { state: "WA", city: "tukwila", source_id: "king" },
-  { state: "WA", city: "issaquah", source_id: "king" },
-  { state: "WA", city: "mercer island", source_id: "king" },
-  { state: "WA", city: "auburn", source_id: "king" },
-  { state: "WA", city: "bothell", source_id: "king" },
-  { state: "WA", city: "kenmore", source_id: "king" },
-  { state: "WA", city: "newcastle", source_id: "king" },
-  { state: "WA", city: "des moines", source_id: "king" },
-  { state: "WA", city: "seatac", source_id: "king" },
-  { state: "WA", city: "woodinville", source_id: "king" },
-  // WA — Pierce County cities
-  { state: "WA", city: "tacoma", source_id: "pierce" },
-  { state: "WA", city: "puyallup", source_id: "pierce" },
-  { state: "WA", city: "lakewood", source_id: "pierce" },
-  { state: "WA", city: "university place", source_id: "pierce" },
-  { state: "WA", city: "fircrest", source_id: "pierce" },
-  { state: "WA", city: "parkland", source_id: "pierce" },
-  { state: "WA", city: "spanaway", source_id: "pierce" },
-  { state: "WA", city: "sumner", source_id: "pierce" },
-  { state: "WA", city: "bonney lake", source_id: "pierce" },
-  { state: "WA", city: "gig harbor", source_id: "pierce" },
-  { state: "WA", city: "dupont", source_id: "pierce" },
-  { state: "WA", city: "steilacoom", source_id: "pierce" },
-  { state: "WA", city: "milton", source_id: "pierce" },
-  { state: "WA", city: "edgewood", source_id: "pierce" },
-  { state: "WA", city: "orting", source_id: "pierce" },
-  { state: "WA", city: "eatonville", source_id: "pierce" },
-  { state: "WA", city: "roy", source_id: "pierce" },
-  // NY
-  { state: "NY", city: "new york", source_id: "nyc" },
-  { state: "NY", city: "brooklyn", source_id: "nyc" },
-  { state: "NY", city: "queens", source_id: "nyc" },
-  { state: "NY", city: "bronx", source_id: "nyc" },
-  { state: "NY", city: "the bronx", source_id: "nyc" },
-  { state: "NY", city: "manhattan", source_id: "nyc" },
-  { state: "NY", city: "staten island", source_id: "nyc" },
-  // IL
-  { state: "IL", city: "chicago", source_id: "cook" },
-  // CA
-  { state: "CA", city: "san francisco", source_id: "sf" },
-  { state: "CA", city: "los angeles", source_id: "la" },
-  { state: "CA", city: "long beach", source_id: "la" },
-  { state: "CA", city: "glendale", source_id: "la" },
-  { state: "CA", city: "pasadena", source_id: "la" },
-  { state: "CA", city: "santa monica", source_id: "la" },
-  { state: "CA", city: "burbank", source_id: "la" },
-  { state: "CA", city: "torrance", source_id: "la" },
-  { state: "CA", city: "modesto", source_id: "stanislaus" },
-  { state: "CA", city: "turlock", source_id: "stanislaus" },
-  { state: "CA", city: "ceres", source_id: "stanislaus" },
-  { state: "CA", city: "san diego", source_id: "san_diego" },
-  { state: "CA", city: "sacramento", source_id: "sacramento" },
-  // TX
-  { state: "TX", city: "austin", source_id: "travis" },
-  { state: "TX", city: "houston", source_id: "houston" },
-  { state: "TX", city: "dallas", source_id: "dallas" },
-  // MD
-  { state: "MD", city: "rockville", source_id: "montgomery_md" },
-  { state: "MD", city: "bethesda", source_id: "montgomery_md" },
-  { state: "MD", city: "silver spring", source_id: "montgomery_md" },
-  { state: "MD", city: "gaithersburg", source_id: "montgomery_md" },
-  // MA
-  { state: "MA", city: "boston", source_id: "boston" },
-  // DE — statewide default
-  { state: "DE", city: null, source_id: "delaware" },
-  // CT
-  { state: "CT", city: "manchester", source_id: "manchester_ct" },
-  // NV
-  { state: "NV", city: "las vegas", source_id: "las_vegas" },
-  // FL
-  { state: "FL", city: "miami", source_id: "miami" },
-  { state: "FL", city: "orlando", source_id: "orlando" },
-  // AZ
-  { state: "AZ", city: "phoenix", source_id: "phoenix" },
-  // PA
-  { state: "PA", city: "philadelphia", source_id: "philadelphia" },
-  { state: "PA", city: "pittsburgh", source_id: "pittsburgh" },
-  // GA
-  { state: "GA", city: "atlanta", source_id: "atlanta" },
-  // TN
-  { state: "TN", city: "nashville", source_id: "nashville" },
-  // NC
-  { state: "NC", city: "charlotte", source_id: "charlotte" },
-  { state: "NC", city: "raleigh", source_id: "raleigh" },
-  // OH
-  { state: "OH", city: "columbus", source_id: "columbus" },
-  // MN
-  { state: "MN", city: "minneapolis", source_id: "minneapolis" },
-  // OR
-  { state: "OR", city: "portland", source_id: "portland" },
-  // CO
-  { state: "CO", city: "denver", source_id: "denver" },
-  // WA — Spokane (different from King County)
-  { state: "WA", city: "spokane", source_id: "spokane" },
-  // Canada
-  { state: "BC", city: "vancouver", source_id: "vancouver" },
-  { state: "BC", city: "richmond", source_id: "vancouver" },
-  { state: "BC", city: "north vancouver", source_id: "vancouver" },
-  { state: "BC", city: "west vancouver", source_id: "vancouver" },
-  { state: "BC", city: "squamish", source_id: "vancouver" },
-  { state: "BC", city: "whistler", source_id: "vancouver" },
-  { state: "BC", city: "pemberton", source_id: "vancouver" },
-  { state: "BC", city: "sechelt", source_id: "vancouver" },
-  { state: "BC", city: "gibsons", source_id: "vancouver" },
-  { state: "BC", city: "powell river", source_id: "vancouver" },
-  { state: "BC", city: "bowen island", source_id: "vancouver" },
-  { state: "ON", city: "toronto", source_id: "toronto" },
-  { state: "ON", city: "ottawa", source_id: "vancouver_ca_other" },
-  { state: "AB", city: "calgary", source_id: "vancouver_ca_other" },
-  { state: "AB", city: "edmonton", source_id: "vancouver_ca_other" },
-  { state: "QC", city: "montreal", source_id: "vancouver_ca_other" },
+  // ── US ──
+  { state: "WA", city: "seattle", sid: "king" }, { state: "WA", city: "bellevue", sid: "king" },
+  { state: "WA", city: "kent", sid: "king" }, { state: "WA", city: "renton", sid: "king" },
+  { state: "WA", city: "redmond", sid: "king" }, { state: "WA", city: "kirkland", sid: "king" },
+  { state: "WA", city: "federal way", sid: "king" }, { state: "WA", city: "sammamish", sid: "king" },
+  { state: "WA", city: "shoreline", sid: "king" }, { state: "WA", city: "burien", sid: "king" },
+  { state: "WA", city: "tukwila", sid: "king" }, { state: "WA", city: "issaquah", sid: "king" },
+  { state: "WA", city: "mercer island", sid: "king" }, { state: "WA", city: "auburn", sid: "king" },
+  { state: "WA", city: "bothell", sid: "king" }, { state: "WA", city: "kenmore", sid: "king" },
+  { state: "WA", city: "newcastle", sid: "king" }, { state: "WA", city: "des moines", sid: "king" },
+  { state: "WA", city: "seatac", sid: "king" }, { state: "WA", city: "woodinville", sid: "king" },
+  { state: "WA", city: "tacoma", sid: "pierce" }, { state: "WA", city: "puyallup", sid: "pierce" },
+  { state: "WA", city: "lakewood", sid: "pierce" }, { state: "WA", city: "university place", sid: "pierce" },
+  { state: "WA", city: "fircrest", sid: "pierce" }, { state: "WA", city: "parkland", sid: "pierce" },
+  { state: "WA", city: "spanaway", sid: "pierce" }, { state: "WA", city: "sumner", sid: "pierce" },
+  { state: "WA", city: "bonney lake", sid: "pierce" }, { state: "WA", city: "gig harbor", sid: "pierce" },
+  { state: "WA", city: "dupont", sid: "pierce" }, { state: "WA", city: "steilacoom", sid: "pierce" },
+  { state: "WA", city: "milton", sid: "pierce" }, { state: "WA", city: "edgewood", sid: "pierce" },
+  { state: "WA", city: "orting", sid: "pierce" }, { state: "WA", city: "eatonville", sid: "pierce" },
+  { state: "WA", city: "roy", sid: "pierce" }, { state: "WA", city: "spokane", sid: "spokane" },
+  { state: "NY", city: "new york", sid: "nyc" }, { state: "NY", city: "brooklyn", sid: "nyc" },
+  { state: "NY", city: "queens", sid: "nyc" }, { state: "NY", city: "bronx", sid: "nyc" },
+  { state: "NY", city: "the bronx", sid: "nyc" }, { state: "NY", city: "manhattan", sid: "nyc" },
+  { state: "NY", city: "staten island", sid: "nyc" }, { state: "NY", city: "buffalo", sid: "buffalo" },
+  { state: "IL", city: "chicago", sid: "cook" },
+  { state: "CA", city: "san francisco", sid: "sf" }, { state: "CA", city: "los angeles", sid: "la" },
+  { state: "CA", city: "long beach", sid: "la" }, { state: "CA", city: "glendale", sid: "la" },
+  { state: "CA", city: "pasadena", sid: "la" }, { state: "CA", city: "santa monica", sid: "la" },
+  { state: "CA", city: "burbank", sid: "la" }, { state: "CA", city: "torrance", sid: "la" },
+  { state: "CA", city: "modesto", sid: "stanislaus" }, { state: "CA", city: "turlock", sid: "stanislaus" },
+  { state: "CA", city: "ceres", sid: "stanislaus" }, { state: "CA", city: "san diego", sid: "san_diego" },
+  { state: "CA", city: "sacramento", sid: "sacramento" }, { state: "CA", city: "fresno", sid: "fresno" },
+  { state: "TX", city: "austin", sid: "travis" }, { state: "TX", city: "houston", sid: "houston" },
+  { state: "TX", city: "dallas", sid: "dallas" }, { state: "TX", city: "el paso", sid: "el_paso" },
+  { state: "TX", city: "fort worth", sid: "fort_worth" },
+  { state: "MD", city: "rockville", sid: "montgomery_md" }, { state: "MD", city: "bethesda", sid: "montgomery_md" },
+  { state: "MD", city: "silver spring", sid: "montgomery_md" }, { state: "MD", city: "gaithersburg", sid: "montgomery_md" },
+  { state: "MD", city: "baltimore", sid: "baltimore" },
+  { state: "MA", city: "boston", sid: "boston" },
+  { state: "DE", city: null, sid: "delaware" },
+  { state: "CT", city: "manchester", sid: "manchester_ct" },
+  { state: "NV", city: "las vegas", sid: "las_vegas" },
+  { state: "FL", city: "miami", sid: "miami" }, { state: "FL", city: "miami beach", sid: "miami_beach" },
+  { state: "FL", city: "orlando", sid: "orlando" }, { state: "FL", city: "tampa", sid: "tampa" },
+  { state: "FL", city: "jacksonville", sid: "jacksonville" },
+  { state: "AZ", city: "phoenix", sid: "phoenix" }, { state: "AZ", city: "tucson", sid: "tucson" },
+  { state: "PA", city: "philadelphia", sid: "philadelphia" }, { state: "PA", city: "pittsburgh", sid: "pittsburgh" },
+  { state: "GA", city: "atlanta", sid: "atlanta" },
+  { state: "TN", city: "nashville", sid: "nashville" }, { state: "TN", city: "memphis", sid: "memphis" },
+  { state: "NC", city: "charlotte", sid: "charlotte" }, { state: "NC", city: "raleigh", sid: "raleigh" },
+  { state: "OH", city: "columbus", sid: "columbus" }, { state: "OH", city: "cleveland", sid: "cleveland" },
+  { state: "OH", city: "cincinnati", sid: "cincinnati" },
+  { state: "MN", city: "minneapolis", sid: "minneapolis" },
+  { state: "OR", city: "portland", sid: "portland" },
+  { state: "CO", city: "denver", sid: "denver" },
+  { state: "WI", city: "milwaukee", sid: "milwaukee" },
+  { state: "MI", city: "detroit", sid: "detroit" },
+  { state: "MO", city: "st. louis", sid: "st_louis" }, { state: "MO", city: "kansas city", sid: "kansas_city" },
+  { state: "KY", city: "louisville", sid: "louisville" },
+  { state: "IN", city: "indianapolis", sid: "indianapolis" },
+  { state: "LA", city: "new orleans", sid: "new_orleans" },
+  { state: "HI", city: "honolulu", sid: "honolulu" },
+  { state: "AK", city: "anchorage", sid: "anchorage" },
+  { state: "NM", city: "albuquerque", sid: "albuquerque" },
+  { state: "NJ", city: "newark", sid: "newark" },
+  { state: "VA", city: "arlington", sid: "arlington_va" }, { state: "VA", city: "richmond", sid: "richmond_va" },
+  { state: "OK", city: "oklahoma city", sid: "oklahoma_city" },
+
+  // ── Canada ──
+  { state: "BC", city: "vancouver", sid: "vancouver" }, { state: "BC", city: "richmond", sid: "vancouver" },
+  { state: "BC", city: "north vancouver", sid: "vancouver" }, { state: "BC", city: "west vancouver", sid: "vancouver" },
+  { state: "BC", city: "squamish", sid: "vancouver" }, { state: "BC", city: "whistler", sid: "vancouver" },
+  { state: "BC", city: "pemberton", sid: "vancouver" }, { state: "BC", city: "sechelt", sid: "vancouver" },
+  { state: "BC", city: "gibsons", sid: "vancouver" }, { state: "BC", city: "powell river", sid: "vancouver" },
+  { state: "BC", city: "bowen island", sid: "vancouver" },
+  { state: "ON", city: "toronto", sid: "toronto" }, { state: "ON", city: "ottawa", sid: "ottawa" },
+  { state: "AB", city: "calgary", sid: "calgary" }, { state: "AB", city: "edmonton", sid: "edmonton" },
+  { state: "QC", city: "montreal", sid: "montreal" },
+  { state: "MB", city: "winnipeg", sid: "winnipeg" },
+  { state: "NS", city: "halifax", sid: "halifax" },
+
+  // ── Mexico ──
+  { state: null, city: "mexico city", sid: "mexico_city" },
+  { state: null, city: "guadalajara", sid: "guadalajara" },
+  { state: null, city: "monterrey", sid: "monterrey" },
+  { state: null, city: "cancún", sid: "cancun" }, { state: null, city: "cancun", sid: "cancun" },
+  { state: null, city: "tijuana", sid: "tijuana" },
+
+  // ── UK (all route through uk_fsa) ──
+  ...["london", "birmingham", "manchester", "leeds", "glasgow", "edinburgh", "liverpool", "bristol", "sheffield", "cardiff", "belfast"]
+    .map(c => ({ state: null, city: c, sid: "uk_fsa" })),
+
+  // ── Ireland ──
+  { state: null, city: "dublin", sid: "dublin" }, { state: null, city: "cork", sid: "cork" },
+  { state: null, city: "galway", sid: "galway" },
+
+  // ── France ──
+  { state: null, city: "paris", sid: "paris" }, { state: null, city: "lyon", sid: "lyon" },
+  { state: null, city: "marseille", sid: "marseille" }, { state: null, city: "toulouse", sid: "toulouse" },
+  { state: null, city: "nice", sid: "nice" }, { state: null, city: "bordeaux", sid: "bordeaux" },
+  { state: null, city: "strasbourg", sid: "strasbourg" },
+
+  // ── Germany ──
+  { state: null, city: "berlin", sid: "berlin" }, { state: null, city: "munich", sid: "munich" },
+  { state: null, city: "hamburg", sid: "hamburg" }, { state: null, city: "cologne", sid: "cologne" },
+  { state: null, city: "frankfurt", sid: "frankfurt" },
+
+  // ── Austria / Switzerland ──
+  { state: null, city: "vienna", sid: "vienna" }, { state: null, city: "zurich", sid: "zurich" },
+  { state: null, city: "geneva", sid: "geneva" },
+
+  // ── Netherlands / Belgium ──
+  { state: null, city: "amsterdam", sid: "amsterdam" }, { state: null, city: "rotterdam", sid: "rotterdam" },
+  { state: null, city: "the hague", sid: "the_hague" }, { state: null, city: "the Hague", sid: "the_hague" },
+  { state: null, city: "brussels", sid: "brussels" }, { state: null, city: "antwerp", sid: "antwerp" },
+
+  // ── Nordic ──
+  { state: null, city: "copenhagen", sid: "copenhagen" }, { state: null, city: "aarhus", sid: "aarhus" },
+  { state: null, city: "stockholm", sid: "stockholm" }, { state: null, city: "gothenburg", sid: "gothenburg" },
+  { state: null, city: "oslo", sid: "oslo" }, { state: null, city: "helsinki", sid: "helsinki" },
+  { state: null, city: "reykjavik", sid: "reykjavik" },
+
+  // ── Southern Europe ──
+  { state: null, city: "madrid", sid: "madrid" }, { state: null, city: "barcelona", sid: "barcelona" },
+  { state: null, city: "valencia", sid: "valencia" },
+  { state: null, city: "rome", sid: "rome" }, { state: null, city: "milan", sid: "milan" },
+  { state: null, city: "naples", sid: "naples" }, { state: null, city: "florence", sid: "florence" },
+  { state: null, city: "lisbon", sid: "lisbon" }, { state: null, city: "porto", sid: "porto" },
+  { state: null, city: "athens", sid: "athens" }, { state: null, city: "thessaloniki", sid: "thessaloniki" },
+
+  // ── Central / Eastern Europe ──
+  { state: null, city: "warsaw", sid: "warsaw" }, { state: null, city: "kraków", sid: "krakow" },
+  { state: null, city: "krakow", sid: "krakow" },
+  { state: null, city: "prague", sid: "prague" }, { state: null, city: "budapest", sid: "budapest" },
+  { state: null, city: "bucharest", sid: "bucharest" }, { state: null, city: "sofia", sid: "sofia" },
+  { state: null, city: "moscow", sid: "moscow" }, { state: null, city: "st. petersburg", sid: "st_petersburg" },
+  { state: null, city: "st petersburg", sid: "st_petersburg" },
+  { state: null, city: "kyiv", sid: "kyiv" },
+
+  // ── Middle East ──
+  { state: null, city: "dubai", sid: "dubai" }, { state: null, city: "abu dhabi", sid: "abu_dhabi" },
+  { state: null, city: "sharjah", sid: "sharjah" }, { state: null, city: "riyadh", sid: "riyadh" },
+  { state: null, city: "jeddah", sid: "jeddah" }, { state: null, city: "mecca", sid: "mecca" },
+  { state: null, city: "doha", sid: "doha" }, { state: null, city: "kuwait city", sid: "kuwait_city" },
+  { state: null, city: "manama", sid: "manama" }, { state: null, city: "muscat", sid: "muscat" },
+  { state: null, city: "tel aviv", sid: "tel_aviv" }, { state: null, city: "jerusalem", sid: "jerusalem" },
+  { state: null, city: "istanbul", sid: "istanbul" }, { state: null, city: "ankara", sid: "ankara" },
+  { state: null, city: "cairo", sid: "cairo_eg" }, { state: null, city: "alexandria", sid: "alexandria" },
+  { state: null, city: "amman", sid: "amman" }, { state: null, city: "beirut", sid: "beirut" },
+
+  // ── East Asia ──
+  { state: null, city: "tokyo", sid: "tokyo" }, { state: null, city: "osaka", sid: "osaka" },
+  { state: null, city: "kyoto", sid: "kyoto" }, { state: null, city: "yokohama", sid: "yokohama" },
+  { state: null, city: "sapporo", sid: "sapporo" }, { state: null, city: "fukuoka", sid: "fukuoka" },
+  { state: null, city: "nagoya", sid: "nagoya" },
+  { state: null, city: "seoul", sid: "seoul" }, { state: null, city: "busan", sid: "busan" },
+  { state: null, city: "incheon", sid: "incheon" },
+  { state: null, city: "beijing", sid: "beijing" }, { state: null, city: "shanghai", sid: "shanghai" },
+  { state: null, city: "guangzhou", sid: "guangzhou" }, { state: null, city: "shenzhen", sid: "shenzhen" },
+  { state: null, city: "hong kong", sid: "hong_kong" },
+  { state: null, city: "taipei", sid: "taipei" }, { state: null, city: "kaohsiung", sid: "kaohsiung" },
+
+  // ── Southeast Asia ──
+  { state: null, city: "singapore", sid: "singapore" },
+  { state: null, city: "bangkok", sid: "bangkok" }, { state: null, city: "chiang mai", sid: "chiang_mai" },
+  { state: null, city: "phuket", sid: "phuket" },
+  { state: null, city: "kuala lumpur", sid: "kuala_lumpur" }, { state: null, city: "penang", sid: "penang" },
+  { state: null, city: "jakarta", sid: "jakarta" }, { state: null, city: "denpasar", sid: "bali" },
+  { state: null, city: "bali", sid: "bali" },
+  { state: null, city: "manila", sid: "manila" }, { state: null, city: "cebu", sid: "cebu" },
+  { state: null, city: "ho chi minh city", sid: "ho_chi_minh" }, { state: null, city: "hanoi", sid: "hanoi" },
+  { state: null, city: "phnom penh", sid: "phnom_penh" }, { state: null, city: "yangon", sid: "yangon" },
+  { state: null, city: "vientiane", sid: "vientiane" },
+
+  // ── South Asia ──
+  { state: null, city: "mumbai", sid: "mumbai" }, { state: null, city: "delhi", sid: "delhi" },
+  { state: null, city: "bangalore", sid: "bangalore" }, { state: null, city: "chennai", sid: "chennai" },
+  { state: null, city: "kolkata", sid: "kolkata" }, { state: null, city: "hyderabad", sid: "hyderabad" },
+  { state: null, city: "karachi", sid: "karachi" }, { state: null, city: "lahore", sid: "lahore" },
+  { state: null, city: "islamabad", sid: "islamabad" },
+  { state: null, city: "dhaka", sid: "dhaka" }, { state: null, city: "colombo", sid: "colombo" },
+
+  // ── Oceania ──
+  { state: "NSW", city: "sydney", sid: "sydney" }, { state: "QLD", city: "brisbane", sid: "brisbane" },
+  { state: "QLD", city: "gold coast", sid: "gold_coast" },
+  { state: "VIC", city: "melbourne", sid: "melbourne" }, { state: "WA", city: "perth", sid: "perth" },
+  { state: "SA", city: "adelaide", sid: "adelaide" },
+  { state: "ACT", city: "canberra", sid: "canberra" }, { state: "TAS", city: "hobart", sid: "hobart" },
+  { state: "NT", city: "darwin", sid: "darwin" },
+  { state: null, city: "auckland", sid: "auckland" }, { state: null, city: "wellington", sid: "wellington" },
+  { state: null, city: "christchurch", sid: "christchurch" },
+
+  // ── South America ──
+  { state: null, city: "são paulo", sid: "sao_paulo" }, { state: null, city: "sao paulo", sid: "sao_paulo" },
+  { state: null, city: "rio de janeiro", sid: "rio" },
+  { state: null, city: "brasília", sid: "brasilia" }, { state: null, city: "brasilia", sid: "brasilia" },
+  { state: null, city: "buenos aires", sid: "buenos_aires" },
+  { state: null, city: "santiago", sid: "santiago" },
+  { state: null, city: "bogotá", sid: "bogota" }, { state: null, city: "bogota", sid: "bogota" },
+  { state: null, city: "lima", sid: "lima" }, { state: null, city: "quito", sid: "quito" },
+  { state: null, city: "caracas", sid: "caracas" }, { state: null, city: "montevideo", sid: "montevideo" },
+
+  // ── Africa ──
+  { state: null, city: "cape town", sid: "cape_town" }, { state: null, city: "johannesburg", sid: "johannesburg" },
+  { state: null, city: "durban", sid: "durban" },
+  { state: null, city: "lagos", sid: "lagos" }, { state: null, city: "abuja", sid: "abuja" },
+  { state: null, city: "nairobi", sid: "nairobi" },
+  { state: null, city: "casablanca", sid: "casablanca" }, { state: null, city: "marrakech", sid: "marrakech" },
+  { state: null, city: "addis ababa", sid: "addis_ababa" },
+  { state: null, city: "accra", sid: "accra" }, { state: null, city: "dakar", sid: "dakar" },
+  { state: null, city: "tunis", sid: "tunis" },
 ];
 
-// UK cities → uk_fsa
-const UK_CITIES = ["london", "birmingham", "manchester", "leeds", "glasgow", "edinburgh", "liverpool", "bristol", "sheffield", "cardiff", "belfast"];
-for (const c of UK_CITIES) {
-  GEO_TABLE.push({ state: null, city: c, source_id: "uk_fsa" });
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// ── HELPER: resolve a state+city to a source entry ───────────────────────────
 function resolveGeo(state, city) {
   if (!state && !city) return null;
   const stateUp = (state || "").toUpperCase().trim();
@@ -684,24 +509,46 @@ function resolveGeo(state, city) {
     (stateUp === "" || (g.state && g.state.toUpperCase() === stateUp)) &&
     g.city === cityLow
   );
-  // If no city match, try state-only default (e.g. Delaware)
+  // State-only default (e.g. Delaware)
   if (!match && stateUp) {
     match = GEO_TABLE.find(g => g.state && g.state.toUpperCase() === stateUp && !g.city);
   }
-  // If no state match, try city-only (international: UK cities, etc.)
+  // City-only (international)
   if (!match && cityLow) {
     match = GEO_TABLE.find(g => !g.state && g.city === cityLow);
   }
   if (!match) return null;
-  return SOURCE_MAP.find(s => s.source_id === match.source_id) || null;
+  return SOURCES.find(s => s.id === match.sid) || null;
 }
 
-// ── HELPER: look up by source_id ─────────────────────────────────────────────
 function lookupById(sourceId) {
-  return SOURCE_MAP.find(s => s.source_id === sourceId) || null;
+  return SOURCES.find(s => s.id === sourceId) || null;
 }
 
-// ── MAIN HANDLER ─────────────────────────────────────────────────────────────
+function formatSource(s) {
+  return {
+    source_id: s.id,
+    health_department: s.dept,
+    location: { city: s.city, state: s.state || null, country: s.country },
+    data_source: {
+      source_type: s.type,
+      api_registry_id: s.api || null,
+      backend_function: s.fn || null,
+      rating_system: s.rating,
+      rating_scale: s.scale,
+    },
+    enrichment: {
+      needed: s.enrich,
+      context: s.ctx || "",
+      model: s.enrich ? (s.ctx ? "gemini_3_flash" : null) : null,
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN HANDLER
+// ═══════════════════════════════════════════════════════════════════════════════
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -714,22 +561,34 @@ Deno.serve(async (req) => {
     switch (action) {
       case "resolve": {
         const entry = resolveGeo(state, city);
-        return Response.json({ resolved: !!entry, source: entry });
+        return Response.json({ resolved: !!entry, source: entry ? formatSource(entry) : null });
       }
       case "lookup": {
         const entry = lookupById(source_id);
         if (!entry) return Response.json({ error: "Source not found" }, { status: 404 });
-        return Response.json({ source: entry });
+        return Response.json({ source: formatSource(entry) });
       }
       case "list": {
         return Response.json({
-          total_sources: SOURCE_MAP.length,
-          sources: SOURCE_MAP,
+          total_sources: SOURCES.length,
+          total_geo_entries: GEO_TABLE.length,
+          sources: SOURCES.map(formatSource),
           geo_table: GEO_TABLE,
         });
       }
+      case "list_countries": {
+        const countries = [...new Set(SOURCES.map(s => s.country))].sort();
+        return Response.json({
+          total_countries: countries.length,
+          countries: countries.map(c => ({
+            country: c,
+            city_count: SOURCES.filter(s => s.country === c).length,
+            cities: SOURCES.filter(s => s.country === c).map(s => s.city),
+          })),
+        });
+      }
       default:
-        return Response.json({ error: "Unknown action. Use: resolve, lookup, or list." }, { status: 400 });
+        return Response.json({ error: "Unknown action. Use: resolve, lookup, list, or list_countries." }, { status: 400 });
     }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
