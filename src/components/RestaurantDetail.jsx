@@ -69,7 +69,6 @@ const SOURCE_REGISTRY = {
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const [favorited, setFavorited] = useState(() => isFavorite(restaurant.business_id));
   const [showRawData, setShowRawData] = useState(false);
-  const [showDataSource, setShowDataSource] = useState(false);
   const [shareMsg, setShareMsg] = useState("");
   const [expandedInspection, setExpandedInspection] = useState(0); // first expanded by default
   // Scroll-to helpers for stat boxes
@@ -308,103 +307,40 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
         </div>
 
-        {/* Data source drawer */}
-        <div className="border-t border-slate-100">
-          <button
-            onClick={() => setShowDataSource((v) => !v)}
-            className="w-full flex items-center justify-between px-6 py-3 text-xs text-slate-500 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
-            aria-expanded={showDataSource}
-            aria-controls="data-source-panel"
-          >
-            <span className="flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" aria-hidden="true" />
-              Data source &amp; last updated
-            </span>
-            {showDataSource ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
-          </button>
-          <AnimatePresence>
-            {showDataSource && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div id="data-source-panel" className="px-6 pb-5 text-xs text-slate-500 space-y-2">
-                  {/* Source-of-truth badge — always visible */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <DataSourceBadge restaurant={restaurant} size="md" />
-                  </div>
-                  {sourceInfo ? (
-                    <p className="flex items-start gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-600 mt-0.5" />
-                      Official data from{" "}
-                      <a href={sourceInfo.url} target="_blank" rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline font-medium inline-flex items-center gap-0.5">
-                        {sourceInfo.name} <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
-                    </p>
-                  ) : restaurant.isLLMData ? (
-                    <div className="space-y-1.5">
-                      <p className="flex items-start gap-1.5">
-                        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                        This data was retrieved via live web search of publicly available health department records by AI (Gemini 3 Flash).
-                      </p>
-                      {restaurant.verification_source && (
-                        <p className="flex items-start gap-1.5">
-                          <BadgeCheck className="w-3.5 h-3.5 flex-shrink-0 text-blue-600 mt-0.5" />
-                          Verification source: <span className="font-semibold text-slate-700">{restaurant.verification_source}</span>
-                        </p>
-                      )}
-                      {restaurant.is_currently_operating === false && (
-                        <p className="flex items-start gap-1.5 text-amber-700">
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                          This restaurant may be permanently closed — please verify before visiting.
-                        </p>
-                      )}
-                      {restaurant.data_confidence === "low" && (
-                        <div className="space-y-1.5">
-                          <p className="flex items-start gap-1.5 text-amber-700">
-                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                            {restaurant.data_fetch_notes || "Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable."}
-                          </p>
-                          {restaurant.portal_url && (
-                            <a
-                              href={restaurant.portal_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
-                            >
-                              <ExternalLink className="w-2.5 h-2.5" />
-                              {restaurant.portal_name || "Check inspection records"}
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                      This location's data was retrieved via AI-assisted research from publicly available health department records.
-                    </p>
-                  )}
-                  {latestDate && (
-                    <p className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                      Last inspection on record:{" "}
-                      <span className="font-semibold text-slate-700">
-                        {new Date(latestDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-                      </span>
-                    </p>
-                  )}
-                  <p className="text-slate-400 leading-relaxed">
-                    SafeEats displays official government inspection records. Scores are normalized to a 0–100 scale across jurisdictions. Always verify with the official source before making health decisions.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Data source — always visible, no dropdown */}
+        <div className="border-t border-slate-100 px-6 py-4 text-xs text-slate-500 space-y-2">
+          <div className="flex items-center gap-2 mb-1">
+            <DataSourceBadge restaurant={restaurant} size="md" />
+          </div>
+          {sourceInfo ? (
+            <p className="flex items-start gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-600 mt-0.5" />
+              Official data from{" "}
+              <a href={sourceInfo.url} target="_blank" rel="noopener noreferrer"
+                className="text-blue-600 hover:underline font-medium inline-flex items-center gap-0.5">
+                {sourceInfo.name} <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </p>
+          ) : restaurant.isLLMData ? (
+            <p className="flex items-start gap-1.5">
+              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              This data was retrieved via live web search of publicly available health department records by AI (Gemini 3 Flash).
+            </p>
+          ) : (
+            <p className="flex items-start gap-1.5">
+              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              This location's data was retrieved via AI-assisted research from publicly available health department records.
+            </p>
+          )}
+          {latestDate && (
+            <p className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+              Last inspection on record:{" "}
+              <span className="font-semibold text-slate-700">
+                {new Date(latestDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
