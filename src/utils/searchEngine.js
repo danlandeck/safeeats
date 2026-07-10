@@ -463,10 +463,20 @@ let _geoRouting = false;
  * web search cannot access — users need a direct link to check scores themselves.
  */
 function getStateFallbackNote(state) {
-  if (state === "OR") {
+  if (!state) return "";
+  const code = state.toUpperCase().trim();
+  if (code === "OR") {
     return "Oregon publishes inspection results on the HealthSpace portal (inspections.myhealthdepartment.com), which requires a direct visit to view scores. ";
   }
-  return "";
+  const ctx = usHealthContext[code];
+  if (!ctx) return "Contact the local health department for inspection records. ";
+  // Extract the first URL/domain from the health context (always in parentheses)
+  const urlMatch = ctx.match(/\(([^)]+)\)/);
+  const stateName = ctx.split(":")[0];
+  if (urlMatch) {
+    return `${stateName} inspection records: ${urlMatch[1]}. `;
+  }
+  return ctx + " ";
 }
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {

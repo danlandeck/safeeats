@@ -26,6 +26,7 @@ export function resolveJurisdiction(state, city) {
   }
 
   if (stateData.default) {
+    if (stateData.default === "none") return { type: "none" };
     return { type: "registry", countyId: stateData.default };
   }
 

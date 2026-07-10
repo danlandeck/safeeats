@@ -58,7 +58,8 @@
       "orting": "pierce",
       "eatonville": "pierce",
       "roy": "pierce"
-    }
+    },
+    "default": "none"
   },
   "NY": {
     "cities": {
@@ -69,12 +70,14 @@
       "the bronx": "nyc",
       "manhattan": "nyc",
       "staten island": "nyc"
-    }
+    },
+    "default": "none"
   },
   "IL": {
     "cities": {
       "chicago": "cook"
-    }
+    },
+    "default": "none"
   },
   "CA": {
     "cities": {
@@ -89,13 +92,15 @@
       "modesto": "stanislaus",
       "turlock": "stanislaus",
       "ceres": "stanislaus"
-    }
+    },
+    "default": "none"
   },
   "TX": {
     "cities": {
       "austin": "travis",
       "houston": "houston"
-    }
+    },
+    "default": "none"
   },
   "MD": {
     "cities": {
@@ -103,59 +108,61 @@
       "bethesda": "montgomery_md",
       "silver spring": "montgomery_md",
       "gaithersburg": "montgomery_md"
-    }
+    },
+    "default": "none"
   },
   "MA": {
     "cities": {
       "boston": "boston"
-    }
+    },
+    "default": "none"
   },
   "DE": {
     "default": "delaware"
   },
-  "CT": {},
-  "AL": {},
-  "AK": {},
-  "AZ": {},
-  "AR": {},
-  "CO": {},
-  "DC": {},
-  "FL": {},
-  "GA": {},
-  "HI": {},
-  "ID": {},
-  "IN": {},
-  "IA": {},
-  "KS": {},
-  "KY": {},
-  "LA": {},
-  "ME": {},
-  "MI": {},
-  "MN": {},
-  "MS": {},
-  "MO": {},
-  "MT": {},
-  "NE": {},
-  "NV": {},
-  "NH": {},
-  "NJ": {},
-  "NM": {},
-  "NC": {},
-  "ND": {},
-  "OH": {},
-  "OK": {},
+  "CT": { "none": true },
+  "AL": { "none": true },
+  "AK": { "none": true },
+  "AZ": { "none": true },
+  "AR": { "none": true },
+  "CO": { "none": true },
+  "DC": { "none": true },
+  "FL": { "none": true },
+  "GA": { "none": true },
+  "HI": { "none": true },
+  "ID": { "none": true },
+  "IN": { "none": true },
+  "IA": { "none": true },
+  "KS": { "none": true },
+  "KY": { "none": true },
+  "LA": { "none": true },
+  "ME": { "none": true },
+  "MI": { "none": true },
+  "MN": { "none": true },
+  "MS": { "none": true },
+  "MO": { "none": true },
+  "MT": { "none": true },
+  "NE": { "none": true },
+  "NV": { "none": true },
+  "NH": { "none": true },
+  "NJ": { "none": true },
+  "NM": { "none": true },
+  "NC": { "none": true },
+  "ND": { "none": true },
+  "OH": { "none": true },
+  "OK": { "none": true },
   "OR": { "none": true },
-  "PA": {},
-  "RI": {},
-  "SC": {},
-  "SD": {},
-  "TN": {},
-  "UT": {},
-  "VT": {},
-  "VA": {},
-  "WV": {},
-  "WI": {},
-  "WY": {},
+  "PA": { "none": true },
+  "RI": { "none": true },
+  "SC": { "none": true },
+  "SD": { "none": true },
+  "TN": { "none": true },
+  "UT": { "none": true },
+  "VT": { "none": true },
+  "VA": { "none": true },
+  "WV": { "none": true },
+  "WI": { "none": true },
+  "WY": { "none": true },
   "BC": {
     "cities": {
       "vancouver": "vancouver",
@@ -169,6 +176,7 @@
       "gibsons": "vancouver",
       "powell river": "vancouver",
       "bowen island": "vancouver"
-    }
+    },
+    "default": "none"
   }
 }
