@@ -123,24 +123,29 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {/* EPA Water info — US restaurants only (component returns null for international) */}
           <EPAWaterCard restaurant={restaurant} />
 
+          {/* Portal link — clickable hyperlink to official health department */}
+          {restaurant.portal_url && (
+            <a
+              href={restaurant.portal_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 mt-2 bg-blue-50 border-2 border-blue-300 rounded-xl px-3 py-2 text-blue-700 hover:bg-blue-100 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="text-[11px] font-extrabold underline">
+                {restaurant.portal_name || "View official inspection records"}
+              </span>
+            </a>
+          )}
+
           {/* Data fetch issue strip — transparently shows why data might be missing */}
           {restaurant.data_fetch_notes && (
             <div className="flex items-start gap-1.5 mt-2 bg-amber-50 border-2 border-amber-200 rounded-xl px-2 py-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="text-[10px] font-bold text-amber-700">
+              <span className="text-[10px] font-bold text-amber-700">
                 {restaurant.data_fetch_notes}
-                {restaurant.portal_url && (
-                  <a
-                    href={restaurant.portal_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-0.5 mt-1 text-blue-600 hover:underline font-semibold"
-                  >
-                    Check inspection records <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                )}
-              </div>
+              </span>
             </div>
           )}
 

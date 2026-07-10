@@ -291,6 +291,20 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* Water Quality */}
           <EPAWaterCard restaurant={restaurant} />
 
+          {/* Portal link — prominent clickable hyperlink to official health department */}
+          {restaurant.portal_url && (
+            <a
+              href={restaurant.portal_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 mt-4 bg-blue-50 border-2 border-blue-300 rounded-xl px-4 py-3 text-blue-700 hover:bg-blue-100 transition-colors"
+            >
+              <ExternalLink className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm font-extrabold underline">
+                {restaurant.portal_name || "View official inspection records"}
+              </span>
+            </a>
+          )}
 
         </div>
 
