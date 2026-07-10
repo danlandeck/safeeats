@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle } from "lucide-react";
+import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle, ExternalLink } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { getGrade, getGradeColor } from "../utils/grading";
 
@@ -125,11 +125,22 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
 
           {/* Data fetch issue strip — transparently shows why data might be missing */}
           {restaurant.data_fetch_notes && (
-            <div className="flex items-center gap-1.5 mt-2 bg-amber-50 border-2 border-amber-200 rounded-xl px-2 py-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-              <span className="text-[10px] font-bold text-amber-700 truncate">
+            <div className="flex items-start gap-1.5 mt-2 bg-amber-50 border-2 border-amber-200 rounded-xl px-2 py-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-[10px] font-bold text-amber-700">
                 {restaurant.data_fetch_notes}
-              </span>
+                {restaurant.portal_url && (
+                  <a
+                    href={restaurant.portal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-0.5 mt-1 text-blue-600 hover:underline font-semibold"
+                  >
+                    Check inspection records <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                )}
+              </div>
             </div>
           )}
 

@@ -350,10 +350,23 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                         </p>
                       )}
                       {restaurant.data_confidence === "low" && (
-                        <p className="flex items-start gap-1.5 text-amber-700">
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                          {restaurant.data_fetch_notes || "Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable."}
-                        </p>
+                        <div className="space-y-1.5">
+                          <p className="flex items-start gap-1.5 text-amber-700">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                            {restaurant.data_fetch_notes || "Low confidence: the restaurant was found but no detailed inspection records could be located. The score may be unavailable."}
+                          </p>
+                          {restaurant.portal_url && (
+                            <a
+                              href={restaurant.portal_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
+                            >
+                              <ExternalLink className="w-2.5 h-2.5" />
+                              {restaurant.portal_name || "Check inspection records"}
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -433,9 +446,20 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div>
               <p className="text-sm font-bold text-amber-800">No official inspection records in our database</p>
               {restaurant.data_fetch_notes ? (
-                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                  {restaurant.data_fetch_notes} Always verify directly with the local health department.
-                </p>
+                <div className="text-xs text-amber-700 mt-1 leading-relaxed">
+                  <p>{restaurant.data_fetch_notes} Always verify directly with the local health department.</p>
+                  {restaurant.portal_url && (
+                    <a
+                      href={restaurant.portal_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:underline font-semibold"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      {restaurant.portal_name || "Check inspection records"}
+                    </a>
+                  )}
+                </div>
               ) : (
                 <p className="text-xs text-amber-700 mt-1 leading-relaxed">
                   The score shown is an AI estimate from public sources — not a live government record. It may be outdated. Always call the restaurant or check your local health department's website to verify.

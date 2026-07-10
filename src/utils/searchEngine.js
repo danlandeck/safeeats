@@ -462,21 +462,30 @@ let _geoRouting = false;
  * data. Oregon (Clatsop County) uses a JS-rendered HealthSpace portal that
  * web search cannot access — users need a direct link to check scores themselves.
  */
-function getStateFallbackNote(state) {
-  if (!state) return "";
+function getStatePortalInfo(state) {
+  if (!state) return { url: null, name: null, note: "" };
   const code = state.toUpperCase().trim();
   if (code === "OR") {
-    return "Oregon publishes inspection results on the HealthSpace portal (inspections.myhealthdepartment.com), which requires a direct visit to view scores. ";
+    return {
+      url: "https://inspections.myhealthdepartment.com/or-clatsop-county",
+      name: "Oregon HealthSpace Portal",
+      note: "Oregon publishes inspection results on the HealthSpace portal, which requires a direct visit to view scores. ",
+    };
   }
   const ctx = usHealthContext[code];
-  if (!ctx) return "Contact the local health department for inspection records. ";
-  // Extract the first URL/domain from the health context (always in parentheses)
+  if (!ctx) return { url: null, name: null, note: "Contact the local health department for inspection records. " };
   const urlMatch = ctx.match(/\(([^)]+)\)/);
   const stateName = ctx.split(":")[0];
   if (urlMatch) {
-    return `${stateName} inspection records: ${urlMatch[1]}. `;
+    const rawUrl = urlMatch[1];
+    const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+    return { url, name: `${stateName} inspection portal`, note: `${stateName} inspection records: ${rawUrl}. ` };
   }
-  return ctx + " ";
+  return { url: null, name: null, note: ctx + " " };
+}
+
+function getStateFallbackNote(state) {
+  return getStatePortalInfo(state).note;
 }
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {
@@ -573,9 +582,14 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // Return isAI: false so the UI doesn't show a "verifying" spinner
         // for a background task that was never started.
         if (route.type === "none") {
-          const stateNote = getStateFallbackNote(verified[0]?.state);
-          const withNotes = stateNote
-            ? grounded.map(r => ({ ...r, data_fetch_notes: (r.data_fetch_notes || "") + stateNote + "Inspection data is not available via automated systems for this jurisdiction." }))
+          const portal = getStatePortalInfo(verified[0]?.state);
+          const withNotes = portal.note
+            ? grounded.map(r => ({
+                ...r,
+                portal_url: portal.url,
+                portal_name: portal.name,
+                data_fetch_notes: (r.data_fetch_notes || "") + portal.note + "Inspection data is not available via automated systems for this jurisdiction.",
+              }))
             : grounded;
           saveCache(withNotes);
           return { results: withNotes, isAI: false };
@@ -598,6 +612,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           .then((res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];
             const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
+            const portal = getStatePortalInfo(verified[0]?.state);
             const enriched = groundedRaw.map((raw, i) => {
               const insp = byIdx.get(i);
               const merged = insp ? {
@@ -611,9 +626,11 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
                 verification_source: insp.verification_source || "Google Places",
               } : {
                 ...raw,
-                data_fetch_notes: (raw.data_fetch_notes || "") + getStateFallbackNote(verified[0]?.state) + "No public inspection records found by AI web search.",
+                portal_url: portal.url,
+                portal_name: portal.name,
+                data_fetch_notes: (raw.data_fetch_notes || "") + portal.note + "No public inspection records found by AI web search.",
               };
-              return { ...overlay(buildFn(merged, i), i), data_fetch_notes: merged.data_fetch_notes || "" };
+              return { ...overlay(buildFn(merged, i), i), data_fetch_notes: merged.data_fetch_notes || "", portal_url: merged.portal_url, portal_name: merged.portal_name };
             }).filter(inLocation);
             const finalResults = deduplicateResults(enriched);
             if (finalResults.length > 0) {
@@ -622,13 +639,15 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
             }
           }).catch(() => {
             try {
-              const stateNote = getStateFallbackNote(verified[0]?.state);
-              const failed = grounded.map(r => ({ ...r, data_fetch_notes: (r.data_fetch_notes || "") + stateNote + "AI web search was unable to complete — please try again later." }));
+              const portal = getStatePortalInfo(verified[0]?.state);
+              const failed = grounded.map(r => ({
+                ...r,
+                portal_url: portal.url,
+                portal_name: portal.name,
+                data_fetch_notes: (r.data_fetch_notes || "") + portal.note + "AI web search was unable to complete — please try again later.",
+              }));
               saveCache(failed);
-              // For Oregon (HealthSpace portal), enrichment will always fail —
-              // update the UI immediately so users see the portal link instead
-              // of a perpetual "verifying" spinner.
-              if (stateNote && onAccurateResults) onAccurateResults(failed);
+              if (portal.note && onAccurateResults) onAccurateResults(failed);
             } catch {}
           });
         }
