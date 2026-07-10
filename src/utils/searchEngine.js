@@ -21,6 +21,7 @@ import {
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
+import usHealthContext from "@/config/usHealthContext.json";
 
 const PROCESSORS = {
   king:          { process: processKingCountyResults,  toDetailRows: kingToDetailRows },
@@ -132,6 +133,7 @@ const COUNTRY_CONTEXT = {
   // US cities without live API — county/city health departments
   pierce:       "Tacoma-Pierce County Health Department (tpchd.org). TPCHD rating system based on red critical violation points from last 4 routine inspections: Great (≤135 red points)→score 90-100, Okay (136-299 red points)→score 70-89, Needs to Improve (≥300 red points)→score 40-69, Closed→score 0-39. Inspection reports at aca-prod.accela.com/TPCHD. Blue=non-critical, Red=critical violations likely to cause foodborne illness. Inspections 1-4 times/year.",
   tacoma:       "Tacoma-Pierce County Health Department (tpchd.org). TPCHD rating system based on red critical violation points from last 4 routine inspections: Great (≤135 red points)→score 90-100, Okay (136-299 red points)→score 70-89, Needs to Improve (≥300 red points)→score 40-69, Closed→score 0-39. Inspection reports at aca-prod.accela.com/TPCHD. Blue=non-critical, Red=critical violations likely to cause foodborne illness.",
+  seaside:      "Seaside, OR is in Clatsop County. Clatsop County Environmental Health (clatsopcounty.gov) conducts restaurant inspections. Score: 100-point (70=pass). Inspection results at clatsopcounty.gov/822/Inspection-Results. Also check Oregon Health Authority statewide portal at oregon.gov/oha/ph/healthyenvironments/foodsafety.",
   spokane:      "Prioritize: Spokane Regional Health District (srhd.org) restaurant inspection records and food safety scores.",
   portland:     "Prioritize: Multnomah County Environmental Health (multco.us) restaurant inspection scores and Oregon Health Authority food safety records.",
   phoenix:      "Prioritize: Maricopa County Environmental Services (maricopa.gov) restaurant inspection database — search by facility name and address.",
@@ -279,7 +281,15 @@ function getContextForLocation(countyId, locationLabel) {
   if (direct) return direct;
   if (!locationLabel) return "";
   const city = locationLabel.split(",")[0].toLowerCase().trim().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, "_").trim();
-  return COUNTRY_CONTEXT[city] || "";
+  const cityCtx = COUNTRY_CONTEXT[city];
+  if (cityCtx) return cityCtx;
+  // State-level fallback: extract US state code from location label
+  const stateMatch = locationLabel.match(/,\s*([A-Z]{2})\b/);
+  if (stateMatch) {
+    const code = stateMatch[1].toUpperCase();
+    if (usHealthContext[code]) return usHealthContext[code];
+  }
+  return "";
 }
 
 const FAST_PROMPT_DUBAI = (query) =>
