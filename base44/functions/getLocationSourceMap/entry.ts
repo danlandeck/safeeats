@@ -285,18 +285,7 @@ const SOURCES = [
 const GEO_TABLE = [
   // ── US entries migrated to US_GEO_CONFIG (inline hash map) — resolved by resolveGeo() ──
 
-  // ── Canada ──
-  { state: "BC", city: "vancouver", sid: "vancouver" }, { state: "BC", city: "richmond", sid: "vancouver" },
-  { state: "BC", city: "north vancouver", sid: "vancouver" }, { state: "BC", city: "west vancouver", sid: "vancouver" },
-  { state: "BC", city: "squamish", sid: "vancouver" }, { state: "BC", city: "whistler", sid: "vancouver" },
-  { state: "BC", city: "pemberton", sid: "vancouver" }, { state: "BC", city: "sechelt", sid: "vancouver" },
-  { state: "BC", city: "gibsons", sid: "vancouver" }, { state: "BC", city: "powell river", sid: "vancouver" },
-  { state: "BC", city: "bowen island", sid: "vancouver" },
-  { state: "ON", city: "toronto", sid: "toronto" }, { state: "ON", city: "ottawa", sid: "ottawa" },
-  { state: "AB", city: "calgary", sid: "calgary" }, { state: "AB", city: "edmonton", sid: "edmonton" },
-  { state: "QC", city: "montreal", sid: "montreal" },
-  { state: "MB", city: "winnipeg", sid: "winnipeg" },
-  { state: "NS", city: "halifax", sid: "halifax" },
+  // ── Canada entries migrated to CA_GEO_CONFIG (inline hash map) ──
 
   // ── Mexico ──
   { state: null, city: "mexico city", sid: "mexico_city" },
@@ -439,6 +428,8 @@ const GEO_TABLE = [
 // ═══════════════════════════════════════════════════════════════════════════════
 const US_STATES = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"]);
 
+const CA_PROVINCES = new Set(["AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"]);
+
 const US_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:string}> = {
   AL: { dept:"AL county health depts (ADPH)", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Alabama: county health departments under Alabama Department of Public Health (alabamapublichealth.gov). Score: Pass/Fail." },
   AK: { dept:"Alaska DEC", rating:"Pass/Unsatisfactory/Fail", scale:"Pass/Fail → 0-100", ctx:"Alaska: Alaska Dept of Environmental Conservation (dec.alaska.gov/eh). Statewide. Score: Pass/Unsatisfactory/Fail." },
@@ -491,6 +482,25 @@ const US_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:
   WV: { dept:"WV county health depts", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"West Virginia: WV Bureau for Public Health (dhhr.wv.gov). County health departments." },
   WI: { dept:"WI county health depts (DATCP)", rating:"100-point or Pass/Fail", scale:"0-100 numeric or Pass/Fail", ctx:"Wisconsin: WI DATCP (datcp.wi.gov) and county health departments." },
   WY: { dept:"WY county health depts (WDA)", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Wyoming: WY Dept of Agriculture (wyomingagriculture.gov). County health departments." },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CANADA PROVINCE-LEVEL FALLBACK — any CA province resolves to AI enrichment
+// ═══════════════════════════════════════════════════════════════════════════════
+const CA_PROVINCE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:string}> = {
+  AB: { dept:"Alberta Health Services", rating:"Pass/Conditional/Closed", scale:"Pass/Fail → 0-100", ctx:"Alberta: Alberta Health Services (albertahealthservices.ca). Provincial. Score: Pass/Conditional/Closed." },
+  BC: { dept:"BC Regional Health Authorities (VCH, Fraser Health, etc.)", rating:"Pass/Conditional Pass/Closed", scale:"Pass/Conditional/Closed → 0-100", ctx:"British Columbia: Regional Health Authorities — Vancouver Coastal Health (vch.ca), Fraser Health, Interior Health, Island Health, Northern Health. Inspection portal at inspections.vch.ca." },
+  MB: { dept:"Manitoba Health / Winnipeg Regional Health Authority", rating:"Pass/Conditional/Closed", scale:"Pass/Fail → 0-100", ctx:"Manitoba: Manitoba Health / Winnipeg Regional Health Authority (wrha.mb.ca). Score: Pass/Conditional/Closed." },
+  NB: { dept:"NB Department of Health", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"New Brunswick: NB Department of Health (gnb.ca/health). Provincial. Score: Pass/Fail." },
+  NL: { dept:"NL Health Services", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Newfoundland and Labrador: NL Health Services (nlhealthservices.ca). Provincial. Score: Pass/Fail." },
+  NS: { dept:"Nova Scotia Health", rating:"Pass/Conditional/Closed", scale:"Pass/Fail → 0-100", ctx:"Nova Scotia: Nova Scotia Health (nshealth.ca). Provincial. Score: Pass/Conditional/Closed." },
+  NT: { dept:"NWT Health and Social Services", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Northwest Territories: NWT Health and Social Services (hss.gov.nt.ca). Provincial. Score: Pass/Fail." },
+  NU: { dept:"Nunavut Department of Health", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Nunavut: Nunavut Department of Health (gov.nu.ca/health). Provincial. Score: Pass/Fail." },
+  ON: { dept:"ON local public health units (MOH)", rating:"Pass/Conditional/Closed", scale:"Pass/Conditional/Closed → 0-100", ctx:"Ontario: Ontario Ministry of Health (health.gov.on.ca). Local public health units conduct inspections — Toronto Public Health (DineSafe), Ottawa Public Health, Peel Public Health, York Region Public Health." },
+  PE: { dept:"PEI Department of Health", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Prince Edward Island: PEI Department of Health (princeedwardisland.ca/health). Provincial. Score: Pass/Fail." },
+  QC: { dept:"MAPAQ (Ministère de l'Agriculture, des Pêcheries et de l'Alimentation)", rating:"Pass/Conditional/Fail with A/B/C", scale:"A/B/C or Pass/Fail → 0-100", ctx:"Quebec: MAPAQ (quebec.ca/agriculture). Provincial food inspection. Letter grade A/B/C." },
+  SK: { dept:"Saskatchewan Health Authority", rating:"Pass/Conditional/Closed", scale:"Pass/Fail → 0-100", ctx:"Saskatchewan: Saskatchewan Health Authority (saskhealthauthority.ca). Provincial. Score: Pass/Conditional/Closed." },
+  YT: { dept:"Yukon Health and Social Services", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Yukon: Yukon Health and Social Services (yukon.ca/health). Provincial. Score: Pass/Fail." },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -553,6 +563,26 @@ const US_GEO_CONFIG = {
   DC: { cities: {}, defaultSid: null },
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CANADA GEO CONFIG — nested hash map for O(1) city → source_id lookup
+// All 13 provinces/territories. Inlined (external JSON files don't deploy).
+// ═══════════════════════════════════════════════════════════════════════════════
+const CA_GEO_CONFIG = {
+  BC: { cities: { vancouver:"vancouver",richmond:"vancouver","north vancouver":"vancouver","west vancouver":"vancouver",squamish:"vancouver",whistler:"vancouver",pemberton:"vancouver",sechelt:"vancouver",gibsons:"vancouver","powell river":"vancouver","bowen island":"vancouver" }, defaultSid: null },
+  ON: { cities: { toronto:"toronto",ottawa:"ottawa" }, defaultSid: null },
+  AB: { cities: { calgary:"calgary",edmonton:"edmonton" }, defaultSid: null },
+  QC: { cities: { montreal:"montreal" }, defaultSid: null },
+  MB: { cities: { winnipeg:"winnipeg" }, defaultSid: null },
+  NS: { cities: { halifax:"halifax" }, defaultSid: null },
+  SK: { cities: {}, defaultSid: null },
+  NB: { cities: {}, defaultSid: null },
+  NL: { cities: {}, defaultSid: null },
+  PE: { cities: {}, defaultSid: null },
+  YT: { cities: {}, defaultSid: null },
+  NT: { cities: {}, defaultSid: null },
+  NU: { cities: {}, defaultSid: null },
+};
+
 // loadGeoConfig: returns the inline config for a US state (O(1) lookup).
 // Not file-based — external JSON files don't deploy with Deno functions.
 function loadGeoConfig(stateUp) {
@@ -593,6 +623,37 @@ function resolveGeo(state, city) {
         };
       }
       return null; // State migrated but no resolution possible
+    }
+  }
+
+  // PHASE 1.5: Try inline CA_GEO_CONFIG for Canadian provinces (O(1) lookup)
+  if (CA_PROVINCES.has(stateUp)) {
+    const config = CA_GEO_CONFIG[stateUp];
+    if (config) {
+      const sid = (config.cities && config.cities[cityLow]) || config.defaultSid;
+      if (sid) {
+        const source = SOURCES.find(s => s.id === sid);
+        if (source) return source;
+      }
+      // City not in config and no defaultSid — use CA province-level fallback
+      const info = CA_PROVINCE_INFO[stateUp];
+      if (info) {
+        return {
+          id: stateUp.toLowerCase(),
+          dept: info.dept,
+          city: cityLow ? cityLow.charAt(0).toUpperCase() + cityLow.slice(1) : "Provincial",
+          state: stateUp,
+          country: "CA",
+          type: "ai_enrichment",
+          api: null,
+          fn: "placesRestaurantSearch",
+          rating: info.rating,
+          scale: info.scale,
+          enrich: true,
+          ctx: info.ctx,
+        };
+      }
+      return null; // Province migrated but no resolution possible
     }
   }
 
