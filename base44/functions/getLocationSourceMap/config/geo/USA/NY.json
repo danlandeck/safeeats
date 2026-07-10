@@ -1,0 +1,20 @@
+{
+  "region_code": "NY",
+  "cities": {
+    "new york": "nyc",
+    "brooklyn": "nyc",
+    "queens": "nyc",
+    "bronx": "nyc",
+    "the bronx": "nyc",
+    "manhattan": "nyc",
+    "staten island": "nyc",
+    "buffalo": "buffalo",
+    "mineola": "ny_nassau",
+    "riverhead": "ny_suffolk",
+    "white plains": "ny_westchester",
+    "rochester": "ny_monroe",
+    "albany": "ny_albany",
+    "syracuse": "ny_onondaga"
+  },
+  "default_sid": "ny_state"
+}

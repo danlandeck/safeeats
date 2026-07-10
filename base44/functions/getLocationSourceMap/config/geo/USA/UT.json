@@ -1,0 +1,11 @@
+{
+  "region_code": "UT",
+  "cities": {
+    "salt lake city": "ut_salt_lake",
+    "provo": "ut_utah",
+    "orem": "ut_utah",
+    "ogden": "ut_weber",
+    "st. george": "ut_washington"
+  },
+  "default_sid": null
+}

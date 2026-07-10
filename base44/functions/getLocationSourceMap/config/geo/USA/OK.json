@@ -1,0 +1,9 @@
+{
+  "region_code": "OK",
+  "cities": {
+    "oklahoma city": "oklahoma_city",
+    "tulsa": "ok_tulsa",
+    "norman": "ok_cleveland"
+  },
+  "default_sid": null
+}

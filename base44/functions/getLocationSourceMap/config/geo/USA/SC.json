@@ -1,0 +1,10 @@
+{
+  "region_code": "SC",
+  "cities": {
+    "greenville": "sc_greenville",
+    "columbia": "sc_richland",
+    "charleston": "sc_charleston",
+    "spartanburg": "sc_spartanburg"
+  },
+  "default_sid": null
+}

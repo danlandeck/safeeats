@@ -1,0 +1,19 @@
+{
+  "region_code": "TX",
+  "cities": {
+    "austin": "travis",
+    "houston": "houston",
+    "dallas": "dallas",
+    "el paso": "el_paso",
+    "fort worth": "fort_worth",
+    "san antonio": "tx_bexar",
+    "plano": "tx_collin",
+    "frisco": "tx_collin",
+    "mcallen": "tx_hidalgo",
+    "denton": "tx_denton",
+    "corpus christi": "tx_nueces",
+    "round rock": "tx_williamson",
+    "lubbock": "tx_lubbock"
+  },
+  "default_sid": null
+}

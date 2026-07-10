@@ -1,0 +1,9 @@
+{
+  "region_code": "KS",
+  "cities": {
+    "overland park": "ks_johnson",
+    "wichita": "ks_sedgwick",
+    "topeka": "ks_shawnee"
+  },
+  "default_sid": null
+}

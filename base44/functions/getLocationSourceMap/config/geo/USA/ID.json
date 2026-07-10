@@ -1,0 +1,9 @@
+{
+  "region_code": "ID",
+  "cities": {
+    "boise": "id_ada",
+    "nampa": "id_canyon",
+    "coeur d'alene": "id_kootenai"
+  },
+  "default_sid": null
+}

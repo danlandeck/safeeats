@@ -1,0 +1,9 @@
+{
+  "region_code": "ND",
+  "cities": {
+    "fargo": "nd_cass",
+    "bismarck": "nd_burleigh",
+    "grand forks": "nd_grand_forks"
+  },
+  "default_sid": null
+}

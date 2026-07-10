@@ -1,0 +1,9 @@
+{
+  "region_code": "NV",
+  "cities": {
+    "las vegas": "las_vegas",
+    "reno": "nv_washoe",
+    "carson city": "nv_carson"
+  },
+  "default_sid": null
+}

@@ -1,0 +1,12 @@
+{
+  "region_code": "AZ",
+  "cities": {
+    "phoenix": "phoenix",
+    "tucson": "tucson",
+    "flagstaff": "az_coconino",
+    "prescott": "az_yavapai",
+    "mesa": "az_maricopa",
+    "gilbert": "az_maricopa"
+  },
+  "default_sid": null
+}

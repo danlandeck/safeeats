@@ -1,0 +1,9 @@
+{
+  "region_code": "VT",
+  "cities": {
+    "burlington": "vt_chittenden",
+    "rutland": "vt_rutland",
+    "montpelier": "vt_washington"
+  },
+  "default_sid": null
+}

@@ -1,0 +1,12 @@
+{
+  "region_code": "VA",
+  "cities": {
+    "arlington": "arlington_va",
+    "richmond": "richmond_va",
+    "virginia beach": "va_virginia_beach",
+    "chesapeake": "va_chesapeake",
+    "norfolk": "va_norfolk",
+    "leesburg": "va_loudoun"
+  },
+  "default_sid": null
+}

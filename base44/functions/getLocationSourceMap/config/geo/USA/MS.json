@@ -1,0 +1,8 @@
+{
+  "region_code": "MS",
+  "cities": {
+    "jackson": "ms_hinds",
+    "gulfport": "ms_harrison"
+  },
+  "default_sid": null
+}

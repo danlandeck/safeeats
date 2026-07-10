@@ -1,0 +1,13 @@
+{
+  "region_code": "NC",
+  "cities": {
+    "charlotte": "charlotte",
+    "raleigh": "raleigh",
+    "greensboro": "nc_guilford",
+    "winston-salem": "nc_forsyth",
+    "durham": "nc_durham",
+    "fayetteville": "nc_cumberland",
+    "asheville": "nc_buncombe"
+  },
+  "default_sid": null
+}

@@ -1,0 +1,10 @@
+{
+  "region_code": "CT",
+  "cities": {
+    "manchester": "manchester_ct",
+    "hartford": "ct_hartford",
+    "new haven": "ct_new_haven",
+    "bridgeport": "ct_fairfield"
+  },
+  "default_sid": null
+}

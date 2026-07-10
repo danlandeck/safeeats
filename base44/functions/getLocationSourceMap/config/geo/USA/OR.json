@@ -1,0 +1,14 @@
+{
+  "region_code": "OR",
+  "cities": {
+    "portland": "portland",
+    "eugene": "or_lane",
+    "salem": "or_marion",
+    "hillsboro": "or_washington",
+    "oregon city": "or_clackamas",
+    "medford": "or_jackson",
+    "bend": "or_deschutes",
+    "seaside": "or_clatsop"
+  },
+  "default_sid": null
+}

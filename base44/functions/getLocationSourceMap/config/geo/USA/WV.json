@@ -1,0 +1,9 @@
+{
+  "region_code": "WV",
+  "cities": {
+    "charleston": "wv_kanawha",
+    "huntington": "wv_cabell",
+    "morgantown": "wv_monongalia"
+  },
+  "default_sid": null
+}

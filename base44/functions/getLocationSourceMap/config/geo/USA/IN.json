@@ -1,0 +1,10 @@
+{
+  "region_code": "IN",
+  "cities": {
+    "indianapolis": "indianapolis",
+    "gary": "in_lake",
+    "fort wayne": "in_allen",
+    "carmel": "in_hamilton"
+  },
+  "default_sid": null
+}

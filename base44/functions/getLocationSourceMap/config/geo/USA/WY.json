@@ -1,0 +1,9 @@
+{
+  "region_code": "WY",
+  "cities": {
+    "cheyenne": "wy_laramie",
+    "casper": "wy_natrona",
+    "jackson": "wy_teton"
+  },
+  "default_sid": null
+}

@@ -283,177 +283,7 @@ const SOURCES = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const GEO_TABLE = [
-  // ── US ──
-  { state: "WA", city: "seattle", sid: "king" }, { state: "WA", city: "bellevue", sid: "king" },
-  { state: "WA", city: "kent", sid: "king" }, { state: "WA", city: "renton", sid: "king" },
-  { state: "WA", city: "redmond", sid: "king" }, { state: "WA", city: "kirkland", sid: "king" },
-  { state: "WA", city: "federal way", sid: "king" }, { state: "WA", city: "sammamish", sid: "king" },
-  { state: "WA", city: "shoreline", sid: "king" }, { state: "WA", city: "burien", sid: "king" },
-  { state: "WA", city: "tukwila", sid: "king" }, { state: "WA", city: "issaquah", sid: "king" },
-  { state: "WA", city: "mercer island", sid: "king" }, { state: "WA", city: "auburn", sid: "king" },
-  { state: "WA", city: "bothell", sid: "king" }, { state: "WA", city: "kenmore", sid: "king" },
-  { state: "WA", city: "newcastle", sid: "king" }, { state: "WA", city: "des moines", sid: "king" },
-  { state: "WA", city: "seatac", sid: "king" }, { state: "WA", city: "woodinville", sid: "king" },
-  { state: "WA", city: "tacoma", sid: "pierce" }, { state: "WA", city: "puyallup", sid: "pierce" },
-  { state: "WA", city: "lakewood", sid: "pierce" }, { state: "WA", city: "university place", sid: "pierce" },
-  { state: "WA", city: "fircrest", sid: "pierce" }, { state: "WA", city: "parkland", sid: "pierce" },
-  { state: "WA", city: "spanaway", sid: "pierce" }, { state: "WA", city: "sumner", sid: "pierce" },
-  { state: "WA", city: "bonney lake", sid: "pierce" }, { state: "WA", city: "gig harbor", sid: "pierce" },
-  { state: "WA", city: "dupont", sid: "pierce" }, { state: "WA", city: "steilacoom", sid: "pierce" },
-  { state: "WA", city: "milton", sid: "pierce" }, { state: "WA", city: "edgewood", sid: "pierce" },
-  { state: "WA", city: "orting", sid: "pierce" }, { state: "WA", city: "eatonville", sid: "pierce" },
-  { state: "WA", city: "roy", sid: "pierce" }, { state: "WA", city: "spokane", sid: "spokane" },
-  { state: "NY", city: "new york", sid: "nyc" }, { state: "NY", city: "brooklyn", sid: "nyc" },
-  { state: "NY", city: "queens", sid: "nyc" }, { state: "NY", city: "bronx", sid: "nyc" },
-  { state: "NY", city: "the bronx", sid: "nyc" }, { state: "NY", city: "manhattan", sid: "nyc" },
-  { state: "NY", city: "staten island", sid: "nyc" }, { state: "NY", city: "buffalo", sid: "buffalo" },
-  { state: "IL", city: "chicago", sid: "cook" },
-  { state: "CA", city: "san francisco", sid: "sf" }, { state: "CA", city: "los angeles", sid: "la" },
-  { state: "CA", city: "long beach", sid: "la" }, { state: "CA", city: "glendale", sid: "la" },
-  { state: "CA", city: "pasadena", sid: "la" }, { state: "CA", city: "santa monica", sid: "la" },
-  { state: "CA", city: "burbank", sid: "la" }, { state: "CA", city: "torrance", sid: "la" },
-  { state: "CA", city: "modesto", sid: "stanislaus" }, { state: "CA", city: "turlock", sid: "stanislaus" },
-  { state: "CA", city: "ceres", sid: "stanislaus" }, { state: "CA", city: "san diego", sid: "san_diego" },
-  { state: "CA", city: "sacramento", sid: "sacramento" }, { state: "CA", city: "fresno", sid: "fresno" },
-  { state: "TX", city: "austin", sid: "travis" }, { state: "TX", city: "houston", sid: "houston" },
-  { state: "TX", city: "dallas", sid: "dallas" }, { state: "TX", city: "el paso", sid: "el_paso" },
-  { state: "TX", city: "fort worth", sid: "fort_worth" },
-  { state: "MD", city: "rockville", sid: "montgomery_md" }, { state: "MD", city: "bethesda", sid: "montgomery_md" },
-  { state: "MD", city: "silver spring", sid: "montgomery_md" }, { state: "MD", city: "gaithersburg", sid: "montgomery_md" },
-  { state: "MD", city: "baltimore", sid: "baltimore" },
-  { state: "MA", city: "boston", sid: "boston" },
-  { state: "DE", city: null, sid: "delaware" },
-  { state: "CT", city: "manchester", sid: "manchester_ct" },
-  { state: "NV", city: "las vegas", sid: "las_vegas" },
-  { state: "FL", city: "miami", sid: "miami" }, { state: "FL", city: "miami beach", sid: "miami_beach" },
-  { state: "FL", city: "orlando", sid: "orlando" }, { state: "FL", city: "tampa", sid: "tampa" },
-  { state: "FL", city: "jacksonville", sid: "jacksonville" },
-  { state: "AZ", city: "phoenix", sid: "phoenix" }, { state: "AZ", city: "tucson", sid: "tucson" },
-  { state: "PA", city: "philadelphia", sid: "philadelphia" }, { state: "PA", city: "pittsburgh", sid: "pittsburgh" },
-  { state: "GA", city: "atlanta", sid: "atlanta" },
-  { state: "TN", city: "nashville", sid: "nashville" }, { state: "TN", city: "memphis", sid: "memphis" },
-  { state: "NC", city: "charlotte", sid: "charlotte" }, { state: "NC", city: "raleigh", sid: "raleigh" },
-  { state: "OH", city: "columbus", sid: "columbus" }, { state: "OH", city: "cleveland", sid: "cleveland" },
-  { state: "OH", city: "cincinnati", sid: "cincinnati" },
-  { state: "MN", city: "minneapolis", sid: "minneapolis" },
-  { state: "OR", city: "portland", sid: "portland" },
-  { state: "CO", city: "denver", sid: "denver" },
-  { state: "WI", city: "milwaukee", sid: "milwaukee" },
-  { state: "MI", city: "detroit", sid: "detroit" },
-  { state: "MO", city: "st. louis", sid: "st_louis" }, { state: "MO", city: "kansas city", sid: "kansas_city" },
-  { state: "KY", city: "louisville", sid: "louisville" },
-  { state: "IN", city: "indianapolis", sid: "indianapolis" },
-  { state: "LA", city: "new orleans", sid: "new_orleans" },
-  { state: "HI", city: "honolulu", sid: "honolulu" },
-  { state: "AK", city: "anchorage", sid: "anchorage" },
-  { state: "NM", city: "albuquerque", sid: "albuquerque" },
-  { state: "NJ", city: "newark", sid: "newark" },
-  { state: "VA", city: "arlington", sid: "arlington_va" }, { state: "VA", city: "richmond", sid: "richmond_va" },
-  { state: "OK", city: "oklahoma city", sid: "oklahoma_city" },
-  // ── Additional US counties (AI enrichment) ──
-  { state: "AL", city: "birmingham", sid: "al_birmingham" }, { state: "AL", city: "mobile", sid: "al_mobile" },
-  { state: "AL", city: "huntsville", sid: "al_madison" }, { state: "AL", city: "montgomery", sid: "al_montgomery" },
-  { state: "AK", city: "fairbanks", sid: "ak_fairbanks" }, { state: "AK", city: "juneau", sid: "ak_juneau" },
-  { state: "AZ", city: "flagstaff", sid: "az_coconino" }, { state: "AZ", city: "prescott", sid: "az_yavapai" },
-  { state: "AZ", city: "mesa", sid: "az_maricopa" }, { state: "AZ", city: "gilbert", sid: "az_maricopa" },
-  { state: "AR", city: "little rock", sid: "ar_pulaski" }, { state: "AR", city: "bentonville", sid: "ar_benton" },
-  { state: "AR", city: "fayetteville", sid: "ar_washington" },
-  { state: "CA", city: "oakland", sid: "ca_alameda" }, { state: "CA", city: "santa ana", sid: "ca_orange" },
-  { state: "CA", city: "riverside", sid: "ca_riverside" }, { state: "CA", city: "san bernardino", sid: "ca_sanbernardino" },
-  { state: "CA", city: "san jose", sid: "ca_santaclara" }, { state: "CA", city: "bakersfield", sid: "ca_kern" },
-  { state: "CA", city: "ventura", sid: "ca_ventura" }, { state: "CA", city: "long beach", sid: "la" },
-  { state: "CO", city: "colorado springs", sid: "co_el_paso" }, { state: "CO", city: "boulder", sid: "co_boulder" },
-  { state: "CO", city: "aurora", sid: "co_arapahoe" }, { state: "CO", city: "fort collins", sid: "co_larimer" },
-  { state: "CO", city: "lakewood", sid: "co_jefferson" },
-  { state: "CT", city: "hartford", sid: "ct_hartford" }, { state: "CT", city: "new haven", sid: "ct_new_haven" },
-  { state: "CT", city: "bridgeport", sid: "ct_fairfield" },
-  { state: "FL", city: "fort lauderdale", sid: "fl_broward" }, { state: "FL", city: "west palm beach", sid: "fl_palm_beach" },
-  { state: "FL", city: "clearwater", sid: "fl_pinellas" }, { state: "FL", city: "lakeland", sid: "fl_polk" },
-  { state: "FL", city: "fort myers", sid: "fl_lee" },
-  { state: "GA", city: "decatur", sid: "ga_dekalb" }, { state: "GA", city: "lawrenceville", sid: "ga_gwinnett" },
-  { state: "GA", city: "marietta", sid: "ga_cobb" }, { state: "GA", city: "savannah", sid: "ga_chatham" },
-  { state: "GA", city: "macon", sid: "ga_bibb" },
-  { state: "ID", city: "boise", sid: "id_ada" }, { state: "ID", city: "nampa", sid: "id_canyon" },
-  { state: "ID", city: "coeur d'alene", sid: "id_kootenai" },
-  { state: "IL", city: "wheaton", sid: "il_dupage" }, { state: "IL", city: "waukegan", sid: "il_lake" },
-  { state: "IL", city: "joliet", sid: "il_will" }, { state: "IL", city: "geneva", sid: "il_kane" },
-  { state: "IL", city: "springfield", sid: "il_sangamon" },
-  { state: "IN", city: "gary", sid: "in_lake" }, { state: "IN", city: "fort wayne", sid: "in_allen" },
-  { state: "IN", city: "carmel", sid: "in_hamilton" },
-  { state: "IA", city: "des moines", sid: "ia_polk" }, { state: "IA", city: "cedar rapids", sid: "ia_linn" },
-  { state: "IA", city: "davenport", sid: "ia_scott" }, { state: "IA", city: "iowa city", sid: "ia_johnson" },
-  { state: "KS", city: "overland park", sid: "ks_johnson" }, { state: "KS", city: "wichita", sid: "ks_sedgwick" },
-  { state: "KS", city: "topeka", sid: "ks_shawnee" },
-  { state: "KY", city: "lexington", sid: "ky_fayette" }, { state: "KY", city: "burlington", sid: "ky_boone" },
-  { state: "LA", city: "baton rouge", sid: "la_ebr" }, { state: "LA", city: "metairie", sid: "la_jefferson" },
-  { state: "LA", city: "shreveport", sid: "la_caddo" },
-  { state: "ME", city: "portland", sid: "me_cumberland" }, { state: "ME", city: "bangor", sid: "me_penobscot" },
-  { state: "MD", city: "towson", sid: "md_baltimore_co" }, { state: "MD", city: "upper marlboro", sid: "md_pg" },
-  { state: "MD", city: "annapolis", sid: "md_anne_arundel" }, { state: "MD", city: "ellicott city", sid: "md_howard" },
-  { state: "MA", city: "cambridge", sid: "ma_middlesex" }, { state: "MA", city: "worcester", sid: "ma_worcester" },
-  { state: "MA", city: "springfield", sid: "ma_hampden" }, { state: "MA", city: "salem", sid: "ma_essex" },
-  { state: "MI", city: "grand rapids", sid: "mi_kent" }, { state: "MI", city: "pontiac", sid: "mi_oakland" },
-  { state: "MI", city: "lansing", sid: "mi_ingham" }, { state: "MI", city: "ann arbor", sid: "mi_washtenaw" },
-  { state: "MN", city: "st. paul", sid: "mn_ramsey" }, { state: "MN", city: "duluth", sid: "mn_st_louis" },
-  { state: "MS", city: "jackson", sid: "ms_hinds" }, { state: "MS", city: "gulfport", sid: "ms_harrison" },
-  { state: "MO", city: "clayton", sid: "mo_st_louis_co" }, { state: "MO", city: "springfield", sid: "mo_greene" },
-  { state: "MO", city: "columbia", sid: "mo_boone" },
-  { state: "MT", city: "billings", sid: "mt_yellowstone" }, { state: "MT", city: "great falls", sid: "mt_cascade" },
-  { state: "MT", city: "missoula", sid: "mt_missoula" }, { state: "MT", city: "bozeman", sid: "mt_gallatin" },
-  { state: "NE", city: "omaha", sid: "ne_douglas" }, { state: "NE", city: "lincoln", sid: "ne_lancaster" },
-  { state: "NV", city: "reno", sid: "nv_washoe" }, { state: "NV", city: "carson city", sid: "nv_carson" },
-  { state: "NH", city: "manchester", sid: "nh_hillsborough" }, { state: "NH", city: "nashua", sid: "nh_rockingham" },
-  { state: "NH", city: "concord", sid: "nh_merrimack" },
-  { state: "NJ", city: "hackensack", sid: "nj_bergen" }, { state: "NJ", city: "jersey city", sid: "nj_hudson" },
-  { state: "NJ", city: "new brunswick", sid: "nj_middlesex" }, { state: "NJ", city: "freehold", sid: "nj_monmouth" },
-  { state: "NJ", city: "toms river", sid: "nj_ocean" }, { state: "NJ", city: "elizabeth", sid: "nj_union" },
-  { state: "NJ", city: "camden", sid: "nj_camden" },
-  { state: "NM", city: "las cruces", sid: "nm_dona_ana" }, { state: "NM", city: "santa fe", sid: "nm_santa_fe" },
-  { state: "NY", city: "mineola", sid: "ny_nassau" }, { state: "NY", city: "riverhead", sid: "ny_suffolk" },
-  { state: "NY", city: "white plains", sid: "ny_westchester" }, { state: "NY", city: "rochester", sid: "ny_monroe" },
-  { state: "NY", city: "albany", sid: "ny_albany" }, { state: "NY", city: "syracuse", sid: "ny_onondaga" },
-  { state: "NC", city: "greensboro", sid: "nc_guilford" }, { state: "NC", city: "winston-salem", sid: "nc_forsyth" },
-  { state: "NC", city: "durham", sid: "nc_durham" }, { state: "NC", city: "fayetteville", sid: "nc_cumberland" },
-  { state: "NC", city: "asheville", sid: "nc_buncombe" },
-  { state: "ND", city: "fargo", sid: "nd_cass" }, { state: "ND", city: "bismarck", sid: "nd_burleigh" },
-  { state: "ND", city: "grand forks", sid: "nd_grand_forks" },
-  { state: "OH", city: "akron", sid: "oh_summit" }, { state: "OH", city: "dayton", sid: "oh_montgomery" },
-  { state: "OH", city: "toledo", sid: "oh_lucas" }, { state: "OH", city: "canton", sid: "oh_stark" },
-  { state: "OK", city: "tulsa", sid: "ok_tulsa" }, { state: "OK", city: "norman", sid: "ok_cleveland" },
-  { state: "OR", city: "eugene", sid: "or_lane" }, { state: "OR", city: "salem", sid: "or_marion" },
-  { state: "OR", city: "hillsboro", sid: "or_washington" }, { state: "OR", city: "oregon city", sid: "or_clackamas" },
-  { state: "OR", city: "medford", sid: "or_jackson" }, { state: "OR", city: "bend", sid: "or_deschutes" },
-  { state: "OR", city: "seaside", sid: "or_clatsop" },
-  { state: "PA", city: "norristown", sid: "pa_montgomery" }, { state: "PA", city: "doylestown", sid: "pa_bucks" },
-  { state: "PA", city: "west chester", sid: "pa_chester" }, { state: "PA", city: "lancaster", sid: "pa_lancaster" },
-  { state: "PA", city: "york", sid: "pa_york" }, { state: "PA", city: "reading", sid: "pa_berks" },
-  { state: "RI", city: "providence", sid: "ri_providence" }, { state: "RI", city: "warwick", sid: "ri_kent" },
-  { state: "SC", city: "greenville", sid: "sc_greenville" }, { state: "SC", city: "columbia", sid: "sc_richland" },
-  { state: "SC", city: "charleston", sid: "sc_charleston" }, { state: "SC", city: "spartanburg", sid: "sc_spartanburg" },
-  { state: "SD", city: "sioux falls", sid: "sd_minnehaha" }, { state: "SD", city: "rapid city", sid: "sd_pennington" },
-  { state: "TN", city: "knoxville", sid: "tn_knox" }, { state: "TN", city: "chattanooga", sid: "tn_hamilton" },
-  { state: "TN", city: "murfreesboro", sid: "tn_rutherford" },
-  { state: "TX", city: "san antonio", sid: "tx_bexar" }, { state: "TX", city: "plano", sid: "tx_collin" },
-  { state: "TX", city: "frisco", sid: "tx_collin" }, { state: "TX", city: "mcallen", sid: "tx_hidalgo" },
-  { state: "TX", city: "denton", sid: "tx_denton" }, { state: "TX", city: "corpus christi", sid: "tx_nueces" },
-  { state: "TX", city: "round rock", sid: "tx_williamson" }, { state: "TX", city: "lubbock", sid: "tx_lubbock" },
-  { state: "UT", city: "salt lake city", sid: "ut_salt_lake" }, { state: "UT", city: "provo", sid: "ut_utah" },
-  { state: "UT", city: "orem", sid: "ut_utah" }, { state: "UT", city: "ogden", sid: "ut_weber" },
-  { state: "UT", city: "st. george", sid: "ut_washington" },
-  { state: "VT", city: "burlington", sid: "vt_chittenden" }, { state: "VT", city: "rutland", sid: "vt_rutland" },
-  { state: "VT", city: "montpelier", sid: "vt_washington" },
-  { state: "VA", city: "virginia beach", sid: "va_virginia_beach" }, { state: "VA", city: "chesapeake", sid: "va_chesapeake" },
-  { state: "VA", city: "norfolk", sid: "va_norfolk" }, { state: "VA", city: "leesburg", sid: "va_loudoun" },
-  { state: "WA", city: "everett", sid: "wa_snohomish" }, { state: "WA", city: "vancouver", sid: "wa_clark" },
-  { state: "WA", city: "olympia", sid: "wa_thurston" }, { state: "WA", city: "bremerton", sid: "wa_kitsap" },
-  { state: "WA", city: "bellingham", sid: "wa_whatcom" }, { state: "WA", city: "kennewick", sid: "wa_benton" },
-  { state: "WA", city: "yakima", sid: "wa_yakima" },
-  { state: "WV", city: "charleston", sid: "wv_kanawha" }, { state: "WV", city: "huntington", sid: "wv_cabell" },
-  { state: "WV", city: "morgantown", sid: "wv_monongalia" },
-  { state: "WI", city: "madison", sid: "wi_dane" }, { state: "WI", city: "waukesha", sid: "wi_waukesha" },
-  { state: "WI", city: "green bay", sid: "wi_brown" }, { state: "WI", city: "racine", sid: "wi_racine" },
-  { state: "WY", city: "cheyenne", sid: "wy_laramie" }, { state: "WY", city: "casper", sid: "wy_natrona" },
-  { state: "WY", city: "jackson", sid: "wy_teton" },
+  // ── US entries migrated to config/geo/USA/*.json — resolved by loadGeoConfig() ──
 
   // ── Canada ──
   { state: "BC", city: "vancouver", sid: "vancouver" }, { state: "BC", city: "richmond", sid: "vancouver" },
@@ -663,16 +493,113 @@ const US_STATE_INFO: Record<string, {dept:string;rating:string;scale:string;ctx:
   WY: { dept:"WY county health depts (WDA)", rating:"Pass/Fail", scale:"Pass/Fail → 0-100", ctx:"Wyoming: WY Dept of Agriculture (wyomingagriculture.gov). County health departments." },
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// US GEO CONFIG — nested hash map for O(1) city → source_id lookup
+// Replaces the flat GEO_TABLE array for all US states
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const US_GEO_CONFIG = {
+  WA: { cities: { seattle:"king",bellevue:"king",kent:"king",renton:"king",redmond:"king",kirkland:"king","federal way":"king",sammamish:"king",shoreline:"king",burien:"king",tukwila:"king",issaquah:"king","mercer island":"king",auburn:"king",bothell:"king",kenmore:"king",newcastle:"king","des moines":"king",seatac:"king",woodinville:"king",tacoma:"pierce",puyallup:"pierce",lakewood:"pierce","university place":"pierce",fircrest:"pierce",parkland:"pierce",spanaway:"pierce",sumner:"pierce","bonney lake":"pierce","gig harbor":"pierce",dupont:"pierce",steilacoom:"pierce",milton:"pierce",edgewood:"pierce",orting:"pierce",eatonville:"pierce",roy:"pierce",spokane:"spokane",everett:"wa_snohomish",vancouver:"wa_clark",olympia:"wa_thurston",bremerton:"wa_kitsap",bellingham:"wa_whatcom",kennewick:"wa_benton",yakima:"wa_yakima" }, defaultSid: null },
+  CA: { cities: { "san francisco":"sf","los angeles":"la","long beach":"la",glendale:"la",pasadena:"la","santa monica":"la",burbank:"la",torrance:"la",modesto:"stanislaus",turlock:"stanislaus",ceres:"stanislaus","san diego":"san_diego",sacramento:"sacramento",fresno:"fresno",oakland:"ca_alameda","santa ana":"ca_orange",riverside:"ca_riverside","san bernardino":"ca_sanbernardino","san jose":"ca_santaclara",bakersfield:"ca_kern",ventura:"ca_ventura" }, defaultSid: null },
+  NY: { cities: { "new york":"nyc",brooklyn:"nyc",queens:"nyc",bronx:"nyc","the bronx":"nyc",manhattan:"nyc","staten island":"nyc",buffalo:"buffalo",mineola:"ny_nassau",riverhead:"ny_suffolk","white plains":"ny_westchester",rochester:"ny_monroe",albany:"ny_albany",syracuse:"ny_onondaga" }, defaultSid: "ny_state" },
+  DE: { cities: {}, defaultSid: "delaware" },
+  IL: { cities: { chicago:"cook",wheaton:"il_dupage",waukegan:"il_lake",joliet:"il_will",geneva:"il_kane",springfield:"il_sangamon" }, defaultSid: null },
+  TX: { cities: { austin:"travis",houston:"houston",dallas:"dallas","el paso":"el_paso","fort worth":"fort_worth","san antonio":"tx_bexar",plano:"tx_collin",frisco:"tx_collin",mcallen:"tx_hidalgo",denton:"tx_denton","corpus christi":"tx_nueces","round rock":"tx_williamson",lubbock:"tx_lubbock" }, defaultSid: null },
+  MD: { cities: { rockville:"montgomery_md",bethesda:"montgomery_md","silver spring":"montgomery_md",gaithersburg:"montgomery_md",baltimore:"baltimore",towson:"md_baltimore_co","upper marlboro":"md_pg",annapolis:"md_anne_arundel","ellicott city":"md_howard" }, defaultSid: null },
+  MA: { cities: { boston:"boston",cambridge:"ma_middlesex",worcester:"ma_worcester",springfield:"ma_hampden",salem:"ma_essex" }, defaultSid: null },
+  CT: { cities: { manchester:"manchester_ct",hartford:"ct_hartford","new haven":"ct_new_haven",bridgeport:"ct_fairfield" }, defaultSid: null },
+  NV: { cities: { "las vegas":"las_vegas",reno:"nv_washoe","carson city":"nv_carson" }, defaultSid: null },
+  FL: { cities: { miami:"miami","miami beach":"miami_beach",orlando:"orlando",tampa:"tampa",jacksonville:"jacksonville","fort lauderdale":"fl_broward","west palm beach":"fl_palm_beach",clearwater:"fl_pinellas",lakeland:"fl_polk","fort myers":"fl_lee" }, defaultSid: null },
+  AZ: { cities: { phoenix:"phoenix",tucson:"tucson",flagstaff:"az_coconino",prescott:"az_yavapai",mesa:"az_maricopa",gilbert:"az_maricopa" }, defaultSid: null },
+  PA: { cities: { philadelphia:"philadelphia",pittsburgh:"pittsburgh",norristown:"pa_montgomery",doylestown:"pa_bucks","west chester":"pa_chester",lancaster:"pa_lancaster",york:"pa_york",reading:"pa_berks" }, defaultSid: null },
+  GA: { cities: { atlanta:"atlanta",decatur:"ga_dekalb",lawrenceville:"ga_gwinnett",marietta:"ga_cobb",savannah:"ga_chatham",macon:"ga_bibb" }, defaultSid: null },
+  TN: { cities: { nashville:"nashville",memphis:"memphis",knoxville:"tn_knox",chattanooga:"tn_hamilton",murfreesboro:"tn_rutherford" }, defaultSid: null },
+  NC: { cities: { charlotte:"charlotte",raleigh:"raleigh",greensboro:"nc_guilford","winston-salem":"nc_forsyth",durham:"nc_durham",fayetteville:"nc_cumberland",asheville:"nc_buncombe" }, defaultSid: null },
+  OH: { cities: { columbus:"columbus",cleveland:"cleveland",cincinnati:"cincinnati",akron:"oh_summit",dayton:"oh_montgomery",toledo:"oh_lucas",canton:"oh_stark" }, defaultSid: null },
+  MN: { cities: { minneapolis:"minneapolis","st. paul":"mn_ramsey",duluth:"mn_st_louis" }, defaultSid: null },
+  OR: { cities: { portland:"portland",eugene:"or_lane",salem:"or_marion",hillsboro:"or_washington","oregon city":"or_clackamas",medford:"or_jackson",bend:"or_deschutes",seaside:"or_clatsop" }, defaultSid: null },
+  CO: { cities: { denver:"denver","colorado springs":"co_el_paso",boulder:"co_boulder",aurora:"co_arapahoe","fort collins":"co_larimer",lakewood:"co_jefferson" }, defaultSid: null },
+  WI: { cities: { milwaukee:"milwaukee",madison:"wi_dane",waukesha:"wi_waukesha","green bay":"wi_brown",racine:"wi_racine" }, defaultSid: null },
+  MI: { cities: { detroit:"detroit","grand rapids":"mi_kent",pontiac:"mi_oakland",lansing:"mi_ingham","ann arbor":"mi_washtenaw" }, defaultSid: null },
+  MO: { cities: { "st. louis":"st_louis","kansas city":"kansas_city",clayton:"mo_st_louis_co",springfield:"mo_greene",columbia:"mo_boone" }, defaultSid: null },
+  KY: { cities: { louisville:"louisville",lexington:"ky_fayette",burlington:"ky_boone" }, defaultSid: null },
+  IN: { cities: { indianapolis:"indianapolis",gary:"in_lake","fort wayne":"in_allen",carmel:"in_hamilton" }, defaultSid: null },
+  LA: { cities: { "new orleans":"new_orleans","baton rouge":"la_ebr",metairie:"la_jefferson",shreveport:"la_caddo" }, defaultSid: null },
+  HI: { cities: { honolulu:"honolulu" }, defaultSid: null },
+  AK: { cities: { anchorage:"anchorage",fairbanks:"ak_fairbanks",juneau:"ak_juneau" }, defaultSid: null },
+  NM: { cities: { albuquerque:"albuquerque","las cruces":"nm_dona_ana","santa fe":"nm_santa_fe" }, defaultSid: null },
+  NJ: { cities: { newark:"newark",hackensack:"nj_bergen","jersey city":"nj_hudson","new brunswick":"nj_middlesex",freehold:"nj_monmouth","toms river":"nj_ocean",elizabeth:"nj_union",camden:"nj_camden" }, defaultSid: null },
+  VA: { cities: { arlington:"arlington_va",richmond:"richmond_va","virginia beach":"va_virginia_beach",chesapeake:"va_chesapeake",norfolk:"va_norfolk",leesburg:"va_loudoun" }, defaultSid: null },
+  OK: { cities: { "oklahoma city":"oklahoma_city",tulsa:"ok_tulsa",norman:"ok_cleveland" }, defaultSid: null },
+  AL: { cities: { birmingham:"al_birmingham",mobile:"al_mobile",huntsville:"al_madison",montgomery:"al_montgomery" }, defaultSid: null },
+  AR: { cities: { "little rock":"ar_pulaski",bentonville:"ar_benton",fayetteville:"ar_washington" }, defaultSid: null },
+  ID: { cities: { boise:"id_ada",nampa:"id_canyon","coeur d'alene":"id_kootenai" }, defaultSid: null },
+  IA: { cities: { "des moines":"ia_polk","cedar rapids":"ia_linn",davenport:"ia_scott","iowa city":"ia_johnson" }, defaultSid: null },
+  KS: { cities: { "overland park":"ks_johnson",wichita:"ks_sedgwick",topeka:"ks_shawnee" }, defaultSid: null },
+  ME: { cities: { portland:"me_cumberland",bangor:"me_penobscot" }, defaultSid: null },
+  MS: { cities: { jackson:"ms_hinds",gulfport:"ms_harrison" }, defaultSid: null },
+  MT: { cities: { billings:"mt_yellowstone","great falls":"mt_cascade",missoula:"mt_missoula",bozeman:"mt_gallatin" }, defaultSid: null },
+  NE: { cities: { omaha:"ne_douglas",lincoln:"ne_lancaster" }, defaultSid: null },
+  NH: { cities: { manchester:"nh_hillsborough",nashua:"nh_rockingham",concord:"nh_merrimack" }, defaultSid: null },
+  ND: { cities: { fargo:"nd_cass",bismarck:"nd_burleigh","grand forks":"nd_grand_forks" }, defaultSid: null },
+  RI: { cities: { providence:"ri_providence",warwick:"ri_kent" }, defaultSid: null },
+  SC: { cities: { greenville:"sc_greenville",columbia:"sc_richland",charleston:"sc_charleston",spartanburg:"sc_spartanburg" }, defaultSid: null },
+  SD: { cities: { "sioux falls":"sd_minnehaha","rapid city":"sd_pennington" }, defaultSid: null },
+  UT: { cities: { "salt lake city":"ut_salt_lake",provo:"ut_utah",orem:"ut_utah",ogden:"ut_weber","st. george":"ut_washington" }, defaultSid: null },
+  VT: { cities: { burlington:"vt_chittenden",rutland:"vt_rutland",montpelier:"vt_washington" }, defaultSid: null },
+  WV: { cities: { charleston:"wv_kanawha",huntington:"wv_cabell",morgantown:"wv_monongalia" }, defaultSid: null },
+  WY: { cities: { cheyenne:"wy_laramie",casper:"wy_natrona",jackson:"wy_teton" }, defaultSid: null },
+  DC: { cities: {}, defaultSid: null },
+};
+
+function loadGeoConfig(stateUp) {
+  return US_GEO_CONFIG[stateUp] || null;
+}
+
 function resolveGeo(state, city) {
   if (!state && !city) return null;
   const stateUp = (state || "").toUpperCase().trim();
   const cityLow = (city || "").toLowerCase().trim();
+
+  // PHASE 1: Try inline US_GEO_CONFIG for US states (O(1) lookup)
+  if (US_STATES.has(stateUp)) {
+    const config = loadGeoConfig(stateUp);
+    if (config) {
+      // State is migrated — resolve exclusively from the JSON file
+      const sid = (config.cities && config.cities[cityLow]) || config.defaultSid;
+      if (sid) {
+        const source = SOURCES.find(s => s.id === sid);
+        if (source) return source;
+      }
+      // City not in file and no default_sid — use US state-level fallback
+      const info = US_STATE_INFO[stateUp];
+      if (info) {
+        return {
+          id: stateUp.toLowerCase(),
+          dept: info.dept,
+          city: cityLow ? cityLow.charAt(0).toUpperCase() + cityLow.slice(1) : "Statewide",
+          state: stateUp,
+          country: "US",
+          type: "ai_enrichment",
+          api: null,
+          fn: "placesRestaurantSearch",
+          rating: info.rating,
+          scale: info.scale,
+          enrich: true,
+          ctx: info.ctx,
+        };
+      }
+      return null; // State migrated but no resolution possible
+    }
+  }
+
+  // PHASE 2: Fall back to legacy GEO_TABLE for unmigrated states and international
   // Try exact state + city match
   let match = GEO_TABLE.find(g =>
     (stateUp === "" || (g.state && g.state.toUpperCase() === stateUp)) &&
     g.city === cityLow
   );
-  // State-only default (e.g. Delaware)
+  // State-only default (e.g. Delaware — only reached if not migrated to file)
   if (!match && stateUp) {
     match = GEO_TABLE.find(g => g.state && g.state.toUpperCase() === stateUp && !g.city);
   }

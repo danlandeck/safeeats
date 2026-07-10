@@ -1,0 +1,10 @@
+{
+  "region_code": "IA",
+  "cities": {
+    "des moines": "ia_polk",
+    "cedar rapids": "ia_linn",
+    "davenport": "ia_scott",
+    "iowa city": "ia_johnson"
+  },
+  "default_sid": null
+}

@@ -1,0 +1,9 @@
+{
+  "region_code": "MN",
+  "cities": {
+    "minneapolis": "minneapolis",
+    "st. paul": "mn_ramsey",
+    "duluth": "mn_st_louis"
+  },
+  "default_sid": null
+}

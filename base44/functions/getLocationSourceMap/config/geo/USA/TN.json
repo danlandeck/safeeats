@@ -1,0 +1,11 @@
+{
+  "region_code": "TN",
+  "cities": {
+    "nashville": "nashville",
+    "memphis": "memphis",
+    "knoxville": "tn_knox",
+    "chattanooga": "tn_hamilton",
+    "murfreesboro": "tn_rutherford"
+  },
+  "default_sid": null
+}
