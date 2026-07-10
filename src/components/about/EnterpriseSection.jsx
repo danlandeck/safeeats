@@ -93,12 +93,6 @@ export default function EnterpriseSection() {
             </div>
           ))}
         </div>
-        <div className="bg-slate-900 rounded-2xl p-5 text-white font-mono text-xs overflow-x-auto">
-          <p className="text-emerald-400 mb-1"># Search restaurants by name + location</p>
-          <p><span className="text-slate-400">GET</span> /api/v1/search?q=chipotle&amp;location="Austin, TX"</p>
-          <p className="text-slate-500 mt-3 mb-1"># Full inspection history by business_id</p>
-          <p><span className="text-slate-400">GET</span> /api/v1/restaurants/{"{business_id}"}/inspections</p>
-        </div>
       </Section>
 
       <Section>
