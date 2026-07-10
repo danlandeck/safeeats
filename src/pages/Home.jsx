@@ -9,6 +9,7 @@ import { useLanguage } from "../lib/LanguageContext";
 import { llmToDetailRows, geocodeAddress, reverseGeocode } from "../utils/inspectionProcessors";
 import { search as engineSearch, fetchDetail as engineFetchDetail } from "../utils/searchEngine";
 import RestaurantCard from "../components/RestaurantCard";
+import SearchLoadingIndicator from "../components/SearchLoadingIndicator";
 import SmartSearchPanel from "../components/SmartSearchPanel";
 import FuzzySearchBar from "../components/FuzzySearchBar";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
@@ -1253,7 +1254,7 @@ export default function Home() {
       </div>
 
       <div aria-live="polite" aria-atomic="true" className="sr-only" id="search-status">
-        {isLoading ? "Searching for restaurants, please wait…" : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
+        {isLoading ? `Querying health department database for ${locationQuery || countyId}. Please wait…` : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
       </div>
 
       <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
@@ -1328,10 +1329,11 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   <div className="lg:col-span-3">
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20">
-                          <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                          <p className="text-sm text-slate-400">{isAISearch ? "Searching the web for real inspection data…" : "Searching live government database…"}</p>
-                        </div>
+                        <SearchLoadingIndicator
+                          countyId={countyId}
+                          locationCtx={locationQuery}
+                          isAISearch={isAISearch}
+                        />
                     ) : searchError ? (
                       <div className="flex flex-col items-center justify-center py-16">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
