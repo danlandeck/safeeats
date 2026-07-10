@@ -1,7 +1,7 @@
 import { base44 } from "@/api/base44Client";
 import { API_REGISTRY, LIVE_API_IDS, buildSearchUrl, buildDetailUrl } from "./apiRegistry";
 import {
-  processKingCountyResults, processNYCResults, processChicagoResults,
+  processKingCountyResults, kingToDetailRows, processNYCResults, processChicagoResults,
   processMontgomeryResults, processAustinResults, processSFResults, processLAResults,
   nycToDetailRows, chicagoToDetailRows, montgomeryToDetailRows,
   austinToDetailRows, sfToDetailRows, laToDetailRows,
@@ -22,7 +22,7 @@ import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
 
 const PROCESSORS = {
-  king:          { process: processKingCountyResults,  toDetailRows: null },
+  king:          { process: processKingCountyResults,  toDetailRows: kingToDetailRows },
   nyc:           { process: processNYCResults,         toDetailRows: nycToDetailRows },
   cook:          { process: processChicagoResults,     toDetailRows: chicagoToDetailRows },
   montgomery_md: { process: processMontgomeryResults,  toDetailRows: montgomeryToDetailRows },
@@ -890,7 +890,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     let allResults;
     try {
       const raw = await fetch(buildSearchUrl(entry, nameQuery), signal ? { signal } : {}).then(r => r.json());
-      allResults = PROCESSORS[countyId].process(Array.isArray(raw) ? raw : []);
+      allResults = PROCESSORS[countyId].process(raw);
     } catch {
       // Network error, CORS, or abort — fall back to AI search
       return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults);
@@ -907,7 +907,7 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     }
 
     // Background-fetch true inspection counts and fire onCountUpdate per business
-    if (onCountUpdate && countyId !== "delaware") {
+    if (onCountUpdate && countyId !== "delaware" && !entry.isArcGIS) {
       results.forEach(async (biz) => {
         try {
           const countUrl = `${entry.endpoint}?$select=${entry.dateField}&${entry.idField}=${biz.business_id}&$limit=500&$order=${entry.dateField} DESC`;
@@ -1093,8 +1093,7 @@ export async function fetchDetail(restaurant) {
 
   try {
     const data = await fetch(buildDetailUrl(entry, business_id)).then(r => r.json());
-    const rows = Array.isArray(data) ? data : [];
-    if (countyId === "king") return rows;
+    const rows = Array.isArray(data) ? data : (data?.features?.map(f => f.attributes) || []);
     return PROCESSORS[countyId].toDetailRows(rows);
   } catch { return []; }
 }
