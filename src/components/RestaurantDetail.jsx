@@ -230,33 +230,48 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </div>
             </div>
 
-            {/* Right: Quick stat boxes */}
-            <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
-                <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
-                <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
-              </button>
-              <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors group focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
-                <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
-                  {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
-                </p>
-                <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View history ↓</p>
-              </button>
-              <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
-                <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
-                <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
-                  Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
-                </p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">What's this? ↓</p>
-              </button>
-              <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity group focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
-                <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
-                <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
-                <p className="text-[10px] text-blue-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">View trend ↓</p>
-              </button>
-            </div>
+            {/* Right: Conditional — action module for U grade, stat boxes otherwise */}
+            {grade === "U" ? (
+              <div className="flex-1 w-full">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+                  <p className="text-sm font-bold text-amber-800 flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4" /> No official inspection score available
+                  </p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    {restaurant.data_fetch_notes || "This jurisdiction doesn't publish machine-readable inspection data. Check the official health department portal for records."}
+                  </p>
+                  {restaurant.portal_url && (
+                    <a href={restaurant.portal_url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline font-bold">
+                      <ExternalLink className="w-3.5 h-3.5" /> {restaurant.portal_name || "View official inspection records"}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
+                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
+                  <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
+                  <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
+                </button>
+                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
+                  <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
+                    {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
+                  </p>
+                  <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
+                </button>
+                <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
+                  <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
+                  <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
+                    Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
+                  </p>
+                </button>
+                <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
+                  <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
+                  <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Plain-English safety summary */}
@@ -290,8 +305,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* Water Quality */}
           <EPAWaterCard restaurant={restaurant} />
 
-          {/* Portal link — prominent clickable hyperlink to official health department */}
-          {restaurant.portal_url && (
+          {/* Portal link — prominent clickable hyperlink to official health department (hidden for U grade, already shown in hero) */}
+          {restaurant.portal_url && grade !== "U" && (
             <a
               href={restaurant.portal_url}
               target="_blank"
