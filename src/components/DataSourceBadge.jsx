@@ -15,6 +15,7 @@ export default function DataSourceBadge({ restaurant, size = "sm" }) {
   const confidence = (restaurant.data_confidence || "").toLowerCase();
   const operating = restaurant.is_currently_operating;
   const verificationSource = restaurant.verification_source || "";
+  const fetchNotes = restaurant.data_fetch_notes || "";
 
   const iconSize = size === "sm" ? "w-2.5 h-2.5" : "w-3.5 h-3.5";
   const textSize = size === "sm" ? "text-[9px]" : "text-xs";
@@ -38,7 +39,7 @@ export default function DataSourceBadge({ restaurant, size = "sm" }) {
   let bg = "bg-blue-50 border-blue-200 text-blue-700";
   let Icon = BadgeCheck;
   let label = "AI Web-Verified";
-  let title = "Verified via live web search of public health records by AI.";
+  let title = "Verified via live web search of public health records by AI." + (fetchNotes ? ` ${fetchNotes}` : "");
 
   if (confidence === "high") {
     bg = "bg-teal-50 border-teal-200 text-teal-700";

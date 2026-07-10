@@ -1369,6 +1369,11 @@ export default function Home() {
                               {gradeFilter ? `Showing Grade ${gradeFilter} only · ` : ""}
                               Sorted by safety score — tap any restaurant to see its full history
                             </p>
+                            {results.some(r => r.data_fetch_notes) && (
+                              <p className="text-[11px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
+                                ⚠️ Some results have data source notes — tap a restaurant to see why a score may be missing or estimated.
+                              </p>
+                            )}
                           </div>
                           <div className="flex gap-2 flex-wrap justify-end">
                             <button

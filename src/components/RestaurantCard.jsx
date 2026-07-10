@@ -123,6 +123,16 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {/* EPA Water info — US restaurants only (component returns null for international) */}
           <EPAWaterCard restaurant={restaurant} />
 
+          {/* Data fetch issue strip — transparently shows why data might be missing */}
+          {restaurant.data_fetch_notes && (
+            <div className="flex items-center gap-1.5 mt-2 bg-amber-50 border-2 border-amber-200 rounded-xl px-2 py-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <span className="text-[10px] font-bold text-amber-700 truncate">
+                {restaurant.data_fetch_notes}
+              </span>
+            </div>
+          )}
+
           {/* Warning strip for low grades */}
           {(grade === "D" || grade === "F") && (
             <div className="flex items-center gap-1.5 mt-2 bg-red-50 border-2 border-red-300 rounded-xl px-2 py-1.5">
