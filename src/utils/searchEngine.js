@@ -536,7 +536,20 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 
   // 24h result cache: repeat searches render instantly. Enriched results
   // overwrite grounded-only results as they land.
-  const seCacheKey = `se-ai-cache-v5:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  const CACHE_VERSION = "v6";
+  const seCacheKey = `se-ai-cache-${CACHE_VERSION}:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  // One-time cleanup: purge stale cache entries from previous versions so they
+  // can't be served if the browser loads new JS but old localStorage persists.
+  try {
+    if (!localStorage.getItem(`se-cache-cleanup-${CACHE_VERSION}`)) {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("se-ai-cache-v") && !k.startsWith(`se-ai-cache-${CACHE_VERSION}`)) {
+          localStorage.removeItem(k);
+        }
+      });
+      localStorage.setItem(`se-cache-cleanup-${CACHE_VERSION}`, "1");
+    }
+  } catch { /* localStorage unavailable */ }
   try {
     const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
     const hitTtl = hit?.ttl || 5 * 60 * 1000;
