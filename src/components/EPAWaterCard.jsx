@@ -70,6 +70,7 @@ export default function EPAWaterCard({ restaurant }) {
     base44.functions.invoke("getWaterQuality", {
       city,
       state,
+      country: restaurant.country || "US",
       county_id: restaurant.county_id,
       full_address: [restaurant.address, city, zip].filter(Boolean).join(", "),
     }).then((res) => {
