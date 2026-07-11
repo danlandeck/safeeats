@@ -906,35 +906,41 @@ export default function Home() {
       const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return new RegExp(`(?:^|[\\s,])${escaped}(?:[\\s,]|$)`, 'i').test(text);
     };
+    // Only auto-detect city from query text when the user hasn't already
+    // specified a location. Otherwise city names like "Bell" (LA County) get
+    // stripped from restaurant names like "Taco Bell", leaving just "Taco".
+    const hasLocationSpecified = (locationQuery || "").trim() && (locationQuery || "").trim() !== "Worldwide (AI Search)";
     let cityMatched = false;
-    for (const key of sortedKeys) {
-      if (!matchesKey(queryWords, key)) continue;
+    if (!hasLocationSpecified) {
+      for (const key of sortedKeys) {
+        if (!matchesKey(queryWords, key)) continue;
 
-      const matched = CITY_TO_COUNTY[key];
+        const matched = CITY_TO_COUNTY[key];
 
-      // If the user typed a US state abbr, skip non-US matches for ambiguous city names.
-      if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
-        if (key !== 'newcastle') continue;
+        // If the user typed a US state abbr, skip non-US matches for ambiguous city names.
+        if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
+          if (key !== 'newcastle') continue;
+        }
+
+        if (REGIONS[matched.region]) {
+          searchRegion = matched.region;
+          searchCounty = matched.countyId;
+          regionRef.current = searchRegion; setRegion(searchRegion);
+          countyIdRef.current = searchCounty; setCountyId(searchCounty);
+          if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+          query = rawQuery
+            .replace(new RegExp(key, "i"), "")               // strip city name
+            .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")          // strip trailing state abbr e.g. ", WA"
+            .replace(/\s+\b(in|at|near|of|the)\b\s*$/i, "") // strip trailing prepositions
+            .replace(/^\s*\b(in|at|near)\b\s+/i, "")        // strip leading prepositions
+            .trim()
+            .replace(/^[,\s]+/, "")   // strip leading commas/spaces
+            .replace(/[,\s]+$/, "")   // strip trailing commas/spaces
+            .trim() || rawQuery;
+          cityMatched = true;
+        }
+        break;
       }
-
-      if (REGIONS[matched.region]) {
-        searchRegion = matched.region;
-        searchCounty = matched.countyId;
-        regionRef.current = searchRegion; setRegion(searchRegion);
-        countyIdRef.current = searchCounty; setCountyId(searchCounty);
-        if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-        query = rawQuery
-          .replace(new RegExp(key, "i"), "")               // strip city name
-          .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")          // strip trailing state abbr e.g. ", WA"
-          .replace(/\s+\b(in|at|near|of|the)\b\s*$/i, "") // strip trailing prepositions
-          .replace(/^\s*\b(in|at|near)\b\s+/i, "")        // strip leading prepositions
-          .trim()
-          .replace(/^[,\s]+/, "")   // strip leading commas/spaces
-          .replace(/[,\s]+$/, "")   // strip trailing commas/spaces
-          .trim() || rawQuery;
-        cityMatched = true;
-      }
-      break;
     }
     // If no city matched from the query text, try matching from the location field.
     // This lets users type "Taco Bell" in search + "Seattle" in location → King County live API.
