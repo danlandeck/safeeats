@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 
 // ESRI diverging color ramp
 function getScoreColor(score, grade) {
-  if (grade === "P") return "#14B8A6";
+  if (grade === "P") return "#22c55e";
   if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
   if (score >= 80) return "#a6d96a";

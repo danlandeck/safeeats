@@ -44,7 +44,7 @@ function scoreToGrade(s) {
 }
 
 function getGradeColor(g) {
-  return { A:"#1a9641", B:"#a6d96a", C:"#fdae61", D:"#f97316", F:"#d7191c", U:"#94a3b8" }[g] || "#94a3b8";
+  return { A:"#1a9641", B:"#a6d96a", C:"#fdae61", D:"#f97316", F:"#d7191c", P:"#22c55e", U:"#94a3b8" }[g] || "#94a3b8";
 }
 
 const TABS = [
