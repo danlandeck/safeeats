@@ -36,7 +36,116 @@
   "ND": "North Dakota: ND Health & Human Services (hhs.nd.gov). County/local health departments — Cass, Burleigh, Grand Forks. Score: Pass/Fail.",
   "OH": "Ohio: Ohio Dept of Agriculture (agri.ohio.gov) and county health departments — Cuyahoga, Franklin, Hamilton, Summit, Montgomery, Lucas, Stark. Score: 100-point or Pass/Fail.",
   "OK": "Oklahoma: OK State Dept of Health (oklahoma.gov/health). County health departments — Oklahoma, Tulsa, Cleveland. Score: Pass/Fail or 100-point.",
-  "OR": "Oregon: Oregon Health Authority (oregon.gov/oha/ph/healthyenvironments/foodsafety). County health departments conduct inspections — Multnomah (multco.us), Clatsop (clatsopcounty.gov), Lane, Marion, Washington, Deschutes, Jackson, Clackamas, Yamhill, Linn, Benton, Lincoln. Score: 100-point (70=pass). Statewide inspection portal at oregon.gov/oha. Most Oregon counties publish inspection results on HealthSpace (inspections.myhealthdepartment.com). Inspections 1-2 times/year.",
+  "OR": {
+    "description": "Oregon: Oregon Health Authority (oregon.gov/oha/ph/healthyenvironments/foodsafety). County health departments conduct inspections. Score: 100-point (70=pass). Most Oregon counties publish inspection results on HealthSpace (inspections.myhealthdepartment.com). Inspections 1-2 times/year.",
+    "counties": {
+      "Multnomah": {
+        "portal_url": "https://multco.us/services/look-current-restaurant-scores",
+        "portal_name": "Multnomah County Restaurant Inspections",
+        "cities": ["portland", "gresham", "troutdale", "fairview", "wood village", "maywood park"]
+      },
+      "Clatsop": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-clatsop-county",
+        "portal_name": "Clatsop County HealthSpace Portal",
+        "cities": ["astoria", "seaside", "cannon beach", "warrenton", "gearhart"]
+      },
+      "Lane": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-lane-county",
+        "portal_name": "Lane County HealthSpace Portal",
+        "cities": ["eugene", "springfield", "cottage grove", "florence", "junction city"]
+      },
+      "Marion": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-marion-county",
+        "portal_name": "Marion County HealthSpace Portal",
+        "cities": ["salem", "silverton", "woodburn", "stayton", "keizer", "mount angel"]
+      },
+      "Washington": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-washington-county",
+        "portal_name": "Washington County HealthSpace Portal",
+        "cities": ["beaverton", "hillsboro", "tigard", "tualatin", "forest grove", "cornelius", "sherwood", "aloha"]
+      },
+      "Clackamas": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-clackamas-county",
+        "portal_name": "Clackamas County HealthSpace Portal",
+        "cities": ["oregon city", "lake oswego", "west linn", "milwaukie", "happy valley", "gladstone", "canby", "sandy"]
+      },
+      "Deschutes": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-deschutes-county",
+        "portal_name": "Deschutes County HealthSpace Portal",
+        "cities": ["bend", "redmond", "sisters", "la pine", "sunriver"]
+      },
+      "Jackson": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-jackson-county",
+        "portal_name": "Jackson County HealthSpace Portal",
+        "cities": ["medford", "ashland", "central point", "eagle point", "talent", "phoenix", "rogue river"]
+      },
+      "Yamhill": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-yamhill-county",
+        "portal_name": "Yamhill County HealthSpace Portal",
+        "cities": ["mcminnville", "newberg", "dundee", "dayton", "yamhill", "carlton"]
+      },
+      "Linn": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-linn-county",
+        "portal_name": "Linn County HealthSpace Portal",
+        "cities": ["albany", "lebanon", "sweet home", "brownsville", "scio"]
+      },
+      "Benton": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-benton-county",
+        "portal_name": "Benton County HealthSpace Portal",
+        "cities": ["corvallis", "philomath", "monroe", "alsea"]
+      },
+      "Lincoln": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-lincoln-county",
+        "portal_name": "Lincoln County HealthSpace Portal",
+        "cities": ["newport", "lincoln city", "toledo", "waldport", "depoe bay", "yachats"]
+      },
+      "Hood River": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-hood-river-county",
+        "portal_name": "Hood River County HealthSpace Portal",
+        "cities": ["hood river", "parkdale", "odell"]
+      },
+      "Douglas": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-douglas-county",
+        "portal_name": "Douglas County HealthSpace Portal",
+        "cities": ["roseburg", "sutherlin", "drain", "reedsport"]
+      },
+      "Josephine": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-josephine-county",
+        "portal_name": "Josephine County HealthSpace Portal",
+        "cities": ["grants pass", "cave junction"]
+      },
+      "Klamath": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-klamath-county",
+        "portal_name": "Klamath County HealthSpace Portal",
+        "cities": ["klamath falls", "merrill", "malin"]
+      },
+      "Polk": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-polk-county",
+        "portal_name": "Polk County HealthSpace Portal",
+        "cities": ["dallas", "independence", "monmouth", "falls city"]
+      },
+      "Columbia": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-columbia-county",
+        "portal_name": "Columbia County HealthSpace Portal",
+        "cities": ["st. helens", "scappoose", "rainier", "vernonia", "clatskanie"]
+      },
+      "Wasco": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-wasco-county",
+        "portal_name": "Wasco County HealthSpace Portal",
+        "cities": ["the dalles", "maupin", "dufur"]
+      },
+      "Umatilla": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-umatilla-county",
+        "portal_name": "Umatilla County HealthSpace Portal",
+        "cities": ["pendleton", "hermiston", "umatilla", "echo", "stanfield"]
+      },
+      "Union": {
+        "portal_url": "https://inspections.myhealthdepartment.com/or-union-county",
+        "portal_name": "Union County HealthSpace Portal",
+        "cities": ["la grande", "union", "cove", "elgin"]
+      }
+    }
+  },
   "PA": "Pennsylvania: PA Dept of Agriculture (agriculture.pa.gov). County/local health departments — Philadelphia, Allegheny, Montgomery, Bucks, Chester, Lancaster, York, Berks. Score: Pass/Fail.",
   "RI": "Rhode Island: RI Dept of Health (health.ri.gov). Statewide. Score: Pass/Fail with violations. Search at health.ri.gov.",
   "SC": "South Carolina: SC DHEC (scdhec.gov). Statewide. Score: 100-point with letter grade (A/B/C).",

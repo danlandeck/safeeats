@@ -287,7 +287,10 @@ function getContextForLocation(countyId, locationLabel) {
   const stateMatch = locationLabel.match(/,\s*([A-Z]{2})\b/);
   if (stateMatch) {
     const code = stateMatch[1].toUpperCase();
-    if (usHealthContext[code]) return usHealthContext[code];
+    if (usHealthContext[code]) {
+      const entry = usHealthContext[code];
+      return typeof entry === 'string' ? entry : (entry.description || '');
+    }
   }
   return "";
 }
@@ -458,34 +461,55 @@ function llmCall(prompt, internet = false, schema = LLM_SCHEMA) {
 let _geoRouting = false;
 
 /**
- * State-specific fallback note for when AI enrichment cannot find inspection
- * data. Oregon (Clatsop County) uses a JS-rendered HealthSpace portal that
- * web search cannot access — users need a direct link to check scores themselves.
+ * County-level portal resolver. For states with a `counties` map in
+ * usHealthContext.json, looks up the city to find the right county portal.
+ * Falls back to state-level description parsing if no county match.
  */
-function getStatePortalInfo(state) {
+function getStatePortalInfo(state, city) {
   if (!state) return { url: null, name: null, note: "" };
   const code = state.toUpperCase().trim();
-  if (code === "OR") {
-    return {
-      url: "https://inspections.myhealthdepartment.com/or-clatsop-county",
-      name: "Oregon HealthSpace Portal",
-      note: "Oregon publishes inspection results on the HealthSpace portal, which requires a direct visit to view scores. ",
-    };
+  const stateEntry = usHealthContext[code];
+  if (!stateEntry) return { url: null, name: null, note: "Contact the local health department for inspection records. " };
+
+  // Object entry with county-level portal mappings
+  if (typeof stateEntry === 'object' && stateEntry.counties) {
+    const cityKey = (city || "").toLowerCase().trim();
+    if (cityKey) {
+      for (const [countyName, countyData] of Object.entries(stateEntry.counties)) {
+        if (countyData.cities && countyData.cities.includes(cityKey)) {
+          return {
+            url: countyData.portal_url,
+            name: countyData.portal_name,
+            note: `${countyName} County publishes inspection results at ${countyData.portal_url}. `,
+          };
+        }
+      }
+    }
+    // No county match — fall back to state description
+    const desc = stateEntry.description || "";
+    const urlMatch = desc.match(/\(([^)]+)\)/);
+    const stateName = desc.split(":")[0];
+    if (urlMatch) {
+      const rawUrl = urlMatch[1];
+      const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+      return { url, name: `${stateName} inspection portal`, note: `${stateName} inspection records: ${rawUrl}. ` };
+    }
+    return { url: null, name: null, note: desc + " " };
   }
-  const ctx = usHealthContext[code];
-  if (!ctx) return { url: null, name: null, note: "Contact the local health department for inspection records. " };
-  const urlMatch = ctx.match(/\(([^)]+)\)/);
-  const stateName = ctx.split(":")[0];
+
+  // Legacy string entry
+  const urlMatch = stateEntry.match(/\(([^)]+)\)/);
+  const stateName = stateEntry.split(":")[0];
   if (urlMatch) {
     const rawUrl = urlMatch[1];
     const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
     return { url, name: `${stateName} inspection portal`, note: `${stateName} inspection records: ${rawUrl}. ` };
   }
-  return { url: null, name: null, note: ctx + " " };
+  return { url: null, name: null, note: stateEntry + " " };
 }
 
-function getStateFallbackNote(state) {
-  return getStatePortalInfo(state).note;
+function getStateFallbackNote(state, city) {
+  return getStatePortalInfo(state, city).note;
 }
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {
@@ -582,7 +606,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // Return isAI: false so the UI doesn't show a "verifying" spinner
         // for a background task that was never started.
         if (route.type === "none") {
-          const portal = getStatePortalInfo(verified[0]?.state);
+          const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
           const withNotes = portal.note
             ? grounded.map(r => ({
                 ...r,
@@ -612,7 +636,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           .then((res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];
             const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
-            const portal = getStatePortalInfo(verified[0]?.state);
+            const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
             const enriched = groundedRaw.map((raw, i) => {
               const insp = byIdx.get(i);
               const merged = insp ? {
@@ -639,7 +663,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
             }
           }).catch(() => {
             try {
-              const portal = getStatePortalInfo(verified[0]?.state);
+              const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
               const failed = grounded.map(r => ({
                 ...r,
                 portal_url: portal.url,
