@@ -22,6 +22,7 @@ import {
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
+import { getJurisdictionPortal, getJurisdictionContext } from "./jurisdictionResolver";
 import usHealthContext from "@/config/usHealthContext.json";
 
 // ── Cache version stamp ──
@@ -294,24 +295,28 @@ function getCountryContext(countyId) {
  * department even when countyId is "global".
  */
 function getContextForLocation(countyId, locationLabel, country) {
+  const isUS = !country || country.toUpperCase().trim() === "US";
+  // Non-US: check the new global jurisdiction registry first
+  if (!isUS) {
+    const ctx = getJurisdictionContext(countyId, locationLabel, country);
+    if (ctx) return ctx;
+  }
+  // Fall back to COUNTRY_CONTEXT (US city slugs + legacy international entries)
   const direct = getCountryContext(countyId);
   if (direct) return direct;
   if (!locationLabel) return "";
   const city = locationLabel.split(",")[0].toLowerCase().trim().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, "_").trim();
   const cityCtx = COUNTRY_CONTEXT[city];
   if (cityCtx) return cityCtx;
-  // State-level fallback: extract US state code from location label.
-  // Non-US countries can have 2-letter admin codes that collide with US state
-  // codes (e.g. Catalonia = "CT" = Connecticut). Only look up US health context
-  // when the country is US or unknown (backward compat for cached results).
-  const isUS = !country || country.toUpperCase().trim() === "US";
-  if (!isUS) return "";
-  const stateMatch = locationLabel.match(/,\s*([A-Z]{2})\b/);
-  if (stateMatch) {
-    const code = stateMatch[1].toUpperCase();
-    if (usHealthContext[code]) {
-      const entry = usHealthContext[code];
-      return typeof entry === 'string' ? entry : (entry.description || '');
+  // US state-level fallback from location label
+  if (isUS) {
+    const stateMatch = locationLabel.match(/,\s*([A-Z]{2})\b/);
+    if (stateMatch) {
+      const code = stateMatch[1].toUpperCase();
+      if (usHealthContext[code]) {
+        const entry = usHealthContext[code];
+        return typeof entry === 'string' ? entry : (entry.description || '');
+      }
     }
   }
   return "";
@@ -500,51 +505,7 @@ let _geoRouting = false;
  * Falls back to state-level description parsing if no county match.
  */
 function getStatePortalInfo(state, city, country) {
-  if (!state) return { url: null, name: null, note: "" };
-  // Non-US countries can have 2-letter admin codes that collide with US state
-  // codes (e.g. Catalonia = "CT" = Connecticut). Only look up US health portals
-  // when the country is US or unknown (backward compat for cached results).
-  const isUS = !country || country.toUpperCase().trim() === "US";
-  if (!isUS) return { url: null, name: null, note: "" };
-  const code = state.toUpperCase().trim();
-  const stateEntry = usHealthContext[code];
-  if (!stateEntry) return { url: null, name: null, note: "Contact the local health department for inspection records. " };
-
-  // Object entry with county-level portal mappings
-  if (typeof stateEntry === 'object' && stateEntry.counties) {
-    const cityKey = (city || "").toLowerCase().trim();
-    if (cityKey) {
-      for (const [countyName, countyData] of Object.entries(stateEntry.counties)) {
-        if (countyData.cities && countyData.cities.includes(cityKey)) {
-          return {
-            url: countyData.portal_url,
-            name: countyData.portal_name,
-            note: `${countyName} County publishes inspection results at ${countyData.portal_url}. `,
-          };
-        }
-      }
-    }
-    // No county match — fall back to state description
-    const desc = stateEntry.description || "";
-    const urlMatch = desc.match(/\(([^)]+)\)/);
-    const stateName = desc.split(":")[0];
-    if (urlMatch) {
-      const rawUrl = urlMatch[1];
-      const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-      return { url, name: `${stateName} inspection portal`, note: `${stateName} inspection records: ${rawUrl}. ` };
-    }
-    return { url: null, name: null, note: desc + " " };
-  }
-
-  // Legacy string entry
-  const urlMatch = stateEntry.match(/\(([^)]+)\)/);
-  const stateName = stateEntry.split(":")[0];
-  if (urlMatch) {
-    const rawUrl = urlMatch[1];
-    const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-    return { url, name: `${stateName} inspection portal`, note: `${stateName} inspection records: ${rawUrl}. ` };
-  }
-  return { url: null, name: null, note: stateEntry + " " };
+  return getJurisdictionPortal(state, city, country);
 }
 
 function getStateFallbackNote(state, city, country) {

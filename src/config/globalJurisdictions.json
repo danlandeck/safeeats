@@ -1,0 +1,257 @@
+{
+  "_cityIndex": {
+    "sydney": { "country": "AU", "admin1": "NSW" },
+    "melbourne": { "country": "AU", "admin1": "VIC" },
+    "brisbane": { "country": "AU", "admin1": "QLD" },
+    "perth": { "country": "AU", "admin1": "WA" },
+    "adelaide": { "country": "AU", "admin1": "SA" },
+    "gold_coast": { "country": "AU", "admin1": "QLD" },
+    "canberra": { "country": "AU", "admin1": "ACT" },
+    "hobart": { "country": "AU", "admin1": "TAS" },
+    "tokyo": { "country": "JP", "admin1": "Tokyo" },
+    "osaka": { "country": "JP", "admin1": "Osaka" },
+    "kyoto": { "country": "JP", "admin1": "Kyoto" },
+    "yokohama": { "country": "JP", "admin1": "Kanagawa" },
+    "sapporo": { "country": "JP", "admin1": "Hokkaido" },
+    "fukuoka": { "country": "JP", "admin1": "Fukuoka" },
+    "nagoya": { "country": "JP", "admin1": "Aichi" },
+    "seoul": { "country": "KR" },
+    "busan": { "country": "KR" },
+    "incheon": { "country": "KR" },
+    "paris": { "country": "FR" },
+    "lyon": { "country": "FR" },
+    "marseille": { "country": "FR" },
+    "toulouse": { "country": "FR" },
+    "nice": { "country": "FR" },
+    "bordeaux": { "country": "FR" },
+    "strasbourg": { "country": "FR" },
+    "berlin": { "country": "DE" },
+    "munich": { "country": "DE" },
+    "hamburg": { "country": "DE" },
+    "cologne": { "country": "DE" },
+    "frankfurt": { "country": "DE" },
+    "amsterdam": { "country": "NL" },
+    "rotterdam": { "country": "NL" },
+    "the_hague": { "country": "NL" },
+    "copenhagen": { "country": "DK" },
+    "auckland": { "country": "NZ" },
+    "wellington": { "country": "NZ" },
+    "christchurch": { "country": "NZ" },
+    "vancouver": { "country": "CA", "admin1": "BC" },
+    "calgary": { "country": "CA", "admin1": "AB" },
+    "edmonton": { "country": "CA", "admin1": "AB" },
+    "montreal": { "country": "CA", "admin1": "QC" },
+    "ottawa": { "country": "CA", "admin1": "ON" },
+    "toronto": { "country": "CA", "admin1": "ON" },
+    "mumbai": { "country": "IN" },
+    "delhi": { "country": "IN" },
+    "bangalore": { "country": "IN" },
+    "beijing": { "country": "CN" },
+    "shanghai": { "country": "CN" },
+    "hong_kong": { "country": "HK" },
+    "sao_paulo": { "country": "BR" },
+    "rio": { "country": "BR" },
+    "abu_dhabi": { "country": "AE" },
+    "sharjah": { "country": "AE" },
+    "dubai": { "country": "AE", "admin1": "Dubai" },
+    "singapore": { "country": "SG" },
+    "dublin": { "country": "IE" },
+    "cork": { "country": "IE" },
+    "galway": { "country": "IE" },
+    "limerick": { "country": "IE" },
+    "waterford": { "country": "IE" },
+    "london": { "country": "GB" },
+    "birmingham": { "country": "GB" },
+    "manchester": { "country": "GB" },
+    "leeds": { "country": "GB" },
+    "glasgow": { "country": "GB" },
+    "edinburgh": { "country": "GB" },
+    "liverpool": { "country": "GB" },
+    "bristol": { "country": "GB" },
+    "sheffield": { "country": "GB" },
+    "cardiff": { "country": "GB" },
+    "belfast": { "country": "GB" },
+    "uk_fsa": { "country": "GB" }
+  },
+  "AU": {
+    "name": "Australia",
+    "sub_divisions": {
+      "NSW": {
+        "name": "New South Wales",
+        "methodology": "Prioritize: NSW Food Authority (foodauthority.nsw.gov.au), Scores on Doors A-E grades.",
+        "portal": { "url": "https://www.foodauthority.nsw.gov.au/ratings", "name": "NSW Food Authority — Scores on Doors" },
+        "source_id": "sydney"
+      },
+      "VIC": {
+        "name": "Victoria",
+        "methodology": "Prioritize: VicHealth food safety, City of Melbourne restaurant inspections, FoodSmart Victoria."
+      },
+      "QLD": {
+        "name": "Queensland",
+        "methodology": "Prioritize: Brisbane City Council & Queensland Health restaurant inspection records.",
+        "source_id": "brisbane"
+      },
+      "WA": {
+        "name": "Western Australia",
+        "methodology": "Prioritize: WA Department of Health (health.wa.gov.au) food premises inspection records."
+      },
+      "SA": {
+        "name": "South Australia",
+        "methodology": "Prioritize: SA Health food premises inspection records, City of Adelaide."
+      },
+      "ACT": {
+        "name": "Australian Capital Territory",
+        "methodology": "Prioritize: ACT Health food premises inspection records."
+      },
+      "TAS": {
+        "name": "Tasmania",
+        "methodology": "Prioritize: Tasmania Health Service food premises inspection records."
+      }
+    }
+  },
+  "JP": {
+    "name": "Japan",
+    "methodology": "Search: Local 保健所 (health centers) food hygiene (食品衛生) inspection records. Score is Pass/Fail from 食品衛生責任者.",
+    "sub_divisions": {
+      "Tokyo": { "methodology": "Search: Tokyo Metropolitan Government (東京都) food hygiene (食品衛生) from local 保健所 (health centers). Score is Pass/Fail from 食品衛生責任者." },
+      "Osaka": { "methodology": "Search: Osaka Prefecture food hygiene inspection records from 保健所 (hokenjo). Focus on 食品衛生 compliance." },
+      "Kyoto": { "methodology": "Search: Kyoto City food safety inspection records from local 保健所." },
+      "Kanagawa": { "methodology": "Search: Yokohama City food hygiene inspection records from local 保健所." },
+      "Hokkaido": { "methodology": "Search: Sapporo City food safety inspection records from local 保健所." },
+      "Fukuoka": { "methodology": "Search: Fukuoka City food hygiene inspection records from local 保健所." },
+      "Aichi": { "methodology": "Search: Nagoya City food safety inspection records from 保健所." }
+    }
+  },
+  "KR": {
+    "name": "South Korea",
+    "methodology": "Search: 식품안전나라 (foodsafetykorea.go.kr) and local metropolitan government food inspection database. Score is 0-100.",
+    "sub_divisions": {
+      "Seoul": { "methodology": "Search: 식품안전나라 (foodsafetykorea.go.kr) and Seoul Metropolitan Government food inspection database. Score is 0-100." },
+      "Busan": { "methodology": "Search: 식품안전나라 (foodsafetykorea.go.kr) and Busan Metropolitan City food safety records." },
+      "Incheon": { "methodology": "Search: 식품안전나라 (foodsafetykorea.go.kr) and Incheon City food hygiene inspection data." }
+    }
+  },
+  "FR": {
+    "name": "France",
+    "methodology": "Prioritize: Alim'confiance platform (alim-confiance.gouv.fr) — official DGCCRF transparency database with 4-tier ratings.",
+    "portal": { "url": "https://alim-confiance.gouv.fr/", "name": "Alim'confiance — French Food Inspection Database" }
+  },
+  "DE": {
+    "name": "Germany",
+    "methodology": "Prioritize: verbraucherportal.de and local Lebensmittelüberwachung (food safety authority) inspection records.",
+    "portal": { "url": "https://www.verbraucherportal.de/", "name": "Verbraucherportal — German Food Inspection Records" },
+    "sub_divisions": {
+      "Berlin": { "methodology": "Prioritize: verbraucherportal.de and Berlin Senatsverwaltung Lebensmittelüberwachung inspection records." },
+      "Bavaria": { "methodology": "Prioritize: LGL Bayern (lgl.bayern.de) food inspection records and verbraucherportal.de." },
+      "Hamburg": { "methodology": "Prioritize: Hamburg Lebensmittelüberwachung (hamburg.de/lmue) restaurant inspection records." },
+      "North Rhine-Westphalia": { "methodology": "Prioritize: Köln Veterinär- und Lebensmittelüberwachungsamt food inspection records." },
+      "Hesse": { "methodology": "Prioritize: Frankfurt am Main food inspection (Lebensmittelüberwachung) records." }
+    }
+  },
+  "NL": {
+    "name": "Netherlands",
+    "methodology": "Prioritize: NVWA (nvwa.nl) inspection results and inspectieresultaten.nl — Dutch Food and Consumer Product Safety Authority.",
+    "portal": { "url": "https://www.inspectieresultaten.nl/", "name": "Inspectieresultaten.nl — Dutch Food Inspection Results" }
+  },
+  "DK": {
+    "name": "Denmark",
+    "methodology": "Prioritize: Smiley scheme (findsmiley.dk) from Fødevarestyrelsen — 4-tier smiley rating for Danish restaurants.",
+    "portal": { "url": "https://findsmiley.dk/", "name": "Find Smiley — Danish Food Authority" }
+  },
+  "NZ": {
+    "name": "New Zealand",
+    "methodology": "Prioritize: local council food premises inspection records and FoodSafe verification scheme.",
+    "sub_divisions": {
+      "Auckland": { "methodology": "Prioritize: Auckland Council food premises inspection records and FoodSafe verification scheme." },
+      "Wellington": { "methodology": "Prioritize: Wellington City Council environmental health food premises inspections." },
+      "Canterbury": { "methodology": "Prioritize: Christchurch City Council food premises inspection records." }
+    }
+  },
+  "CA": {
+    "name": "Canada",
+    "sub_divisions": {
+      "BC": {
+        "name": "British Columbia",
+        "methodology": "Prioritize: Vancouver Coastal Health (vch.ca) restaurant inspection database, Fraser Health inspection records.",
+        "portal": { "url": "https://www.vch.ca/public-health/food-safety/restaurant-inspection-reports", "name": "Vancouver Coastal Health — Restaurant Inspection Reports" },
+        "source_id": "vancouver"
+      },
+      "AB": {
+        "name": "Alberta",
+        "methodology": "Prioritize: Alberta Health Services food inspection records."
+      },
+      "QC": {
+        "name": "Quebec",
+        "methodology": "Prioritize: MAPAQ Québec food inspection records and Montreal public health inspection data."
+      },
+      "ON": {
+        "name": "Ontario",
+        "methodology": "Prioritize: Toronto DineSafe inspection reports and local public health unit inspection data.",
+        "portal": { "url": "https://www.toronto.ca/community-people/health-wellness-care/health-inspections-monitoring/dinesafe/", "name": "Toronto DineSafe" },
+        "source_id": "toronto"
+      }
+    }
+  },
+  "IN": {
+    "name": "India",
+    "methodology": "Prioritize: FSSAI (fssai.gov.in) registration database and local municipal corporation food safety records.",
+    "sub_divisions": {
+      "Maharashtra": { "methodology": "Prioritize: FSSAI (fssai.gov.in) registration database and Mumbai Municipal Corporation (MCGM) food safety records." },
+      "Delhi": { "methodology": "Prioritize: FSSAI (fssai.gov.in) registration and Delhi government food safety inspection records." },
+      "Karnataka": { "methodology": "Prioritize: FSSAI (fssai.gov.in) and BBMP (Bruhat Bengaluru Mahanagara Palike) food safety inspection records." }
+    }
+  },
+  "CN": {
+    "name": "China",
+    "methodology": "Prioritize: 国家市场监督管理总局 (SAMR) food inspection and local food safety supervision database.",
+    "sub_divisions": {
+      "Beijing": { "methodology": "Prioritize: 国家市场监督管理总局 (SAMR) food inspection, Beijing food safety supervision (北京食品安全) database." },
+      "Shanghai": { "methodology": "Prioritize: Shanghai municipal food safety authority (上海市食品安全) inspection records." }
+    }
+  },
+  "HK": {
+    "name": "Hong Kong SAR",
+    "methodology": "Prioritize: FEHD (Food and Environmental Hygiene Department) Hong Kong (fehd.gov.hk) inspection records.",
+    "portal": { "url": "https://www.fehd.gov.hk/english/licencing/index.html", "name": "FEHD — Licensed Food Premises" }
+  },
+  "BR": {
+    "name": "Brazil",
+    "methodology": "Prioritize: local VISA (Vigilância Sanitária) restaurant inspection records.",
+    "sub_divisions": {
+      "São Paulo": { "methodology": "Prioritize: VISA São Paulo (cvs.saude.sp.gov.br) Vigilância Sanitária restaurant inspection records." },
+      "Rio de Janeiro": { "methodology": "Prioritize: VISA Rio de Janeiro Vigilância Sanitária (rio.rj.gov.br/web/cvs) food establishment inspection records." }
+    }
+  },
+  "AE": {
+    "name": "United Arab Emirates",
+    "sub_divisions": {
+      "Dubai": {
+        "methodology": "Prioritize: Dubai Municipality food safety inspection and grading records.",
+        "portal": { "url": "https://www.dm.gov.ae/", "name": "Dubai Municipality — Food Safety" }
+      },
+      "Abu Dhabi": {
+        "methodology": "Prioritize: ADAFSA (Abu Dhabi Agriculture and Food Safety Authority) restaurant inspection and grading records."
+      },
+      "Sharjah": {
+        "methodology": "Prioritize: Sharjah City Municipality food safety inspection records."
+      }
+    }
+  },
+  "SG": {
+    "name": "Singapore",
+    "methodology": "Prioritize: SFA/NEA food hygiene grades (A/B/C/D/E scale), SFA food establishment inspections (sfa.gov.sg).",
+    "portal": { "url": "https://www.sfa.gov.sg/food-information/rating-of-food-establishments", "name": "SFA — Rating of Food Establishments" },
+    "source_id": "singapore"
+  },
+  "IE": {
+    "name": "Ireland",
+    "methodology": "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and local city council food safety inspection records.",
+    "portal": { "url": "https://www.fsai.ie/enforcementclosure/", "name": "FSAI — Enforcement Orders" }
+  },
+  "GB": {
+    "name": "United Kingdom",
+    "methodology": "UK Food Standards Agency (FSA) — Food Hygiene Rating Scheme (0-5 scale). Search at ratings.food.gov.uk.",
+    "portal": { "url": "https://ratings.food.gov.uk/", "name": "FSA Food Hygiene Ratings" },
+    "source_id": "uk_fsa"
+  }
+}
