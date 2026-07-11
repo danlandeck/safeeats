@@ -938,6 +938,17 @@ export default function Home() {
     }
     // If !cityMatched but searchCounty is already set to a real city, keep it as-is
 
+    // Strip the location string that SmartSearchPanel appended to the query.
+    // Without this, "Taco Bell" + location "Portland, OR" becomes the restaurant
+    // name query "Taco Bell Portland, OR" — which Google Places can't match.
+    // The location is already carried separately via locationCtx.
+    if (!cityMatched) {
+      const locTrimmed = locationQuery.trim();
+      if (locTrimmed && query.toLowerCase().endsWith(locTrimmed.toLowerCase())) {
+        query = query.slice(0, -locTrimmed.length).trim();
+      }
+    }
+
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
