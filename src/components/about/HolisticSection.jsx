@@ -53,7 +53,7 @@ export default function HolisticSection() {
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-slate-400 mt-4 italic">
+      <p className="text-center text-xs text-slate-900 mt-4 italic">
         Pest trackers tell you where the rats are. SafeEats tells you whether the restaurant is safe — for everyone, in every way that matters.
       </p>
     </div>
