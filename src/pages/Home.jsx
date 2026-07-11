@@ -951,14 +951,16 @@ export default function Home() {
       }
     }
 
-    // If still no city matched, reset to global — never reuse a stale city from a previous search
-    if (!cityMatched && (searchCounty === "global" || searchCounty === null)) {
+    // If no city matched from query text OR location field, reset to global.
+    // This prevents a stale countyId from a previous search (e.g. "king" for Seattle)
+    // from leaking into a new search when the user types a different city (e.g. "Portland, OR").
+    // The Places-grounded fallback in aiSearchFallback handles any city worldwide.
+    if (!cityMatched) {
       searchRegion = "global";
       searchCounty = "global";
       regionRef.current = "global"; setRegion("global");
       countyIdRef.current = "global"; setCountyId("global");
     }
-    // If !cityMatched but searchCounty is already set to a real city, keep it as-is
 
     // ── Clean the query: strip any location text that leaked into the search bar ──
     // Users often type "Taco Bell Portland, OR" all in the search field. The query

@@ -340,13 +340,15 @@ function filterByNameRelevance(results, query) {
 
   // Multi-word queries are brand-name searches (e.g. "Taco Bell") —
   // ALL words must appear in the name to prevent loose matches like "Taco Time".
+  // NO fail-open: if nothing matches, return empty — better to show "nothing found"
+  // than to show random taco places when the user searched for Taco Bell.
   const filtered = results.filter(r => {
     const cleanName = normalize(r.name);
     if (!cleanName) return false;
     return brandWords.every(w => cleanName.includes(w));
   });
 
-  return filtered.length > 0 ? filtered : results;
+  return filtered;
 }
 
 /**
@@ -534,7 +536,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 
   // 24h result cache: repeat searches render instantly. Enriched results
   // overwrite grounded-only results as they land.
-  const seCacheKey = `se-ai-cache-v4:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  const seCacheKey = `se-ai-cache-v5:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
   try {
     const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
     const hitTtl = hit?.ttl || 5 * 60 * 1000;

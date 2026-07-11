@@ -27,9 +27,15 @@ Deno.serve(async (req) => {
       return Response.json({ found: false, reason: "query is required" });
     }
 
+    // Wrap multi-word brand names in quotes so Google Places returns exact brand
+    // matches (e.g. "Taco Bell") instead of fuzzy matches (e.g. "Taco Time").
+    // Single-word queries (e.g. "tacos", "pizza") are left unquoted so Places
+    // can return a variety of restaurants matching that food type.
+    const isBrandName = query.trim().split(/\s+/).length >= 2;
+    const quotedQuery = isBrandName ? `"${query.trim()}"` : query.trim();
     const textQuery = location
-      ? `${query} restaurant in ${location}`
-      : `${query} restaurant`;
+      ? `${quotedQuery} restaurant in ${location}`
+      : `${quotedQuery} restaurant`;
 
     const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
