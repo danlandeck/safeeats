@@ -30,11 +30,13 @@ export default function ADAAccessibilityBadge({ restaurant }) {
   const [data, setData] = useState(null);
   const [expanded, setExpanded] = useState(false);
 
-  // Default to treating restaurants as US-based unless explicitly international.
-  // This is the right default — health inspection sources covered by SafeEats
-  // (king, nyc, cook, travis, sf, la, montgomery_md, delaware, ny_state) are all US.
-  const INTERNATIONAL_SOURCES = ["toronto", "dubai", "uk_fsa"];
-  const isUS = !INTERNATIONAL_SOURCES.includes(restaurant.source);
+  // Use the restaurant's country field when available (from Google Places).
+  // Non-US countries should not get ADA lookups (ADA is a US law).
+  // Fall back to source-based detection for backward compat.
+  const INTERNATIONAL_SOURCES = ["toronto", "dubai", "uk_fsa", "singapore", "australia_nsw", "australia_qld", "vancouver_bc"];
+  const isUS = restaurant.country
+    ? restaurant.country.toUpperCase().trim() === "US"
+    : !INTERNATIONAL_SOURCES.includes(restaurant.source);
 
   useEffect(() => {
     if (!isUS) return;

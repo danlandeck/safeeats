@@ -51,7 +51,10 @@ export default function EPAWaterCard({ restaurant }) {
   const city = restaurant.city;
   const zip = restaurant.zip_code || extractZip(restaurant.address);
   const source = restaurant.source;
-  const shouldSkip = NO_WATER_DATA_SOURCES.includes(source) || !state;
+  // EPA water data is US-only. Skip when inferState returns null (non-US) or
+  // when the source is explicitly international.
+  const isUS = restaurant.country ? restaurant.country.toUpperCase().trim() === "US" : !!state;
+  const shouldSkip = !isUS || NO_WATER_DATA_SOURCES.includes(source) || !state;
 
   const cacheKey = `${(city || "").toLowerCase()}|${state || ""}`;
 

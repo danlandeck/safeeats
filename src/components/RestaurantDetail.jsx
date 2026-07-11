@@ -27,8 +27,12 @@ import { translateViolation } from "../utils/violationTranslator";
 
 // ── Infer state from restaurant data ──────────────────────────────────────────
 function inferState(restaurant) {
-  if (restaurant.state?.length === 2) return restaurant.state.toUpperCase();
-  // Map county_id to state
+  // Only treat 2-letter state codes as US states when the restaurant is
+  // confirmed to be in the US. Non-US countries have admin codes that collide
+  // with US state codes (e.g. Catalonia = "CT" = Connecticut).
+  const isUS = !restaurant.country || restaurant.country?.toUpperCase().trim() === "US";
+  if (isUS && restaurant.state?.length === 2) return restaurant.state.toUpperCase();
+  // Map county_id to state (county_id is always US-sourced)
   const COUNTY_STATE = {
     king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
     montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
@@ -37,10 +41,15 @@ function inferState(restaurant) {
   if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) {
     return COUNTY_STATE[restaurant.county_id];
   }
-  // Try to extract from address
-  const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
-  const match = addr.match(/\b([A-Z]{2})\b/);
-  return match ? match[1] : "US";
+  // Non-US: return country code instead of guessing a state
+  if (!isUS && restaurant.country) return restaurant.country.toUpperCase();
+  // Try to extract from address (US only)
+  if (isUS) {
+    const addr = `${restaurant.address || ""} ${restaurant.city || ""} ${restaurant.zip_code || ""}`;
+    const match = addr.match(/\b([A-Z]{2})\b/);
+    return match ? match[1] : "US";
+  }
+  return "—";
 }
 
 // ── Jargon → category for repeat detection ──────────────────────────────────

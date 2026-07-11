@@ -293,14 +293,19 @@ function getCountryContext(countyId) {
  * Lets the grounded-enrichment pass hint Gemini at the right health
  * department even when countyId is "global".
  */
-function getContextForLocation(countyId, locationLabel) {
+function getContextForLocation(countyId, locationLabel, country) {
   const direct = getCountryContext(countyId);
   if (direct) return direct;
   if (!locationLabel) return "";
   const city = locationLabel.split(",")[0].toLowerCase().trim().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, "_").trim();
   const cityCtx = COUNTRY_CONTEXT[city];
   if (cityCtx) return cityCtx;
-  // State-level fallback: extract US state code from location label
+  // State-level fallback: extract US state code from location label.
+  // Non-US countries can have 2-letter admin codes that collide with US state
+  // codes (e.g. Catalonia = "CT" = Connecticut). Only look up US health context
+  // when the country is US or unknown (backward compat for cached results).
+  const isUS = !country || country.toUpperCase().trim() === "US";
+  if (!isUS) return "";
   const stateMatch = locationLabel.match(/,\s*([A-Z]{2})\b/);
   if (stateMatch) {
     const code = stateMatch[1].toUpperCase();
@@ -668,7 +673,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           });
         } else {
         // Other locales: web-search enrichment with location context.
-        const enrichCtx = getContextForLocation(countyId, location);
+        const enrichCtx = getContextForLocation(countyId, location, verified[0]?.country);
         llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
           .then((res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];

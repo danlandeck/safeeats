@@ -640,12 +640,18 @@ export const SOURCE_TO_STATE = {
 export function inferState(restaurant) {
   if (!restaurant) return null;
 
-  // Strategy 1: explicit state field
-  if (restaurant.state && typeof restaurant.state === "string" && restaurant.state.length === 2) {
+  // Non-US countries can have 2-letter admin codes that collide with US state
+  // codes (e.g. Catalonia = "CT" = Connecticut, Galicia = "GA" = Georgia).
+  // Only treat the state field or address-parsed code as a US state when the
+  // country is US or unknown (backward compat for cached results without country).
+  const isUS = !restaurant.country || restaurant.country.toUpperCase().trim() === "US";
+
+  // Strategy 1: explicit state field (US only)
+  if (isUS && restaurant.state && typeof restaurant.state === "string" && restaurant.state.length === 2) {
     return restaurant.state.toUpperCase();
   }
 
-  // Strategy 2: known county_id or source
+  // Strategy 2: known county_id or source (county_id/source are always US-sourced)
   if (restaurant.county_id && SOURCE_TO_STATE[restaurant.county_id] !== undefined) {
     return SOURCE_TO_STATE[restaurant.county_id];
   }
@@ -653,8 +659,13 @@ export function inferState(restaurant) {
     return SOURCE_TO_STATE[restaurant.source];
   }
 
-  // Strategy 3: parse from address — accepts "City, ST 12345" or "City, ST, 12345"
-  const fullAddr = [restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ");
-  const m = fullAddr.match(/,\s*([A-Z]{2})[\s,]+\d{5}/);
-  return m ? m[1] : null;
+  // Strategy 3: parse from address — accepts "City, ST 12345" or "City, ST, 12345" (US only)
+  if (isUS) {
+    const fullAddr = [restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ");
+    const m = fullAddr.match(/,\s*([A-Z]{2})[\s,]+\d{5}/);
+    return m ? m[1] : null;
+  }
+
+  // Non-US: no US state applicable
+  return null;
 }
