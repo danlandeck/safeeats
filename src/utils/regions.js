@@ -620,6 +620,7 @@ export const SOURCE_TO_STATE = {
   houston:       "TX",
   pierce:        "WA",
   tacoma_pierce: "WA",
+  snhd:          "NV",
   toronto:       null,  // Canada
   dubai:         null,  // UAE
   uk_fsa:        null,  // UK

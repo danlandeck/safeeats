@@ -1159,6 +1159,147 @@ export function nswToDetailRows(restaurant) {
   }];
 }
 
+// ── Southern Nevada Health District (SNHD) — Clark County, NV ──────────────────
+// SNHD REST API returns restaurant data with demerit-based grading.
+// Demerits: 0 = perfect, higher = worse. Grades: A (0-10), B (11-20), C (21-30),
+// plus special codes: O=Approved to Open, N=Not Approved, P=Pass, F=Fail,
+// S=Permit Suspended, R=Permit Revoked, X=Closed by SNHD, Y=B or C.
+// Safety score = 100 - demerits (clamped 0-100).
+
+const SNHD_RESULT_MAP = {
+  'A': 'Grade A', 'B': 'Grade B', 'C': 'Grade C',
+  'O': 'Approved to Open',
+  'N': 'Not Approved to Open',
+  'P': 'Pass',
+  'F': 'Fail',
+  'S': 'Permit Suspended',
+  'R': 'Permit Revoked',
+  'X': 'Closed by SNHD',
+  'Y': 'Grade B or C',
+};
+
+export function processSNHDResults(restaurants) {
+  if (!Array.isArray(restaurants) || restaurants.length === 0) return [];
+  return restaurants.map((r) => {
+    const demerits = r.current_demerits || 0;
+    const grade = (r.current_grade || "").toUpperCase();
+    const resultStr = SNHD_RESULT_MAP[grade] || grade || "Unknown";
+    // For closed/suspended/revoked, force a low score regardless of demerits
+    const isClosed = ['S', 'R', 'X', 'N'].includes(grade);
+    const isPass = grade === 'P' || grade === 'O';
+    let safetyScore;
+    if (isClosed) {
+      safetyScore = Math.min(demerits > 0 ? 100 - demerits : 25, 25);
+    } else if (isPass && demerits === 0) {
+      safetyScore = 92;
+    } else {
+      safetyScore = Math.max(0, Math.min(100, 100 - demerits));
+    }
+    const latestDate = r.date_current ? r.date_current.split(" ")[0] : "";
+    return {
+      business_id: r.permit_number,
+      name: (r.restaurant_name || "").trim(),
+      address: (r.address || "").trim(),
+      city: (r.city_name || "Las Vegas").trim(),
+      zip_code: (r.zip_code || "").trim(),
+      phone: "",
+      description: r.category_name || "",
+      cuisine: r.category_name === "Restaurant" ? "" : (r.category_name || ""),
+      safetyScore,
+      grade: resolveGrade(safetyScore, resultStr),
+      totalInspections: 1, // Will be enriched by detail fetch
+      latestDate,
+      latestResult: resultStr,
+      latitude: r.latitude || null,
+      longitude: r.longitude || null,
+      isLLMData: false,
+      source: "snhd",
+      county_id: "snhd",
+      ada_compliance: "unknown",
+      _rawSnhd: r,
+    };
+  }).filter(r => r.name && r.address);
+}
+
+export function snhdToDetailRows(detail) {
+  if (!detail || !detail.permit_number) return [];
+  const rows = [];
+  const permitNum = detail.permit_number;
+
+  // Current inspection
+  const currentDate = detail.date_current ? detail.date_current.split(" ")[0] : "";
+  const currentGrade = (detail.current_grade || "").toUpperCase();
+  const currentResult = SNHD_RESULT_MAP[currentGrade] || currentGrade || "Unknown";
+  const currentDemerits = detail.current_demerits || 0;
+  const currentViolations = detail.current_violations_resolved || [];
+
+  if (currentViolations.length === 0) {
+    rows.push({
+      inspection_serial_num: `${permitNum}-${currentDate}`,
+      inspection_date: currentDate,
+      inspection_score: String(currentDemerits),
+      inspection_result: currentResult,
+      inspection_type: detail.inspection_type || "Routine Inspection",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    });
+  } else {
+    currentViolations.forEach((v) => {
+      rows.push({
+        inspection_serial_num: `${permitNum}-${currentDate}`,
+        inspection_date: currentDate,
+        inspection_score: String(currentDemerits),
+        inspection_result: currentResult,
+        inspection_type: detail.inspection_type || "Routine Inspection",
+        violation_description: v.description || "",
+        violation_type: (v.demerits || 0) >= 5 ? "RED" : "BLUE",
+        violation_points: String(v.demerits || 0),
+      });
+    });
+  }
+
+  // Previous inspections
+  const prevInspections = detail.previous_inspections || [];
+  prevInspections.forEach((insp) => {
+    const date = insp.inspection_date ? insp.inspection_date.split(" ")[0] : "";
+    const grade = (insp.inspection_grade || "").toUpperCase();
+    const result = SNHD_RESULT_MAP[grade] || grade || "Unknown";
+    const demerits = insp.inspection_demerits || 0;
+    const violations = insp.violations_resolved || [];
+
+    if (violations.length === 0) {
+      rows.push({
+        inspection_serial_num: `${permitNum}-${date}`,
+        inspection_date: date,
+        inspection_score: String(demerits),
+        inspection_result: result,
+        inspection_type: insp.inspection_type || "Routine Inspection",
+        violation_description: "",
+        violation_type: "",
+        violation_points: "0",
+      });
+    } else {
+      violations.forEach((v) => {
+        rows.push({
+          inspection_serial_num: `${permitNum}-${date}`,
+          inspection_date: date,
+          inspection_score: String(demerits),
+          inspection_result: result,
+          inspection_type: insp.inspection_type || "Routine Inspection",
+          violation_description: v.description || "",
+          violation_type: (v.demerits || 0) >= 5 ? "RED" : "BLUE",
+          violation_points: String(v.demerits || 0),
+        });
+      });
+    }
+  });
+
+  // Sort by date descending
+  rows.sort((a, b) => new Date(b.inspection_date) - new Date(a.inspection_date));
+  return rows;
+}
+
 // ── Reverse Geocoding ─────────────────────────────────────────────────────────
 // Given lat/lng, returns { city, county, state, country } using Nominatim
 export async function reverseGeocode(lat, lng) {

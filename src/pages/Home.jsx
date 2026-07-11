@@ -64,6 +64,7 @@ const CITY_TO_COUNTY = {
   // Pierce County, WA (Tacoma-Pierce County Health Department via Accela)
   "tacoma": { region: "washington", countyId: "pierce", locationLabel: "Tacoma, WA" },
   "pierce county": { region: "washington", countyId: "pierce", locationLabel: "Pierce County, WA" },
+  "nevada": { region: "nevada", countyId: "snhd", locationLabel: "Las Vegas, NV" },
   "puyallup": { region: "washington", countyId: "pierce", locationLabel: "Puyallup, WA" },
   "lakewood wa": { region: "washington", countyId: "pierce", locationLabel: "Lakewood, WA" },
   "university place": { region: "washington", countyId: "pierce", locationLabel: "University Place, WA" },
@@ -738,6 +739,23 @@ const CITY_TO_COUNTY = {
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
   // Connecticut — Manchester CT Health Department (AI web search)
   "manchester ct": { region: "connecticut", countyId: "manchester_ct", locationLabel: "Manchester, CT" },
+  // Nevada — Clark County (SNHD live API)
+  "las vegas": { region: "nevada", countyId: "snhd", locationLabel: "Las Vegas, NV" },
+  "vegas": { region: "nevada", countyId: "snhd", locationLabel: "Las Vegas, NV" },
+  "henderson nv": { region: "nevada", countyId: "snhd", locationLabel: "Henderson, NV" },
+  "north las vegas": { region: "nevada", countyId: "snhd", locationLabel: "North Las Vegas, NV" },
+  "boulder city nv": { region: "nevada", countyId: "snhd", locationLabel: "Boulder City, NV" },
+  "mesquite nv": { region: "nevada", countyId: "snhd", locationLabel: "Mesquite, NV" },
+  "laughlin": { region: "nevada", countyId: "snhd", locationLabel: "Laughlin, NV" },
+  "summerlin": { region: "nevada", countyId: "snhd", locationLabel: "Summerlin, NV" },
+  "enterprise nv": { region: "nevada", countyId: "snhd", locationLabel: "Enterprise, NV" },
+  "spring valley nv": { region: "nevada", countyId: "snhd", locationLabel: "Spring Valley, NV" },
+  "paradise nv": { region: "nevada", countyId: "snhd", locationLabel: "Paradise, NV" },
+  "sunrise manor": { region: "nevada", countyId: "snhd", locationLabel: "Sunrise Manor, NV" },
+  "winchester nv": { region: "nevada", countyId: "snhd", locationLabel: "Winchester, NV" },
+  "whitney nv": { region: "nevada", countyId: "snhd", locationLabel: "Whitney, NV" },
+  "pahrump": { region: "nevada", countyId: "snhd", locationLabel: "Pahrump, NV" },
+  "clark county": { region: "nevada", countyId: "snhd", locationLabel: "Clark County, NV" },
   // Pennsylvania — AI search with proper location label
   "philadelphia": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
   "philly": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
@@ -762,6 +780,7 @@ const LIVE_API_CITIES = [
   { label: "Houston, TX", region: "texas", countyId: "houston", emoji: "🤠", example: "barbecue" },
   { label: "Modesto / Stanislaus Co., CA", region: "california", countyId: "stanislaus", emoji: "🌾", example: "restaurant", locationLabel: "Modesto, CA" },
   { label: "Tacoma / Pierce Co., WA", region: "washington", countyId: "pierce", emoji: "🏔️", example: "Sonic", locationLabel: "Tacoma, WA" },
+  { label: "Las Vegas, NV", region: "nevada", countyId: "snhd", emoji: "🎰", example: "McDonald's", locationLabel: "Las Vegas, NV" },
 ];
 
 export default function Home() {
@@ -948,7 +967,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);
@@ -1296,7 +1315,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-5">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

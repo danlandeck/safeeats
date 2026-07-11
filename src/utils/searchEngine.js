@@ -17,6 +17,7 @@ import {
   processSingaporeResults, singaporeToDetailRows,
   processNSWResults, nswToDetailRows,
   processTacomaPierceResults, tacomaPierceToDetailRows,
+  processSNHDResults, snhdToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -60,6 +61,7 @@ const SOURCE_TO_COUNTY = {
   boston: "boston", houston: "houston",
   stanislaus: "stanislaus",
   tacoma_pierce: "pierce",
+  snhd: "snhd",
   singapore: "singapore",
   australia_nsw: "sydney", australia_qld: "brisbane",
 };
@@ -1048,6 +1050,22 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results, isAI: false };
   }
 
+  // Southern Nevada Health District — Clark County (Las Vegas)
+  if (countyId === "snhd") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "Las Vegas, NV";
+      const res = await base44.functions.invoke("snhdInspections", { action: "search", name: nameQuery, city_name: cityName });
+      const restaurants = res.data?.restaurants || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processSNHDResults(restaurants), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* SNHD search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Tacoma-Pierce County (Accela Citizen Access portal)
   if (countyId === "pierce") {
     try {
@@ -1156,6 +1174,14 @@ export async function fetchDetail(restaurant) {
   // Tacoma-Pierce County — detail from enrichment data stored on restaurant
   if (source === "tacoma_pierce") {
     return tacomaPierceToDetailRows(restaurant);
+  }
+
+  // Southern Nevada Health District — full inspection history
+  if (source === "snhd") {
+    try {
+      const res = await base44.functions.invoke("snhdInspections", { action: "detail", permit_number: restaurant.business_id });
+      return snhdToDetailRows(res.data);
+    } catch { return []; }
   }
 
   // Houston — CKAN detail fetch

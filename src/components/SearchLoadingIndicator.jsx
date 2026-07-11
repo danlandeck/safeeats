@@ -26,6 +26,7 @@ const SOURCE_INFO = {
   houston:        { dept: "Houston Health Department",            type: "backend_proxy",  icon: "🤠" },
   stanislaus:     { dept: "Stanislaus County EHD",                type: "backend_proxy",  icon: "🌾" },
   pierce:         { dept: "Tacoma-Pierce County Health Dept.",    type: "backend_proxy",  icon: "🏔️" },
+  snhd:           { dept: "Southern Nevada Health District",      type: "backend_proxy",  icon: "🎰" },
   vancouver:      { dept: "Vancouver Coastal Health",             type: "backend_proxy",  icon: "🏔️" },
   uk_fsa:         { dept: "UK Food Standards Agency (FHRS)",      type: "live_api",       icon: "🇬🇧" },
   singapore:      { dept: "Singapore Food Agency (SFA)",          type: "ai_enrichment",  icon: "🦁" },

@@ -32,6 +32,7 @@ function inferState(restaurant) {
   const COUNTY_STATE = {
     king: "WA", nyc: "NY", ny_state: "NY", cook: "IL",
     montgomery_md: "MD", travis: "TX", sf: "CA", la: "CA", delaware: "DE",
+    snhd: "NV",
   };
   if (restaurant.county_id && COUNTY_STATE[restaurant.county_id]) {
     return COUNTY_STATE[restaurant.county_id];
@@ -64,6 +65,7 @@ const SOURCE_REGISTRY = {
   toronto:        { name: "Toronto Public Health — DineSafe", url: "https://www.toronto.ca/community-people/health-wellness-care/health-programs-advice/food-safety/dinesafe/" },
   tacoma_pierce:  { name: "Tacoma-Pierce County Health Department", url: "https://www.tpchd.org/healthy-communities/food-safety" },
   manchester_ct:  { name: "Manchester CT Health Department", url: "https://www.manchesterct.gov/Government/Departments/Health-Department/Recent-Inspections" },
+  snhd:           { name: "Southern Nevada Health District", url: "https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/restaurant-inspection-search/" },
 };
 
 export default function RestaurantDetail({ restaurant, inspections, onBack }) {
