@@ -49,7 +49,7 @@ export function getGradeColor(grade) {
     case "C": return "bg-yellow-400 text-slate-800";
     case "D": return "bg-orange-400 text-white";
     case "F": return "bg-red-600 text-white";
-    case "P": return "bg-green-500 text-white";
+    case "P": return "bg-teal-500 text-white";
     default:  return "bg-slate-300 text-slate-700";
   }
 }
