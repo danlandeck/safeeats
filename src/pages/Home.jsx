@@ -899,9 +899,16 @@ export default function Home() {
     const hasUSStateAbbr = queryTokens.some(tok => US_STATE_ABBR.has(tok));
 
     const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
+    // Word-boundary matcher: prevents short keys like "la" from matching inside
+    // "portland" or "orlando". Matches the key only when surrounded by start-of-
+    // string, whitespace, comma, or end-of-string.
+    const matchesKey = (text, key) => {
+      const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`(?:^|[\\s,])${escaped}(?:[\\s,]|$)`, 'i').test(text);
+    };
     let cityMatched = false;
     for (const key of sortedKeys) {
-      if (!queryWords.includes(key)) continue;
+      if (!matchesKey(queryWords, key)) continue;
 
       const matched = CITY_TO_COUNTY[key];
 
@@ -934,7 +941,7 @@ export default function Home() {
     if (!cityMatched) {
       const locWords = (locationQuery || "").toLowerCase().trim();
       for (const key of sortedKeys) {
-        if (!locWords.includes(key)) continue;
+        if (!matchesKey(locWords, key)) continue;
         const matched = CITY_TO_COUNTY[key];
         if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
           if (key !== 'newcastle') continue;
