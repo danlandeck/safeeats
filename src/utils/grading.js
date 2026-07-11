@@ -31,9 +31,10 @@ export function resolveGrade(score, result = "") {
     return "U";
   }
   const letterGrade = getGrade(score);
+  // A "Fail" result always shows "F" — regardless of the synthesized numeric score.
+  if (FAIL_PATTERN.test(result)) return "F";
   // A "Pass" result should never display as D or F
   if (letterGrade === "D" || letterGrade === "F") {
-    if (FAIL_PATTERN.test(result)) return "F";
     if (PASS_PATTERN.test(result)) return "P";
   }
   return letterGrade;
