@@ -6,6 +6,7 @@ const GRADE_TABLE = [
   { grade: "C", range: "70–79", color: "bg-yellow-400", text: "text-slate-800", label: "Okay" },
   { grade: "D", range: "60–69", color: "bg-orange-400", text: "text-white", label: "Poor" },
   { grade: "F", range: "< 60", color: "bg-red-600", text: "text-white", label: "Critical" },
+  { grade: "P", range: "Pass/Fail", color: "bg-green-500", text: "text-white", label: "Passed" },
   { grade: "U", range: "No data", color: "bg-slate-400", text: "text-white", label: "Unknown" },
 ];
 
@@ -13,7 +14,7 @@ const NORMALIZATION = [
   { source: "NYC DOHMH", native: "Letter grade A/B/C", method: "Mapped directly to SafeEats A–F; numeric score derived from violation points." },
   { source: "LA County DPH", native: "Penalty point score", method: "Inverted to 0–100 (100 − penalty points); letter grade from resulting band." },
   { source: "King County, WA (Seattle)", native: "Penalty point score + inspection result", method: "Inverted to 0–100 (100 − penalty points); letter grade from resulting band. Inspection result (Complete, Incomplete, etc.) shown on the detail page." },
-  { source: "Chicago CDPH", native: "Pass / Fail + violation codes", method: "Pass → high score; Fail → F; weighted by violation severity and count." },
+  { source: "Chicago CDPH", native: "Pass / Fail + violation codes", method: "Pass → green P badge; Fail → red F badge; weighted by violation severity and count." },
   { source: "UK FSA (FHRS)", native: "0–5 star rating", method: "Linear scale to 0–100 (5★ → 90–100, 0★ → < 60); grade from band." },
   { source: "Singapore SFA (AI-estimated)", native: "Grades A–D", method: "SFA's SAFE grades exist publicly but no per-establishment API. AI reads official sources; mapped to SafeEats bands." },
   { source: "Denmark Smiley (AI-estimated)", native: "4-tier smiley (☺–☹)", method: "findsmiley.dk publishes results for all establishments. AI reads the public database; top smiley → A." },
@@ -37,6 +38,18 @@ export default function GradingSection() {
       <p className="text-sm text-slate-600 leading-relaxed mb-4">
         Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
       </p>
+
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex gap-3 items-start mb-6">
+        <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-white font-black text-lg">P</span>
+        </div>
+        <div>
+          <p className="font-extrabold text-slate-800 text-sm mb-1">Pass / Fail Jurisdictions</p>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Some jurisdictions — like Chicago, Delaware, Toronto, and others — use a simple <strong>Pass / Fail</strong> system instead of numeric scores. A restaurant that <strong>passes</strong> gets a <strong className="text-green-600">green P badge</strong>, meaning it met health inspection standards. A restaurant that <strong>fails</strong> gets a <strong className="text-red-600">red F badge</strong>, indicating serious violations that failed to meet minimum requirements.
+          </p>
+        </div>
+      </div>
 
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex gap-3 items-start mb-6">
         <div className="w-10 h-10 rounded-xl bg-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">
