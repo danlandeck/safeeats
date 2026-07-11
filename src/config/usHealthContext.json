@@ -46,7 +46,41 @@
     }
   },
   "AR": "Arkansas: Arkansas Dept of Health (foodserviceprod.adh.arkansas.gov/Web/inspection/publicinspectionsearch.aspx). Statewide. Score: Pass/Fail.",
-  "CA": "California: county environmental health departments. Many counties have online portals — San Diego (sdcounty.ca.gov), Sacramento (emd.saccounty.gov), Orange (ocfoodinfo.com), Alameda, Santa Clara, Fresno, Kern, Ventura, San Bernardino, Riverside. Score: 100-point or Pass/Fail depending on county.",
+  "CA": {
+    "description": "California: county environmental health departments conduct inspections. Score: 100-point or Pass/Fail depending on county.",
+    "counties": {
+      "San Diego": {
+        "portal_url": "https://www.sandiegocounty.gov/content/sdc/deh/fhd/ffis/intro.html.html",
+        "portal_name": "SD Food Info — San Diego County Food Facility Inspections",
+        "cities": ["san diego", "chula vista", "oceanside", "escondido", "carlsbad", "el cajon", "vista", "san marcos", "encinitas", "national city", "la mesa", "santee", "imperial beach", "coronado", "lemon grove", "poway", "del mar", "solana beach"]
+      },
+      "Sacramento": {
+        "portal_url": "https://www.emd.saccounty.gov/EH/Food/Pages/FoodFacilityInspectionSearch.aspx",
+        "portal_name": "Sacramento County Environmental Management — Food Facility Inspection Search",
+        "cities": ["sacramento", "elk grove", "folsom", "citrus heights", "rancho cordova", "rosemont", "carmichael", "antelope", "north highlands", "florin", "laundry", "rio linda", "watt"]
+      },
+      "Orange": {
+        "portal_url": "https://www.ocfoodinfo.com/search",
+        "portal_name": "OC Food Info — Orange County Restaurant Inspection Search",
+        "cities": ["anaheim", "santa ana", "irvine", "huntington beach", "garden grove", "orange", "fullerton", "costa mesa", "mission viejo", "westminster", "newport beach", "buena park", "laguna niguel", "tustin", "yorba linda", "san clemente", "lake forest", "fountain valley", "placentia", "brea", "cypress", "dana point"]
+      },
+      "Alameda": {
+        "portal_url": "https://health.alamedacountyca.gov/service-area/inspection-reports/",
+        "portal_name": "Alameda County Environmental Health — Inspection Reports",
+        "cities": ["oakland", "fremont", "hayward", "berkeley", "san leandro", "union city", "dublin", "pleasanton", "livermore", "alameda", "emeryville", "newark", "castro valley", "san lorenzo", "ashland"]
+      },
+      "Santa Clara": {
+        "portal_url": "https://deh.santaclaracounty.gov/consumers/food",
+        "portal_name": "Santa Clara County Environmental Health — Food Facilities",
+        "cities": ["san jose", "sunnyvale", "santa clara", "mountain view", "palo alto", "cupertino", "milpitas", "gilroy", "morgan hill", "campbell", "los gatos", "sar atoga", "los altos", "morgan hill"]
+      },
+      "Fresno": {
+        "portal_url": "https://www.fresnohealthinspections.com/",
+        "portal_name": "Fresno County Public Health — Restaurant Inspections",
+        "cities": ["fresno", "clovis", "sanger", "selma", "kingsburg", "fowler", "parlier", "reedley", "coalinga", "kerman", "mendota", "orange cove"]
+      }
+    }
+  },
   "CO": {
     "description": "Colorado: CDPHE and county/city health departments (cdphe.colorado.gov/dehs/rf/inspections). Score: typically 100-point.",
     "counties": {
@@ -213,8 +247,46 @@
       }
     }
   },
-  "MA": "Massachusetts: MA Dept of Public Health (mass.gov). Local boards of health conduct inspections — Boston, Suffolk, Middlesex, Worcester, Hampden, Norfolk, Essex. Score: Pass/Fail or 100-point depending on locality.",
-  "MD": "Maryland: MD Dept of Health (health.maryland.gov). County health departments — Montgomery, Prince George's, Anne Arundel, Howard, Baltimore County/City. Score: Pass/Fail or 100-point depending on county.",
+  "MA": {
+    "description": "Massachusetts: MA Dept of Public Health (mass.gov). Local boards of health conduct inspections. Score: Pass/Fail or 100-point depending on locality.",
+    "counties": {
+      "Suffolk (Boston)": {
+        "portal_url": "https://www.cityofboston.gov/isd/health/mfc/search.asp",
+        "portal_name": "Boston Mayor's Food Court — Establishment Search",
+        "cities": ["boston", "revere", "chelsea", "winthrop"]
+      },
+      "Worcester": {
+        "portal_url": "https://www.worcesterma.gov/housing-health",
+        "portal_name": "City of Worcester — Housing & Health Inspections",
+        "cities": ["worcester", "auburn", "holden", "leicester", "millbury", "shrewsbury", "west boylston"]
+      }
+    }
+  },
+  "MD": {
+    "description": "Maryland: MD Dept of Health (health.maryland.gov). County health departments conduct inspections. Score: Pass/Fail or 100-point depending on county.",
+    "counties": {
+      "Prince George's": {
+        "portal_url": "https://data.princegeorgescountymd.gov/Health/Food-Inspection/umjn-t2iz",
+        "portal_name": "Prince George's County — Food Inspection Search",
+        "cities": ["upper marlboro", "college park", "hyattsville", "greenbelt", "bowie", "laurel", "new Carrollton", "seat pleasant", "district heights", "fairmount heights", "glenarden", "bladensburg", "capitol heights", "landover hills", "mount rainier", "north brentwood", "riverdale park"]
+      },
+      "Anne Arundel": {
+        "portal_url": "https://www.aahealth.org/environmental-health/food-protection",
+        "portal_name": "Anne Arundel County — Food Protection Services",
+        "cities": ["annapolis", "severn", "glen burnie", "crofton", "odenton", "pasadena", "severna park", "arnold", "cape st. claire", "edgewater", "deale", "davidsonville", "gambrills", "harwood", "jessup", "lake shore", "linthicum", "maryland city", "mayo", "riva", "shady side"]
+      },
+      "Baltimore City": {
+        "portal_url": "https://baltimoreportal.jadian.com/",
+        "portal_name": "Baltimore City — Health Inspection Portal",
+        "cities": ["baltimore"]
+      },
+      "Baltimore County": {
+        "portal_url": "https://www.baltimorecountymd.gov/departments/health/environmental/food-program",
+        "portal_name": "Baltimore County — Food Inspection Program",
+        "cities": ["towson", "catonsville", "dundalk", "essex", "parkville", "rosedale", "perry hall", "cockeysville", "owings mills", "reisterstown", "randallstown", "woodlawn", "arbutus", "lutherville", "timonium", "hamilton", "kingsville", "sparks"]
+      }
+    }
+  },
   "ME": "Maine: Maine CDC/DHHS (apps.web.maine.gov/online/hip_search/health-inspection-search.html). Statewide. Score: Pass/Fail.",
   "MI": {
     "description": "Michigan: MI Dept of Agriculture & Rural Development (www2.mda.state.mi.us/MiSafe/Default). Statewide inspection search covers most counties. Score: 100-point or Pass/Fail.",
@@ -373,7 +445,26 @@
       }
     }
   },
-  "NY": "New York: NY State Dept of Health (health.data.ny.gov). NYC DOHMH for 5 boroughs, county health departments for rest of state — Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga. Score: 100-point or letter grade (NYC).",
+  "NY": {
+    "description": "New York: NY State Dept of Health (health.data.ny.gov/Health/Food-Service-Establishment-Last-Inspection/cnih-y5dw). Statewide inspection data covers most of NY outside NYC. NYC DOHMH uses ABCEats for 5 boroughs. Score: 100-point or letter grade (NYC).",
+    "counties": {
+      "NYC (5 Boroughs)": {
+        "portal_url": "https://a816-health.nyc.gov/ABCEats/",
+        "portal_name": "NYC DOHMH — ABCEats Restaurant Inspection Lookup",
+        "cities": ["new york", "manhattan", "brooklyn", "queens", "bronx", "the bronx", "staten island"]
+      },
+      "Monroe": {
+        "portal_url": "https://www.monroecounty.gov/eh-food",
+        "portal_name": "Monroe County — Food Protection Inspections & Permits",
+        "cities": ["rochester", "brighton", "gates", "henrietta", "greece", "irondequoit", "chili", "penfield", "webster", "fairport", "pittsford"]
+      },
+      "Suffolk": {
+        "portal_url": "https://opendata.suffolkcountyny.gov/",
+        "portal_name": "Suffolk County Open Data — Food Establishment Violations",
+        "cities": ["brookhaven", "islip", "babylon", "smithtown", "huntington", "southampton", "east hampton", "riverhead", "southold", "shelter island"]
+      }
+    }
+  },
   "NC": {
     "description": "North Carolina: county health departments conduct inspections (publichealth.nc.gov). Score: 100-point with letter grade (A/B/C).",
     "counties": {
@@ -644,7 +735,46 @@
       }
     }
   },
-  "WA": "Washington: WA State Dept of Health (doh.wa.gov). County health departments — King (kingcounty.gov), Pierce (tpchd.org), Snohomish, Spokane, Clark, Thurston, Kitsap, Whatcom, Benton, Yakima. Score varies by county — King County uses demerit/penalty points (lower=better), others use 100-point or Pass/Fail.",
+  "WA": {
+    "description": "Washington: WA State Dept of Health (doh.wa.gov/community-and-environment/food/restaurant-inspections). County health departments conduct inspections. King County uses demerit/penalty points (lower=better), others use 100-point or Pass/Fail.",
+    "counties": {
+      "Snohomish": {
+        "portal_url": "https://www.snohd.org/571/Food-Safety",
+        "portal_name": "Snohomish County Health Dept — Food Safety",
+        "cities": ["everett", "snohomish", "marysville", "arlington", "lynnwood", "mountlake terrace", "mukilteo", "edmonds", "bothell", "mill creek", "monroe", "sultan", "granite falls", "lake stevens", "stanwood", "camano island"]
+      },
+      "Spokane": {
+        "portal_url": "https://srhd.org/programs-and-services/foodsafety/food-establishment-inspections",
+        "portal_name": "Spokane Regional Health District — Food Establishment Inspections",
+        "cities": ["spokane", "spokane valley", "liberty lake", "chewelah", "medical lake", "airway heights", "millwood", "deer park", "fairfield", "rockford", "spangle", "chattaroy", "mead"]
+      },
+      "Clark": {
+        "portal_url": "https://clark.wa.gov/public-health/food-safety",
+        "portal_name": "Clark County Public Health — Food Safety",
+        "cities": ["vancouver", "battle ground", "camas", "washougal", "ridgefield", "la center", "yacolt"]
+      },
+      "Thurston": {
+        "portal_url": "https://www.thurstoncountywa.gov/departments/public-health-and-social-services/environmental-health/food-safety/food-safety-look-up",
+        "portal_name": "Thurston County — Food Safety Inspection Lookup",
+        "cities": ["olympia", "lacey", "tumwater", "yelm", "rainier", "tenino", "rochester", "bucoda"]
+      },
+      "Kitsap": {
+        "portal_url": "https://kitsappublichealth.org/food/",
+        "portal_name": "Kitsap Public Health — Food Safety",
+        "cities": ["bremerton", "bainbridge island", "port orchard", "poulsbo", "silverdale", "kingston", "gorst"]
+      },
+      "Whatcom": {
+        "portal_url": "https://www.whatcomcounty.us/3503/Food-Safety",
+        "portal_name": "Whatcom County Health Dept — Food Safety",
+        "cities": ["bellingham", "ferndale", "lynden", "blaine", "everson", "nuksack", "sumas"]
+      },
+      "Benton-Franklin": {
+        "portal_url": "https://www.bfhd.wa.gov/programs_services/food_safety/food_safety_inspections",
+        "portal_name": "Benton-Franklin Health District — Food Safety Inspections",
+        "cities": ["richland", "kennewick", "pasco", "west richland", "benton city", "prosser", "connell", "mesa", "kahlotus"]
+      }
+    }
+  },
   "WV": "West Virginia: WV Bureau for Public Health (oehs.wvdhhr.org/phs/food-safety/). County health departments conduct inspections. Score: Pass/Fail.",
   "WI": {
     "description": "Wisconsin: WI DATCP (datcp.wi.gov) and county health departments. Score: 100-point or Pass/Fail.",
