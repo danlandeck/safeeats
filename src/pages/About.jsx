@@ -38,7 +38,7 @@ export default function About() {
               <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              18 live government data connectors across the US, UK, Canada, Singapore, and Australia. 74 countries with structured coverage across 170+ mapped health departments, plus AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
+              18 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
             </p>
           </div>
 
@@ -48,13 +48,10 @@ export default function About() {
           <Section id="why">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-                            Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments across 74 countries and presents them through a single, consistent interface with a universal A–F grading system.
-            </p>
-            <p className="text-slate-600 leading-relaxed mb-3">
-              Every jurisdiction grades differently. A "Pass" in Chicago, 94 penalty points in LA, a letter grade in NYC, a score in Tokyo, a compliance rating in London — they all mean different things. SafeEats normalizes everything to a 0–100 scale so you're always comparing apples to apples, whether you're in Austin or Auckland.
+              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments across 74 countries and presents them through a single, consistent interface with a universal A–F grading system.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              SafeEats brings restaurant and food establishment safety data together — for consumers, travelers, parents, and anyone who wants to make informed decisions about what goes into their body.
+              Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, everywhere. For consumers, travelers, parents, and anyone who wants to make informed decisions about what goes into their body.
             </p>
           </Section>
 

@@ -30,8 +30,9 @@ export default function PitchDeck() {
             <span className="text-[#4CAF50]">Food Safety Data</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            SafeEats unifies government inspection records from 18 live data connectors across 74 countries
-            into a single, normalized, commercially scalable dataset. Here's what makes it defensible.
+            SafeEats unifies government inspection records from 18 live data sources across 3 countries,
+            plus AI-assisted search across 74 countries, into a single, normalized, commercially scalable dataset.
+            Here's what makes it defensible.
           </p>
         </div>
 
@@ -95,7 +96,7 @@ export default function PitchDeck() {
           <Server className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
           <h2 className="text-2xl font-extrabold text-white mb-2">A defensible, scalable data asset</h2>
           <p className="text-slate-300 text-sm max-w-lg mx-auto mb-6 leading-relaxed">
-            18 live government data connectors. A proven normalization framework. Structured coverage
+            18 live government data sources. A proven normalization framework. Structured coverage
             across 74 countries with 170+ mapped health departments. All shipped, all tested, all ready to scale.
           </p>
           <div className="flex flex-wrap justify-center gap-3">

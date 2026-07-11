@@ -4,7 +4,7 @@ const ARCHITECTURE = [
   {
     icon: Plug,
     title: "Plug-in Data Connectors",
-    body: "Each government API is a self-contained connector with its own processor and normalizer. Adding a new market is a configuration task, not a rebuild — the pattern is proven across 16 live sources.",
+    body: "Each government API is a self-contained connector with its own processor and normalizer. Adding a new market is a configuration task, not a rebuild — the pattern is proven across 18 live sources.",
   },
   {
     icon: Layers,
@@ -29,7 +29,7 @@ const ARCHITECTURE = [
   {
     icon: Zap,
     title: "Low Marginal Cost",
-    body: "Adding the 17th, 50th, or 100th market follows the same proven pattern. The infrastructure scales horizontally — no new servers, no new frontend, no new schema. Just a new connector file.",
+    body: "Adding the 19th, 50th, or 100th market follows the same proven pattern. The infrastructure scales horizontally — no new servers, no new frontend, no new schema. Just a new connector file.",
   },
 ];
 

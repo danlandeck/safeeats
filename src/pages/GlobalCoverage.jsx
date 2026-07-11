@@ -102,20 +102,20 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Governments worldwide publish food safety inspection records as open data. SafeEats integrates every single one with a live API connector. For markets without public APIs, we use AI to read official sources — clearly labeled as AI-estimated. We never fabricate a score.
+            18 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
-            <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-slate-900">{LIVE_MARKETS.length}</p>
-              <p className="text-xs text-slate-500 font-semibold">Live API regions</p>
-            </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-[#4CAF50]">{totalSources}</p>
               <p className="text-xs text-slate-500 font-semibold">Live API sources</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
+              <p className="text-3xl font-extrabold text-slate-900">3</p>
+              <p className="text-xs text-slate-500 font-semibold">Countries with live APIs</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
               <p className="text-3xl font-extrabold text-slate-900">74</p>
-              <p className="text-xs text-slate-500 font-semibold">Countries with mapped health depts</p>
+              <p className="text-xs text-slate-500 font-semibold">Countries mapped</p>
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function GlobalCoverage() {
             <div>
               <p className="font-extrabold text-base mb-1">Why Open Data Matters</p>
               <p className="text-slate-300 text-sm leading-relaxed">
-                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats is the only platform that unifies all of these into a single, normalized, globally comparable system. A restaurant in Toronto, a pub in London, and a taco truck in Austin all receive the same A–F grade scale. Apples to apples. Everywhere.
+                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats unifies all of them into a single, normalized, globally comparable system. Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, everywhere.
               </p>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function GlobalCoverage() {
             <Search className="w-5 h-5 text-indigo-600" />
             <h2 className="text-base font-extrabold text-slate-900">AI-Enhanced Markets — Official Sources, AI-Read</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-4">These markets have real government food safety programs that exist as public websites or search portals, but no structured open API. SafeEats uses Gemini 3 Flash web search to read official sources and present results — clearly labeled as AI-estimated.</p>
+          <p className="text-xs text-slate-500 mb-4">Real government food safety programs that exist as public websites or search portals, but without a structured open API. AI reads official sources — results clearly labeled as AI-estimated.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {AI_ENHANCED_MARKETS.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm">
@@ -209,7 +209,7 @@ export default function GlobalCoverage() {
             <Search className="w-5 h-5 text-amber-600" />
             <h2 className="text-base font-extrabold text-slate-900">On the Radar — No Open Data Available</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-4">These markets have varying levels of public food safety data — from live government portals to licensing-only databases. None are currently wired as live API sources; results come from AI-estimated research.</p>
+          <p className="text-xs text-slate-500 mb-4">Varying levels of public food safety data — from government portals to licensing-only databases. None are wired as live API sources; results come from AI-assisted research.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {AI_RESEARCH_MARKETS.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-amber-100 p-3 shadow-sm">
@@ -224,7 +224,7 @@ export default function GlobalCoverage() {
         <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
           <h2 className="font-extrabold text-base mb-2">🌍 Everywhere Else — AI-Powered</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
-            For the 69 countries where live government APIs don't yet exist, SafeEats uses AI to read official health department websites, publicly posted inspection PDFs, local health bulletins, and verified sources — and presents those results clearly labeled as AI-estimated. Preliminary restaurant identification is powered by GPT-5 Mini for fast results, with live web search via Gemini 3 Flash pulling real-time data from official sources. We never fabricate a score. If we can't verify it, we say so.
+            For the 71 countries where live government APIs don't yet exist, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated. If we can't verify it, we say so.
           </p>
         </div>
 
