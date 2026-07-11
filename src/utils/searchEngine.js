@@ -329,11 +329,21 @@ function filterByNameRelevance(results, query) {
   const queryWords = cleanQuery.split(" ").filter(w => w.length >= 2);
   if (queryWords.length === 0) return results;
 
+  // Remove stop words that shouldn't affect brand matching ("Jack in the Box" → ["jack", "box"])
+  const STOP_WORDS = new Set(["in", "the", "on", "at", "of", "and", "or", "an", "to", "for", "up"]);
+  const brandWords = queryWords.filter(w => !STOP_WORDS.has(w));
+  if (brandWords.length === 0) return results;
+
+  // Single-word queries are food-type searches (e.g. "tacos", "pizza") —
+  // trust the API/Places results without additional name filtering.
+  if (brandWords.length === 1) return results;
+
+  // Multi-word queries are brand-name searches (e.g. "Taco Bell") —
+  // ALL words must appear in the name to prevent loose matches like "Taco Time".
   const filtered = results.filter(r => {
     const cleanName = normalize(r.name);
     if (!cleanName) return false;
-    // ANY query word must appear in the name (not ALL — so "Chipotle" matches "Chipotle Mexican Grill")
-    return queryWords.some(w => cleanName.includes(w));
+    return brandWords.every(w => cleanName.includes(w));
   });
 
   return filtered.length > 0 ? filtered : results;
@@ -518,6 +528,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   const rawLabel = locationLabel?.trim() || "";
   const location = rawLabel && rawLabel !== "Worldwide (AI Search)" ? rawLabel : null;
   const primaryCity = location ? location.split(",")[0].trim() : "";
+  const { nameQuery: filterQuery } = parseSearchQuery(query);
   const ctx = getCountryContext(countyId);
   const buildFn = (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location || "", primaryCity);
 
@@ -546,7 +557,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   // finding inspection records for those exact establishments. This prevents
   // hallucinated/address-less entries in jurisdictions with no live API.
   try {
-    const placesRes = await base44.functions.invoke("placesRestaurantSearch", { query, location });
+    const placesRes = await base44.functions.invoke("placesRestaurantSearch", { query: filterQuery || query, location });
     const verified = placesRes.data?.restaurants || [];
     if (verified.length > 0) {
       const liveApiNote = fetchInfo.liveApiFailed
@@ -581,6 +592,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
                (r.city || "").toLowerCase().includes(needle);
       };
       let grounded = groundedRaw.map((r, i) => ({ ...overlay(buildFn(r, i), i), data_fetch_notes: r.data_fetch_notes || "" })).filter(inLocation);
+      grounded = filterByNameRelevance(grounded, filterQuery);
       grounded = deduplicateResults(grounded);
 
       if (grounded.length > 0) {
@@ -656,7 +668,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
               };
               return { ...overlay(buildFn(merged, i), i), data_fetch_notes: merged.data_fetch_notes || "", portal_url: merged.portal_url, portal_name: merged.portal_name };
             }).filter(inLocation);
-            const finalResults = deduplicateResults(enriched);
+            const finalResults = deduplicateResults(filterByNameRelevance(enriched, filterQuery));
             if (finalResults.length > 0) {
               saveCache(finalResults);
               if (onAccurateResults) onAccurateResults(finalResults);
@@ -692,7 +704,8 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
     llmCall(enhancedPrompt, true),
     buildFn,
     false,
-    onAccurateResults
+    onAccurateResults,
+    filterQuery
   );
   return { results: restaurants, isAI: true };
 }
@@ -769,7 +782,7 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
  * in the background and silently updates results via onAccurateResults when done.
  * Only if fast results are empty do we wait for the web search.
  */
-async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubaiSearch = false, onAccurateResults) {
+async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubaiSearch = false, onAccurateResults, nameQuery = "") {
   // Await fast results — this returns in 2-4 seconds.
   // Fast (training-data) results get the SAME verification filter as accurate
   // results — address-less or unverified entries must never reach the UI.
@@ -777,6 +790,9 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
   let fast = filterUnverified(fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
   if (isDubaiSearch) {
     fast = fast.filter(r => isDubaiLocation(r.city, r.address));
+  }
+  if (nameQuery) {
+    fast = filterByNameRelevance(fast, nameQuery);
   }
   fast = deduplicateResults(fast);
 
@@ -787,6 +803,9 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
       let accurate = verified.map(buildFn).filter(r => !r._wrongLocation);
       if (isDubaiSearch) {
         accurate = accurate.filter(r => isDubaiLocation(r.city, r.address));
+      }
+      if (nameQuery) {
+        accurate = filterByNameRelevance(accurate, nameQuery);
       }
       accurate = deduplicateResults(accurate);
       if (accurate.length > 0 && onAccurateResults) onAccurateResults(accurate);
@@ -800,6 +819,9 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
   let restaurants = verified.map(buildFn).filter(r => !r._wrongLocation);
   if (isDubaiSearch) {
     restaurants = restaurants.filter(r => isDubaiLocation(r.city, r.address));
+  }
+  if (nameQuery) {
+    restaurants = filterByNameRelevance(restaurants, nameQuery);
   }
   return deduplicateResults(restaurants);
 }
@@ -920,7 +942,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       llmCall(PROMPT_LOCATION(query, location, today), true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location, "Modesto"),
       false,
-      onAccurateResults
+      onAccurateResults,
+      parseSearchQuery(query).nameQuery
     );
     return { results: restaurants, isAI: true };
   }
@@ -1046,8 +1069,9 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       llmCall(PROMPT_DUBAI(query, today), true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
       true,
-      onAccurateResults
-    );
+      onAccurateResults,
+      parseSearchQuery(query).nameQuery
+      );
     return { results: restaurants, isAI: true };
   }
 
