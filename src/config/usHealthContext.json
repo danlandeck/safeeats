@@ -1,6 +1,25 @@
 {
-  "AL": "Alabama: county health departments under Alabama Department of Public Health (alabamapublichealth.gov). Score: Pass/Fail. Search county environmental health offices.",
-  "AK": "Alaska: Alaska Dept of Environmental Conservation (dec.alaska.gov/eh). Statewide. Score: Pass/Unsatisfactory/Fail.",
+  "AL": {
+    "description": "Alabama: AL Dept of Public Health (alabamapublichealth.gov/foodscores/). Statewide food establishment score search. Score: 100-point.",
+    "counties": {
+      "Jefferson": {
+        "portal_url": "https://www.jcdh.org/SitePages/Programs-Services/Scores-Lists/Food/FoodServScores.aspx",
+        "portal_name": "Jefferson County Dept of Health — Food Service Scores",
+        "cities": ["birmingham", "homewood", "hoover", "mountain brook", "vestavia hills", "trussville", "gardendale", "fultondale", "tarrant", "fairfield", "midfield", "bessemer", "brighton", " Lipscomb"]
+      },
+      "Mobile": {
+        "portal_url": "https://mchd.org/restaurant-ratings-mobile/",
+        "portal_name": "Mobile County Health Department — Restaurant Ratings",
+        "cities": ["mobile", "prichard", "saraland", "chickasaw", "creola", "satsuma", "bayou la batre", "dauphin island", "mt. vernon"]
+      },
+      "Madison": {
+        "portal_url": "https://www.alabamapublichealth.gov/foodscores/",
+        "portal_name": "AL Dept of Public Health — Food Establishment Scores",
+        "cities": ["huntsville", "madison", "new hope", "owens cross roads", "triana"]
+      }
+    }
+  },
+  "AK": "Alaska: Alaska Dept of Environmental Conservation (adec.safefoodinspection.com/Inspection/PublicInspectionSearch.aspx). Statewide. Score: Pass/Unsatisfactory/Fail.",
   "AZ": {
     "description": "Arizona: county environmental health departments conduct inspections (azdhs.gov). Score: typically 100-point or Pass/Fail.",
     "counties": {
@@ -26,7 +45,7 @@
       }
     }
   },
-  "AR": "Arkansas: Arkansas Dept of Health (healthy.arkansas.gov). Statewide. Score: Pass/Fail. Search healthy.arkansas.gov/programs-services/topics/food-protection.",
+  "AR": "Arkansas: Arkansas Dept of Health (foodserviceprod.adh.arkansas.gov/Web/inspection/publicinspectionsearch.aspx). Statewide. Score: Pass/Fail.",
   "CA": "California: county environmental health departments. Many counties have online portals — San Diego (sdcounty.ca.gov), Sacramento (emd.saccounty.gov), Orange (ocfoodinfo.com), Alameda, Santa Clara, Fresno, Kern, Ventura, San Bernardino, Riverside. Score: 100-point or Pass/Fail depending on county.",
   "CO": {
     "description": "Colorado: CDPHE and county/city health departments (cdphe.colorado.gov/dehs/rf/inspections). Score: typically 100-point.",
@@ -63,9 +82,28 @@
       }
     }
   },
-  "CT": "Connecticut: CT DPH (portal.ct.gov/dph). Local health departments conduct inspections. Green/Yellow/Red placard system in some towns. Priority (P), Priority Foundation (Pf), Core (C) violations. Check decadeonline.com for aggregated CT inspection data.",
+  "CT": {
+    "description": "Connecticut: CT DPH (portal.ct.gov/dph/food-protection-program/food-service-inspections). Local health departments conduct inspections. Green/Yellow/Red placard system in some towns. Priority (P), Priority Foundation (Pf), Core (C) violations.",
+    "counties": {
+      "Statewide (Decade)": {
+        "portal_url": "http://www.decadeonline.com/main.phtml?agency=pas",
+        "portal_name": "Decade Online — CT Aggregated Inspection Search",
+        "cities": ["hartford", "new haven", "bridgeport", "waterbury", "stamford", "norwalk", "danbury", "greenwich", "bristol", "meriden", "manchester", "west hartford", "east hartford", "new britain"]
+      },
+      "Central CT": {
+        "portal_url": "https://www.ccthd.org/food-establishments",
+        "portal_name": "Central Connecticut Health District — Food Establishments",
+        "cities": ["rocky hill", "wethersfield", "newington", "berlin"]
+      },
+      "Quinnipiack Valley": {
+        "portal_url": "https://www.qvhd.site/food-service-ratings",
+        "portal_name": "Quinnipiack Valley Health District — Food Service Ratings",
+        "cities": ["hamden", "north haven", "bethany", "woodbridge"]
+      }
+    }
+  },
   "DE": "Delaware: Delaware Division of Public Health — Office of Food Protection (dhss.delaware.gov/dph/hsp). Statewide. Score: 100-point with critical/non-critical violations.",
-  "DC": "Washington DC: DC Health (dchealth.dc.gov). Food Protection Program conducts inspections. Score: Pass/Fail. Search at dchealth.dc.gov/service/food-safety.",
+  "DC": "Washington DC: DC Health (dc.healthinspections.us/?a=Inspections). Food Protection Program conducts inspections. Score: Pass/Fail.",
   "FL": "Florida: FL DBPR Division of Hotels & Restaurants (www2.myfloridalicense.com/hotels-restaurants/inspections/). Statewide. Score: Pass/Fail with violations reported.",
   "GA": {
     "description": "Georgia: GA Dept of Public Health (dph.georgia.gov/environmental-health/environmental-health-inspections). County health departments conduct inspections. Score: 100-point or letter grade in some counties. Note: Gwinnett/Newton/Rockdale are excluded from the statewide search.",
@@ -92,17 +130,92 @@
       }
     }
   },
-  "HI": "Hawaii: Hawaii Dept of Health (health.hawaii.gov). Statewide. Score: Pass/Conditional/Closed.",
-  "ID": "Idaho: seven Public Health Districts conduct inspections (healthandwelfare.idaho.gov). Search via local health district website. Score: Pass/Fail.",
-  "IL": "Illinois: Illinois Dept of Public Health (dph.illinois.gov). County/city health departments — Cook (chicago.gov), DuPage, Lake, Will, Kane, Sangamon. Score: 100-point or Pass/Fail depending on jurisdiction.",
-  "IN": "Indiana: Indiana State Dept of Health (in.gov/isdh). County health departments conduct inspections. Score: Pass/Fail or 100-point.",
-  "IA": "Iowa: Iowa Dept of Inspections & Appeals (dia.iowa.gov). Score: 100-point or Pass/Fail.",
-  "KS": "Kansas: Kansas Dept of Agriculture (agriculture.ks.gov). Statewide. Score: Pass/Fail.",
-  "KY": "Kentucky: Cabinet for Health & Family Services (chfs.ky.gov). County health departments conduct inspections. Score: Pass/Fail or 100-point.",
-  "LA": "Louisiana: LA Dept of Health (ldh.la.gov). Parish-level inspections. Score: 100-point or Pass/Fail.",
+  "HI": "Hawaii: Hawaii Dept of Health (health.hawaii.gov/san/). Statewide. Score: Pass/Conditional/Closed.",
+  "ID": {
+    "description": "Idaho: seven Public Health Districts conduct inspections (healthandwelfare.idaho.gov). Score: Pass/Fail.",
+    "counties": {
+      "Eastern Idaho (EIPH)": {
+        "portal_url": "https://eiph.id.gov/environmental-health/food-program/food-inspection-results/",
+        "portal_name": "Eastern Idaho Public Health — Food Inspection Results",
+        "cities": ["idaho falls", "ammon", "rigby", "rexburg", "st. anthony", "ashton", "driggs", "victor", "preston", "blackfoot", "shelley", "chubbuck", "pocatello"]
+      },
+      "Southeastern Idaho (SIPH)": {
+        "portal_url": "https://www.siphidaho.org/environmental-health/food-inspections.php",
+        "portal_name": "Southeastern Idaho Public Health — Food Inspections",
+        "cities": ["pocatello", "chubbuck", "american falls", "malad city", "preston", "downey", "lava hot springs", "mccammon"]
+      },
+      "South Central (SCPHD)": {
+        "portal_url": "https://phd5.idaho.gov/inspections/",
+        "portal_name": "South Central Public Health District — Health Inspections",
+        "cities": ["twin falls", "jerome", "burley", "rupert", "hailey", "ketchum", "gooding", "wendell", "buhl", "filer"]
+      },
+      "Spokane/Northern Idaho (SRHD)": {
+        "portal_url": "https://srhd.org/programs-and-services/foodsafety/food-establishment-inspections",
+        "portal_name": "Spokane Regional Health District — Food Establishment Inspections",
+        "cities": ["coeur d'alene", "post falls", "hayden", "rathdrum", "athol", "spirit lake"]
+      }
+    }
+  },
+  "IL": {
+    "description": "Illinois: IL Dept of Public Health (ildph.safefoodinspection.com/Inspection/PublicInspectionSearch.aspx). Statewide search plus county/city health departments. Score: 100-point or Pass/Fail depending on jurisdiction.",
+    "counties": {
+      "DuPage": {
+        "portal_url": "https://www.dupagehealth.org/185/Food-Safety",
+        "portal_name": "DuPage County Health Dept — Food Safety",
+        "cities": ["wheaton", "naperville", "aurora", "downers grove", "lisle", "lombard", "oak brook", "elk grove village", "addison", "bloomingdale", "carol stream", "glendale heights", "glen ellyn", "hanover park", "hinsdale", "itasca", "medinah", "roselle", "villa park", "west chicago", "winfield", "wood dale", "woodridge", "claremont"]
+      },
+      "Peoria": {
+        "portal_url": "https://www.pcchd.org/151/Food-Establishment-Inspections",
+        "portal_name": "Peoria City/County Health Dept — Food Inspections",
+        "cities": ["peoria", "peoria heights", "west peoria", "bartonville", "bellevue", "chillicothe", "dunlap", "elmwood", "germantown hills", "metamora", "mossville", "washington"]
+      }
+    }
+  },
+  "IN": {
+    "description": "Indiana: Indiana State Dept of Health (hoosierusa.isdh.in.gov/Inspection/PublicInspectionSearch.aspx). Statewide inspection search. Score: Pass/Fail or 100-point.",
+    "counties": {
+      "Marion": {
+        "portal_url": "https://hhcwebfood.hhcorp.org/",
+        "portal_name": "Marion County Public Health — Food Inspections",
+        "cities": ["indianapolis", "speedway", "lawrence", "beech grove", "southport"]
+      },
+      "Allen": {
+        "portal_url": "https://allencountyhealthinspector.acfw.net/",
+        "portal_name": "Allen County Health Inspector — Food Search",
+        "cities": ["fort wayne", "new haven", "grabill", "huntertown", "leo-cedarville", "monroeville", "woodburn"]
+      }
+    }
+  },
+  "IA": "Iowa: Iowa Dept of Inspections & Appeals (iowa.safefoodinspection.com/Inspection/PublicInspectionSearch.aspx). Statewide. Score: 100-point or Pass/Fail.",
+  "KS": "Kansas: Kansas Dept of Agriculture (agriculture.ks.gov/divisions-programs/food-safety-and-lodging/inspection-results). Statewide. Score: Pass/Fail.",
+  "KY": {
+    "description": "Kentucky: Cabinet for Health & Family Services (chfs.ky.gov). County health departments conduct inspections. Score: Pass/Fail or 100-point.",
+    "counties": {
+      "Jefferson": {
+        "portal_url": "https://louisvilleky.gov/government/health-wellness/services/see-restaurant-inspection-scores",
+        "portal_name": "Louisville Metro Health — Restaurant Inspection Scores",
+        "cities": ["louisville", "jeffersontown", "shively", "st. matthews", "anchorage", "audubon park", "bancroft", "bellewood", "buechel", "fern creek", "highview", "huron", "lyndon", "mcafee", "middletown", "parkway village", "poplar hills", "richlawn", "riverwood", "rolling fields", "spring mill", "st. regis park", "watterson park", "west buechel", "windy hills"]
+      },
+      "Fayette": {
+        "portal_url": "https://www.lfchd.org/food-protection/",
+        "portal_name": "Lexington-Fayette County Health Dept — Food Protection",
+        "cities": ["lexington", "athens", "blueberry hills", "buckhorn", "cadentown", "colby", "coletown", "cross plains", "delong", "east lexington", "great crossings", "greendale", "jollytown", "jonestown", "lake edge", "lewtown", "lipton", "little texas", "london", "loudon", "maddoxtown", "mintwood", "mount liberty", "newtown", "north elkhorn", "oldham", "paddon", "parks place", "paynes depot", "pinckard", "pike", "ridgehill", "sarah scoff town", "shawhan", "silver creek", "sulphur springs", "virginia addition", "waco", "wellington", "wilgreen"]
+      }
+    }
+  },
+  "LA": {
+    "description": "Louisiana: LA Dept of Health (ldh.la.gov/bureau-of-sanitarian-services/retail-food-inspections). Statewide inspection dashboard. Score: 100-point or Pass/Fail.",
+    "counties": {
+      "East Baton Rouge": {
+        "portal_url": "https://data.brla.gov/Government/Retail-Food-Inspections/ux2t-b9wr",
+        "portal_name": "Baton Rouge Open Data — Retail Food Inspections",
+        "cities": ["baton rouge", "baker", "central", "zachary"]
+      }
+    }
+  },
   "MA": "Massachusetts: MA Dept of Public Health (mass.gov). Local boards of health conduct inspections — Boston, Suffolk, Middlesex, Worcester, Hampden, Norfolk, Essex. Score: Pass/Fail or 100-point depending on locality.",
   "MD": "Maryland: MD Dept of Health (health.maryland.gov). County health departments — Montgomery, Prince George's, Anne Arundel, Howard, Baltimore County/City. Score: Pass/Fail or 100-point depending on county.",
-  "ME": "Maine: Maine CDC/DHHS (maine.gov/dhhs). County/local health departments. Score: Pass/Fail.",
+  "ME": "Maine: Maine CDC/DHHS (apps.web.maine.gov/online/hip_search/health-inspection-search.html). Statewide. Score: Pass/Fail.",
   "MI": {
     "description": "Michigan: MI Dept of Agriculture & Rural Development (www2.mda.state.mi.us/MiSafe/Default). Statewide inspection search covers most counties. Score: 100-point or Pass/Fail.",
     "counties": {
@@ -128,13 +241,98 @@
       }
     }
   },
-  "MN": "Minnesota: MN Dept of Health (health.state.mn.us). County/city health departments conduct inspections. Score: Pass/Fail with risk categories.",
-  "MS": "Mississippi: MS State Dept of Health (msdh.ms.gov). Statewide. Score: Pass/Fail. Search at msdh.ms.gov/foodfacilities.",
-  "MO": "Missouri: MO Dept of Health & Senior Services (health.mo.gov). County/city health departments — St. Louis City/County, Jackson, Greene, Boone. Score: 100-point or Pass/Fail.",
-  "MT": "Montana: MT DPHHS (dphhs.mt.gov). County health departments — Yellowstone, Cascade, Missoula, Gallatin. Score: Pass/Fail.",
-  "NE": "Nebraska: NE DHHS (dhhs.ne.gov). County/city health departments — Douglas, Lancaster, Sarpy. Score: Pass/Fail or 100-point.",
-  "NV": "Nevada: health districts — Southern NV Health District (snhd.info) for Clark County/Las Vegas, Washoe County (washoecounty.us/health) for Reno. Score: 100-point with letter grades in some districts.",
-  "NH": "New Hampshire: NH DHHS (dhhs.nh.gov). City/town health officers conduct inspections. Score: Pass/Fail.",
+  "MN": {
+    "description": "Minnesota: MN Dept of Health & MDA (health.state.mn.us). County/city health departments conduct inspections. Score: Pass/Fail with risk categories.",
+    "counties": {
+      "Hennepin": {
+        "portal_url": "https://www.minneapolismn.gov/government/government-data/datasource/health-inspection-lookup-dashboard/",
+        "portal_name": "Minneapolis Health Inspection Lookup Dashboard",
+        "cities": ["minneapolis", "bloomington", "brooklyn center", "brooklyn park", "champlin", "corcoran", "crystal", "dayton", "eden prairie", "edina", "golden valley", "greenfield", "hopkins", "independence", "long lake", "maple grove", "maple plain", "medina", "minnetonka", "minnetrista", "mound", "new hope", "oregon", "osseo", "plymouth", "richfield", "robbinsdale", "rockford", "rogers", "st. bonifacius", "st. louis park", "shorewood", "spring park", "tonka bay", "wayzata", "woodland"]
+      },
+      "Ramsey": {
+        "portal_url": "https://www.stpaul.gov/departments/safety-inspections",
+        "portal_name": "St. Paul Safety and Inspections",
+        "cities": ["st. paul", "saint paul", "maplewood", "roseville", "falcon heights", "lauderdale", "little canada", "north st. paul", "shoreview", "vadnais heights", "white bear lake", "white bear township"]
+      }
+    }
+  },
+  "MS": "Mississippi: MS State Dept of Health (apps.msdh.ms.gov/food/). Statewide. Score: Pass/Fail.",
+  "MO": {
+    "description": "Missouri: MO Dept of Health & Senior Services (health.mo.gov). County/city health departments conduct inspections. Score: 100-point or Pass/Fail.",
+    "counties": {
+      "St. Louis City": {
+        "portal_url": "https://www.stlouis-mo.gov/government/departments/health/environmental-health/food-control/restaurant-ratings-search.cfm",
+        "portal_name": "St. Louis City — Restaurant Health Ratings",
+        "cities": ["st. louis"]
+      },
+      "St. Louis County": {
+        "portal_url": "https://stlouiscountymo.gov/st-louis-county-departments/public-health/food-and-restaurants/inspections/",
+        "portal_name": "St. Louis County — Food Inspections",
+        "cities": ["florissant", "chesterfield", "kirkwood", "university city", "clayton", " Maryland heights", "wildwood", "ballwin", "town and country", "creve coeur", "webster groves", "oakville", "affton", "ferguson", "hazelwood"]
+      },
+      "Jackson": {
+        "portal_url": "https://www.kcmo.gov/city-hall/departments/health/restaurant-inspection-results",
+        "portal_name": "Kansas City — Restaurant Inspection Results",
+        "cities": ["kansas city"]
+      },
+      "Greene": {
+        "portal_url": "https://www.springfieldmo.gov/2919/Recent-Food-Inspections",
+        "portal_name": "Springfield/Greene County — Recent Food Inspections",
+        "cities": ["springfield", "republic", "battlefield", "fair grove", "walnut grove", "willard", "strafford", "rogersville", "ash grove"]
+      }
+    }
+  },
+  "MT": {
+    "description": "Montana: MT DPHHS (dphhs.mt.gov). County health departments conduct inspections. Score: Pass/Fail.",
+    "counties": {
+      "Yellowstone": {
+        "portal_url": "https://riverstonehealth.org/inspections-permits/restaurants-inspections-licenses/",
+        "portal_name": "RiverStone Health — Restaurant Inspections (Yellowstone County)",
+        "cities": ["billings", "laurel", "shepherd", "huntley", "worden", "broadview", "custer", "ballantine", "pompeys pillar", "acton"]
+      },
+      "Gallatin": {
+        "portal_url": "https://www.healthygallatin.org/environmental-health/inspection-reports/restaurant-inspection-reports/",
+        "portal_name": "Healthy Gallatin — Restaurant Inspection Reports",
+        "cities": ["bozeman", "belgrade", "manhattan", "three forks", "livingston", "big sky", "west yellowstone"]
+      },
+      "Missoula": {
+        "portal_url": "https://webapps.missoulacounty.us/foodinspections/",
+        "portal_name": "Missoula County — Food Inspection Report Search",
+        "cities": ["missoula", "lolo", "frenchtown", "clinton", "bonner", "east missoula", "turah", "potomac", "seeley lake", "condon"]
+      }
+    }
+  },
+  "NE": {
+    "description": "Nebraska: NE DHHS (dhhs.ne.gov). County/city health departments conduct inspections. Score: Pass/Fail or 100-point.",
+    "counties": {
+      "Douglas": {
+        "portal_url": "https://www.douglascountyfoodinspections.com/",
+        "portal_name": "Douglas County — Restaurant Inspection Search",
+        "cities": ["omaha", "bennington", "boys town", "rston", "valley", "waterloo"]
+      },
+      "Lancaster": {
+        "portal_url": "https://www.lincoln.ne.gov/City/Departments/Health-Department/Environmental/Food-Safety/Food-Est-Inspection-Viewer",
+        "portal_name": "Lincoln-Lancaster County — Food Establishment Inspection Viewer",
+        "cities": ["lincoln", "waverly", "bennet", "davey", "firth", "hickman", "malcolm", "panama", "prairie home", "raymond", "rupton", "sprague", "cortland"]
+      }
+    }
+  },
+  "NV": {
+    "description": "Nevada: health districts conduct inspections. Score: 100-point with letter grades in some districts.",
+    "counties": {
+      "Clark (SNHD)": {
+        "portal_url": "https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/restaurant-inspection-search/",
+        "portal_name": "Southern Nevada Health District — Restaurant Inspection Search",
+        "cities": ["las vegas", "henderson", "north las vegas", "boulder city", "mesquite", "laughlin", "summerlin", "enterprise", "spring valley", "paradise", "sunrise manor", "winchester", "whitney"]
+      },
+      "Washoe": {
+        "portal_url": "https://www.nnph.org/programs-and-services/environmental-health/food-protection-services/index.php",
+        "portal_name": "Northern Nevada Public Health — Washoe Eats",
+        "cities": ["reno", "sparks", "sun valley", "spanish springs", "cold springs", "verdi", "washa valley", "incline village"]
+      }
+    }
+  },
+  "NH": "New Hampshire: NH DHHS (dhhs.nh.gov/programs-services/environmental-health-and-you/food-protection). City/town health officers conduct inspections. Score: Pass/Fail. Inspection portal at nh-dhhs.my.site.com/fsre.",
   "NJ": {
     "description": "New Jersey: NJ Dept of Health (nj.gov/health/ceohs/phfpp/retailfood). County/local health departments conduct inspections. Score: 100-point or Pass/Fail.",
     "counties": {
@@ -165,7 +363,16 @@
       }
     }
   },
-  "NM": "New Mexico: NM Environment Dept (env.nm.gov). Statewide. Score: Pass/Fail.",
+  "NM": {
+    "description": "New Mexico: NM Environment Dept (env.nm.gov/foodprogram/). Statewide. Score: Pass/Fail. NOTE: NM suspended routine food inspections in 2025 due to budget shortfalls.",
+    "counties": {
+      "Bernalillo": {
+        "portal_url": "https://www.cabq.gov/environmentalhealth/food-safety/restaurant-inspection-results",
+        "portal_name": "City of Albuquerque — Restaurant Inspection Results",
+        "cities": ["albuquerque"]
+      }
+    }
+  },
   "NY": "New York: NY State Dept of Health (health.data.ny.gov). NYC DOHMH for 5 boroughs, county health departments for rest of state — Nassau, Suffolk, Westchester, Erie, Monroe, Albany, Onondaga. Score: 100-point or letter grade (NYC).",
   "NC": {
     "description": "North Carolina: county health departments conduct inspections (publichealth.nc.gov). Score: 100-point with letter grade (A/B/C).",
@@ -187,7 +394,7 @@
       }
     }
   },
-  "ND": "North Dakota: ND Health & Human Services (hhs.nd.gov). County/local health departments — Cass, Burleigh, Grand Forks. Score: Pass/Fail.",
+  "ND": "North Dakota: ND Health & Human Services (fims.doh.nd.gov/Web/Inspection/PublicInspectionSearch.aspx). Statewide. Score: Pass/Fail.",
   "OH": {
     "description": "Ohio: Ohio Dept of Agriculture and county health departments (odh.ohio.gov/find-local-health-districts). Score: 100-point or Pass/Fail.",
     "counties": {
@@ -218,7 +425,21 @@
       }
     }
   },
-  "OK": "Oklahoma: OK State Dept of Health (oklahoma.gov/health). County health departments — Oklahoma, Tulsa, Cleveland. Score: Pass/Fail or 100-point.",
+  "OK": {
+    "description": "Oklahoma: OK State Dept of Health (phin.state.ok.us/inspections/). Statewide inspection search by county. Score: Pass/Fail or 100-point.",
+    "counties": {
+      "Oklahoma County": {
+        "portal_url": "https://occhd.org/foodest/",
+        "portal_name": "OKC-County Health Department — Food Establishments",
+        "cities": ["oklahoma city", "edmond", "midwest city", "del city", "moore", "norman", "yukon", "mustang", "bethany", "warr acres", "the village", "nichols hills", "harrah", "choctaw", "spencer", "luther", "jones"]
+      },
+      "Tulsa County": {
+        "portal_url": "https://tulsa-health.org/permits-inspections/food/food-service-industry-inspections/",
+        "portal_name": "Tulsa Health Department — Food Inspection Search",
+        "cities": ["tulsa", "broken arrow", "owasso", "jenks", "bixby", "sand springs", "sperry", "skiatook", "collinsville", "glenpool", "liberty"]
+      }
+    }
+  },
   "OR": {
     "description": "Oregon: Oregon Health Authority (oregon.gov/oha/ph/healthyenvironments/foodsafety). County health departments conduct inspections. Score: 100-point (70=pass). Most Oregon counties publish inspection results on HealthSpace (inspections.myhealthdepartment.com). Inspections 1-2 times/year.",
     "counties": {
@@ -349,13 +570,70 @@
       }
     }
   },
-  "RI": "Rhode Island: RI Dept of Health (health.ri.gov). Statewide. Score: Pass/Fail with violations. Search at health.ri.gov.",
-  "SC": "South Carolina: SC DHEC (scdhec.gov). Statewide. Score: 100-point with letter grade (A/B/C).",
-  "SD": "South Dakota: SD Dept of Health (doh.sd.gov). County/local health departments — Minnehaha, Pennington. Score: Pass/Fail.",
-  "TN": "Tennessee: TN Dept of Health (tn.gov/health). County health departments — Shelby, Davidson, Knox, Hamilton, Rutherford. Score: 100-point or Pass/Fail.",
-  "TX": "Texas: TX Dept of State Health Services (dshs.texas.gov). County/city health departments — Harris/Houston, Dallas, Bexar/San Antonio, Tarrant/Fort Worth, Travis/Austin, El Paso, Nueces/Corpus Christi, Collin, Denton, Lubbock. Score: 100-point or Pass/Fail depending on jurisdiction.",
-  "UT": "Utah: UT Dept of Agriculture & Food (ag.utah.gov). County health departments — Salt Lake, Utah, Davis, Weber, Washington. Score: Pass/Fail.",
-  "VT": "Vermont: VT Dept of Health (healthvermont.gov). Statewide. Score: Pass/Fail.",
+  "RI": "Rhode Island: RI Dept of Health (food.ri.digitalhealthdepartment.com/). Statewide. Score: Pass/Fail with violations.",
+  "SC": "South Carolina: SC DHEC (apps.dhec.sc.gov/Environment/FoodGrades/). Statewide. Score: 100-point with letter grade (A/B/C).",
+  "SD": "South Dakota: SD Dept of Health (sddoh.safefoodinspection.com/Inspection/publicinspectionsearch.aspx). Statewide. Score: Pass/Fail.",
+  "TN": {
+    "description": "Tennessee: TN Dept of Health (tn.gov/health/eh.html). County health departments conduct inspections. Score: 100-point or Pass/Fail. Statewide search at inspections.myhealthdepartment.com/tennessee.",
+    "counties": {
+      "Davidson": {
+        "portal_url": "https://www.nashville.gov/departments/health/environmental-health/food-and-public-facilities/food-protection-services",
+        "portal_name": "Metro Nashville Public Health — Food Protection Services",
+        "cities": ["nashville", "antioch", "madison", "goodlettsville", "old hickory", "whites creek", "joelton", "bellevue", "donelson", "hermitage", "pleasant view"]
+      },
+      "Shelby": {
+        "portal_url": "https://www.shelbytnhealth.com/Faq.aspx?QID=86",
+        "portal_name": "Shelby County Health Dept — Restaurant Scores",
+        "cities": ["memphis", "bartlett", "collierville", "cordova", "germantown", "lakeland", "arlington", "millington"]
+      },
+      "Knox": {
+        "portal_url": "https://www.knoxcounty.org/health/EH/foodProtection.php",
+        "portal_name": "Knox County Health Dept — Food Protection",
+        "cities": ["knoxville", "farragut", "powell", "corryton", "karns", "halls", "strawberry plains", "mascot"]
+      }
+    }
+  },
+  "TX": {
+    "description": "Texas: TX Dept of State Health Services (dshs.texas.gov). County/city health departments conduct inspections. Score: 100-point or Pass/Fail depending on jurisdiction.",
+    "counties": {
+      "Harris": {
+        "portal_url": "https://apps.harriscountytx.gov/PublicHealthPortal/FoodEstablishments",
+        "portal_name": "Harris County Public Health — Food Establishment Search",
+        "cities": ["houston", "pasadena", "baytown", "spring", "cypress", "katy", "humble", "tomball", "kingwood", "atascocita", "channelview", "deer park", "galena park", "jacinto city", "la porte", "league city", "missouri city", "pearland", "seabrook", "south houston", "webster", "friendswood"]
+      },
+      "Bexar": {
+        "portal_url": "https://www.sa.gov/Directory/Departments/SAMHD/Reports-Statistics/Food-Establishment-Inspections",
+        "portal_name": "San Antonio Metro Health — Food Establishment Inspections",
+        "cities": ["san antonio", "converse", "live oak", "selma", "schertz", "universal city", "windcrest", "kirby", "terrebonne"]
+      },
+      "Tarrant": {
+        "portal_url": "https://www.fortworthtexas.gov/departments/environmental-services/consumer-health/health-reports",
+        "portal_name": "Fort Worth Environmental Services — Health Reports",
+        "cities": ["fort worth", "arlington", "north richland hills", "richland hills", "haltom city", "watauga", "keller", "southlake", "colleyville", "grapevine", "bedford", "euless", "hurst", "mansfield", "benbrook", "white settlement", "forest hill", "everman", "crowley", "saginaw", "azle"]
+      }
+    }
+  },
+  "UT": {
+    "description": "Utah: UT Dept of Agriculture & Food (ag.utah.gov). County health departments conduct inspections. Score: Pass/Fail.",
+    "counties": {
+      "Salt Lake": {
+        "portal_url": "https://public.cdpehs.com/UTEnvPbl/VW_EST_PUBLIC/ShowVW_EST_PUBLICTablePage.aspx",
+        "portal_name": "Salt Lake County — Health Inspection Reports",
+        "cities": ["salt lake city", "sandy", "west jordan", "south jordan", "saratoga springs", "herriman", "lehi", "draper", "murray", "midvale", "taylorsville", "west valley city", "kearns", "magna", "cottonwood heights", "holladay", "millcreek", "riverton", "bluffdale", "south salt lake", "cottonwood"]
+      },
+      "Davis": {
+        "portal_url": "https://aca-prod.accela.com/DAVISCO/GeneralProperty/PropertyLookUp.aspx?isLicensee=Y&TabName=APO",
+        "portal_name": "Davis County — Accela Citizen Access (Restaurant Inspections)",
+        "cities": ["layton", "clearfield", "syracuse", "kaysville", "farmington", "centerville", "bountiful", "woods cross", "north salt lake", "west point", "clinton", "roy", "fruit heights", "sunset"]
+      },
+      "Utah County": {
+        "portal_url": "https://health.utahcounty.gov/environmental-health/restaurant-inspection/",
+        "portal_name": "Utah County Health Dept — Restaurant Inspection Reports",
+        "cities": ["provo", "orem", "lehi", "spanish fork", "springville", "pleasant grove", "american fork", "lindon", "mapleton", "salem", "payson", "santaquin", "alpine", "highland", "cedar hills", "saratoga springs"]
+      }
+    }
+  },
+  "VT": "Vermont: VT Dept of Health (vtdoh.safefoodinspection.com/Inspection/PublicInspectionSearch.aspx). Statewide. Score: Pass/Fail.",
   "VA": {
     "description": "Virginia: VA Dept of Health (www.vdh.virginia.gov/data/environmental-health/food-establishments-inspections/). Statewide inspection search. Score: Pass/Fail with risk categories.",
     "counties": {
@@ -367,7 +645,30 @@
     }
   },
   "WA": "Washington: WA State Dept of Health (doh.wa.gov). County health departments — King (kingcounty.gov), Pierce (tpchd.org), Snohomish, Spokane, Clark, Thurston, Kitsap, Whatcom, Benton, Yakima. Score varies by county — King County uses demerit/penalty points (lower=better), others use 100-point or Pass/Fail.",
-  "WV": "West Virginia: WV Bureau for Public Health (dhhr.wv.gov). County health departments — Kanawha, Cabell, Monongalia. Score: Pass/Fail.",
-  "WI": "Wisconsin: WI DATCP (datcp.wi.gov) and county health departments — Milwaukee, Dane, Waukesha, Brown, Racine. Score: 100-point or Pass/Fail.",
-  "WY": "Wyoming: WY Dept of Agriculture (wyomingagriculture.gov). County health departments — Laramie, Natrona, Teton. Score: Pass/Fail."
+  "WV": "West Virginia: WV Bureau for Public Health (oehs.wvdhhr.org/phs/food-safety/). County health departments conduct inspections. Score: Pass/Fail.",
+  "WI": {
+    "description": "Wisconsin: WI DATCP (datcp.wi.gov) and county health departments. Score: 100-point or Pass/Fail.",
+    "counties": {
+      "Milwaukee": {
+        "portal_url": "https://itmdapps.milwaukee.gov/cehri/",
+        "portal_name": "Milwaukee Health Dept — Restaurant Inspection Reports",
+        "cities": ["milwaukee"]
+      },
+      "Dane": {
+        "portal_url": "https://elam.cityofmadison.com/healthInspections/",
+        "portal_name": "Madison/Dane County — Health Inspection Reports",
+        "cities": ["madison", "middleton", "sun prairie", "fitchburg", "verona", "stoughton", "waunakee", "oregon", "monona", "mcfarland", "de forest", "cottage grove", "maple bluff", "shorewood hills"]
+      }
+    }
+  },
+  "WY": {
+    "description": "Wyoming: WY Dept of Agriculture (agriculture.wy.gov/retail-food-inspections). Statewide routine inspection database. Score: Pass/Fail.",
+    "counties": {
+      "Laramie": {
+        "portal_url": "https://clcpublichealth.org/environmental-health-home/food-restaurants/",
+        "portal_name": "Cheyenne-Laramie County Public Health — Restaurants",
+        "cities": ["cheyenne", "altus", "burns", "albin", "pine bluffs", "carpenter", "hillsdale"]
+      }
+    }
+  }
 }
