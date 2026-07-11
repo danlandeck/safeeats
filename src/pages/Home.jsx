@@ -960,6 +960,32 @@ export default function Home() {
     }
     // If !cityMatched but searchCounty is already set to a real city, keep it as-is
 
+    // ── Clean the query: strip any location text that leaked into the search bar ──
+    // Users often type "Taco Bell Portland, OR" all in the search field. The query
+    // sent to the API and displayed in the header should be just "Taco Bell".
+    if (!cityMatched) {
+      // 1) If the location field has a value, strip it from the query
+      const locVal = (locationQuery || "").trim();
+      if (locVal) {
+        const escaped = locVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const cleaned = query.replace(new RegExp(',?\\s*' + escaped, 'i'), '').replace(/[,\s]+$/, '').replace(/^[,\s]+/, '').trim();
+        if (cleaned && cleaned.length >= 2) query = cleaned;
+      }
+      // 2) If the query still ends with ", ST" (US state abbreviation), extract and strip it
+      //    e.g. "Taco Bell Portland, OR" → extract "Portland, OR" as location, strip to "Taco Bell"
+      const stateSuffix = query.match(/^(.+)\s+([A-Za-z .]+),\s*([A-Z]{2})\s*$/);
+      if (stateSuffix) {
+        const extractedLocation = `${stateSuffix[2].trim()}, ${stateSuffix[3]}`;
+        const cleaned = stateSuffix[1].trim();
+        if (cleaned && cleaned.length >= 2) {
+          query = cleaned;
+          if (!locVal) {
+            setLocationQuery(extractedLocation);
+          }
+        }
+      }
+    }
+
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
