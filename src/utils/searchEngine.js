@@ -28,7 +28,7 @@ import usHealthContext from "@/config/usHealthContext.json";
 // Bumped when search logic changes in a way that invalidates old cached results.
 // Module-level purge runs on every page load to nuke stale entries from prior
 // versions before any search can read them.
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v8";
 (function purgeStaleCache() {
   try {
     Object.keys(localStorage).forEach(k => {
@@ -494,8 +494,13 @@ let _geoRouting = false;
  * usHealthContext.json, looks up the city to find the right county portal.
  * Falls back to state-level description parsing if no county match.
  */
-function getStatePortalInfo(state, city) {
+function getStatePortalInfo(state, city, country) {
   if (!state) return { url: null, name: null, note: "" };
+  // Non-US countries can have 2-letter admin codes that collide with US state
+  // codes (e.g. Catalonia = "CT" = Connecticut). Only look up US health portals
+  // when the country is US or unknown (backward compat for cached results).
+  const isUS = !country || country.toUpperCase().trim() === "US";
+  if (!isUS) return { url: null, name: null, note: "" };
   const code = state.toUpperCase().trim();
   const stateEntry = usHealthContext[code];
   if (!stateEntry) return { url: null, name: null, note: "Contact the local health department for inspection records. " };
@@ -537,8 +542,8 @@ function getStatePortalInfo(state, city) {
   return { url: null, name: null, note: stateEntry + " " };
 }
 
-function getStateFallbackNote(state, city) {
-  return getStatePortalInfo(state, city).note;
+function getStateFallbackNote(state, city, country) {
+  return getStatePortalInfo(state, city, country).note;
 }
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {
@@ -598,6 +603,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         latitude: verified[i].latitude,
         longitude: verified[i].longitude,
         place_id: verified[i].place_id,
+        country: verified[i].country,
       });
       // Places addresses are authoritative. A result is in-location if the strict
       // city check passes OR the searched city/county appears in the result's
@@ -617,7 +623,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
       if (grounded.length > 0) {
         // GEO-ROUTING: derive the inspection jurisdiction from the verified
         // address rather than the user's dropdown selection.
-        const route = resolveJurisdiction(verified[0].state, verified[0].city);
+        const route = resolveJurisdiction(verified[0].state, verified[0].city, verified[0].country);
 
         // Address sits in live-API territory → query the real source (no LLM)
         if (route.type === "registry" && route.countyId !== countyId && !_geoRouting) {
@@ -637,7 +643,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // Return isAI: false so the UI doesn't show a "verifying" spinner
         // for a background task that was never started.
         if (route.type === "none") {
-          const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
+          const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city, verified[0]?.country);
           const withNotes = portal.note
             ? grounded.map(r => ({
                 ...r,
@@ -667,7 +673,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           .then((res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];
             const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
-            const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
+            const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city, verified[0]?.country);
             const enriched = groundedRaw.map((raw, i) => {
               const insp = byIdx.get(i);
               const merged = insp ? {
@@ -694,7 +700,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
             }
           }).catch(() => {
             try {
-              const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city);
+              const portal = getStatePortalInfo(verified[0]?.state, verified[0]?.city, verified[0]?.country);
               const failed = grounded.map(r => ({
                 ...r,
                 portal_url: portal.url,

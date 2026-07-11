@@ -6,7 +6,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // Uses the same GOOGLE_API_KEY as getPlacesADA.
 
 function parseComponents(components) {
-  const out = { city: "", state: "", zip: "" };
+  const out = { city: "", state: "", zip: "", country: "" };
   for (const c of components || []) {
     const types = c.types || [];
     if (types.includes("postal_code")) out.zip = c.shortText || c.longText || "";
@@ -14,6 +14,7 @@ function parseComponents(components) {
     if (!out.city && types.includes("postal_town")) out.city = c.longText || "";
     if (!out.city && types.includes("sublocality")) out.city = c.longText || "";
     if (types.includes("administrative_area_level_1")) out.state = c.shortText || "";
+    if (types.includes("country")) out.country = c.shortText || c.longText || "";
   }
   return out;
 }
@@ -75,6 +76,7 @@ Deno.serve(async (req) => {
           city: comp.city,
           state: comp.state,
           zip_code: comp.zip,
+          country: comp.country,
           business_status: p.businessStatus || "OPERATIONAL",
           latitude: p.location?.latitude ?? null,
           longitude: p.location?.longitude ?? null,

@@ -12,8 +12,14 @@
  */
 import dataSources from "@/config/dataSources.json";
 
-export function resolveJurisdiction(state, city) {
+export function resolveJurisdiction(state, city, country) {
   if (!state) return { type: "unknown" };
+
+  // Non-US countries can have 2-letter admin codes that collide with US state
+  // codes (e.g. Catalonia = "CT" = Connecticut). Only look up US data sources
+  // when the country is US or unknown (backward compat for cached results).
+  const isUS = !country || country.toUpperCase().trim() === "US";
+  if (!isUS) return { type: "unknown" };
 
   const stateData = dataSources[state.toUpperCase().trim()];
   if (!stateData) return { type: "unknown" };
