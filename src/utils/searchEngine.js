@@ -462,9 +462,42 @@ let _geoRouting = false;
  * data. Oregon (Clatsop County) uses a JS-rendered HealthSpace portal that
  * web search cannot access — users need a direct link to check scores themselves.
  */
-function getStatePortalInfo(state) {
+// ── Database-backed portal config (with in-memory cache + static fallback) ──
+let _dsConfigCache = null;
+let _dsConfigCacheTime = 0;
+const DS_CONFIG_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+async function loadDataSourceConfigs() {
+  if (_dsConfigCache && Date.now() - _dsConfigCacheTime < DS_CONFIG_CACHE_TTL) {
+    return _dsConfigCache;
+  }
+  try {
+    _dsConfigCache = await base44.entities.DataSourceConfig.filter({ is_active: true });
+    _dsConfigCacheTime = Date.now();
+    return _dsConfigCache;
+  } catch {
+    return [];
+  }
+}
+
+async function getStatePortalInfo(state) {
   if (!state) return { url: null, name: null, note: "" };
   const code = state.toUpperCase().trim();
+
+  // Database-first lookup
+  try {
+    const configs = await loadDataSourceConfigs();
+    const dbConfig = configs.find(c => (c.state_code || "").toUpperCase() === code);
+    if (dbConfig && dbConfig.portal_url) {
+      return {
+        url: dbConfig.portal_url,
+        name: dbConfig.portal_name || `${dbConfig.state_name || code} inspection portal`,
+        note: dbConfig.portal_note || "",
+      };
+    }
+  } catch { /* fall through to static fallback */ }
+
+  // Static fallback (existing logic — kept as safety net)
   if (code === "OR") {
     return {
       url: "https://inspections.myhealthdepartment.com/or-clatsop-county",
@@ -484,8 +517,8 @@ function getStatePortalInfo(state) {
   return { url: null, name: null, note: ctx + " " };
 }
 
-function getStateFallbackNote(state) {
-  return getStatePortalInfo(state).note;
+async function getStateFallbackNote(state) {
+  return (await getStatePortalInfo(state)).note;
 }
 
 async function aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, fetchInfo = {}) {
@@ -582,7 +615,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // Return isAI: false so the UI doesn't show a "verifying" spinner
         // for a background task that was never started.
         if (route.type === "none") {
-          const portal = getStatePortalInfo(verified[0]?.state);
+          const portal = await getStatePortalInfo(verified[0]?.state);
           const withNotes = portal.note
             ? grounded.map(r => ({
                 ...r,
@@ -609,10 +642,10 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // Other locales: web-search enrichment with location context.
         const enrichCtx = getContextForLocation(countyId, location);
         llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
-          .then((res) => {
+          .then(async (res) => {
             const found = Array.isArray(res?.inspections) ? res.inspections : [];
             const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
-            const portal = getStatePortalInfo(verified[0]?.state);
+            const portal = await getStatePortalInfo(verified[0]?.state);
             const enriched = groundedRaw.map((raw, i) => {
               const insp = byIdx.get(i);
               const merged = insp ? {
@@ -637,9 +670,9 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
               saveCache(finalResults);
               if (onAccurateResults) onAccurateResults(finalResults);
             }
-          }).catch(() => {
+          }).catch(async () => {
             try {
-              const portal = getStatePortalInfo(verified[0]?.state);
+              const portal = await getStatePortalInfo(verified[0]?.state);
               const failed = grounded.map(r => ({
                 ...r,
                 portal_url: portal.url,
