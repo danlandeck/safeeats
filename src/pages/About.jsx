@@ -11,6 +11,7 @@ import ADASection from "@/components/about/ADASection";
 import WaterSection from "@/components/about/WaterSection";
 import ScanningSection from "@/components/about/ScanningSection";
 import GlobalSpotlight from "@/components/about/GlobalSpotlight";
+import HolisticSection from "@/components/about/HolisticSection";
 import EnterpriseSection from "@/components/about/EnterpriseSection";
 import CreatorSection from "@/components/about/CreatorSection";
 
@@ -61,11 +62,8 @@ export default function About() {
           <SourcesSection />
           <TrustSection />
 
-          {/* Beyond the Grade */}
-          <div id="beyond" className="scroll-mt-32 pt-2">
-            <h2 className="text-2xl font-extrabold text-slate-900 text-center mb-1">Beyond the Grade</h2>
-            <p className="text-slate-500 text-sm text-center mb-6">Safety is more than a score. SafeEats surfaces the details that matter before you walk through the door.</p>
-          </div>
+          {/* Beyond the Grade — Holistic Safety */}
+          <HolisticSection />
           <ADASection />
           <WaterSection />
           <ScanningSection />
