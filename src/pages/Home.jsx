@@ -1187,21 +1187,21 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white" role="banner">
-        <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 sm:pt-14 sm:pb-10">
-          <div className="text-center mb-7">
-            <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
+        <div className="max-w-5xl mx-auto px-4 pt-6 pb-6 sm:pt-14 sm:pb-10">
+          <div className="text-center mb-5 sm:mb-7">
+            <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full mb-3 sm:mb-4 tracking-wider uppercase">
               {t.heroBadge}
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
+            <h1 className="text-3xl sm:text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
               {t.headline1}
               <span className="text-[#4CAF50]"> {t.headline2} 🍽️</span>
             </h1>
-            <p className="mt-3 text-base sm:text-lg text-slate-300 font-bold max-w-lg mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-lg text-slate-300 font-bold max-w-lg mx-auto px-2" style={{ fontFamily: "Nunito, sans-serif" }}>
               {t.heroSub}
             </p>
 
             {!hasSearched && (
-              <div className="flex items-center justify-center gap-2 mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
                 {[
                   { g: "A", color: "bg-green-600 text-white", tip: t.gradeA },
                   { g: "B", color: "bg-lime-500 text-white", tip: t.gradeB },
@@ -1211,12 +1211,12 @@ export default function Home() {
                   { g: "P", color: "bg-teal-500 text-white", tip: t.gradeP },
                   { g: "U", color: "bg-slate-400 text-white", tip: t.gradeU },
                 ].map(({ g, color, tip }) => (
-                  <div key={g} className="flex flex-col items-center gap-1">
-                    <span className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2 border-white/30 ${color}`}>{g}</span>
-                    <span className="text-[10px] text-slate-300 font-extrabold">{tip}</span>
+                  <div key={g} className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <span className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-xl shadow-md border-2 border-white/30 ${color}`}>{g}</span>
+                    <span className="text-[9px] sm:text-[10px] text-slate-300 font-extrabold">{tip}</span>
                   </div>
                 ))}
-                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">{t.howGradesWork}</Link>
+                <Link to="/About#grading" className="text-slate-400 text-[11px] sm:text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold w-full sm:w-auto text-center mt-1">{t.howGradesWork}</Link>
               </div>
             )}
           </div>
@@ -1256,13 +1256,13 @@ export default function Home() {
             }}
           />
 
-          <div className="flex justify-center gap-2 mt-4">
+          <div className="flex justify-center gap-2 mt-3 sm:mt-4">
             {hasSearched && (
-              <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
+              <button onClick={resetSearch} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-bold min-h-[44px] sm:min-h-[48px] transition-colors">
                 <X className="w-4 h-4" /> {t.newSearch}
               </button>
             )}
-            <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
+            <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs sm:text-sm font-bold min-h-[44px] sm:min-h-[48px] transition-colors">
               {hasSearched ? t.scanSignShort : t.scanSign}
             </button>
           </div>
@@ -1279,7 +1279,7 @@ export default function Home() {
         {isLoading ? `Querying health department database for ${locationQuery || countyId}. Please wait…` : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 pb-20 pt-8" id="main-content" aria-label="Restaurant search results">
+      <main className="max-w-5xl mx-auto px-3 sm:px-4 pb-20 pt-6 sm:pt-8" id="main-content" aria-label="Restaurant search results">
         {!hasSearched && (
           <div className="space-y-8 mb-10">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ fontFamily: "Nunito, sans-serif" }}>
@@ -1288,8 +1288,8 @@ export default function Home() {
                 { emoji: "📋", title: t.feature2Title, desc: t.feature2Desc },
                 { emoji: "🛡️", title: t.feature3Title, desc: t.feature3Desc },
               ].map(({ emoji, title, desc }) => (
-                <div key={title} className="bg-white rounded-3xl border-2 border-slate-200 p-5 shadow-sm flex gap-4 items-start hover:border-[#4CAF50] hover:shadow-md transition-all">
-                  <span className="text-4xl flex-shrink-0">{emoji}</span>
+                <div key={title} className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex gap-3 sm:gap-4 items-start hover:border-[#4CAF50] hover:shadow-md transition-all">
+                  <span className="text-3xl sm:text-4xl flex-shrink-0">{emoji}</span>
                   <div>
                     <h3 className="font-black text-slate-900 text-sm mb-1">{title}</h3>
                     <p className="text-xs text-slate-500 leading-relaxed font-semibold">{desc}</p>
@@ -1298,25 +1298,25 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
                 { value: "18", label: t.statSources, emoji: "🟢" },
                 { value: "170+", label: t.statDepts, emoji: "🌍" },
                 { value: "A–F", label: t.statGrade, emoji: "📋" },
                 { value: "100%", label: t.statFree, emoji: "✅" },
               ].map(({ value, label, emoji }) => (
-                <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-extrabold text-slate-900">{emoji} {value}</p>
-                  <p className="text-xs text-slate-500 mt-0.5 font-medium">{label}</p>
+                <div key={label} className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 text-center shadow-sm">
+                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900">{emoji} {value}</p>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-medium">{label}</p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-slate-900 rounded-2xl p-5">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
-              <div className="flex flex-wrap justify-center gap-2">
+            <div className="bg-slate-900 rounded-2xl p-4 sm:p-5">
+              <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
+              <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
                 {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
-                  <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
+                  <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>
               <p className="text-center text-xs text-slate-500 mt-3">{t.liveDataDesc}</p>
@@ -1377,16 +1377,16 @@ export default function Home() {
                           />
                         </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-                          <div>
-                            <p className="text-sm font-extrabold text-slate-800">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm">
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-extrabold text-slate-800">
                               {t.foundResults(filteredAndSortedResults.length, searchQuery)}
                               {results.length !== filteredAndSortedResults.length ? t.filteredFrom(results.length) : ""}
                               {nearMeActive && <span className="ml-1 text-blue-600">{t.withinMiles}</span>}
                               {isRefining && <span className="ml-1 text-amber-600 animate-pulse">{t.verifying}</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                               {gradeFilter ? t.showingGrade(gradeFilter) + " · " : ""}
                               {t.sortedByHome}
                             </p>
@@ -1396,7 +1396,7 @@ export default function Home() {
                               </p>
                             )}
                           </div>
-                          <div className="flex gap-2 flex-wrap justify-end">
+                          <div className="flex gap-1.5 sm:gap-2 flex-wrap justify-start sm:justify-end">
                             <button
                               onClick={handleFindNearMe}
                               disabled={isGeolocating}
@@ -1448,15 +1448,15 @@ export default function Home() {
                           <div>
                             {filteredAndSortedResults.length > 20 ? (
                               <VirtualList
-                                height={Math.min(filteredAndSortedResults.length * 130, 800)}
+                                height={Math.min(filteredAndSortedResults.length * 120, 600)}
                                 itemCount={filteredAndSortedResults.length}
-                                itemSize={130}
+                                itemSize={120}
                                 width="100%"
                               >
                                 {({ index, style }) => {
                                   const r = filteredAndSortedResults[index];
                                   return (
-                                    <div style={{ ...style, paddingBottom: 12 }} key={r.business_id}>
+                                    <div style={{ ...style, paddingBottom: 10 }} key={r.business_id}>
                                       <RestaurantCard
                                         restaurant={r}
                                         onClick={() => handleSelectBusiness(r)}
@@ -1503,7 +1503,7 @@ export default function Home() {
                             {LIVE_API_CITIES.map(city => (
                               <button key={city.countyId}
                                 onClick={() => { regionRef.current = city.region; setRegion(city.region); countyIdRef.current = city.countyId; setCountyId(city.countyId); setLocationQuery(city.locationLabel || city.label); resetSearch(); }}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors">
+                                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold hover:bg-slate-700 transition-colors">
                                 {city.emoji} {city.label}
                               </button>
                             ))}
@@ -1513,7 +1513,7 @@ export default function Home() {
                     )}
                   </div>
                   <div className="lg:col-span-1">
-                    <div className="sticky top-6 space-y-3">
+                    <div className="lg:sticky lg:top-6 space-y-3">
                       <Suspense fallback={null}>
                         <ScoreLegend
                           activeGrade={gradeFilter}
@@ -1536,21 +1536,21 @@ export default function Home() {
       </main>
 
       {compareList.length >= 2 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4 max-w-lg w-[90vw]">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5 text-sm font-bold">
-              <GitCompareArrows className="w-4 h-4 text-blue-400" />
-              {t.compareSideBySide}
+        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 max-w-lg w-[92vw] sm:w-[90vw]">
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold">
+              <GitCompareArrows className="w-4 h-4 text-blue-400 flex-shrink-0" />
+              <span className="truncate">{t.compareSideBySide}</span>
             </div>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center gap-1 mt-1 overflow-hidden">
               {compareList.map((r) => (
-                <span key={r.business_id} className="text-[11px] bg-slate-700 px-2 py-0.5 rounded-lg truncate max-w-[100px]">{r.name}</span>
+                <span key={r.business_id} className="text-[10px] sm:text-[11px] bg-slate-700 px-2 py-0.5 rounded-lg truncate max-w-[70px] sm:max-w-[100px]">{r.name}</span>
               ))}
             </div>
           </div>
           <button
             onClick={() => setShowCompare(true)}
-            className="ml-auto bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+            className="ml-auto bg-blue-500 hover:bg-blue-400 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
           >
             {t.compareNow}
           </button>

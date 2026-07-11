@@ -110,27 +110,27 @@ export default function SmartSearchPanel({
   }, [onLocationChange, onRegionChange]);
 
   const fieldClass =
-    "w-full pl-12 pr-4 h-16 rounded-2xl border-2 border-white/20 bg-white/10 text-white placeholder:text-slate-300 text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
+    "w-full pl-11 sm:pl-12 pr-4 h-14 sm:h-16 rounded-2xl border-2 border-white/20 bg-white/10 text-white placeholder:text-slate-400 placeholder:text-sm sm:placeholder:text-base text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:bg-white/20 transition-all";
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-3">
 
       {/* Location field */}
-      <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
-        <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+      <div className="bg-white/10 border border-white/20 rounded-3xl p-3 sm:p-5">
+        <p className="text-[11px] sm:text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-1.5">
           <MapPin className="w-4 h-4" aria-hidden="true" /> Step 1 — Where are you eating?
         </p>
 
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
+            <MapPin className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4CAF50] pointer-events-none" aria-hidden="true" />
             <input
               ref={locInputRef}
               value={locationQuery}
               onChange={(e) => { onLocationChange(e.target.value); setShowLocDropdown(true); }}
               onFocus={() => setShowLocDropdown(true)}
               onBlur={handleLocationBlur}
-              placeholder="City, state, or country — e.g. New York, Tokyo, London…"
+              placeholder="City, state, or country…"
               className={fieldClass}
               aria-label="Location"
               autoComplete="new-password"
@@ -146,21 +146,21 @@ export default function SmartSearchPanel({
       </div>
 
       {/* Search field */}
-      <div className="bg-white/10 border border-white/20 rounded-3xl p-5">
-        <p className="text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+      <div className="bg-white/10 border border-white/20 rounded-3xl p-3 sm:p-5">
+        <p className="text-[11px] sm:text-xs font-extrabold text-[#81c784] uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-1.5">
           <Search className="w-4 h-4" aria-hidden="true" /> Step 2 — Search restaurant or food type
         </p>
         <form onSubmit={handleSubmit} role="search" aria-label="Search for restaurants">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" aria-hidden="true" />
+              <Search className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" aria-hidden="true" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={handleChange}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                placeholder={`Restaurant name or cuisine type — e.g. "McDonald's" or "sushi"`}
+                placeholder={`e.g. "McDonald's" or "sushi"`}
                 className={fieldClass}
                 aria-label="Search restaurants"
                 aria-autocomplete="list"
@@ -181,7 +181,7 @@ export default function SmartSearchPanel({
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="h-16 px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm min-w-[90px] transition-colors touch-manipulation text-base focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#4CAF50]"
+              className="h-14 sm:h-16 px-6 sm:px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm sm:min-w-[90px] transition-colors touch-manipulation text-base focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#4CAF50]"
               aria-label={isLoading ? "Searching, please wait" : "Search restaurants"}
               aria-busy={isLoading}
             >

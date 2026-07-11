@@ -15,26 +15,26 @@ export default function Layout({ children, currentPageName }) {
       <SkipToContent />
       {/* Navigation */}
       <nav className="bg-slate-900 border-b-4 border-[#4CAF50] sticky top-0 z-50" aria-label="Main navigation" style={{ fontFamily: "Nunito, sans-serif" }}>
-        <div className="max-w-5xl mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-between gap-2">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5">
+          <div className="flex items-center justify-between gap-1 sm:gap-2">
             {/* Logo — big & fun */}
             <a href="/" className="flex items-center gap-2 hover:scale-105 transition-transform flex-shrink-0" aria-label="SafeEats — Home">
-              <div className="w-9 h-9 rounded-2xl bg-[#4CAF50] flex items-center justify-center shadow-md border-2 border-white/20" aria-hidden="true">
-                <ShieldCheck className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#4CAF50] flex items-center justify-center shadow-md border-2 border-white/20" aria-hidden="true">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <span className="font-black text-xl text-white tracking-tight leading-none">SafeEats</span>
-                <div className="text-[9px] text-[#81c784] font-bold leading-none" aria-hidden="true">🛡️ Food Safety for Everyone</div>
+                <span className="font-black text-lg sm:text-xl text-white tracking-tight leading-none">SafeEats</span>
+                <div className="text-[8px] sm:text-[9px] text-[#81c784] font-bold leading-none hidden xs:block sm:block" aria-hidden="true">🛡️ Food Safety for Everyone</div>
               </div>
             </a>
-            {/* Nav links */}
-            <div className="flex items-center gap-0.5 flex-wrap justify-end" role="list">
+            {/* Nav links — icon-only on mobile, with labels on sm+ */}
+            <div className="flex items-center gap-0.5 justify-end" role="list">
 
-              <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span>About</span></Link></div>
-              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Database className="w-4 h-4" aria-hidden="true" /><span>Coverage</span></Link></div>
+              <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">About</span></Link></div>
+              <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Database className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Coverage</span></Link></div>
 
-              <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span>Codes</span></Link></div>
-              <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span>Contact</span></Link></div>
+              <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Codes</span></Link></div>
+              <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span className="hidden sm:inline">Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
             </div>
           </div>

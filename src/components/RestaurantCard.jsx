@@ -43,21 +43,21 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
       role="article"
       aria-label={`${name} — Grade ${grade}, safety score ${isUnknown ? "unknown" : `${safetyScore} out of 100`}`}
     >
-      <div className="flex items-stretch min-h-[90px]">
+      <div className="flex items-stretch min-h-[80px] sm:min-h-[90px]">
         {/* Grade block — BIG and obvious */}
         <div
-          className={`flex flex-col items-center justify-center px-4 py-3 flex-shrink-0 min-w-[80px] ${gradeColor}`}
+          className={`flex flex-col items-center justify-center px-3 sm:px-4 py-3 flex-shrink-0 min-w-[64px] sm:min-w-[80px] ${gradeColor}`}
           style={{ borderRadius: "18px 0 0 18px" }}
           aria-label={`Grade ${grade}${isUnknown ? " — no data" : `, score ${safetyScore} out of 100`}`}
         >
-          <span className="text-4xl font-black leading-none" aria-hidden="true">{grade}</span>
+          <span className="text-3xl sm:text-4xl font-black leading-none" aria-hidden="true">{grade}</span>
           <span className="text-[9px] font-extrabold mt-1 opacity-90 text-center leading-tight" aria-hidden="true">
             {isUnknown ? "NO DATA" : grade === "P" ? "PASS" : `${safetyScore}/100`}
           </span>
         </div>
 
         {/* Main content */}
-        <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-center">
+        <div className="flex-1 min-w-0 px-3 sm:px-4 py-3 flex flex-col justify-center">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className="font-extrabold text-slate-900 text-base leading-tight truncate">{name}</h3>
