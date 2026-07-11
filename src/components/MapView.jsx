@@ -12,7 +12,8 @@ L.Icon.Default.mergeOptions({
 });
 
 // ESRI diverging color ramp
-function getScoreColor(score) {
+function getScoreColor(score, grade) {
+  if (grade === "P") return "#14B8A6";
   if (score === null || score === undefined) return "#94a3b8";
   if (score >= 90) return "#1a9641";
   if (score >= 80) return "#a6d96a";
@@ -26,7 +27,9 @@ function getTextColor(score) {
   return score >= 70 && score < 80 ? "#555" : "#fff";
 }
 
-function getGradeLetter(score) {
+function getGradeLetter(score, grade) {
+  if (grade === "P") return "P";
+  if (grade === "U") return "?";
   if (score === null || score === undefined) return "?";
   if (score >= 90) return "A";
   if (score >= 80) return "B";
@@ -35,10 +38,10 @@ function getGradeLetter(score) {
   return "F";
 }
 
-function createColoredIcon(score, isSelected = false) {
-  const bg = getScoreColor(score);
+function createColoredIcon(score, gradeProp, isSelected = false) {
+  const bg = getScoreColor(score, gradeProp);
   const text = getTextColor(score);
-  const grade = getGradeLetter(score);
+  const grade = getGradeLetter(score, gradeProp);
   const size = isSelected ? 48 : 38;
   const borderWidth = isSelected ? 4 : 3;
   const fontSize = isSelected ? 16 : 13;
@@ -169,14 +172,14 @@ export default function MapView({ restaurants, onSelectRestaurant, onFilterByGra
         {validRestaurants.map((restaurant) => {
           const isSelected = restaurant.business_id === selectedId;
           const isPopupOpen = restaurant.business_id === popupId;
-          const bg = getScoreColor(restaurant.safetyScore);
-          const grade = getGradeLetter(restaurant.safetyScore);
+          const bg = getScoreColor(restaurant.safetyScore, restaurant.grade);
+          const grade = getGradeLetter(restaurant.safetyScore, restaurant.grade);
           const score = restaurant.safetyScore;
           return (
             <Marker
               key={`${restaurant.business_id}-${restaurant.latitude}`}
               position={[parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)]}
-              icon={createColoredIcon(restaurant.safetyScore, isSelected || isPopupOpen)}
+              icon={createColoredIcon(restaurant.safetyScore, restaurant.grade, isSelected || isPopupOpen)}
               zIndexOffset={isSelected || isPopupOpen ? 1000 : 0}
               eventHandlers={{
                 click: () => setPopupId(isPopupOpen ? null : restaurant.business_id),

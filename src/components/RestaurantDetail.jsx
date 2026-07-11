@@ -21,7 +21,7 @@ import SafetyFactors from "./SafetyFactors";
 import KofiButton from "./KofiButton";
 import DataSourceBadge from "./DataSourceBadge";
 import { base44 } from "@/api/base44Client";
-import { getGrade, getGradeColor } from "../utils/grading";
+import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
 import { translateViolation } from "../utils/violationTranslator";
 
@@ -122,7 +122,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
   const hasInspections = uniqueInspections.length > 0;
   const grade = (!hasInspections || restaurant.safetyScore === null || restaurant.safetyScore === undefined)
     ? "U"
-    : (restaurant.grade || getGrade(restaurant.safetyScore));
+    : (restaurant.grade || resolveGrade(restaurant.safetyScore, restaurant.latestResult));
   const latestDate = uniqueInspections[0]?.inspection_date;
   const totalRepeatCount = repeatCategories.size;
 
@@ -217,7 +217,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                   {grade}
                 </div>
                 <span className="text-xs font-bold text-slate-500 mt-1">
-                  {grade === "U" ? "No data" : `${hasInspections ? restaurant.safetyScore : "??"}/100`}
+                  {grade === "U" ? "No data" : grade === "P" ? "Passed" : `${hasInspections ? restaurant.safetyScore : "??"}/100`}
                 </span>
               </div>
               <div className="flex flex-col gap-1.5">

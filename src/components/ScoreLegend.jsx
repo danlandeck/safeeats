@@ -6,6 +6,7 @@ const levels = [
   { grade: "C", range: "70–79",  color: "bg-yellow-400", textColor: "text-slate-800", label: "C — Okay",      tip: "Some issues ⚠️" },
   { grade: "D", range: "60–69",  color: "bg-orange-400", textColor: "text-white",     label: "D — Poor",      tip: "Real problems 🔴" },
   { grade: "F", range: "0–59",   color: "bg-red-600",    textColor: "text-white",     label: "F — Critical",  tip: "Serious violations 🚨" },
+  { grade: "P", range: "Pass/Fail", color: "bg-teal-500", textColor: "text-white",    label: "P — Passed",    tip: "Met inspection standards ✅" },
   { grade: "U", range: "No data",color: "bg-slate-300",  textColor: "text-slate-700", label: "U — Unknown",   tip: "No records found ❓" },
 ];
 
@@ -54,7 +55,7 @@ export default function ScoreLegend({ activeGrade, onGradeFilter }) {
         </button>
       )}
       <p className="text-[10px] text-slate-400 mt-3 leading-relaxed border-t border-slate-100 pt-2">
-        Scores are normalized from official government records. The A–F scale lets you compare any restaurant, anywhere.
+        Scores are normalized from official government records. The A–F scale lets you compare any restaurant, anywhere. "P" means the jurisdiction uses Pass/Fail — the restaurant met minimum standards.
       </p>
     </div>
   );

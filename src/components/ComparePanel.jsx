@@ -3,7 +3,7 @@ import { X, Trophy, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ScoreGauge from "./ScoreGauge";
-import { getGrade, getGradeColor } from "../utils/grading";
+import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const VIOLATION_CATEGORIES = [
@@ -93,7 +93,7 @@ export default function ComparePanel({ restaurants, onClose, onViewDetail }) {
           {/* Restaurant headers */}
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${restaurants.length}, 1fr)` }}>
             {restaurants.map((r, i) => {
-              const grade = r.grade || getGrade(r.safetyScore);
+              const grade = r.grade || resolveGrade(r.safetyScore, r.latestResult);
               const isBest = r.business_id === best.business_id;
               return (
                 <div key={r.business_id} className={`rounded-2xl p-4 border-2 transition-all ${isBest ? "border-green-400 bg-green-50" : "border-slate-100 bg-slate-50"}`}>
@@ -133,7 +133,7 @@ export default function ComparePanel({ restaurants, onClose, onViewDetail }) {
             <div className="rounded-xl border border-slate-100 overflow-hidden">
               {[
                 { label: "Safety Score", getValue: (r) => r.safetyScore, isBetter: true },
-                { label: "Grade", getValue: (r) => r.grade || getGrade(r.safetyScore), isBetter: false, raw: true },
+                { label: "Grade", getValue: (r) => r.grade || resolveGrade(r.safetyScore, r.latestResult), isBetter: false, raw: true },
                 { label: "Inspections", getValue: (r) => r.totalInspections, isBetter: true },
                 { label: "Latest Result", getValue: (r) => r.latestResult || "—", isBetter: false, raw: true },
                 { label: "Violations", getValue: (r) => (r.violations || []).length, isBetter: false },

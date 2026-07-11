@@ -1,5 +1,5 @@
 import React from "react";
-import { getGrade, getGradeColor } from "../utils/grading";
+import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 
 const GRADE_MEANINGS = {
   A: { emoji: "🟢", label: "Excellent", blurb: "Super clean! Safe to eat." },
@@ -7,11 +7,12 @@ const GRADE_MEANINGS = {
   C: { emoji: "🟠", label: "Okay", blurb: "Some concerns. Look at the violations." },
   D: { emoji: "🔴", label: "Poor", blurb: "Real problems found. Be careful." },
   F: { emoji: "🚨", label: "Critical", blurb: "Serious violations. Avoid if possible." },
+  P: { emoji: "✅", label: "Passed", blurb: "Met health inspection standards." },
   U: { emoji: "❓", label: "Unknown", blurb: "No inspection data found yet." },
 };
 
 export default function GradeBadge({ score, grade: gradeProp, size = "md", showBlurb = false }) {
-  const grade = gradeProp || (score !== null && score !== undefined ? getGrade(score) : "U");
+  const grade = gradeProp || (score !== null && score !== undefined ? resolveGrade(score) : "U");
   const info = GRADE_MEANINGS[grade] || GRADE_MEANINGS["U"];
   const colorClass = getGradeColor(grade);
 

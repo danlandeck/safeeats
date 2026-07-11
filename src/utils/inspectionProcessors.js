@@ -1,4 +1,4 @@
-import { getGrade } from "./grading";
+import { getGrade, resolveGrade } from "./grading";
 import { standardizeDate, extractDate } from "./date";
 import { buildDetailRowsFromMap } from "./detailRowBuilder";
 
@@ -42,7 +42,7 @@ export function processKingCountyResults(data) {
     const latestResult = hasResult ? latest.result : "Unknown";
     const rowWithCoords = biz.allRows.find((r) => r.LATITUDE && r.LONGITUDE);
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      ...biz, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.LATITUDE, longitude: rowWithCoords?.LONGITUDE,
@@ -104,7 +104,7 @@ export function processNYCResults(data) {
     const latestResult = hasResult ? latest.result : "Unknown";
     const rowWithCoords = biz.allRows.find((r) => r.latitude && r.longitude);
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      ...biz, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.latitude, longitude: rowWithCoords?.longitude,
@@ -150,7 +150,7 @@ export function processChicagoResults(data) {
     const latest = biz.inspections[0];
     const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, latest?.result),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult: latest?.result,
       latitude: null, longitude: null, isLLMData: false, source: "chicago",
@@ -202,7 +202,7 @@ export function processMontgomeryResults(data) {
     const latest = biz.inspections[0];
     const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, latest?.result),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult: latest?.result,
       latitude: null, longitude: null, isLLMData: false, source: "montgomery",
@@ -297,7 +297,7 @@ export function buildLLMRestaurant(r, index, countyId, countyCity, fallbackScore
     name: r.name, address: r.address || "", city: r.city || countyCity,
     zip_code: r.zip_code || "", phone: r.phone || "", website: "", description: "",
     safetyScore,
-    grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+    grade: safetyScore !== null ? resolveGrade(safetyScore, r.latest_result || "") : "U",
     totalInspections,
     latestDate: r.latest_date || "", latestResult: r.latest_result || "",
     latitude: null, longitude: null,
@@ -410,7 +410,7 @@ export function processAustinResults(data) {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
     const safetyScore = Math.max(0, Math.min(100, 100 - (latest?.score || 0)));
-    return { ...biz, safetyScore, grade: getGrade(safetyScore), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: null, longitude: null, isLLMData: false, source: "austin", ada_compliance: "unknown" };
+    return { ...biz, safetyScore, grade: resolveGrade(safetyScore, latest?.result), totalInspections: biz.inspections.length, latestDate: latest?.date, latestResult: latest?.result, latitude: null, longitude: null, isLLMData: false, source: "austin", ada_compliance: "unknown" };
   });
 }
 
@@ -467,7 +467,7 @@ export function processSFResults(data) {
     const safetyScore = Math.max(0, Math.min(100, 100 - pts));
     const latestResult = isClosed ? "Closed" : isConditional ? "Conditional Pass" : "Pass";
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, latestResult),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date, latestResult,
       isLLMData: false, source: "sf", ada_compliance: "unknown",
@@ -572,7 +572,7 @@ export function processUKFSAResults(establishments) {
       website: "",
       description: est.BusinessType || "",
       safetyScore,
-      grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      grade: safetyScore !== null ? resolveGrade(safetyScore, ratingLabel) : "U",
       totalInspections: est.RatingDate ? 1 : 0,
       latestDate: est.RatingDate ? est.RatingDate.split("T")[0] : "",
       latestResult: ratingLabel,
@@ -659,7 +659,7 @@ export function processDelawareResults(data) {
     const violationCount = latest?.violations || 0;
     const safetyScore = violationCount === 0 ? 95 : violationCount <= 2 ? 80 : violationCount <= 5 ? 65 : violationCount <= 10 ? 50 : 30;
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, violationCount === 0 ? "Pass" : "Violations Found"),
       totalInspections: groups.length,
       latestDate: latest?.date,
       latestResult: violationCount === 0 ? "Pass" : "Violations Found",
@@ -735,7 +735,7 @@ export function processNYStateResults(data) {
     const pts = c * 7 + nc * 2; // weight criticals more
     const safetyScore = Math.max(0, Math.min(100, 100 - pts));
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, c === 0 && nc === 0 ? "Pass" : c > 0 ? `${c} critical violation${c !== 1 ? "s" : ""}` : "Violations Found"),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date,
       latestResult: c === 0 && nc === 0 ? "Pass" : c > 0 ? `${c} critical violation${c !== 1 ? "s" : ""}` : "Violations Found",
@@ -815,7 +815,7 @@ export function processTorontoResults(records) {
     const latestStatus = latest?.status || "";
     const latestResult = /closed/i.test(latestStatus) ? "Closed" : /conditional/i.test(latestStatus) ? "Conditional Pass" : "Pass";
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, latestResult),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date,
       latestResult,
@@ -897,7 +897,7 @@ export function processBostonResults(records) {
     const pts = (latest?.critical || 0) * 8 + (latest?.minor || 0) * 2;
     const safetyScore = Math.max(0, Math.min(100, 100 - pts));
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, latest?.result || "Unknown"),
       totalInspections: inspList.length,
       latestDate: latest?.date || "",
       latestResult: latest?.result || "Unknown",
@@ -979,7 +979,7 @@ export function processHoustonResults(records) {
     const safetyScore = Math.max(0, Math.min(100, 100 - pts * 4));
     const isPassing = /pass/i.test(latest?.status || "");
     return {
-      ...biz, safetyScore, grade: getGrade(safetyScore),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, isPassing ? "Pass" : "Fail"),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date || "",
       latestResult: isPassing ? "Pass" : "Fail",
@@ -1019,7 +1019,7 @@ export function processStanislausResults(facilities) {
       address: f.address,
       city: f.city.charAt(0) + f.city.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
       zip_code: "", phone: "", description: f.inspection_type || "",
-      safetyScore, grade: getGrade(safetyScore),
+      safetyScore, grade: resolveGrade(safetyScore, isClosed ? "Closed" : "Open / Pass"),
       totalInspections: 1,
       latestDate,
       latestResult: isClosed ? "Closed" : "Open / Pass",
@@ -1135,7 +1135,7 @@ export function processNSWResults(records, state = "NSW") {
     const safetyScore = !latest ? null : latest.isFail ? 45 : failCount === 0 ? 88 : 72;
     const latestResult = latest?.result || "Unknown";
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      ...biz, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
       totalInspections: biz.inspections.length,
       latestDate: latest?.date || "",
       latestResult,
@@ -1225,7 +1225,7 @@ export function processVancouverBCResults(facilities) {
         latitude: f.latitude ?? null,
         longitude: f.longitude ?? null,
         safetyScore: score,
-        grade: getGrade(score),
+        grade: resolveGrade(score, closed ? "Closed" : crit > 0 ? "Critical infractions found" : "Pass"),
         totalInspections: Number(f.numberOfInspections) || 0,
         latestDate: f.lastInspectionDate || "",
         latestResult: closed

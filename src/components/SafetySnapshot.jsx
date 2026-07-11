@@ -14,6 +14,13 @@ function getSnapshotData(score, grade, cleanStreak, repeatCount, totalInspection
       titleColor: "text-slate-700",
     };
   }
+  if (grade === "P") return {
+    emoji: "✅",
+    color: "bg-teal-50 border-teal-200",
+    title: "Passed inspection",
+    body: "This restaurant met health inspection standards. The jurisdiction uses a Pass/Fail system rather than a numeric score.",
+    titleColor: "text-teal-800",
+  };
   if (cleanStreak >= 3) return {
     emoji: "⭐",
     color: "bg-emerald-50 border-emerald-200",

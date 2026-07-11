@@ -54,9 +54,10 @@
         "C",
         "D",
         "F",
+        "P",
         "U"
       ],
-      "description": "Letter grade (U = unknown)"
+      "description": "Letter grade (P = Pass, U = unknown)"
     },
     "totalInspections": {
       "type": "number",

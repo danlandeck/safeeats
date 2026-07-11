@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle, ExternalLink } from "lucide-react";
 import { format, isValid } from "date-fns";
-import { getGrade, getGradeColor } from "../utils/grading";
+import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 
 import FailRiskBadge from "./FailRiskBadge";
 import DietaryBadges from "./DietaryBadges";
@@ -13,20 +13,21 @@ import DataSourceBadge from "./DataSourceBadge";
 
 
 
-const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", U: "❓" };
+const GRADE_EMOJIS = { A: "🟢", B: "🟡", C: "🟠", D: "🔴", F: "🚨", P: "✅", U: "❓" };
 const GRADE_LABELS = {
   A: "🌟 Super safe — eat here!",
   B: "😊 Pretty good — mostly safe",
   C: "🤔 Okay — a few things to know",
   D: "⚠️ Hmm — some real problems",
   F: "🚨 Careful — serious issues found",
+  P: "✅ Passed inspection — met health standards",
   U: "❓ Not sure yet — no data",
 };
 
 export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
-  const grade = isUnknown ? "U" : getGrade(safetyScore);
+  const grade = isUnknown ? "U" : (restaurant.grade || resolveGrade(safetyScore, restaurant.latestResult));
   const gradeColor = getGradeColor(grade);
   const gradeEmoji = GRADE_EMOJIS[grade] || "❓";
 
@@ -51,7 +52,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
         >
           <span className="text-4xl font-black leading-none" aria-hidden="true">{grade}</span>
           <span className="text-[9px] font-extrabold mt-1 opacity-90 text-center leading-tight" aria-hidden="true">
-            {isUnknown ? "NO DATA" : `${safetyScore}/100`}
+            {isUnknown ? "NO DATA" : grade === "P" ? "PASS" : `${safetyScore}/100`}
           </span>
         </div>
 
@@ -150,7 +151,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           )}
 
           {/* Warning strip for low grades */}
-          {(grade === "D" || grade === "F") && (
+          {(grade === "D" || grade === "F") && !restaurant.portal_url && (
             <div className="flex items-center gap-1.5 mt-2 bg-red-50 border-2 border-red-300 rounded-xl px-2 py-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
               <span className="text-[10px] font-extrabold text-red-700">

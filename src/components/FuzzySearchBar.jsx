@@ -11,7 +11,7 @@ import { Search, X } from "lucide-react";
  *   placeholder   — input placeholder text
  */
 
-const GRADE_ORDER = ["A", "B", "C", "D", "F", "U"];
+const GRADE_ORDER = ["A", "B", "C", "D", "F", "P", "U"];
 
 function buildIndex(docs) {
   const ms = new MiniSearch({

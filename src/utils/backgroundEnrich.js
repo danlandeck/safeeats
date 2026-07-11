@@ -1,5 +1,5 @@
 import { base44 } from "@/api/base44Client";
-import { getGrade } from "./grading";
+import { getGrade, resolveGrade } from "./grading";
 
 // ── Reusable background LLM enrichment ─────────────────────────────────────────
 // Same pattern as Pierce County: government data verifies the facility exists,
@@ -112,7 +112,7 @@ If you don't have data for a restaurant, OMIT it from the array.`;
       return {
         ...r,
         safetyScore: score,
-        grade: score !== null ? getGrade(score) : "U",
+        grade: score !== null ? resolveGrade(score, insp.latest_result || "") : "U",
         latestDate: insp.latest_date || r.latestDate || "",
         latestResult: insp.latest_result || r.latestResult || "",
         totalInspections: insp.total_inspections || r.totalInspections || (score !== null ? 1 : 0),
