@@ -65,10 +65,10 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div className="text-center md:text-right space-y-2">
               <KofiButton context="footer" />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-white font-bold">
                 © {new Date().getFullYear()} SafeEats. All rights reserved.
               </p>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-white font-bold">
                 Patent Pending | Multi-jurisdiction health data
               </p>
             </div>
