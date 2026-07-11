@@ -5,7 +5,7 @@
       "Jefferson": {
         "portal_url": "https://www.jcdh.org/SitePages/Programs-Services/Scores-Lists/Food/FoodServScores.aspx",
         "portal_name": "Jefferson County Dept of Health — Food Service Scores",
-        "cities": ["birmingham", "homewood", "hoover", "mountain brook", "vestavia hills", "trussville", "gardendale", "fultondale", "tarrant", "fairfield", "midfield", "bessemer", "brighton", " Lipscomb"]
+        "cities": ["birmingham", "homewood", "hoover", "mountain brook", "vestavia hills", "trussville", "gardendale", "fultondale", "tarrant", "fairfield", "midfield", "bessemer", "brighton", "lipscomb"]
       },
       "Mobile": {
         "portal_url": "https://mchd.org/restaurant-ratings-mobile/",
@@ -72,7 +72,7 @@
       "Santa Clara": {
         "portal_url": "https://deh.santaclaracounty.gov/consumers/food",
         "portal_name": "Santa Clara County Environmental Health — Food Facilities",
-        "cities": ["san jose", "sunnyvale", "santa clara", "mountain view", "palo alto", "cupertino", "milpitas", "gilroy", "morgan hill", "campbell", "los gatos", "sar atoga", "los altos", "morgan hill"]
+        "cities": ["san jose", "sunnyvale", "santa clara", "mountain view", "palo alto", "cupertino", "milpitas", "gilroy", "morgan hill", "campbell", "los gatos", "saratoga", "los altos", "morgan hill"]
       },
       "Fresno": {
         "portal_url": "https://www.fresnohealthinspections.com/",
@@ -268,7 +268,7 @@
       "Prince George's": {
         "portal_url": "https://data.princegeorgescountymd.gov/Health/Food-Inspection/umjn-t2iz",
         "portal_name": "Prince George's County — Food Inspection Search",
-        "cities": ["upper marlboro", "college park", "hyattsville", "greenbelt", "bowie", "laurel", "new Carrollton", "seat pleasant", "district heights", "fairmount heights", "glenarden", "bladensburg", "capitol heights", "landover hills", "mount rainier", "north brentwood", "riverdale park"]
+        "cities": ["upper marlboro", "college park", "hyattsville", "greenbelt", "bowie", "laurel", "new carrollton", "seat pleasant", "district heights", "fairmount heights", "glenarden", "bladensburg", "capitol heights", "landover hills", "mount rainier", "north brentwood", "riverdale park"]
       },
       "Anne Arundel": {
         "portal_url": "https://www.aahealth.org/environmental-health/food-protection",
@@ -340,7 +340,7 @@
       "St. Louis County": {
         "portal_url": "https://stlouiscountymo.gov/st-louis-county-departments/public-health/food-and-restaurants/inspections/",
         "portal_name": "St. Louis County — Food Inspections",
-        "cities": ["florissant", "chesterfield", "kirkwood", "university city", "clayton", " Maryland heights", "wildwood", "ballwin", "town and country", "creve coeur", "webster groves", "oakville", "affton", "ferguson", "hazelwood"]
+        "cities": ["florissant", "chesterfield", "kirkwood", "university city", "clayton", "maryland heights", "wildwood", "ballwin", "town and country", "creve coeur", "webster groves", "oakville", "affton", "ferguson", "hazelwood"]
       },
       "Jackson": {
         "portal_url": "https://www.kcmo.gov/city-hall/departments/health/restaurant-inspection-results",
@@ -380,7 +380,7 @@
       "Douglas": {
         "portal_url": "https://www.douglascountyfoodinspections.com/",
         "portal_name": "Douglas County — Restaurant Inspection Search",
-        "cities": ["omaha", "bennington", "boys town", "rston", "valley", "waterloo"]
+        "cities": ["omaha", "bennington", "boys town", "ralston", "valley", "waterloo"]
       },
       "Lancaster": {
         "portal_url": "https://www.lincoln.ne.gov/City/Departments/Health-Department/Environmental/Food-Safety/Food-Est-Inspection-Viewer",
@@ -400,7 +400,7 @@
       "Washoe": {
         "portal_url": "https://www.nnph.org/programs-and-services/environmental-health/food-protection-services/index.php",
         "portal_name": "Northern Nevada Public Health — Washoe Eats",
-        "cities": ["reno", "sparks", "sun valley", "spanish springs", "cold springs", "verdi", "washa valley", "incline village"]
+        "cities": ["reno", "sparks", "sun valley", "spanish springs", "cold springs", "verdi", "washoe valley", "incline village"]
       }
     }
   },
