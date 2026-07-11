@@ -929,7 +929,29 @@ export default function Home() {
       }
       break;
     }
-    // If no city matched, always reset to global — never reuse a stale city from a previous search
+    // If no city matched from the query text, try matching from the location field.
+    // This lets users type "Taco Bell" in search + "Seattle" in location → King County live API.
+    if (!cityMatched) {
+      const locWords = (locationQuery || "").toLowerCase().trim();
+      for (const key of sortedKeys) {
+        if (!locWords.includes(key)) continue;
+        const matched = CITY_TO_COUNTY[key];
+        if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
+          if (key !== 'newcastle') continue;
+        }
+        if (REGIONS[matched.region]) {
+          searchRegion = matched.region;
+          searchCounty = matched.countyId;
+          regionRef.current = searchRegion; setRegion(searchRegion);
+          countyIdRef.current = searchCounty; setCountyId(searchCounty);
+          if (matched.locationLabel) setLocationQuery(matched.locationLabel);
+          cityMatched = true;
+        }
+        break;
+      }
+    }
+
+    // If still no city matched, reset to global — never reuse a stale city from a previous search
     if (!cityMatched && (searchCounty === "global" || searchCounty === null)) {
       searchRegion = "global";
       searchCounty = "global";
@@ -937,17 +959,6 @@ export default function Home() {
       countyIdRef.current = "global"; setCountyId("global");
     }
     // If !cityMatched but searchCounty is already set to a real city, keep it as-is
-
-    // Strip the location string that SmartSearchPanel appended to the query.
-    // Without this, "Taco Bell" + location "Portland, OR" becomes the restaurant
-    // name query "Taco Bell Portland, OR" — which Google Places can't match.
-    // The location is already carried separately via locationCtx.
-    if (!cityMatched) {
-      const locTrimmed = locationQuery.trim();
-      if (locTrimmed && query.toLowerCase().endsWith(locTrimmed.toLowerCase())) {
-        query = query.slice(0, -locTrimmed.length).trim();
-      }
-    }
 
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
