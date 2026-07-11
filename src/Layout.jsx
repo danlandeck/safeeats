@@ -45,22 +45,22 @@ export default function Layout({ children, currentPageName }) {
       <main className="flex-1" id="main-content" tabIndex="-1">{children}</main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 border-t border-slate-800 text-slate-300 mt-auto">
+      <footer className="bg-slate-900 border-t border-slate-800 text-white mt-auto">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-                <ShieldCheck className="w-5 h-5 text-slate-400" />
+                <ShieldCheck className="w-5 h-5 text-white" />
                 <span className="font-extrabold text-white tracking-tight">SafeEats</span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-white font-bold">
                 Empowering informed dining decisions through transparency
               </p>
               <div className="flex gap-3 mt-2 flex-wrap">
-                <Link to="/About" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">About</Link>
+                <Link to="/About" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">About</Link>
 
-                <Link to="/global-coverage" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Coverage</Link>
-                <Link to="/contact" className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Contact</Link>
+                <Link to="/global-coverage" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Coverage</Link>
+                <Link to="/contact" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Contact</Link>
               </div>
             </div>
             <div className="text-center md:text-right space-y-2">
