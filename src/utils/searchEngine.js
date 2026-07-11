@@ -534,7 +534,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 
   // 24h result cache: repeat searches render instantly. Enriched results
   // overwrite grounded-only results as they land.
-  const seCacheKey = `se-ai-cache-v3:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
+  const seCacheKey = `se-ai-cache-v4:${(location || "global").toLowerCase()}:${query.toLowerCase().trim()}`;
   try {
     const hit = JSON.parse(localStorage.getItem(seCacheKey) || "null");
     const hitTtl = hit?.ttl || 5 * 60 * 1000;
