@@ -1,3 +1,5 @@
+import { HOME_TRANSLATIONS } from "./i18nHome";
+
 // Locale codes mapped per region key
 export const REGION_LOCALE = {
   // US states → English
@@ -420,6 +422,13 @@ export const TRANSLATIONS = {
     optgroupIntl: "🌐 Uluslararası",
   },
 };
+
+// Merge Home page translations into each language
+for (const lang of Object.keys(TRANSLATIONS)) {
+  if (HOME_TRANSLATIONS[lang]) {
+    Object.assign(TRANSLATIONS[lang], HOME_TRANSLATIONS[lang]);
+  }
+}
 
 export function getTranslations(regionKey) {
   const locale = REGION_LOCALE[regionKey] || "en";

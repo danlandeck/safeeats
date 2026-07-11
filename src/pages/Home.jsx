@@ -1190,33 +1190,33 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 sm:pt-14 sm:pb-10">
           <div className="text-center mb-7">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-xs font-bold px-3 py-1.5 rounded-full mb-4 tracking-wider uppercase">
-              🛡️ #1 Global Food Safety Platform · 74 Countries Covered
+              {t.heroBadge}
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight" dir={isRTL ? "rtl" : "ltr"} style={{ fontFamily: "Nunito, sans-serif" }}>
-              Is your restaurant
-              <span className="text-[#4CAF50]"> safe to eat at? 🍽️</span>
+              {t.headline1}
+              <span className="text-[#4CAF50]"> {t.headline2} 🍽️</span>
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-300 font-bold max-w-lg mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
-              Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️
+              {t.heroSub}
             </p>
 
             {!hasSearched && (
               <div className="flex items-center justify-center gap-2 mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
                 {[
-                  { g: "A", color: "bg-green-600 text-white", tip: "🌟 Amazing!" },
-                  { g: "B", color: "bg-lime-500 text-white", tip: "😊 Great!" },
-                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: "🤔 Okay" },
-                  { g: "D", color: "bg-orange-500 text-white", tip: "⚠️ Uh-oh" },
-                  { g: "F", color: "bg-red-600 text-white", tip: "🚨 Yikes!" },
-                  { g: "P", color: "bg-teal-500 text-white", tip: "✅ Passed" },
-                  { g: "U", color: "bg-slate-400 text-white", tip: "❓ Unknown" },
+                  { g: "A", color: "bg-green-600 text-white", tip: t.gradeA },
+                  { g: "B", color: "bg-lime-500 text-white", tip: t.gradeB },
+                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: t.gradeC },
+                  { g: "D", color: "bg-orange-500 text-white", tip: t.gradeD },
+                  { g: "F", color: "bg-red-600 text-white", tip: t.gradeF },
+                  { g: "P", color: "bg-teal-500 text-white", tip: t.gradeP },
+                  { g: "U", color: "bg-slate-400 text-white", tip: t.gradeU },
                 ].map(({ g, color, tip }) => (
                   <div key={g} className="flex flex-col items-center gap-1">
                     <span className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2 border-white/30 ${color}`}>{g}</span>
                     <span className="text-[10px] text-slate-300 font-extrabold">{tip}</span>
                   </div>
                 ))}
-                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">← how grades work</Link>
+                <Link to="/About#grading" className="text-slate-400 text-xs ml-1 hover:text-[#4CAF50] underline underline-offset-2 transition-colors font-bold">{t.howGradesWork}</Link>
               </div>
             )}
           </div>
@@ -1259,11 +1259,11 @@ export default function Home() {
           <div className="flex justify-center gap-2 mt-4">
             {hasSearched && (
               <button onClick={resetSearch} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold min-h-[48px] transition-colors">
-                <X className="w-4 h-4" /> New Search
+                <X className="w-4 h-4" /> {t.newSearch}
               </button>
             )}
             <button onClick={() => setShowScanner(true)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-sm font-bold min-h-[48px] transition-colors">
-              📷 {hasSearched ? "Scan Sign" : "Scan a Restaurant Sign"}
+              {hasSearched ? t.scanSignShort : t.scanSign}
             </button>
           </div>
 
@@ -1284,9 +1284,9 @@ export default function Home() {
           <div className="space-y-8 mb-10">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ fontFamily: "Nunito, sans-serif" }}>
               {[
-                { emoji: "🔍", title: "Search any restaurant!", desc: "Type a name, like \"McDonald's\" or just \"pizza\". It works anywhere in the world!" },
-                { emoji: "📋", title: "See the real grade", desc: "We grab actual health inspector reports — the same ones the inspectors write down." },
-                { emoji: "🛡️", title: "Eat with confidence!", desc: "Get A–F grades in plain English, plus the full list of what inspectors found." },
+                { emoji: "🔍", title: t.feature1Title, desc: t.feature1Desc },
+                { emoji: "📋", title: t.feature2Title, desc: t.feature2Desc },
+                { emoji: "🛡️", title: t.feature3Title, desc: t.feature3Desc },
               ].map(({ emoji, title, desc }) => (
                 <div key={title} className="bg-white rounded-3xl border-2 border-slate-200 p-5 shadow-sm flex gap-4 items-start hover:border-[#4CAF50] hover:shadow-md transition-all">
                   <span className="text-4xl flex-shrink-0">{emoji}</span>
@@ -1300,10 +1300,10 @@ export default function Home() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { value: "18", label: "Direct data sources", emoji: "🟢" },
-                { value: "170+", label: "Health departments", emoji: "🌍" },
-                { value: "A–F", label: "Universal grade", emoji: "📋" },
-                { value: "100%", label: "Free, always", emoji: "✅" },
+                { value: "18", label: t.statSources, emoji: "🟢" },
+                { value: "170+", label: t.statDepts, emoji: "🌍" },
+                { value: "A–F", label: t.statGrade, emoji: "📋" },
+                { value: "100%", label: t.statFree, emoji: "✅" },
               ].map(({ value, label, emoji }) => (
                 <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
                   <p className="text-2xl font-extrabold text-slate-900">{emoji} {value}</p>
@@ -1313,20 +1313,20 @@ export default function Home() {
             </div>
 
             <div className="bg-slate-900 rounded-2xl p-5">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">🟢 Cities with live government data (instant results)</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>
-              <p className="text-center text-xs text-slate-500 mt-3">🌍 Plus 150+ more cities across 74 countries — covered by AI-powered search of public health records. Just type any city or country!</p>
+              <p className="text-center text-xs text-slate-500 mt-3">{t.liveDataDesc}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/About" className="flex-1 max-w-md mx-auto sm:mx-0">
                 <div className="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-[#4CAF50] hover:shadow-md transition-all text-center sm:text-left">
-                  <p className="font-extrabold text-slate-900 text-sm">📖 The Full Story</p>
-                  <p className="text-xs text-slate-500 mt-0.5">How every grade is earned, our trust controls, and enterprise & API — all in one place.</p>
+                  <p className="font-extrabold text-slate-900 text-sm">{t.fullStoryTitle}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{t.fullStoryDesc}</p>
                 </div>
               </Link>
             </div>
@@ -1361,9 +1361,9 @@ export default function Home() {
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                           <span className="text-3xl">⚠️</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-700">Search Unavailable</h3>
+                        <h3 className="text-lg font-semibold text-slate-700">{t.searchUnavailable}</h3>
                         <p className="text-sm text-slate-400 mt-1 mb-4">{searchError}</p>
-                        <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors">Try Again</button>
+                        <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors">{t.tryAgain}</button>
                       </div>
                     ) : results.length > 0 ? (
                       <div>
@@ -1380,20 +1380,19 @@ export default function Home() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                           <div>
                             <p className="text-sm font-extrabold text-slate-800">
-                              Found {filteredAndSortedResults.length} restaurant{filteredAndSortedResults.length !== 1 ? "s" : ""}
-                              {results.length !== filteredAndSortedResults.length ? ` (filtered from ${results.length})` : ""}
-                              {searchQuery ? ` for "${searchQuery}"` : ""}
-                              {nearMeActive && <span className="ml-1 text-blue-600"> · within 5 miles</span>}
-                              {isRefining && <span className="ml-1 text-amber-600 animate-pulse"> · verifying with live web search…</span>}
+                              {t.foundResults(filteredAndSortedResults.length, searchQuery)}
+                              {results.length !== filteredAndSortedResults.length ? t.filteredFrom(results.length) : ""}
+                              {nearMeActive && <span className="ml-1 text-blue-600">{t.withinMiles}</span>}
+                              {isRefining && <span className="ml-1 text-amber-600 animate-pulse">{t.verifying}</span>}
                             </p>
                             {nearMeError && <p className="text-xs text-red-500 mt-0.5">{nearMeError}</p>}
                             <p className="text-xs text-slate-400 mt-0.5">
-                              {gradeFilter ? `Showing Grade ${gradeFilter} only · ` : ""}
-                              Sorted by safety score — tap any restaurant to see its full history
+                              {gradeFilter ? t.showingGrade(gradeFilter) + " · " : ""}
+                              {t.sortedByHome}
                             </p>
                             {results.some(r => r.data_fetch_notes) && (
                               <p className="text-[11px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
-                                ⚠️ Some results have data source notes — tap a restaurant to see why a score may be missing or estimated.
+                                {t.dataNotesWarn}
                               </p>
                             )}
                           </div>
@@ -1406,13 +1405,13 @@ export default function Home() {
                               }`}
                             >
                               {isGeolocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
-                              {nearMeActive ? "📍 Near Me ON" : "📍 Near Me"}
+                              {nearMeActive ? t.nearMeOn : t.nearMe}
                             </button>
                             <button onClick={() => setViewMode("list")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "list" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
-                              📋 List
+                              {t.listBtn}
                             </button>
                             <button onClick={viewMode !== "map" ? () => { handleSwitchToMap(); handleGeocodedMapSwitch(filteredAndSortedResults); } : undefined} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${viewMode === "map" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}>
-                              🗺️ Map
+                              {t.mapBtn}
                             </button>
                           </div>
                         </div>
@@ -1425,11 +1424,11 @@ export default function Home() {
                             <div className="flex items-start gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs text-slate-600">
                               <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-600 mt-0.5" />
                               <p className="leading-relaxed">
-                                {hasLive && !hasLLM && "✅ All results below are live, real-time data from official government health department APIs — fully authoritative."}
-                                {hasLLM && !hasLive && "🔍 Results below were verified via live web search of public health records by AI (Gemini 3 Flash). Each card shows its confidence level. Always verify with the official source before deciding."}
-                                {hasLive && hasLLM && "📊 Results below combine live government API data (green badge) with AI web-search verified data (blue/amber badge). Tap any restaurant to see its full source of truth."}
+                                {hasLive && !hasLLM && t.transparencyAllLive}
+                                {hasLLM && !hasLive && t.transparencyAllAI}
+                                {hasLive && hasLLM && t.transparencyMixed}
                                 {" "}
-                                <Link to="/About" className="text-blue-600 hover:underline font-semibold">How does this work?</Link>
+                                <Link to="/About" className="text-blue-600 hover:underline font-semibold">{t.howDoesThisWork}</Link>
                               </p>
                             </div>
                           );
@@ -1489,17 +1488,17 @@ export default function Home() {
                     ) : (
                       <div className="text-center py-14 bg-white rounded-2xl border border-slate-200 shadow-sm">
                         <span className="text-5xl">🤷</span>
-                        <h3 className="text-lg font-extrabold text-slate-800 mt-4">Nothing found for "{searchQuery}"</h3>
+                        <h3 className="text-lg font-extrabold text-slate-800 mt-4">{t.noResultsTitle(searchQuery)}</h3>
                         <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">
-                          Try a different spelling, a broader word (like "pizza" or "chicken"), or make sure your location is right.
+                          {t.noResultsDesc}
                         </p>
                         {locationQuery && (
                           <p className="text-xs text-slate-400 mt-2">
-                            📍 You searched in: <span className="font-bold text-slate-600">{locationQuery}</span>
+                            {t.youSearchedIn} <span className="font-bold text-slate-600">{locationQuery}</span>
                           </p>
                         )}
                         <div className="mt-6">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Try one of these cities with live data:</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t.tryLiveCities}</p>
                           <div className="flex flex-wrap justify-center gap-2">
                             {LIVE_API_CITIES.map(city => (
                               <button key={city.countyId}
@@ -1523,8 +1522,8 @@ export default function Home() {
                       </Suspense>
                       {gradeFilter && (
                         <div className="bg-slate-100 rounded-xl px-3 py-2 text-xs text-slate-600 font-semibold flex items-center justify-between">
-                          <span>Showing Grade {gradeFilter} only</span>
-                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">Clear</button>
+                          <span>{t.showingGrade(gradeFilter)}</span>
+                          <button onClick={() => setGradeFilter(null)} className="text-blue-600 hover:underline ml-2">{t.clear}</button>
                         </div>
                       )}
                     </div>
@@ -1541,7 +1540,7 @@ export default function Home() {
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 text-sm font-bold">
               <GitCompareArrows className="w-4 h-4 text-blue-400" />
-              Compare Side-by-Side
+              {t.compareSideBySide}
             </div>
             <div className="flex items-center gap-1 mt-1">
               {compareList.map((r) => (
@@ -1553,7 +1552,7 @@ export default function Home() {
             onClick={() => setShowCompare(true)}
             className="ml-auto bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
           >
-            ⚖️ Compare Now
+            {t.compareNow}
           </button>
           <button onClick={() => setCompareList([])} title="Clear comparison" className="text-slate-400 hover:text-white transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
