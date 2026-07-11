@@ -972,7 +972,7 @@ export default function Home() {
 
     setIsLoading(true);
     setHasSearched(true);
-    setSearchQuery(rawQuery);
+    setSearchQuery(query);
     setSelectedBusiness(null);
     setViewMode("list");
     setSearchError("");
