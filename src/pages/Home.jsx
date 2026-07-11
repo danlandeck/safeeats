@@ -906,45 +906,12 @@ export default function Home() {
       const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return new RegExp(`(?:^|[\\s,])${escaped}(?:[\\s,]|$)`, 'i').test(text);
     };
-    // Only auto-detect city from query text when the user hasn't already
-    // specified a location. Otherwise city names like "Bell" (LA County) get
-    // stripped from restaurant names like "Taco Bell", leaving just "Taco".
-    const hasLocationSpecified = (locationQuery || "").trim() && (locationQuery || "").trim() !== "Worldwide (AI Search)";
+    // ── Location is determined SOLELY from the location field, never from the
+    // restaurant name. The two prompts exist for a reason: location = where,
+    // restaurant = what. This prevents city names like "Bell" (LA County) from
+    // being stripped out of restaurant names like "Taco Bell". ──
     let cityMatched = false;
-    if (!hasLocationSpecified) {
-      for (const key of sortedKeys) {
-        if (!matchesKey(queryWords, key)) continue;
-
-        const matched = CITY_TO_COUNTY[key];
-
-        // If the user typed a US state abbr, skip non-US matches for ambiguous city names.
-        if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
-          if (key !== 'newcastle') continue;
-        }
-
-        if (REGIONS[matched.region]) {
-          searchRegion = matched.region;
-          searchCounty = matched.countyId;
-          regionRef.current = searchRegion; setRegion(searchRegion);
-          countyIdRef.current = searchCounty; setCountyId(searchCounty);
-          if (matched.locationLabel) setLocationQuery(matched.locationLabel);
-          query = rawQuery
-            .replace(new RegExp(key, "i"), "")               // strip city name
-            .replace(/,?\s*\b[A-Z]{2}\b\s*$/i, "")          // strip trailing state abbr e.g. ", WA"
-            .replace(/\s+\b(in|at|near|of|the)\b\s*$/i, "") // strip trailing prepositions
-            .replace(/^\s*\b(in|at|near)\b\s+/i, "")        // strip leading prepositions
-            .trim()
-            .replace(/^[,\s]+/, "")   // strip leading commas/spaces
-            .replace(/[,\s]+$/, "")   // strip trailing commas/spaces
-            .trim() || rawQuery;
-          cityMatched = true;
-        }
-        break;
-      }
-    }
-    // If no city matched from the query text, try matching from the location field.
-    // This lets users type "Taco Bell" in search + "Seattle" in location → King County live API.
-    if (!cityMatched) {
+    {
       const locWords = (locationQuery || "").toLowerCase().trim();
       for (const key of sortedKeys) {
         if (!matchesKey(locWords, key)) continue;
@@ -964,41 +931,13 @@ export default function Home() {
       }
     }
 
-    // If no city matched from query text OR location field, reset to global.
-    // This prevents a stale countyId from a previous search (e.g. "king" for Seattle)
-    // from leaking into a new search when the user types a different city (e.g. "Portland, OR").
+    // If no city matched from the location field, reset to global.
     // The Places-grounded fallback in aiSearchFallback handles any city worldwide.
     if (!cityMatched) {
       searchRegion = "global";
       searchCounty = "global";
       regionRef.current = "global"; setRegion("global");
       countyIdRef.current = "global"; setCountyId("global");
-    }
-
-    // ── Clean the query: strip any location text that leaked into the search bar ──
-    // Users often type "Taco Bell Portland, OR" all in the search field. The query
-    // sent to the API and displayed in the header should be just "Taco Bell".
-    if (!cityMatched) {
-      // 1) If the location field has a value, strip it from the query
-      const locVal = (locationQuery || "").trim();
-      if (locVal) {
-        const escaped = locVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const cleaned = query.replace(new RegExp(',?\\s*' + escaped, 'i'), '').replace(/[,\s]+$/, '').replace(/^[,\s]+/, '').trim();
-        if (cleaned && cleaned.length >= 2) query = cleaned;
-      }
-      // 2) If the query still ends with ", ST" (US state abbreviation), extract and strip it
-      //    e.g. "Taco Bell Portland, OR" → extract "Portland, OR" as location, strip to "Taco Bell"
-      const stateSuffix = query.match(/^(.+)\s+([A-Za-z .]+),\s*([A-Z]{2})\s*$/);
-      if (stateSuffix) {
-        const extractedLocation = `${stateSuffix[2].trim()}, ${stateSuffix[3]}`;
-        const cleaned = stateSuffix[1].trim();
-        if (cleaned && cleaned.length >= 2) {
-          query = cleaned;
-          if (!locVal) {
-            setLocationQuery(extractedLocation);
-          }
-        }
-      }
     }
 
     if (abortRef.current) abortRef.current.abort();
