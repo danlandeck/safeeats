@@ -898,12 +898,10 @@ export default function Home() {
     const queryTokens = queryWords.split(/[\s,]+/).filter(Boolean);
     const hasUSStateAbbr = queryTokens.some(tok => US_STATE_ABBR.has(tok));
 
-    const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const sortedKeys = Object.keys(CITY_TO_COUNTY).sort((a, b) => b.length - a.length);
     let cityMatched = false;
     for (const key of sortedKeys) {
-      // Word-boundary match prevents "la" matching inside "portland", etc.
-      if (!new RegExp(`\\b${escapeRegExp(key)}\\b`).test(queryWords)) continue;
+      if (!queryWords.includes(key)) continue;
 
       const matched = CITY_TO_COUNTY[key];
 
