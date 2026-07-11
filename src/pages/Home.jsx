@@ -1189,6 +1189,7 @@ export default function Home() {
                   { g: "C", color: "bg-yellow-400 text-slate-800", tip: "🤔 Okay" },
                   { g: "D", color: "bg-orange-500 text-white", tip: "⚠️ Uh-oh" },
                   { g: "F", color: "bg-red-600 text-white", tip: "🚨 Yikes!" },
+                  { g: "P", color: "bg-teal-500 text-white", tip: "✅ Passed" },
                   { g: "U", color: "bg-slate-400 text-white", tip: "❓ Unknown" },
                 ].map(({ g, color, tip }) => (
                   <div key={g} className="flex flex-col items-center gap-1">
