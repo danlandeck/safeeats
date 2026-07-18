@@ -12,6 +12,7 @@ import {
   processFVHDResults, processDCResults, processFloridaResults,
   processGeorgiaResults, processIllinoisCDPResults, processIndianaMarionResults,
   processUKFSAResults, llmToDetailRows, buildLLMRestaurant,
+  processMississippiResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -661,6 +662,21 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const facilities = res.data?.facilities || [];
       const liveResults = rankByQueryRelevance(
         filterByNameRelevance(processIndianaMarionResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Mississippi — state-wide MSDH
+  if (countyId === "mississippi") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("mississippiInspections", { action: "search", query: nameQuery });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processMississippiResults(facilities), nameQuery),
         nameQuery, locationHint
       );
       if (liveResults.length > 0) return { results: liveResults, isAI: false };

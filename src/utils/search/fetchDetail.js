@@ -9,6 +9,7 @@ import {
   maricopaToDetailRows, tacomaPierceToDetailRows, snhdToDetailRows,
   houstonToDetailRows, wakeCountyToDetailRows, louisvilleToDetailRows,
   ukFSAToDetailRows, delawareToDetailRows,
+  mississippiToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -54,6 +55,13 @@ export async function fetchDetail(restaurant) {
   if (source === "fvhd") return fvhdToDetailRows(restaurant);
   if (source === "dc") return dcToDetailRows(restaurant);
   if (source === "georgia") return georgiaToDetailRows(restaurant);
+
+  if (source === "mississippi") {
+    try {
+      const res = await base44.functions.invoke("mississippiInspections", { action: "detail", pimsId: business_id });
+      return mississippiToDetailRows(res.data?.detail || []);
+    } catch { return []; }
+  }
 
   if (source === "florida") {
     try {

@@ -54,6 +54,12 @@ const SOURCE_INFO = {
   kansas:          { dept: "Kansas Dept of Agriculture (KDA)",             type: "ai",           icon: "☀️" },
   kentucky:        { dept: "Kentucky Local Health Departments",            type: "ai",           icon: "🐎" },
   louisiana:       { dept: "Louisiana Dept of Health (LDH)",              type: "ai",           icon: "🎷" },
+  mississippi:     { dept: "Mississippi State Dept of Health (MSDH)",      type: "backend_proxy", icon: "🎵" },
+  maine:           { dept: "Maine CDC Health Inspection Program",          type: "ai",           icon: "🦞" },
+  michigan:        { dept: "Michigan Local Health Agencies",               type: "ai",           icon: "🏭" },
+  minnesota:       { dept: "Minnesota Dept of Health (MDH)",              type: "ai",           icon: " hockey" },
+  missouri:        { dept: "Missouri Local Public Health Agencies",        type: "ai",           icon: " arch" },
+  montana:         { dept: "Montana DPHHS Environmental Health",           type: "ai",           icon: "🏔️" },
 };
 
 const TYPE_META = {

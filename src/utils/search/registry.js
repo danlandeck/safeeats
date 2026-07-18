@@ -10,6 +10,7 @@ import {
   processFVHDResults, processDCResults, processFloridaResults,
   processGeorgiaResults, processIllinoisCDPResults, processIndianaMarionResults,
   processBRLAResults,
+  processMississippiResults,
   kingToDetailRows, nycToDetailRows, chicagoToDetailRows,
   montgomeryToDetailRows, austinToDetailRows, sfToDetailRows, laToDetailRows,
   delawareToDetailRows, nyStateToDetailRows, torontoToDetailRows,
@@ -17,6 +18,7 @@ import {
   triCountyCoToDetailRows, fvhdToDetailRows, dcToDetailRows,
   floridaToDetailRows, illinoisCDPToDetailRows, indianaMarionToDetailRows,
   brlaToDetailRows,
+  mississippiToDetailRows,
 } from "../inspectionProcessors";
 
 export const PROCESSORS = {
@@ -36,6 +38,7 @@ export const PROCESSORS = {
   illinois_cdp:     { process: processIllinoisCDPResults,   toDetailRows: illinoisCDPToDetailRows },
   indiana_marion:   { process: processIndianaMarionResults, toDetailRows: indianaMarionToDetailRows },
   brla:             { process: processBRLAResults,         toDetailRows: brlaToDetailRows },
+  mississippi:      { process: processMississippiResults,  toDetailRows: mississippiToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
 };
 
@@ -65,4 +68,5 @@ export const SOURCE_TO_COUNTY = {
   illinois_cdp: "illinois_cdp",
   indiana_marion: "indiana_marion",
   brla: "brla",
+  mississippi: "mississippi",
 };

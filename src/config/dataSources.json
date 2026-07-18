@@ -346,22 +346,22 @@
     "default": "none"
   },
   "ME": {
-    "none": true
+    "default": "none"
   },
   "MI": {
-    "none": true
+    "default": "none"
   },
   "MN": {
-    "none": true
+    "default": "none"
   },
   "MS": {
-    "none": true
+    "default": "mississippi"
   },
   "MO": {
-    "none": true
+    "default": "none"
   },
   "MT": {
-    "none": true
+    "default": "none"
   },
   "NE": {
     "none": true
