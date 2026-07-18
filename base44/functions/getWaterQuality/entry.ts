@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const ENVIROFACTS_BASE = "https://data.epa.gov/efservice";
+const ENVIROFACTS_BASE = "https://data.epa.gov/dmapservice";
 
 // Filter out private/small systems that don't represent city water
 const PRIVATE_SYSTEM_REGEX = /(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP|MANOR|SUBDIVISION|HOA)/i;
@@ -268,18 +268,13 @@ function normalizeCity(city) {
 }
 
 async function fetchSystemByPwsid(pwsid) {
-  // Try both URL formats — EPA API is inconsistent between tables
-  for (const url of [
-    `${ENVIROFACTS_BASE}/WATER_SYSTEM/PWSID/=${encodeURIComponent(pwsid)}/JSON`,
-    `${ENVIROFACTS_BASE}/WATER_SYSTEM/PWSID/${encodeURIComponent(pwsid)}/JSON`,
-  ]) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data[0];
-    } catch {}
-  }
+  const url = `${ENVIROFACTS_BASE}/sdwis.water_system/pwsid/equals/${encodeURIComponent(pwsid)}/json`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) return data[0];
+  } catch {}
   return null;
 }
 
@@ -299,7 +294,7 @@ async function findWaterSystemByCity(city, state) {
   const cityUpper = normalized.toUpperCase();
 
   // City-based lookup with private system filtering (returns largest public utility)
-  const url = `${ENVIROFACTS_BASE}/WATER_SYSTEM/PRIMACY_AGENCY_CODE/${stateUpper}/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/CITY_NAME/${encodeURIComponent(cityUpper)}/JSON`;
+  const url = `${ENVIROFACTS_BASE}/sdwis.water_system/primacy_agency_code/equals/${stateUpper}/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/and/city_name/equals/${encodeURIComponent(cityUpper)}/json`;
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
@@ -324,7 +319,7 @@ async function findWaterSystemByCounty(countyName, state) {
   // NOTE: COUNTY_SERVED on the WATER_SYSTEM table is silently ignored by the
   // EPA API (verified: it returns all systems in the state). County data lives
   // in the GEOGRAPHIC_AREA table; join it to WATER_SYSTEM for name/population.
-  const url = `${ENVIROFACTS_BASE}/GEOGRAPHIC_AREA/AREA_TYPE_CODE/CN/COUNTY_SERVED/${encodeURIComponent(countyUpper)}/PRIMACY_AGENCY_CODE/${stateUpper}/WATER_SYSTEM/PWS_ACTIVITY_CODE/A/PWS_TYPE_CODE/CWS/JSON`;
+  const url = `${ENVIROFACTS_BASE}/sdwis.GEOGRAPHIC_AREA/area_type_code/equals/CN/and/county_served/equals/${encodeURIComponent(countyUpper)}/and/primacy_agency_code/equals/${stateUpper}/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/join/sdwis.water_system/json`;
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = await res.json();
@@ -337,7 +332,7 @@ async function getViolations(pwsid) {
   // Fetch ALL violations, not just health-based ones. Monitoring/reporting
   // violations mean the system skipped required tests — and a system that
   // doesn't test can't generate health violations. Silence ≠ safety.
-  const url = `${ENVIROFACTS_BASE}/VIOLATION/PWSID/${pwsid}/JSON`;
+  const url = `${ENVIROFACTS_BASE}/sdwis.VIOLATION/pwsid/equals/${pwsid}/json`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();

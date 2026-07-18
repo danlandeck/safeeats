@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const EPA_BASE = "https://data.epa.gov/dmapservice";
+
 // Verified PWSIDs for major US cities — bypasses unreliable EPA broad searches
 const CITY_PWSID = {
   "MANCHESTER|CT": "CT0770021",       // Manchester Water Department
@@ -49,6 +51,11 @@ function titleCase(str) {
   return (str || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).trim();
 }
 
+// Case-insensitive field access — new EPA dmapservice API returns lowercase column names
+function gv(row, field) {
+  return row?.[field] ?? row?.[field.toLowerCase()] ?? null;
+}
+
 async function fetchEPA(url) {
   const res = await fetch(url, { headers: { Accept: "application/json" } });
   if (!res.ok) throw new Error(`EPA HTTP ${res.status}`);
@@ -59,13 +66,18 @@ async function getViolations(pwsid) {
   try {
     const since = new Date();
     since.setFullYear(since.getFullYear() - 10);
-    const sinceStr = since.toISOString().slice(0, 10).replace(/-/g, "");
-    const rows = await fetchEPA(`https://data.epa.gov/efservice/VIOLATION/PWSID/=/${pwsid}/COMPL_PER_BEGIN_DATE/>=/${sinceStr}/JSON`);
+    const sinceStr = since.toISOString().slice(0, 10);
+    const rows = await fetchEPA(`${EPA_BASE}/sdwis.VIOLATION/pwsid/equals/${pwsid}/json`);
     if (!Array.isArray(rows)) return { total: 0, healthBased: 0, unresolved: 0 };
+    // Filter by date client-side (new API doesn't support date comparison operators)
+    const recent = rows.filter(v => {
+      const d = gv(v, "COMPL_PER_BEGIN_DATE");
+      return d && d.slice(0, 10) >= sinceStr;
+    });
     return {
-      total: rows.length,
-      healthBased: rows.filter(v => ["MCL","MRDL","TT"].includes(v.VIOLATION_CATEGORY_CODE)).length,
-      unresolved: rows.filter(v => ["Unaddressed","Addressed"].includes(v.VIOLATION_STATUS)).length,
+      total: recent.length,
+      healthBased: recent.filter(v => ["MCL","MRDL","TT"].includes(gv(v, "VIOLATION_CATEGORY_CODE"))).length,
+      unresolved: recent.filter(v => ["Unaddressed","Addressed"].includes(gv(v, "VIOLATION_STATUS"))).length,
     };
   } catch {
     return { total: 0, healthBased: 0, unresolved: 0 };
@@ -74,14 +86,14 @@ async function getViolations(pwsid) {
 
 function buildResult(system, violations) {
   return {
-    pwsid: system.PWSID,
-    name: titleCase(system.PWS_NAME || ""),
-    sourceType: SOURCE_LABELS[system.PRIMARY_SOURCE_CODE] || "Unknown",
-    populationServed: Number(system.POPULATION_SERVED_COUNT) || 0,
+    pwsid: gv(system, "PWSID"),
+    name: titleCase(gv(system, "PWS_NAME") || ""),
+    sourceType: SOURCE_LABELS[gv(system, "PRIMARY_SOURCE_CODE")] || "Unknown",
+    populationServed: Number(gv(system, "POPULATION_SERVED_COUNT")) || 0,
     violationsTotal: violations.total,
     violationsHealthBased: violations.healthBased,
     violationsUnresolved: violations.unresolved,
-    sourceUrl: `https://enviro.epa.gov/enviro/sdw_form_v3.create_page?pwsid=${system.PWSID}`,
+    sourceUrl: `https://enviro.epa.gov/enviro/sdw_form_v3.create_page?pwsid=${gv(system, "PWSID")}`,
   };
 }
 
@@ -109,7 +121,7 @@ Deno.serve(async (req) => {
 
     if (pwsid) {
       try {
-        const rows = await fetchEPA(`https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/PWSID/=/${pwsid}/JSON`);
+        const rows = await fetchEPA(`${EPA_BASE}/sdwis.water_system/pwsid/equals/${pwsid}/json`);
         if (Array.isArray(rows) && rows.length > 0) {
           const violations = await getViolations(pwsid);
           return Response.json(buildResult(rows[0], violations));
@@ -122,15 +134,15 @@ Deno.serve(async (req) => {
     // STEP 2: City-based fallback with strict filtering against private wells
     try {
       const cityEncoded = cityClean.replace(/\s+/g, "%20");
-      const rows = await fetchEPA(`https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/CITY_SERVED/=/${cityEncoded}/PRIMACY_AGENCY_CODE/=/${state}/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON`);
+      const rows = await fetchEPA(`${EPA_BASE}/sdwis.water_system/primacy_agency_code/equals/${state}/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/and/city_name/equals/${cityEncoded}/json`);
       if (Array.isArray(rows)) {
         const filtered = rows
-          .map(r => ({ ...r, _pop: Number(r.POPULATION_SERVED_COUNT) || 0 }))
+          .map(r => ({ ...r, _pop: Number(gv(r, "POPULATION_SERVED_COUNT")) || 0 }))
           .filter(r => r._pop >= 1000)
-          .filter(r => !/(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP)/i.test(r.PWS_NAME || ""))
+          .filter(r => !/(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP)/i.test(gv(r, "PWS_NAME") || ""))
           .sort((a, b) => b._pop - a._pop);
         if (filtered.length > 0) {
-          const violations = await getViolations(filtered[0].PWSID);
+          const violations = await getViolations(gv(filtered[0], "PWSID"));
           return Response.json(buildResult(filtered[0], violations));
         }
       }
@@ -141,15 +153,15 @@ Deno.serve(async (req) => {
     // STEP 3: ZIP code last resort
     if (zip_code) {
       try {
-        const rows = await fetchEPA(`https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/ZIP_CODE/=/${zip_code}/PRIMACY_AGENCY_CODE/=/${state}/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON`);
+        const rows = await fetchEPA(`${EPA_BASE}/sdwis.water_system/primacy_agency_code/equals/${state}/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/and/zip_code/equals/${zip_code}/json`);
         if (Array.isArray(rows)) {
           const filtered = rows
-            .map(r => ({ ...r, _pop: Number(r.POPULATION_SERVED_COUNT) || 0 }))
+            .map(r => ({ ...r, _pop: Number(gv(r, "POPULATION_SERVED_COUNT")) || 0 }))
             .filter(r => r._pop >= 1000)
-            .filter(r => !/(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP)/i.test(r.PWS_NAME || ""))
+            .filter(r => !/(CONDO|MOBILE|TRAILER|APARTMENT|MHP|MHC|RV PARK|HOMES|ESTATES|VILLAGE|CAMP)/i.test(gv(r, "PWS_NAME") || ""))
             .sort((a, b) => b._pop - a._pop);
           if (filtered.length > 0) {
-            const violations = await getViolations(filtered[0].PWSID);
+            const violations = await getViolations(gv(filtered[0], "PWSID"));
             return Response.json(buildResult(filtered[0], violations));
           }
         }

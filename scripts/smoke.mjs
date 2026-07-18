@@ -47,7 +47,7 @@ console.log(chalk.bold.underline('\nSafeEats Smoke Test') + chalk.dim(`  ${new D
 
 // ── 1. EPA SDWIS: zip lookup (Seattle) ──────────────────────────────
 await check('EPA SDWIS zip lookup (98101/WA)', async () => {
-  const url = 'https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/ZIP_CODE/=/98101/PRIMACY_AGENCY_CODE/=/WA/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON';
+  const url = 'https://data.epa.gov/dmapservice/sdwis.water_system/primacy_agency_code/equals/WA/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/and/zip_code/equals/98101/json';
   const { res, ms } = await timedFetch(url);
   if (!res.ok) return report('fail', 'EPA SDWIS zip lookup (98101/WA)', `HTTP ${res.status}`, ms);
   const data = await res.json();
@@ -60,7 +60,7 @@ await check('EPA SDWIS zip lookup (98101/WA)', async () => {
 
 // ── 2. EPA SDWIS: city-served lookup (Willimantic, CT) ──────────────
 await check('EPA SDWIS city-served (Willimantic/CT)', async () => {
-  const url = 'https://data.epa.gov/efservice/SDW_PUB_WATER_SYSTEMS/CITY_SERVED/=/WILLIMANTIC/PRIMACY_AGENCY_CODE/=/CT/PWS_ACTIVITY_CODE/=/A/PWS_TYPE_CODE/=/CWS/JSON';
+  const url = 'https://data.epa.gov/dmapservice/sdwis.water_system/primacy_agency_code/equals/CT/and/pws_activity_code/equals/A/and/pws_type_code/equals/CWS/and/city_name/equals/WILLIMANTIC/json';
   const { res, ms } = await timedFetch(url);
   if (!res.ok) return report('fail', 'EPA SDWIS city-served (Willimantic/CT)', `HTTP ${res.status}`, ms);
   const data = await res.json();
