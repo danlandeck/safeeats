@@ -38,7 +38,7 @@ export default function About() {
               <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              18 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
+              20 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
             </p>
           </div>
 

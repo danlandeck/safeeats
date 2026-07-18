@@ -22,6 +22,9 @@ const LIVE_MARKETS = [
       { city: "Houston, TX", note: "Houston Health Dept — CKAN API. Food establishment inspection data.", url: "https://www.houstontx.gov/health/" },
       { city: "Los Angeles County, CA", note: "LA County DPH — ArcGIS Feature Service API. Restaurant inspection scores.", url: "https://ehservices.publichealth.lacounty.gov/" },
       { city: "Stanislaus County, CA", note: "Stanislaus County EHS — scraped public portal with backend processor.", url: "https://schsa.info/" },
+      { city: "Las Vegas / Clark County, NV", note: "Southern Nevada Health District — backend-processed inspection API. Full inspection history with violation details.", url: "https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/" },
+      { city: "Wake County, NC (Raleigh)", note: "Wake County Environmental Health — ArcGIS REST API. Two-layer join of restaurant facilities and inspection records. Scored inspections 0–100.", url: "https://maps.wake.gov/arcgis/rest/services/Inspections/RestaurantInspectionsOpenData/MapServer" },
+      { city: "Louisville / Jefferson County, KY", note: "Louisville Metro Public Health — ArcGIS Hub FeatureServer. Establishment-level inspection scores with letter grades A–F.", url: "https://services1.arcgis.com/79kfd2K6fskCAkyg/arcgis/rest/services/FoodServiceData/FeatureServer" },
     ]
   },
   {
@@ -67,7 +70,6 @@ const AI_RESEARCH_MARKETS = [
   { city: "Denver, CO", note: "Denver publishes restaurant inspection scores publicly. No API registered — AI reads official Denver Environmental Health records." },
   { city: "Dallas County, TX", note: "Dallas County Health publishes food establishment inspections. No API registered — AI reads official county health records." },
   { city: "Miami-Dade County, FL", note: "Miami-Dade publishes public food safety inspection data. No API registered — AI reads official county health records." },
-  { city: "Las Vegas / Clark County, NV", note: "SNHD publishes searchable inspection records. No API registered — AI reads official Southern Nevada Health District records." },
   { city: "Ottawa, Ontario", note: "Ottawa Public Health publishes food premise inspection reports. No API registered — AI reads official Ottawa Public Health records." },
   { city: "Calgary, Alberta", note: "Calgary Environmental Health (Alberta Health Services) publishes inspection results. No API — AI reads official AHS records." },
   { city: "South Australia", note: "SA Health Food Safety Rating Scheme exists. No centralized API — AI reads official SA Health and council records." },
@@ -102,7 +104,7 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            18 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
+            20 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
