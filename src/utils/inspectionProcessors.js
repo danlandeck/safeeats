@@ -47,3 +47,4 @@ export { processMississippiResults, mississippiToDetailRows } from "./processors
 export { processOklahomaResults, oklahomaToDetailRows } from "./processors/oklahoma";
 export { processSCResults, scToDetailRows } from "./processors/southCarolina";
 export { processUtahResults, utahToDetailRows } from "./processors/utah";
+export { processSafefoodResults, safefoodToDetailRows } from "./processors/safefood";

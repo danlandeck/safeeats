@@ -138,7 +138,7 @@ export const COUNTRY_CONTEXT = {
   virginia: "VA Department of Health (VDH) — inspections.myhealthdepartment.com (HealthSpace, varies by district). Norfolk open data. Fairfax ArcGIS viewer. 100-point scale. AI web search required.",
   west_virginia: "WV Bureau for Public Health (WVDHHR) — no state-wide portal. Local county health departments only. FDA Food Code. AI web search required.",
   wisconsin: "WI DATCP — state-wide at datcp.wi.gov (reports current as of April 2024). Also frog.healthspace.com. ~40,000 establishments. FDA Food Code. AI web search required.",
-  wyoming: "WY Dept of Agriculture (WDA) — state-wide at wda.safefoodinspection.com. Covers establishments without local health depts. Routine inspections only. IN/OUT/COS/NC/C coding. AI web search required.",
+  wyoming: "WY Dept of Agriculture (WDA) — state-wide at wda.safefoodinspection.com. Backend scraper provides live inspection data. IN/OUT compliance coding (In=Pass, Out=Fail).",
   utah: "UT — Salt Lake County Health Dept at public.cdpehs.com/UTEnvPbl (CDP platform). Star ranking system with critical/non-critical violations. Backend scraper provides real data for Salt Lake County.",
   maricopa: "Maricopa County Environmental Services (envapp.maricopa.gov) Restaurant Ratings Tool. Letter grades A-R: A=90-100 (no priority violations), B=80-89, C=70-79 (2+ priority violations), R=Re-Inspection required (score 50-69). Priority violations are major violations that directly contribute to increasing the risk of foodborne illness. Inspections 1-4 times per year. Public portal at envapp.maricopa.gov/EnvironmentalHealth/FoodInspections — search by business name, address, or city.",
   // Ireland

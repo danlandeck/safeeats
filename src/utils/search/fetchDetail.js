@@ -13,6 +13,7 @@ import {
   oklahomaToDetailRows,
   scToDetailRows,
   utahToDetailRows,
+  safefoodToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -114,6 +115,18 @@ export async function fetchDetail(restaurant) {
     try {
       const res = await base44.functions.invoke("louisvilleInspections", { action: "detail", establishmentId: business_id });
       return louisvilleToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  if (source === "sd_safefood" || source === "vt_safefood" || source === "wy_safefood") {
+    const stateMap = { sd_safefood: "sd", vt_safefood: "vt", wy_safefood: "wy" };
+    const stateCode = stateMap[source] || "sd";
+    try {
+      const res = await base44.functions.invoke("safefoodInspections", {
+        action: "detail", name: restaurant.name, facilityId: business_id, state: stateCode,
+      });
+      const facility = res.data?.facility;
+      if (facility) return safefoodToDetailRows(facility);
     } catch { return []; }
   }
 

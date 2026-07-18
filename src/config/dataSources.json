@@ -444,7 +444,7 @@
     "default": "sc_food_grades"
   },
   "SD": {
-    "default": "none"
+    "default": "sd_safefood"
   },
   "TN": {
     "default": "none"
@@ -453,7 +453,7 @@
     "default": "utah_cdp"
   },
   "VT": {
-    "default": "none"
+    "default": "vt_safefood"
   },
   "VA": {
     "default": "none"
@@ -465,7 +465,7 @@
     "default": "none"
   },
   "WY": {
-    "default": "none"
+    "default": "wy_safefood"
   },
   "BC": {
     "cities": {

@@ -13,6 +13,7 @@ import {
   processMississippiResults,
   processOklahomaResults,
   processSCResults,
+  processSafefoodResults,
   kingToDetailRows, nycToDetailRows, chicagoToDetailRows,
   montgomeryToDetailRows, austinToDetailRows, sfToDetailRows, laToDetailRows,
   delawareToDetailRows, nyStateToDetailRows, torontoToDetailRows,
@@ -23,6 +24,7 @@ import {
   mississippiToDetailRows,
   oklahomaToDetailRows,
   scToDetailRows,
+  safefoodToDetailRows,
 } from "../inspectionProcessors";
 
 export const PROCESSORS = {
@@ -45,6 +47,9 @@ export const PROCESSORS = {
   mississippi:      { process: processMississippiResults,  toDetailRows: mississippiToDetailRows },
   oklahoma:         { process: processOklahomaResults,     toDetailRows: oklahomaToDetailRows },
   sc_food_grades:   { process: processSCResults,           toDetailRows: scToDetailRows },
+  sd_safefood:      { process: processSafefoodResults,     toDetailRows: safefoodToDetailRows },
+  vt_safefood:      { process: processSafefoodResults,     toDetailRows: safefoodToDetailRows },
+  wy_safefood:      { process: processSafefoodResults,     toDetailRows: safefoodToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
 };
 
@@ -78,4 +83,7 @@ export const SOURCE_TO_COUNTY = {
   oklahoma: "oklahoma",
   sc_food_grades: "sc_food_grades",
   utah_cdp: "utah_cdp",
+  sd_safefood: "sd_safefood",
+  vt_safefood: "vt_safefood",
+  wy_safefood: "wy_safefood",
 };

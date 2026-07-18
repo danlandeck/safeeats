@@ -15,6 +15,7 @@ import {
   processMississippiResults,
   processOklahomaResults, processSCResults,
   processUtahResults,
+  processSafefoodResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -619,6 +620,23 @@ export async function search({ query, countyId, locationLabel, today, signal, on
         enrichResults(liveResults, "florida", onAccurateResults);
         return { results: liveResults, isAI: true };
       }
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // South Dakota, Vermont, Wyoming — shared safefoodinspection.com platform
+  if (countyId === "sd_safefood" || countyId === "vt_safefood" || countyId === "wy_safefood") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const stateMap = { sd_safefood: "sd", vt_safefood: "vt", wy_safefood: "wy" };
+      const stateCode = stateMap[countyId] || "sd";
+      const res = await base44.functions.invoke("safefoodInspections", { action: "search", name: nameQuery, state: stateCode });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processSafefoodResults(facilities, stateCode), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
     } catch { /* portal search failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
