@@ -952,9 +952,21 @@ export default function Home() {
     let cityMatched = false;
     {
       const locWords = (locationQuery || "").toLowerCase().trim();
+      // Extract the state abbreviation the user explicitly typed (e.g., "NM" from
+      // "Las Vegas, NM"). Prevents city-name matches from overriding the user's
+      // state — "Las Vegas, NM" must NOT redirect to "Las Vegas, NV".
+      const userStateMatch = (locationQuery || "").match(/,\s*([A-Za-z]{2})\s*$/);
+      const userState = userStateMatch && US_STATE_ABBR.has(userStateMatch[1].toLowerCase())
+        ? userStateMatch[1].toUpperCase() : null;
       for (const key of sortedKeys) {
         if (!matchesKey(locWords, key)) continue;
         const matched = CITY_TO_COUNTY[key];
+        // Skip if the user typed a state that conflicts with the matched city's state
+        if (userState && matched.locationLabel) {
+          const matchStateMatch = matched.locationLabel.match(/,\s*([A-Za-z]{2})\s*$/);
+          const matchState = matchStateMatch ? matchStateMatch[1].toUpperCase() : null;
+          if (matchState && matchState !== userState) continue;
+        }
         if (hasUSStateAbbr && AMBIGUOUS_CITY_NON_US.has(key) && matched.region !== 'washington') {
           if (key !== 'newcastle') continue;
         }
