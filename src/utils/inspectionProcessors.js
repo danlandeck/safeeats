@@ -2245,3 +2245,77 @@ export function illinoisCDPToDetailRows(restaurant) {
     violation_points: String((insp.riskFactor || 0) * 7 + Math.round((insp.goodRetail || 0) * 1.5) + (insp.repeatViolations || 0) * 3),
   }));
 }
+
+// ── Indiana Marion County (Indianapolis) — MCPHD Portal ──────────────────────
+// Marion County Public Health Department portal at hhcwebfood.hhcorp.org.
+// Uses FDA Food Code: Priority, Priority Foundation, Core violations.
+// Results are "In Compliance" (pass) or "In Violation" (fail).
+// safetyScore = 100 - (Priority*7 + Foundation*4 + Core*1.5).
+export function processIndianaMarionResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f) => ({
+    business_id: f.business_id,
+    name: f.name,
+    address: f.address || "",
+    city: f.city || "Indianapolis",
+    zip_code: f.zip_code || "",
+    phone: "", description: f.facility_type || "",
+    safetyScore: f.safetyScore ?? null,
+    grade: f.safetyScore !== null ? resolveGrade(f.safetyScore, f.latestResult || "") : "U",
+    totalInspections: f.totalInspections || 0,
+    latestDate: f.latestDate || "",
+    latestResult: f.latestResult || "",
+    latitude: null, longitude: null,
+    isLLMData: false, source: "indiana_marion",
+    ada_compliance: "unknown",
+    portal_url: f.portal_url || null,
+    portal_name: "Marion County Public Health Dept",
+    _inspections: f.allInspections || [],
+  }));
+}
+
+export function indianaMarionToDetailRows(restaurant) {
+  const inspections = restaurant._inspections || restaurant.allInspections || [];
+  if (!Array.isArray(inspections) || inspections.length === 0) {
+    return [{
+      inspection_serial_num: `in-marion-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: "",
+      inspection_result: restaurant.latestResult || "No inspections on file",
+      inspection_type: "Routine",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    }];
+  }
+  const allRows = [];
+  inspections.forEach((insp, i) => {
+    const violations = insp.violations || [];
+    if (violations.length === 0) {
+      allRows.push({
+        inspection_serial_num: `in-marion-${restaurant.business_id}-${insp.inspection_id || i}`,
+        inspection_date: insp.date || "",
+        inspection_score: insp.score !== null ? String(Math.max(0, 100 - insp.score)) : "",
+        inspection_result: insp.result || "Unknown",
+        inspection_type: insp.type || "Routine",
+        violation_description: insp.comment || "No violations found",
+        violation_type: /in violation/i.test(insp.result) ? "RED" : "BLUE",
+        violation_points: "0",
+      });
+    } else {
+      violations.forEach((v) => {
+        allRows.push({
+          inspection_serial_num: `in-marion-${restaurant.business_id}-${insp.inspection_id || i}`,
+          inspection_date: insp.date || "",
+          inspection_score: insp.score !== null ? String(Math.max(0, 100 - insp.score)) : "",
+          inspection_result: insp.result || "Unknown",
+          inspection_type: insp.type || "Routine",
+          violation_description: v.detail ? `${v.description}: ${v.detail}` : v.description,
+          violation_type: /priority/i.test(v.severity) && !/foundation/i.test(v.severity) ? "RED" : "BLUE",
+          violation_points: /priority/i.test(v.severity) && !/foundation/i.test(v.severity) ? "7" : /foundation/i.test(v.severity) ? "4" : "2",
+        });
+      });
+    }
+  });
+  return allRows;
+}

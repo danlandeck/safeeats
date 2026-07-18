@@ -47,6 +47,8 @@ const SOURCE_INFO = {
   dc:              { dept: "DC Health (Washington, DC)",              type: "backend_proxy",  icon: "🏛️" },
   florida:         { dept: "Florida DBPR (Hotels & Restaurants)",     type: "backend_proxy",  icon: "🌴" },
   georgia:         { dept: "Georgia Dept. of Public Health",            type: "backend_proxy",  icon: "🍑" },
+  illinois_cdp:    { dept: "IL County Health Dept (CDP Portal)",         type: "backend_proxy",  icon: "🌽" },
+  indiana_marion:  { dept: "Marion County Public Health (Indianapolis)",   type: "backend_proxy",  icon: "🏁" },
 };
 
 const TYPE_META = {

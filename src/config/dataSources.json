@@ -302,7 +302,14 @@
     "default": "none"
   },
   "IN": {
-    "none": true
+    "cities": {
+      "indianapolis": "indiana_marion",
+      "speedway": "indiana_marion",
+      "lawrence": "indiana_marion",
+      "beech grove": "indiana_marion",
+      "southport": "indiana_marion"
+    },
+    "default": "none"
   },
   "IA": {
     "none": true

@@ -146,7 +146,7 @@ function parseResultsTable(html: string, county: string): ILFacility[] {
     if (!name) continue;
 
     const addrRaw = cells[2];
-    const addrMatch = addrRaw.match(/^(.+?)\s+([A-Za-z\s]+?)\s+IL\s+(\d{5}(?:-\d{4})?)/);
+    const addrMatch = addrRaw.match(/^(.+)\s+([A-Za-z][A-Za-z\s]*?)\s+IL\s+(\d{5}(?:-\d{4})?)/);
     let address = '';
     let city = '';
     let zipCode = '';

@@ -29,6 +29,8 @@ import {
   processDCResults, dcToDetailRows,
   processFloridaResults, floridaToDetailRows,
   processGeorgiaResults, georgiaToDetailRows,
+  processIllinoisCDPResults, illinoisCDPToDetailRows,
+  processIndianaMarionResults, indianaMarionToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -65,6 +67,8 @@ const PROCESSORS = {
   fvhd:             { process: processFVHDResults,         toDetailRows: fvhdToDetailRows },
   dc:               { process: processDCResults,           toDetailRows: dcToDetailRows },
   florida:          { process: processFloridaResults,      toDetailRows: floridaToDetailRows },
+  illinois_cdp:     { process: processIllinoisCDPResults,   toDetailRows: illinoisCDPToDetailRows },
+  indiana_marion:   { process: processIndianaMarionResults, toDetailRows: indianaMarionToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
   };
 
@@ -91,6 +95,8 @@ const SOURCE_TO_COUNTY = {
   dc: "dc",
   florida: "florida",
   georgia: "georgia",
+  illinois_cdp: "illinois_cdp",
+  indiana_marion: "indiana_marion",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -1322,6 +1328,38 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const facilities = res.data?.facilities || [];
       const liveResults = rankByQueryRelevance(
         filterByNameRelevance(processGeorgiaResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Illinois CDP Portal — multi-county (Sangamon, Madison, Peoria, Whiteside, McLean, Christian)
+  if (countyId === "illinois_cdp") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const res = await base44.functions.invoke("illinoisInspections", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processIllinoisCDPResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Indiana Marion County (Indianapolis) — MCPHD Portal
+  if (countyId === "indiana_marion") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "Indianapolis";
+      const res = await base44.functions.invoke("indianaInspections", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processIndianaMarionResults(facilities), nameQuery),
         nameQuery, locationHint
       );
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
