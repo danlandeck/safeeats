@@ -49,6 +49,11 @@ const SOURCE_INFO = {
   georgia:         { dept: "Georgia Dept. of Public Health",            type: "backend_proxy",  icon: "🍑" },
   illinois_cdp:    { dept: "IL County Health Dept (CDP Portal)",         type: "backend_proxy",  icon: "🌽" },
   indiana_marion:  { dept: "Marion County Public Health (Indianapolis)",   type: "backend_proxy",  icon: "🏁" },
+  brla:            { dept: "Baton Rouge Open Data (East Baton Rouge Parish)", type: "api",        icon: "🦐" },
+  iowa:            { dept: "Iowa Dept of Inspections & Appeals",            type: "ai",           icon: "🌽" },
+  kansas:          { dept: "Kansas Dept of Agriculture (KDA)",             type: "ai",           icon: "☀️" },
+  kentucky:        { dept: "Kentucky Local Health Departments",            type: "ai",           icon: "🐎" },
+  louisiana:       { dept: "Louisiana Dept of Health (LDH)",              type: "ai",           icon: "🎷" },
 };
 
 const TYPE_META = {

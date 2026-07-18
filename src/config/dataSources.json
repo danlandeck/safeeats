@@ -337,7 +337,13 @@
     "default": "none"
   },
   "LA": {
-    "none": true
+    "cities": {
+      "baton rouge": "brla",
+      "zachary": "brla",
+      "central": "brla",
+      "baker": "brla"
+    },
+    "default": "none"
   },
   "ME": {
     "none": true

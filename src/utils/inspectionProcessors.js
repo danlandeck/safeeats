@@ -42,3 +42,4 @@ export {
   processNSWResults, nswToDetailRows,
 } from "./processors/international";
 export { reverseGeocode, geocodeAddress } from "./processors/geocode";
+export { processBRLAResults, brlaToDetailRows } from "./processors/louisiana";

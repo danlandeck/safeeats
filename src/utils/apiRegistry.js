@@ -110,6 +110,16 @@ export const API_REGISTRY = {
     limit: 1000,
     source: "tri_county_co",
   },
+  brla: {
+    id: "brla",
+    name: "Baton Rouge, LA (East Baton Rouge Parish)",
+    endpoint: "https://data.brla.gov/resource/ux2t-b9wr.json",
+    searchField: "permitname",
+    idField: "permitid",
+    dateField: "inspectiondate",
+    limit: 1000,
+    source: "brla",
+  },
 };
 
 /** IDs of counties that have a live government API */
