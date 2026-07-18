@@ -2118,3 +2118,74 @@ export function fvhdToDetailRows(restaurant) {
     };
   });
 }
+
+// ── Georgia (ga.healthinspections.us) ─────────────────────────────────────────
+// GA DPH state-wide portal (excl. Gwinnett/Newton/Rockdale). County-specific
+// search at /georgia/search.cfm?county=X. Uses A/B/C/U grading:
+// A=90-100, B=80-89, C=70-79, U=69 or less. 100-point numeric scores provided.
+export function processGeorgiaResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f) => {
+    const inspections = (f.allInspections || []).map((insp, i) => ({
+      serial: `ga-${f.permit_id}-${insp.inspection_id || i}`,
+      date: insp.date || "",
+      score: insp.score ?? null,
+      grade: insp.grade || "",
+      result: insp.result || "",
+      report_url: insp.report_url || "",
+    }));
+    inspections.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const latest = inspections[0] || {};
+    return {
+      business_id: f.business_id,
+      name: f.name,
+      address: f.address,
+      city: f.city || "",
+      zip_code: f.zip_code || "",
+      phone: "", description: "",
+      safetyScore: f.safetyScore ?? null,
+      grade: f.latestGrade || (f.safetyScore !== null ? resolveGrade(f.safetyScore, f.latestResult || "") : "U"),
+      totalInspections: f.totalInspections || inspections.length,
+      latestDate: f.latestDate || latest.date || "",
+      latestResult: f.latestResult || latest.result || "",
+      latitude: null, longitude: null,
+      isLLMData: false, source: "georgia",
+      ada_compliance: "unknown",
+      portal_url: f.portal_url || null,
+      portal_name: "GA DPH Health Inspections",
+      _inspections: inspections,
+    };
+  });
+}
+
+export function georgiaToDetailRows(restaurant) {
+  const inspections = restaurant._inspections || restaurant.allInspections || [];
+  if (!Array.isArray(inspections) || inspections.length === 0) {
+    return [{
+      inspection_serial_num: `ga-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: restaurant.safetyScore !== null ? String(restaurant.safetyScore) : "",
+      inspection_result: restaurant.latestResult || "No inspections on file",
+      inspection_type: "Routine",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    }];
+  }
+  return inspections.map((insp, i) => ({
+    inspection_serial_num: `ga-${restaurant.business_id}-${insp.inspection_id || i}`,
+    inspection_date: insp.date || "",
+    inspection_score: insp.score !== null ? String(insp.score) : "",
+    inspection_result: insp.result || (insp.score !== null ? `Score: ${insp.score}, Grade: ${insp.grade}` : "Unknown"),
+    inspection_type: "Routine",
+    violation_description: insp.grade === "U"
+      ? "Score below 70 — significant violations"
+      : insp.grade === "C"
+        ? "Score 70-79 — needs improvement"
+        : insp.grade === "B"
+          ? "Score 80-89 — minor violations"
+          : "Score 90-100 — satisfactory",
+    violation_type: insp.grade === "U" || insp.grade === "C" ? "RED" : "BLUE",
+    violation_points: insp.score !== null ? String(Math.max(0, 100 - insp.score)) : "0",
+  }));
+}

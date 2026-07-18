@@ -260,7 +260,7 @@
     "default": "florida"
   },
   "GA": {
-    "none": true
+    "default": "georgia"
   },
   "HI": {
     "none": true

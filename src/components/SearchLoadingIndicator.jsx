@@ -46,6 +46,7 @@ const SOURCE_INFO = {
   fvhd:            { dept: "Farmington Valley Health District (CT)", type: "backend_proxy",  icon: "🌲" },
   dc:              { dept: "DC Health (Washington, DC)",              type: "backend_proxy",  icon: "🏛️" },
   florida:         { dept: "Florida DBPR (Hotels & Restaurants)",     type: "backend_proxy",  icon: "🌴" },
+  georgia:         { dept: "Georgia Dept. of Public Health",            type: "backend_proxy",  icon: "🍑" },
 };
 
 const TYPE_META = {
