@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, ClipboardList, ChevronRight, GitCompareArrows, AlertTriangle } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 
@@ -10,6 +10,7 @@ import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 import DataSourceBadge from "./DataSourceBadge";
 import StaleDataBanner from "./StaleDataBanner";
+import OfficialInspectionLink from "./OfficialInspectionLink";
 
 
 
@@ -125,24 +126,11 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {/* EPA Water info — US restaurants only (component returns null for international) */}
           <EPAWaterCard restaurant={restaurant} />
 
-          {/* Portal link — clickable hyperlink to official health department (only when no stale-data banner is shown) */}
-          {restaurant.portal_url && !restaurant.data_warning && (
-            <a
-              href={restaurant.portal_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 mt-2 bg-blue-50 border-2 border-blue-300 rounded-xl px-3 py-2 text-blue-700 hover:bg-blue-100 transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="text-[11px] font-extrabold underline">
-                {restaurant.portal_name || "View official inspection records"}
-              </span>
-            </a>
-          )}
-
           {/* Stale-data banner + search-official-portal button (e.g. Portland 2019-2020 historical data) */}
           <StaleDataBanner restaurant={restaurant} variant="card" />
+
+          {/* Official inspection link — shown on every card so users can verify latest status */}
+          <OfficialInspectionLink restaurant={restaurant} variant="card" />
 
           {/* Data fetch issue strip — transparently shows why data might be missing */}
           {restaurant.data_fetch_notes && (

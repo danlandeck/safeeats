@@ -21,6 +21,7 @@ import SafetyFactors from "./SafetyFactors";
 import KofiButton from "./KofiButton";
 import DataSourceBadge from "./DataSourceBadge";
 import StaleDataBanner from "./StaleDataBanner";
+import OfficialInspectionLink from "./OfficialInspectionLink";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -317,23 +318,11 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* Water Quality */}
           <EPAWaterCard restaurant={restaurant} />
 
-          {/* Portal link — prominent clickable hyperlink to official health department (hidden for U grade, already shown in hero) */}
-          {restaurant.portal_url && grade !== "U" && !restaurant.data_warning && (
-            <a
-              href={restaurant.portal_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 mt-4 bg-blue-50 border-2 border-blue-300 rounded-xl px-4 py-3 text-blue-700 hover:bg-blue-100 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm font-extrabold underline">
-                {restaurant.portal_name || "View official inspection records"}
-              </span>
-            </a>
-          )}
-
           {/* Stale-data banner + search-official-portal button (e.g. Portland 2019-2020 historical data) */}
           <StaleDataBanner restaurant={restaurant} variant="detail" />
+
+          {/* Official inspection link — shown on every detail so users can verify latest status */}
+          <OfficialInspectionLink restaurant={restaurant} variant="detail" />
 
         </div>
 
