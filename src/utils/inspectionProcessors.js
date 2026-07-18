@@ -1745,6 +1745,99 @@ export function arkansasToDetailRows(restaurant) {
   }];
 }
 
+// ── Tri-County Colorado (Adams, Arapahoe, Douglas) ──────────────────────────
+// Socrata API at data.colorado.gov (dataset 869n-zj3f).
+// CDPHE risk index: 0-49=Pass, 50-109=Re-Inspection, 110+=Closed.
+// Data frozen at Dec 2022 — background LLM enrichment provides current scores.
+function approxScoreFromViolations(riskViolations, goodRetailViolations) {
+  const risk = parseInt(riskViolations) || 0;
+  const grp = parseInt(goodRetailViolations) || 0;
+  // Approximate risk index: priority violations ~7pts each, core ~1.5pts
+  const approxRiskIndex = risk * 7 + Math.round(grp * 1.5);
+  if (approxRiskIndex >= 110) return 20;  // Closed
+  if (approxRiskIndex >= 50) return 45;  // Re-Inspection Required
+  // Pass: scale from 95 (0 violations) down to 55 (49 points)
+  return Math.max(55, 95 - approxRiskIndex);
+}
+
+export function processTriCountyCoResults(data) {
+  const rows = Array.isArray(data) ? data : [];
+  if (rows.length === 0) return [];
+  const businesses = {};
+  rows.forEach((row) => {
+    const id = row.facility_id;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: id,
+        name: row.program_identifier || "Unknown",
+        address: row.site_address || "",
+        city: (row.city || "").toUpperCase().charAt(0) + (row.city || "").slice(1).toLowerCase(),
+        zip_code: (row.zip || "").split("-")[0],
+        phone: "",
+        description: row.description || "",
+        county_id: "tri_county_co",
+        source: "tri_county_co",
+        inspections: [],
+        allRows: [],
+      };
+    }
+    businesses[id].allRows.push(row);
+    const dateStr = standardizeDate(row.activity_date);
+    const serial = row.serial_number || `${dateStr}-${row.service_desc}`;
+    if (!businesses[id].inspections.find((i) => i.serial === serial)) {
+      businesses[id].inspections.push({
+        serial, date: dateStr,
+        score: approxScoreFromViolations(row.total_foodborne_illness_risk, row.total_good_retail_practices),
+        result: row.service_desc || "Routine",
+        riskViolations: parseInt(row.total_foodborne_illness_risk) || 0,
+        coreViolations: parseInt(row.total_good_retail_practices) || 0,
+      });
+    }
+  });
+  return Object.values(businesses).map((biz) => {
+    biz.inspections.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const latest = biz.inspections[0] || {};
+    const score = latest.score ?? null;
+    return {
+      ...biz,
+      safetyScore: score,
+      grade: score !== null ? resolveGrade(score) : "U",
+      latestDate: latest.date || null,
+      latestResult: latest.result || "",
+      totalInspections: biz.inspections.length,
+      latitude: biz.allRows[0]?.gis_latitude ? parseFloat(biz.allRows[0].gis_latitude) : null,
+      longitude: biz.allRows[0]?.gis_longitude ? parseFloat(biz.allRows[0].gis_longitude) : null,
+    };
+  });
+}
+
+export function triCountyCoToDetailRows(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const seen = new Set();
+  const detailRows = [];
+  rows.forEach((row) => {
+    const serial = row.serial_number || `${row.activity_date}-${row.service_desc}`;
+    if (seen.has(serial)) return;
+    seen.add(serial);
+    const risk = parseInt(row.total_foodborne_illness_risk) || 0;
+    const core = parseInt(row.total_good_retail_practices) || 0;
+    detailRows.push({
+      inspection_serial_num: serial,
+      inspection_date: standardizeDate(row.activity_date),
+      inspection_score: String(approxScoreFromViolations(risk, core)),
+      inspection_result: row.service_desc || "Routine",
+      inspection_type: row.service_desc || "Routine",
+      violation_description: risk > 0 || core > 0
+        ? `${risk} foodborne illness risk violation(s), ${core} good retail practice violation(s)`
+        : "No violations found",
+      violation_type: risk > 0 ? "RED" : "BLUE",
+      violation_points: String(risk + core),
+    });
+  });
+  return detailRows;
+}
+
 // ── Maricopa County, AZ ───────────────────────────────────────────────────────
 // ArcGIS Online FeatureServer (services.arcgis.com) — public REST API.
 // Returns restaurant name, address, city, zip, license number (FD-XXXXX), and

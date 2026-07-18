@@ -38,6 +38,11 @@ const SOURCE_INFO = {
   philly:         { dept: "Philadelphia Dept. of Public Health",  type: "ai_enrichment",  icon: "🔔" },
   wake:           { dept: "Wake County Environmental Health",      type: "backend_proxy",  icon: "🌲" },
   jefferson_ky:   { dept: "Louisville Metro Public Health",        type: "backend_proxy",  icon: "🍗" },
+  riverside:       { dept: "Riverside County DEH",                  type: "backend_proxy",  icon: "🌴" },
+  alabama:         { dept: "Alabama Dept. of Public Health",        type: "backend_proxy",  icon: "🦐" },
+  arkansas:        { dept: "Arkansas Dept. of Health",              type: "backend_proxy",  icon: "💎" },
+  maricopa:        { dept: "Maricopa County Environmental Services", type: "backend_proxy",  icon: "🌵" },
+  tri_county_co:   { dept: "Tri-County Health Department (CO)",     type: "live_api",       icon: "⛰️" },
 };
 
 const TYPE_META = {

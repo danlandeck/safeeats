@@ -100,6 +100,16 @@ export const API_REGISTRY = {
     limit: 1000,
     source: "ny_state",
   },
+  tri_county_co: {
+    id: "tri_county_co",
+    name: "Tri-County Colorado (Adams, Arapahoe, Douglas)",
+    endpoint: "https://data.colorado.gov/resource/869n-zj3f.json",
+    searchField: "program_identifier",
+    idField: "facility_id",
+    dateField: "activity_date",
+    limit: 1000,
+    source: "tri_county_co",
+  },
 };
 
 /** IDs of counties that have a live government API */

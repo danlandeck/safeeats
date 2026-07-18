@@ -24,6 +24,7 @@ import {
   processAlabamaResults, alabamaToDetailRows,
   processMaricopaResults, maricopaToDetailRows,
   processArkansasResults, arkansasToDetailRows,
+  processTriCountyCoResults, triCountyCoToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -55,9 +56,10 @@ const PROCESSORS = {
   sf:            { process: processSFResults,          toDetailRows: sfToDetailRows },
   la:            { process: processLAResults,          toDetailRows: laToDetailRows },
   delaware:      { process: processDelawareResults,    toDetailRows: delawareToDetailRows },
-  ny_state:      { process: processNYStateResults,     toDetailRows: nyStateToDetailRows },
-  toronto:       { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
-};
+  ny_state:         { process: processNYStateResults,     toDetailRows: nyStateToDetailRows },
+  tri_county_co:    { process: processTriCountyCoResults,  toDetailRows: triCountyCoToDetailRows },
+  toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
+  };
 
 const SOURCE_TO_COUNTY = {
   king: "king", nyc: "nyc", chicago: "cook",
@@ -77,6 +79,7 @@ const SOURCE_TO_COUNTY = {
   alabama: "alabama",
   maricopa: "maricopa",
   arkansas: "arkansas",
+  tri_county_co: "tri_county_co",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -183,6 +186,7 @@ const COUNTRY_CONTEXT = {
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   riverside: "Riverside County Department of Environmental Health (rivcoeh.org) inspects food facilities 1-4 times per year. Public portal at weblink.rivcoeh.org allows searching facility inspection records by name, city, and record type. Facilities receive grade cards (A/B/C or color-coded). Convert: A=90-100, B=80-89, C=70-79, Closed/Failed=0-39. Prioritize: restaurantgrading.rivcoeh.org and weblink.rivcoeh.org for official inspection records.",
   alabama: "Alabama Department of Public Health (ADPH) foodscores.state.al.us — state-wide portal covering ALL 67 counties via county health departments. 100-point scale: 85+=satisfactory, 70-84=follow-up required within 60 days, 60-69=reinspection within 48h, <60=closed immediately. Food service establishments inspected minimum 3x/year. Critical violations have higher point values and must be corrected within 10 days.",
+  tri_county_co: "Colorado Tri-County Health Department (TCHD) covers Adams, Arapahoe, and Douglas counties. Socrata open data at data.colorado.gov (dataset 869n-zj3f). CDPHE risk index scoring: 0-49 points=Pass, 50-109=Re-Inspection Required, 110+=Closed. Data includes foodborne illness risk violations (priority items) and good retail practices violations (core items). Dataset frozen at Dec 2022 — current scores may differ.",
   arkansas: "Arkansas Department of Health (ADH) foodserviceprod.adh.arkansas.gov — state-wide portal covering ALL 75 counties via county health departments. Food establishments inspected 1-4 times per year. 100-point scale: 85+=satisfactory, 70-84=follow-up required, 60-69=reinspection within 48h, <60=closed. Critical violations have higher point values and must be corrected within 10 days. Public portal at foodserviceprod.adh.arkansas.gov — search by establishment name and city.",
   maricopa: "Maricopa County Environmental Services (envapp.maricopa.gov) Restaurant Ratings Tool. Letter grades A-R: A=90-100 (no priority violations), B=80-89, C=70-79 (2+ priority violations), R=Re-Inspection required (score 50-69). Priority violations are major violations that directly contribute to increasing the risk of foodborne illness. Inspections 1-4 times per year. Public portal at envapp.maricopa.gov/EnvironmentalHealth/FoodInspections — search by business name, address, or city.",
   // Ireland
