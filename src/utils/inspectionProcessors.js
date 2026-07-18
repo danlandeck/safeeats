@@ -1010,14 +1010,14 @@ export function houstonToDetailRows(records) {
 export function processStanislausResults(facilities) {
   if (!Array.isArray(facilities) || facilities.length === 0) return [];
   return facilities.map((f, i) => {
-    const isClosed = /closed/i.test(f.permit_status);
+    const isClosed = /closed/i.test(f.permit_status) || f.permit_status === "Closed";
     const safetyScore = isClosed ? 25 : 85;
     const latestDate = standardizeDate(f.latest_date || "");
+    const name = (f.name || "").charAt(0) + (f.name || "").slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase());
+    const city = (f.city || "").charAt(0) + (f.city || "").slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase());
     return {
-      business_id: `stanislaus-${i}-${f.name}`,
-      name: f.name.charAt(0) + f.name.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
-      address: f.address,
-      city: f.city.charAt(0) + f.city.slice(1).toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()),
+      business_id: f.business_id ? `stanislaus-${f.business_id}` : `stanislaus-${i}-${f.name}`,
+      name, address: f.address, city,
       zip_code: "", phone: "", description: f.inspection_type || "",
       safetyScore, grade: resolveGrade(safetyScore, isClosed ? "Closed" : "Open / Pass"),
       totalInspections: 1,
@@ -1026,6 +1026,7 @@ export function processStanislausResults(facilities) {
       latitude: null, longitude: null,
       isLLMData: false, source: "stanislaus",
       ada_compliance: "unknown",
+      portal_url: f.portal_url || null,
       _rawFacility: f,
     };
   });

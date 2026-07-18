@@ -1,95 +1,74 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
-const CONTROLLER_URL = "https://secure.stancounty.com/FoodFacilities/HealthInspectionsController";
+// Stanislaus County food facility inspections
+//
+// The county migrated from server-rendered HTML to a React SPA in 2025.
+// The new JSON API is at:
+//   Search:  /foodinspections/api/facilities?name=...&pageSize=30
+//   Config:  /foodinspections/api/facilities/config
+//   PDF:     /foodinspections/api/inspections/{inspectionId}/pdf
+//
+// Each search result includes the latest inspection (date, type, closed status).
+// There is no JSON inspection-history endpoint — full reports are PDF only.
 
-const stripTags = (s) => (s || "")
-  .replace(/<[^>]+>/g, "")
-  .replace(/&amp;/g, "&")
-  .replace(/&#039;/g, "'")
-  .replace(/&nbsp;/g, " ")
-  .replace(/\s+/g, " ")
-  .trim();
-
-function parseHtmlTable(html, nameFilter) {
-  const facilities = [];
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-
-  const normalize = (s) => (s || "").toLowerCase().replace(/[''\-]/g, "").replace(/\s+/g, " ").trim();
-  const filterNorm = nameFilter ? normalize(nameFilter) : null;
-
-  let rowMatch;
-  while ((rowMatch = rowRegex.exec(html)) !== null) {
-    const rowHtml = rowMatch[1];
-    // Skip header rows
-    if (/<th/i.test(rowHtml)) continue;
-
-    const cells = [];
-    let cellMatch;
-    const re = new RegExp(cellRegex.source, "gi");
-    let m;
-    while ((m = re.exec(rowHtml)) !== null) {
-      cells.push(stripTags(m[1]));
-    }
-
-    if (cells.length < 2) continue;
-
-    const name = cells[0];
-    if (!name || name.length < 2) continue;
-
-    // Filter by name if provided (normalize apostrophes/dashes before comparing)
-    if (filterNorm && !normalize(name).includes(filterNorm)) continue;
-
-    // Actual column layout from live response:
-    // 0: Facility Name
-    // 1: Address (format: "NUMBER STREET NAME, CITY" - city embedded at end)
-    // 2: Last Inspection Date
-    // 3: Inspection Type
-    // 4: Permit Status
-
-    const rawAddress = cells[1] || "";
-    // Split address: "3119 ATCHISON ST, RIVERBANK" → address + city
-    const lastComma = rawAddress.lastIndexOf(",");
-    const address = lastComma > 0 ? rawAddress.substring(0, lastComma).trim() : rawAddress;
-    const city = lastComma > 0 ? rawAddress.substring(lastComma + 1).trim() : "";
-
-    facilities.push({
-      name,
-      address,
-      city: city || "Stanislaus County",
-      latest_date: cells[2] || "",
-      inspection_type: cells[3] || "",
-      permit_status: cells[4] || "",
-    });
-  }
-
-  return facilities;
-}
+const API_BASE = "https://secure.stancounty.com/foodinspections";
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { action, name, city } = body;
+    const { action, name, inspectionId } = body;
 
     if (action === "search") {
-      // GET returns all facilities — POST is ignored by the server, so use GET + client-side filter
-      const res = await fetch(CONTROLLER_URL, {
-        method: "GET",
+      if (!name?.trim()) return Response.json({ facilities: [] });
+
+      const params = new URLSearchParams();
+      params.set("name", name.trim());
+      params.set("pageSize", "30");
+
+      const res = await fetch(`${API_BASE}/api/facilities?${params}`, {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SafeEats/1.0)",
-          "Referer": "https://secure.stancounty.com/FoodFacilities/home.jsp",
+          "Accept": "application/json",
+          "Referer": `${API_BASE}/`,
         },
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!res.ok) {
         return Response.json({ facilities: [], error: `HTTP ${res.status}` });
       }
 
-      const html = await res.text();
-      const facilities = parseHtmlTable(html, name);
+      const data = await res.json();
+      const items = Array.isArray(data?.items) ? data.items : [];
+
+      // Map API fields to the shape the frontend processor expects
+      const facilities = items.map((item) => ({
+        name: item.sName || "",
+        address: `${item.lStrNum || ""} ${item.sAddress || ""}`.trim(),
+        city: item.sCity || "",
+        latest_date: item.dtInspection || "",
+        inspection_type: item.inspectionType || "",
+        permit_status: item.bFacClosed ? "Closed" : "Open",
+        inspection_id: item.lInspectionID || null,
+        business_id: item.lBusinessID || null,
+        portal_url: item.lInspectionID
+          ? `${API_BASE}/api/inspections/${item.lInspectionID}/pdf`
+          : null,
+      }));
 
       return Response.json({ facilities });
+    }
+
+    if (action === "detail") {
+      // No JSON history endpoint — full inspection reports are PDF only.
+      // Return a portal link so the UI can direct users to the PDF.
+      if (inspectionId) {
+        return Response.json({
+          portal_url: `${API_BASE}/api/inspections/${inspectionId}/pdf`,
+        });
+      }
+      return Response.json({ portal_url: null });
     }
 
     return Response.json({ facilities: [], error: "Unknown action" });
