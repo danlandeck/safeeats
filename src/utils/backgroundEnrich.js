@@ -40,6 +40,7 @@ const ENRICH_CONTEXT = {
   arkansas: "Arkansas Department of Health (ADH) foodserviceprod.adh.arkansas.gov — state-wide portal covering all 75 counties. 100-point scale: 85+=satisfactory, 70-84=follow-up required, 60-69=reinspection within 48h, <60=closed. Food establishments inspected 1-4 times per year. Critical violations have higher point values.",
   tri_county_co: "Colorado Tri-County Health Department (TCHD) covers Adams, Arapahoe, and Douglas counties. CDPHE risk index scoring: 0-49=Pass, 50-109=Re-Inspection Required, 110+=Closed. Food establishments inspected 1-3 times per year. Priority violations (foodborne illness risk) have higher point values than core violations (good retail practices).",
   maricopa: "Maricopa County Environmental Services (envapp.maricopa.gov) restaurant inspection grades. Letter grades A-R: A=90-100 (no priority violations), B=80-89, C=70-79 (2+ priority violations), R=Re-Inspection required (score 50-69). Priority violations directly contribute to foodborne illness risk. Inspections 1-4 times per year.",
+  dc: "DC Health (dc.healthinspections.us) uses FDA Food Code pass/fail inspection with Priority, Priority Foundation, and Core violation categories. No letter grade or percentage assigned. Priority violations are most severe (foodborne illness risk factors), Priority Foundation are medium severity, Core are minor (good retail practices). Follow-up inspections verify correction of cited violations. Search portal at dc.healthinspections.us.",
 };
 
 function getContext(countyId) {

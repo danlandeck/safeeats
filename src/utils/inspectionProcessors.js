@@ -1894,6 +1894,85 @@ export function maricopaToDetailRows(restaurant) {
   }];
 }
 
+// ── Washington DC (dc.healthinspections.us) ──────────────────────────────────
+// DC Health uses a pass/fail system with Priority, Priority Foundation, and
+// Core violation categories (FDA Food Code). No letter grade or percentage is
+// assigned. We compute a safety score from violation counts:
+//   Priority=7pts, Priority Foundation=4pts, Core=1.5pts each.
+// safetyScore = 100 - total_pts (clamped 0-100).
+export function processDCResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f) => {
+    const inspections = (f.allInspections || []).map((insp, i) => ({
+      serial: `dc-${f.permit_id}-${insp.inspection_id || i}`,
+      date: insp.date || "",
+      score: insp.score ?? null,
+      result: insp.result || "",
+      type: insp.type || "Routine",
+      priority_violations: insp.priority_violations || 0,
+      priority_foundation_violations: insp.priority_foundation_violations || 0,
+      core_violations: insp.core_violations || 0,
+      report_url: insp.report_url || "",
+    }));
+    inspections.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const latest = inspections[0] || {};
+    return {
+      business_id: f.business_id,
+      name: f.name,
+      address: f.address,
+      city: f.city || "Washington",
+      zip_code: f.zip_code || "",
+      phone: "", description: f.facility_type || "",
+      safetyScore: f.safetyScore ?? null,
+      grade: f.safetyScore !== null ? resolveGrade(f.safetyScore, f.latestResult || "") : "U",
+      totalInspections: f.totalInspections || inspections.length,
+      latestDate: f.latestDate || latest.date || "",
+      latestResult: f.latestResult || latest.result || "",
+      latitude: null, longitude: null,
+      isLLMData: false, source: "dc",
+      ada_compliance: "unknown",
+      portal_url: f.portal_url || null,
+      _inspections: inspections,
+    };
+  });
+}
+
+export function dcToDetailRows(restaurant) {
+  const inspections = restaurant._inspections || restaurant.allInspections || [];
+  if (inspections.length === 0) {
+    return [{
+      inspection_serial_num: `dc-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: restaurant.safetyScore !== null ? String(Math.max(0, 100 - restaurant.safetyScore)) : "",
+      inspection_result: restaurant.latestResult || "Unknown",
+      inspection_type: "Routine",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    }];
+  }
+  return inspections.map((insp, i) => {
+    const priority = insp.priority_violations || 0;
+    const foundation = insp.priority_foundation_violations || 0;
+    const core = insp.core_violations || 0;
+    const hasData = insp.score !== null && insp.score !== undefined;
+    return {
+      inspection_serial_num: insp.serial || `dc-${restaurant.business_id}-${i}`,
+      inspection_date: insp.date || "",
+      inspection_score: hasData ? String(Math.max(0, 100 - insp.score)) : "",
+      inspection_result: insp.result || (hasData ? "Pass" : "Unknown"),
+      inspection_type: insp.type || "Routine",
+      violation_description: hasData
+        ? priority + foundation + core === 0
+          ? "No violations found"
+          : `${priority} priority, ${foundation} priority foundation, ${core} core violation(s)`
+        : "",
+      violation_type: priority > 0 ? "RED" : "BLUE",
+      violation_points: hasData ? String(priority * 7 + foundation * 4 + Math.round(core * 1.5)) : "0",
+    };
+  });
+}
+
 // ── Farmington Valley Health District (FVHD), CT ──────────────────────────────
 // FVHD covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington,
 // Granby, Hartland, New Hartford, and Simsbury. Publishes A/B/C/U ratings

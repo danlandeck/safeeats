@@ -254,7 +254,7 @@
     "default": "none"
   },
   "DC": {
-    "none": true
+    "default": "dc"
   },
   "FL": {
     "none": true

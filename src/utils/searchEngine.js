@@ -26,6 +26,7 @@ import {
   processArkansasResults, arkansasToDetailRows,
   processTriCountyCoResults, triCountyCoToDetailRows,
   processFVHDResults, fvhdToDetailRows,
+  processDCResults, dcToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -60,6 +61,7 @@ const PROCESSORS = {
   ny_state:         { process: processNYStateResults,     toDetailRows: nyStateToDetailRows },
   tri_county_co:    { process: processTriCountyCoResults,  toDetailRows: triCountyCoToDetailRows },
   fvhd:             { process: processFVHDResults,         toDetailRows: fvhdToDetailRows },
+  dc:               { process: processDCResults,           toDetailRows: dcToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
   };
 
@@ -83,6 +85,7 @@ const SOURCE_TO_COUNTY = {
   arkansas: "arkansas",
   tri_county_co: "tri_county_co",
   fvhd: "fvhd",
+  dc: "dc",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -188,6 +191,7 @@ const COUNTRY_CONTEXT = {
   // Connecticut — local health departments publish PDFs; AI finds data via web search
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   fvhd: "Farmington Valley Health District (fvhd.org) covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington, Granby, Hartland, New Hartford, and Simsbury CT. Uses A/B/C/U rating system: A=Excellent (no significant issues)→score 90-100, B=Good (minor non-critical issues)→score 80-89, C=Fair (noticeable violations)→score 70-79, U=Unsatisfactory (significant violations)→score 0-39. Ratings published on fvhd.org/environmental-health/food/food-ratings/ by town with full inspection history.",
+  dc: "DC Health (dc.healthinspections.us) uses FDA Food Code pass/fail inspection with Priority, Priority Foundation, and Core violation categories. No letter grade or percentage assigned. Priority violations are most severe (foodborne illness risk factors), Priority Foundation are medium severity, Core are minor (good retail practices). Inspection reports include full violation details, corrective actions, and temperature readings. Follow-up inspections verify correction of cited violations.",
   riverside: "Riverside County Department of Environmental Health (rivcoeh.org) inspects food facilities 1-4 times per year. Public portal at weblink.rivcoeh.org allows searching facility inspection records by name, city, and record type. Facilities receive grade cards (A/B/C or color-coded). Convert: A=90-100, B=80-89, C=70-79, Closed/Failed=0-39. Prioritize: restaurantgrading.rivcoeh.org and weblink.rivcoeh.org for official inspection records.",
   alabama: "Alabama Department of Public Health (ADPH) foodscores.state.al.us — state-wide portal covering ALL 67 counties via county health departments. 100-point scale: 85+=satisfactory, 70-84=follow-up required within 60 days, 60-69=reinspection within 48h, <60=closed immediately. Food service establishments inspected minimum 3x/year. Critical violations have higher point values and must be corrected within 10 days.",
   tri_county_co: "Colorado Tri-County Health Department (TCHD) covers Adams, Arapahoe, and Douglas counties. Socrata open data at data.colorado.gov (dataset 869n-zj3f). CDPHE risk index scoring: 0-49 points=Pass, 50-109=Re-Inspection Required, 110+=Closed. Data includes foodborne illness risk violations (priority items) and good retail practices violations (core items). Dataset frozen at Dec 2022 — current scores may differ.",
@@ -1264,6 +1268,21 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
+  // Washington DC (dc.healthinspections.us)
+  if (countyId === "dc") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("dcInspections", { action: "search", name: nameQuery });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processDCResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Farmington Valley Health District (FVHD) — CT
   // Covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington,
   // Granby, Hartland, New Hartford, Simsbury
@@ -1421,6 +1440,11 @@ export async function fetchDetail(restaurant) {
   // Farmington Valley Health District (FVHD), CT
   if (source === "fvhd") {
     return fvhdToDetailRows(restaurant);
+  }
+
+  // Washington DC
+  if (source === "dc") {
+    return dcToDetailRows(restaurant);
   }
 
   // Maricopa County, AZ — detail from enrichment data (portal is Cloudflare-blocked)

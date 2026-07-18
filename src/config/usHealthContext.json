@@ -394,7 +394,21 @@
     }
   },
   "DE": "Delaware: Delaware Division of Public Health — Office of Food Protection (dhss.delaware.gov/dph/hsp). Statewide. Score: 100-point with critical/non-critical violations.",
-  "DC": "Washington DC: DC Health (dc.healthinspections.us/?a=Inspections). Food Protection Program conducts inspections. Score: Pass/Fail.",
+  "DC": {
+    "portal_url": "https://dc.healthinspections.us/?a=Inspections",
+    "portal_name": "DC Health — Food Establishment Inspections",
+    "inspection_type": "FDA Food Code Priority/Foundation/Core violations, Pass/Fail",
+    "notes": "DC Health does not assign grades or percentages. Uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories. Search by establishment name at dc.healthinspections.us.",
+    "counties": {
+      "District of Columbia": {
+        "portal_url": "https://dc.healthinspections.us/?a=Inspections",
+        "portal_name": "DC Health Inspection Search",
+        "cities": [
+          "washington"
+        ]
+      }
+    }
+  },
   "FL": "Florida: FL DBPR Division of Hotels & Restaurants (www2.myfloridalicense.com/hotels-restaurants/inspections/). Statewide. Score: Pass/Fail with violations reported.",
   "GA": {
     "description": "Georgia: GA Dept of Public Health (dph.georgia.gov/environmental-health/environmental-health-inspections). County health departments conduct inspections. Score: 100-point or letter grade in some counties. Note: Gwinnett/Newton/Rockdale are excluded from the statewide search.",
