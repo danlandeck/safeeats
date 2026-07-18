@@ -15,17 +15,17 @@ import {
 } from "../utils/inspectionProcessors";
 import ScoreGauge from "../components/ScoreGauge";
 
-const KING_API       = "https://data.kingcounty.gov/resource/f29f-zza5.json";
+const KING_API       = "https://services.arcgis.com/Ej0PsM5Aw677QF1W/arcgis/rest/services/RESTAURANT_INSPECTIONS_POINT_857/FeatureServer/0/query";
 const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
 const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
-const SF_API         = "https://data.sfgov.org/resource/pyih-qa8i.json";
+const SF_API         = "https://data.sfgov.org/resource/tvy3-wexg.json";
 const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
-  const data = await fetch(`${KING_API}?$limit=50&$order=inspection_date DESC`).then((r) => r.json());
+  const data = await fetch(`${KING_API}?where=1%3D1&outFields=*&f=json&orderByFields=DATE_INSPECTION+DESC&resultRecordCount=1000`).then((r) => r.json());
   return processKingCountyResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
