@@ -9,6 +9,7 @@ import DietaryBadges from "./DietaryBadges";
 import ADABadge from "./ADABadge";
 import EPAWaterCard from "./EPAWaterCard";
 import DataSourceBadge from "./DataSourceBadge";
+import StaleDataBanner from "./StaleDataBanner";
 
 
 
@@ -124,8 +125,8 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
           {/* EPA Water info — US restaurants only (component returns null for international) */}
           <EPAWaterCard restaurant={restaurant} />
 
-          {/* Portal link — clickable hyperlink to official health department */}
-          {restaurant.portal_url && (
+          {/* Portal link — clickable hyperlink to official health department (only when no stale-data banner is shown) */}
+          {restaurant.portal_url && !restaurant.data_warning && (
             <a
               href={restaurant.portal_url}
               target="_blank"
@@ -139,6 +140,9 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
               </span>
             </a>
           )}
+
+          {/* Stale-data banner + search-official-portal button (e.g. Portland 2019-2020 historical data) */}
+          <StaleDataBanner restaurant={restaurant} variant="card" />
 
           {/* Data fetch issue strip — transparently shows why data might be missing */}
           {restaurant.data_fetch_notes && (

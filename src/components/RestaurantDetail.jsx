@@ -20,6 +20,7 @@ import EPAWaterCard from "./EPAWaterCard";
 import SafetyFactors from "./SafetyFactors";
 import KofiButton from "./KofiButton";
 import DataSourceBadge from "./DataSourceBadge";
+import StaleDataBanner from "./StaleDataBanner";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -317,7 +318,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           <EPAWaterCard restaurant={restaurant} />
 
           {/* Portal link — prominent clickable hyperlink to official health department (hidden for U grade, already shown in hero) */}
-          {restaurant.portal_url && grade !== "U" && (
+          {restaurant.portal_url && grade !== "U" && !restaurant.data_warning && (
             <a
               href={restaurant.portal_url}
               target="_blank"
@@ -330,6 +331,9 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </span>
             </a>
           )}
+
+          {/* Stale-data banner + search-official-portal button (e.g. Portland 2019-2020 historical data) */}
+          <StaleDataBanner restaurant={restaurant} variant="detail" />
 
         </div>
 
