@@ -11,6 +11,8 @@ import {
   processGeorgiaResults, processIllinoisCDPResults, processIndianaMarionResults,
   processBRLAResults,
   processMississippiResults,
+  processOklahomaResults,
+  processSCResults,
   kingToDetailRows, nycToDetailRows, chicagoToDetailRows,
   montgomeryToDetailRows, austinToDetailRows, sfToDetailRows, laToDetailRows,
   delawareToDetailRows, nyStateToDetailRows, torontoToDetailRows,
@@ -19,6 +21,8 @@ import {
   floridaToDetailRows, illinoisCDPToDetailRows, indianaMarionToDetailRows,
   brlaToDetailRows,
   mississippiToDetailRows,
+  oklahomaToDetailRows,
+  scToDetailRows,
 } from "../inspectionProcessors";
 
 export const PROCESSORS = {
@@ -39,6 +43,8 @@ export const PROCESSORS = {
   indiana_marion:   { process: processIndianaMarionResults, toDetailRows: indianaMarionToDetailRows },
   brla:             { process: processBRLAResults,         toDetailRows: brlaToDetailRows },
   mississippi:      { process: processMississippiResults,  toDetailRows: mississippiToDetailRows },
+  oklahoma:         { process: processOklahomaResults,     toDetailRows: oklahomaToDetailRows },
+  sc_food_grades:   { process: processSCResults,           toDetailRows: scToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
 };
 
@@ -69,4 +75,6 @@ export const SOURCE_TO_COUNTY = {
   indiana_marion: "indiana_marion",
   brla: "brla",
   mississippi: "mississippi",
+  oklahoma: "oklahoma",
+  sc_food_grades: "sc_food_grades",
 };

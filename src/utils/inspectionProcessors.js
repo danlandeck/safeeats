@@ -44,3 +44,5 @@ export {
 export { reverseGeocode, geocodeAddress } from "./processors/geocode";
 export { processBRLAResults, brlaToDetailRows } from "./processors/louisiana";
 export { processMississippiResults, mississippiToDetailRows } from "./processors/mississippi";
+export { processOklahomaResults, oklahomaToDetailRows } from "./processors/oklahoma";
+export { processSCResults, scToDetailRows } from "./processors/southCarolina";

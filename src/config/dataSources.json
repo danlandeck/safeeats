@@ -429,7 +429,7 @@
     "default": "none"
   },
   "OK": {
-    "default": "none"
+    "default": "oklahoma"
   },
   "OR": {
     "default": "none"
@@ -441,7 +441,7 @@
     "default": "none"
   },
   "SC": {
-    "default": "none"
+    "default": "sc_food_grades"
   },
   "SD": {
     "default": "none"
