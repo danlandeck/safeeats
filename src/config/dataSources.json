@@ -364,7 +364,7 @@
     "default": "none"
   },
   "NE": {
-    "none": true
+    "default": "none"
   },
   "NV": {
     "cities": {

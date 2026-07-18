@@ -58,6 +58,8 @@ const ENRICH_CONTEXT = {
   minnesota: "Minnesota Department of Health (MDH) — food inspections managed by MDH and local public health agencies. No state-wide restaurant inspection search portal available. Licensing system search exists but does not include inspection results. AI web search required for inspection scores.",
   missouri: "Missouri Department of Health and Senior Services (DHSS) — food inspections managed by local public health agencies statewide. No state-wide restaurant inspection search portal. DHSS links to local agency websites. AI web search required for inspection scores.",
   montana: "Montana Department of Public Health and Human Services (DPHHS) — Environmental Health and Food Safety Section. Uses 2013 Food Code. No state-wide restaurant inspection search portal available. Inspections managed by county health departments. AI web search required for inspection scores.",
+  nebraska: "Nebraska DHHS — food inspections managed by local health departments. Lincoln-Lancaster County Health Department (LLCHD) has a JS-rendered inspection viewer. Douglas County (Omaha) has an ArcGIS restaurant ratings app. Hall County (Grand Island) uses inspectionsonline.us platform. No state-wide restaurant inspection search portal available — AI web search required for inspection scores.",
+  nevada_reno: "Washoe County (Reno) — Northern Nevada Public Health (NNPH) food inspections at nnph.org. Pass/Conditional Pass/Fail/Closed grading: Pass=<3 critical violations, Conditional Pass=3-5 critical, Fail=6+ critical, Closed=uncorrectable critical violation. Portal is behind Cloudflare with SSL issues — AI web search required for inspection scores.",
 };
 
 function getContext(countyId) {

@@ -60,6 +60,7 @@ const SOURCE_INFO = {
   minnesota:       { dept: "Minnesota Dept of Health (MDH)",              type: "ai",           icon: " hockey" },
   missouri:        { dept: "Missouri Local Public Health Agencies",        type: "ai",           icon: " arch" },
   montana:         { dept: "Montana DPHHS Environmental Health",           type: "ai",           icon: "🏔️" },
+  nebraska:        { dept: "Nebraska DHHS / Local Health Depts",           type: "ai",           icon: "🌽" },
 };
 
 const TYPE_META = {
