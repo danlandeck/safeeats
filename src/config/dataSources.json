@@ -397,13 +397,13 @@
     "default": "none"
   },
   "NH": {
-    "none": true
+    "default": "none"
   },
   "NJ": {
-    "none": true
+    "default": "none"
   },
   "NM": {
-    "none": true
+    "default": "none"
   },
   "NC": {
     "cities": {
@@ -423,49 +423,49 @@
     "default": "none"
   },
   "ND": {
-    "none": true
+    "default": "none"
   },
   "OH": {
-    "none": true
+    "default": "none"
   },
   "OK": {
-    "none": true
+    "default": "none"
   },
   "OR": {
-    "none": true
+    "default": "none"
   },
   "PA": {
-    "none": true
+    "default": "none"
   },
   "RI": {
-    "none": true
+    "default": "none"
   },
   "SC": {
-    "none": true
+    "default": "none"
   },
   "SD": {
-    "none": true
+    "default": "none"
   },
   "TN": {
-    "none": true
+    "default": "none"
   },
   "UT": {
-    "none": true
+    "default": "none"
   },
   "VT": {
-    "none": true
+    "default": "none"
   },
   "VA": {
-    "none": true
+    "default": "none"
   },
   "WV": {
-    "none": true
+    "default": "none"
   },
   "WI": {
-    "none": true
+    "default": "none"
   },
   "WY": {
-    "none": true
+    "default": "none"
   },
   "BC": {
     "cities": {
