@@ -1,7 +1,7 @@
 import { Globe, Database, ShieldCheck, TrendingUp } from "lucide-react";
 
 const METRICS = [
-  { icon: Database, value: "18", label: "Live data sources", sub: "Direct government APIs" },
+  { icon: Database, value: "20", label: "Live data sources", sub: "Direct government APIs" },
   { icon: Globe, value: "3", label: "Live API countries", sub: "US, UK, Canada" },
   { icon: ShieldCheck, value: "74", label: "Countries covered", sub: "Structured + AI-assisted" },
   { icon: TrendingUp, value: "1", label: "Universal grade", sub: "A–F scale worldwide" },

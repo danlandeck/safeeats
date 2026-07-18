@@ -987,7 +987,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);

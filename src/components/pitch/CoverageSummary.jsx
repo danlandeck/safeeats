@@ -6,7 +6,7 @@ const TIERS = [
     color: "bg-emerald-600",
     badge: "bg-emerald-100 text-emerald-700",
     title: "Live API Markets",
-    stat: "18 sources · 3 countries",
+    stat: "20 sources · 3 countries",
     body: "Direct, real-time connectors to government open-data APIs — NYC, Chicago, SF, LA County, King County, Austin, Montgomery MD, Delaware, NY State, Boston, Houston, Toronto, UK FSA, and more. Queried at request time, never stale snapshots.",
     items: ["Socrata / CKAN / ArcGIS", "UK FSA national API", "Real-time freshness tracking"],
   },
