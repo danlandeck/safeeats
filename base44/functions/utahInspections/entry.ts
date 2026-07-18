@@ -187,13 +187,16 @@ Deno.serve(async (req) => {
         }
       }
 
-      const postRes = await fetch(BASE_URL, {
+      // POST to the session URL (getRes.url) — not BASE_URL.
+      // The CDP portal uses cookieless sessions; posting to BASE_URL
+      // creates a new session and loses the form state.
+      const postRes = await fetch(getRes.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'User-Agent': UA,
           'Cookie': cookieStr,
-          'Referer': BASE_URL,
+          'Referer': getRes.url,
           'Origin': 'https://public.cdpehs.com',
         },
         body: formData.toString(),

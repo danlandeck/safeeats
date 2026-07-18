@@ -290,6 +290,37 @@ Deno.serve(async (req) => {
       formData.append("ctl00$ContentPlaceHolder1$BtnSearch.x", "10");
       formData.append("ctl00$ContentPlaceHolder1$BtnSearch.y", "10");
 
+      // Step 3a: First try with AJAX headers to detect county-specific redirects.
+      // Some counties (e.g., Jefferson/Birmingham) redirect to their own portal.
+      const ajaxRes = await fetch(sessionUrl, {
+        method: "POST",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          "Accept": "*/*",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Referer": sessionUrl,
+          "X-MicrosoftAjax": "Delta=true",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: formData.toString(),
+      });
+      const ajaxBody = await ajaxRes.text();
+
+      // Check for pageRedirect in AJAX response (format: |pageRedirect||URL|)
+      const redirectMatch = ajaxBody.match(/pageRedirect\|\|([^|]+)/);
+      if (redirectMatch) {
+        const redirectUrl = decodeURIComponent(redirectMatch[1]);
+        // Jefferson County redirects to webapps.jcdh.org — return as portal link
+        return Response.json({
+          facilities: [],
+          county: countyName,
+          source: PORTAL_NAME,
+          redirect_url: redirectUrl,
+          note: `${countyName} County uses a separate portal at ${redirectUrl}`,
+        });
+      }
+
+      // Step 3b: No redirect — do a standard full POST to get results
       const res3 = await fetch(sessionUrl, {
         method: "POST",
         headers: {
