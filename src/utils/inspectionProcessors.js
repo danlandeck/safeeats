@@ -1702,3 +1702,59 @@ export function riversideToDetailRows(restaurant) {
     violation_points: "0",
   }];
 }
+
+// ── Maricopa County, AZ ───────────────────────────────────────────────────────
+// ArcGIS Online FeatureServer (services.arcgis.com) — public REST API.
+// Returns restaurant name, address, city, zip, license number (FD-XXXXX), and
+// coordinates. Inspection grades are on the county portal's permit detail page
+// (envapp.maricopa.gov/Permit/FD-XXXXX/Restaurant) which is behind Cloudflare
+// (HTTP 526 from Deno). We provide the permit_url as a direct link and run
+// background LLM enrichment for inspection scores.
+export function processMaricopaResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f, i) => ({
+    business_id: f.business_id || `maricopa-${i}`,
+    name: f.name,
+    address: f.address,
+    city: f.city,
+    zip_code: f.zip_code || "",
+    phone: "", description: "",
+    safetyScore: null,
+    grade: "U",
+    totalInspections: 0,
+    latestDate: null,
+    latestResult: "Licensed",
+    latitude: f.latitude || null,
+    longitude: f.longitude || null,
+    isLLMData: false, source: "maricopa",
+    ada_compliance: "unknown",
+    permit_url: f.permit_url || null,
+    inspection_url: f.inspection_url || null,
+    license_number: f.license_number || "",
+  }));
+}
+
+export function maricopaToDetailRows(restaurant) {
+  if (Array.isArray(restaurant.allInspections) && restaurant.allInspections.length > 0) {
+    return restaurant.allInspections.map((insp, i) => ({
+      inspection_serial_num: `maricopa-${restaurant.business_id}-${i}`,
+      inspection_date: insp.inspection_date || insp.date || "",
+      inspection_score: insp.inspection_score || insp.score || "",
+      inspection_result: insp.inspection_result || insp.result || "",
+      inspection_type: insp.inspection_type || "Routine",
+      violation_description: insp.violation_description || "",
+      violation_type: insp.violation_type || "",
+      violation_points: insp.violation_points || "0",
+    }));
+  }
+  return [{
+    inspection_serial_num: `maricopa-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: "",
+    inspection_result: restaurant.latestResult || "Licensed",
+    inspection_type: "Routine",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}

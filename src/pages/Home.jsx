@@ -825,6 +825,36 @@ const CITY_TO_COUNTY = {
   "oneonta": { region: "alabama", countyId: "alabama", locationLabel: "Oneonta, AL" },
   "wetumpka": { region: "alabama", countyId: "alabama", locationLabel: "Wetumpka, AL" },
   "talladega": { region: "alabama", countyId: "alabama", locationLabel: "Talladega, AL" },
+  // Maricopa County, AZ — ArcGIS Online FeatureServer (live restaurant data)
+  "phoenix": { region: "arizona", countyId: "maricopa", locationLabel: "Phoenix, AZ" },
+  "scottsdale": { region: "arizona", countyId: "maricopa", locationLabel: "Scottsdale, AZ" },
+  "tempe": { region: "arizona", countyId: "maricopa", locationLabel: "Tempe, AZ" },
+  "mesa az": { region: "arizona", countyId: "maricopa", locationLabel: "Mesa, AZ" },
+  "chandler az": { region: "arizona", countyId: "maricopa", locationLabel: "Chandler, AZ" },
+  "gilbert az": { region: "arizona", countyId: "maricopa", locationLabel: "Gilbert, AZ" },
+  "glendale az": { region: "arizona", countyId: "maricopa", locationLabel: "Glendale, AZ" },
+  "peoria az": { region: "arizona", countyId: "maricopa", locationLabel: "Peoria, AZ" },
+  "surprise az": { region: "arizona", countyId: "maricopa", locationLabel: "Surprise, AZ" },
+  "goodyear az": { region: "arizona", countyId: "maricopa", locationLabel: "Goodyear, AZ" },
+  "buckeye az": { region: "arizona", countyId: "maricopa", locationLabel: "Buckeye, AZ" },
+  "avondale az": { region: "arizona", countyId: "maricopa", locationLabel: "Avondale, AZ" },
+  "tolleson": { region: "arizona", countyId: "maricopa", locationLabel: "Tolleson, AZ" },
+  "litchfield park": { region: "arizona", countyId: "maricopa", locationLabel: "Litchfield Park, AZ" },
+  "el mirage": { region: "arizona", countyId: "maricopa", locationLabel: "El Mirage, AZ" },
+  "youngtown": { region: "arizona", countyId: "maricopa", locationLabel: "Youngtown, AZ" },
+  "sun city az": { region: "arizona", countyId: "maricopa", locationLabel: "Sun City, AZ" },
+  "sun city west": { region: "arizona", countyId: "maricopa", locationLabel: "Sun City West, AZ" },
+  "sun lakes": { region: "arizona", countyId: "maricopa", locationLabel: "Sun Lakes, AZ" },
+  "queen creek az": { region: "arizona", countyId: "maricopa", locationLabel: "Queen Creek, AZ" },
+  "wickenburg": { region: "arizona", countyId: "maricopa", locationLabel: "Wickenburg, AZ" },
+  "guadalupe az": { region: "arizona", countyId: "maricopa", locationLabel: "Guadalupe, AZ" },
+  "laveen": { region: "arizona", countyId: "maricopa", locationLabel: "Laveen, AZ" },
+  "ahwatukee": { region: "arizona", countyId: "maricopa", locationLabel: "Ahwatukee, AZ" },
+  "paradise valley az": { region: "arizona", countyId: "maricopa", locationLabel: "Paradise Valley, AZ" },
+  "fountain hills": { region: "arizona", countyId: "maricopa", locationLabel: "Fountain Hills, AZ" },
+  "cave creek": { region: "arizona", countyId: "maricopa", locationLabel: "Cave Creek, AZ" },
+  "carefree az": { region: "arizona", countyId: "maricopa", locationLabel: "Carefree, AZ" },
+  "maricopa county": { region: "arizona", countyId: "maricopa", locationLabel: "Maricopa County, AZ" },
   // Alaska — AI enrichment fallback (DEC portal returns 500 errors, Anchorage is JS SPA)
   "anchorage": { region: "alaska", countyId: "anchorage", locationLabel: "Anchorage, AK" },
   "fairbanks": { region: "alaska", countyId: "fairbanks", locationLabel: "Fairbanks, AK" },
@@ -908,6 +938,7 @@ const LIVE_API_CITIES = [
   { label: "Raleigh / Wake Co., NC", region: "north_carolina", countyId: "wake", emoji: "🌲", example: "McDonald's", locationLabel: "Raleigh, NC" },
   { label: "Louisville, KY", region: "kentucky", countyId: "jefferson_ky", emoji: "🍗", example: "KFC", locationLabel: "Louisville, KY" },
   { label: "Alabama (State-wide)", region: "alabama", countyId: "alabama", emoji: "Alabama", example: "McDonald's", locationLabel: "Montgomery, AL" },
+  { label: "Phoenix / Maricopa Co., AZ", region: "arizona", countyId: "maricopa", emoji: "🌵", example: "McDonald's", locationLabel: "Phoenix, AZ" },
 ];
 
 export default function Home() {
@@ -1106,7 +1137,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver","alabama"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver","alabama","maricopa"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);
@@ -1454,7 +1485,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-4 sm:p-5">
               <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
               <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🗽 Alabama (State-wide — 67 counties)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🗽 Alabama (State-wide — 67 counties)", "🌵 Phoenix / Maricopa Co., AZ", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>
