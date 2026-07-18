@@ -390,6 +390,77 @@ function filterByNameRelevance(results, query) {
  * near City"), and a trailing state abbreviation.
  */
 const US_STATE_ABBRS = /^(al|ak|az|ar|ca|co|ct|de|dc|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy)$/i;
+
+// Canadian province/territory abbreviations (for disambiguation)
+const CA_PROVINCES = new Set(["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]);
+
+// Country name/code → ISO 3166-1 alpha-2 (for global disambiguation)
+const COUNTRY_ALIASES = {
+  "uk": "GB", "united kingdom": "GB", "britain": "GB", "england": "GB", "scotland": "GB", "wales": "GB", "gb": "GB",
+  "france": "FR", "fr": "FR",
+  "germany": "DE", "de": "DE", "deutschland": "DE",
+  "australia": "AU", "au": "AU",
+  "canada": "CA",
+  "japan": "JP", "jp": "JP",
+  "south korea": "KR", "korea": "KR", "kr": "KR",
+  "netherlands": "NL", "nl": "NL", "holland": "NL",
+  "denmark": "DK", "dk": "DK",
+  "new zealand": "NZ", "nz": "NZ",
+  "india": "IN", "in": "IN",
+  "china": "CN", "cn": "CN",
+  "hong kong": "HK", "hk": "HK",
+  "brazil": "BR", "br": "BR",
+  "uae": "AE", "united arab emirates": "AE", "ae": "AE",
+  "singapore": "SG", "sg": "SG",
+  "ireland": "IE", "ie": "IE",
+  "united states": "US", "usa": "US", "us": "US", "america": "US",
+  "spain": "ES", "es": "ES",
+  "italy": "IT", "it": "IT",
+  "mexico": "MX", "mx": "MX",
+  "thailand": "TH", "th": "TH",
+  "turkey": "TR", "tr": "TR",
+  "greece": "GR", "gr": "GR",
+  "portugal": "PT", "pt": "PT",
+  "sweden": "SE", "se": "SE",
+  "switzerland": "CH", "ch": "CH",
+  "austria": "AT", "at": "AT",
+  "belgium": "BE", "be": "BE",
+  "norway": "NO", "no": "NO",
+  "finland": "FI", "fi": "FI",
+  "poland": "PL", "pl": "PL",
+  "russia": "RU", "ru": "RU",
+  "south africa": "ZA", "za": "ZA",
+  "argentina": "AR", "ar": "AR",
+  "chile": "CL", "cl": "CL",
+  "israel": "IL", "il": "IL",
+  "egypt": "EG", "eg": "EG",
+  "indonesia": "ID", "id": "ID",
+  "malaysia": "MY", "my": "MY",
+  "philippines": "PH", "ph": "PH",
+  "vietnam": "VN", "vn": "VN",
+};
+
+/**
+ * Resolve the expected country (and optionally state) from a location label.
+ * Handles US states ("City, CT" → US/CT), Canadian provinces ("City, BC" → CA/BC),
+ * and country names/codes ("City, UK" → GB, "City, France" → FR).
+ * Returns { country: "ISO", state?: "CODE" } or null if undeterminable.
+ */
+function resolveExpectedGeo(location) {
+  if (!location) return null;
+  const parts = location.split(",").map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  const suffix = parts[parts.length - 1].toLowerCase();
+  // US state abbreviation → US
+  if (US_STATE_ABBRS.test(suffix)) return { country: "US", state: suffix.toUpperCase() };
+  // Canadian province → CA
+  if (CA_PROVINCES.has(suffix)) return { country: "CA", state: suffix.toUpperCase() };
+  // Country name or code
+  const country = COUNTRY_ALIASES[suffix];
+  if (country) return { country };
+  return null;
+}
+
 function parseSearchQuery(raw) {
   let name = (raw || "").trim();
   let hint = "";
@@ -784,18 +855,23 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
 
     // Guard against city-name collisions across states/countries
     // (Manchester CT vs Manchester UK, Las Vegas NV vs Las Vegas NM,
-    // Paris TX vs Paris FR). Only fires when the result actually has
-    // state/country data (Google Places results do; bare LLM results don't).
-    if (!isWrongLocation && location) {
-      const stateMatch = location.match(/,\s*([A-Za-z]{2})\s*$/);
-      if (stateMatch) {
-        const expectedState = stateMatch[1].toUpperCase();
-        const resultState = (r.state || "").toUpperCase().trim();
-        const resultCountry = (r.country || "").toUpperCase().trim();
-        if (resultState && resultState !== expectedState) {
+    // Paris TX vs Paris FR, Vancouver BC vs Vancouver WA, London UK vs London OH).
+    // Only fires when the result has state/country data from Google Places.
+    if (!isWrongLocation) {
+      const expected = resolveExpectedGeo(location);
+      if (expected) {
+        const resultCountryRaw = (r.country || "").toUpperCase().trim();
+        const resultCountry = COUNTRY_ALIASES[resultCountryRaw.toLowerCase()] || resultCountryRaw;
+        // Country mismatch → hard reject
+        if (resultCountry && resultCountry !== expected.country) {
           isWrongState = true;
-        } else if (resultCountry && resultCountry !== "US" && resultCountry !== "USA") {
-          isWrongState = true;
+        }
+        // State mismatch within same country → hard reject
+        if (!isWrongState && expected.state) {
+          const resultState = (r.state || "").toUpperCase().trim();
+          if (resultState && resultState !== expected.state) {
+            isWrongState = true;
+          }
         }
       }
     }
