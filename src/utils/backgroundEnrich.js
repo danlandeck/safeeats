@@ -37,6 +37,8 @@ const ENRICH_CONTEXT = {
   tacoma: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.",
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   riverside: "Riverside County Department of Environmental Health (rivcoeh.org) restaurant inspection records. Facilities inspected 1-4 times per year. Uses a grade card system (A/B/C or color-coded). Search portal at weblink.rivcoeh.org. Convert letter grades: A=90-100, B=80-89, C=70-79. If closed/failed → 0-39.",
+  arkansas: "Arkansas Department of Health (ADH) foodserviceprod.adh.arkansas.gov — state-wide portal covering all 75 counties. 100-point scale: 85+=satisfactory, 70-84=follow-up required, 60-69=reinspection within 48h, <60=closed. Food establishments inspected 1-4 times per year. Critical violations have higher point values.",
+  maricopa: "Maricopa County Environmental Services (envapp.maricopa.gov) restaurant inspection grades. Letter grades A-R: A=90-100 (no priority violations), B=80-89, C=70-79 (2+ priority violations), R=Re-Inspection required (score 50-69). Priority violations directly contribute to foodborne illness risk. Inspections 1-4 times per year.",
 };
 
 function getContext(countyId) {

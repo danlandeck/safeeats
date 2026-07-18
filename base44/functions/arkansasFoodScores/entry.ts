@@ -65,14 +65,19 @@ function parseCityStateZip(locationStr) {
  * Falls back to NonFormattedNameAddress if name can't be extracted from <td>.
  */
 function parseNameCell(tdHtml, rawNameAddr) {
-  // Name = text before <BR> (or <br>)
-  const nameMatch = tdHtml.match(/^([^<]*)<br/i);
-  let name = nameMatch ? nameMatch[1].trim() : "";
-
-  // Address line = first <div> content
+  // Address line + phone from <div> elements
   const divs = [...tdHtml.matchAll(/<div[^>]*>([^<]*)<\/div>/gi)].map(m => m[1].trim());
   const addressLine = divs[0] || "";
   const phone = divs[1] || "";
+
+  // Name: strip all <div> blocks, split on <BR>, take first text segment,
+  // strip any remaining HTML tags. Handles names in plain text, <span>, <b>, etc.
+  const withoutDivs = tdHtml.replace(/<div[^>]*>[\s\S]*?<\/div>/gi, "");
+  let name = withoutDivs
+    .split(/<br\s*\/?>/i)[0]
+    .replace(/<[^>]*>/g, "")
+    .replace(/&#39;/g, "'").replace(/&amp;/g, "&")
+    .trim();
 
   // Parse "STREET  CITY, ST ZIP" from the address line
   let street = "";
@@ -96,21 +101,14 @@ function parseNameCell(tdHtml, rawNameAddr) {
     street = addressLine;
   }
 
-  // Fallback: if name is empty, extract from NonFormattedNameAddress
-  // by finding the street in the raw string and taking everything before it
+  // Fallback: if name is still empty, extract from NonFormattedNameAddress
   if (!name && rawNameAddr && street) {
     const decoded = rawNameAddr.replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
-    // Remove phone from the end
     const phoneIdx = decoded.search(/\d{3}-\d{3}-\d{4}/);
     const noPhone = phoneIdx > 0 ? decoded.substring(0, phoneIdx).trim() : decoded;
-    // Find the street in the remaining string
     const streetIdx = noPhone.indexOf(street);
     if (streetIdx > 0) {
       name = noPhone.substring(0, streetIdx).trim();
-    } else {
-      // Can't find street — take first word(s) before 2+ spaces
-      const parts = noPhone.split(/\s{2,}/);
-      name = parts[0] ? parts[0].trim() : "";
     }
   }
 
@@ -119,49 +117,37 @@ function parseNameCell(tdHtml, rawNameAddr) {
 
 /**
  * Parse establishment rows from the grid HTML.
- * Splits by NonFormattedNameAddress attribute to isolate each establishment block.
+ * Matches <tr> with NonFormattedNameAddress attribute + first 3 <td> elements.
  */
 function parseEstablishments(gridHtml) {
   const establishments = [];
-  // Split by the NonFormattedNameAddress attribute to get individual establishment blocks
-  const blocks = gridHtml.split(/<tr[^>]*NonFormattedNameAddress="/i);
-  // First element is the HTML before the first establishment row — skip it
-  for (let i = 1; i < blocks.length; i++) {
-    const block = blocks[i];
+  const rowRegex = /<tr[^>]*NonFormattedNameAddress="([^"]*)"[^>]*>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/gi;
+  let match;
+  while ((match = rowRegex.exec(gridHtml)) !== null) {
+    const rawNameAddr = match[1];
+    const td1Content = match[2];
+    // Strip HTML tags from date and type cells (they may contain <span> etc)
+    const latestDate = match[3].replace(/<[^>]*>/g, "").trim();
+    const inspectionType = match[4].replace(/<[^>]*>/g, "").trim();
 
-    // The block starts with the attribute value, followed by "> ... <td>NAME<BR>... <td>DATE <td>TYPE"
-    // Extract the NonFormattedNameAddress value (up to the next ")
-    const attrEnd = block.indexOf('"');
-    if (attrEnd < 0) continue;
-    const rawNameAddr = block.substring(0, attrEnd);
-    const rowHtml = block.substring(attrEnd + 1);
-
-    // Extract the first 3 <td> elements from the row
-    const td1Match = rowHtml.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
-    if (!td1Match) continue;
-    const td1Content = td1Match[1];
-
-    // Extract date and type from the 2nd and 3rd <td>
-    const afterTd1 = rowHtml.substring(td1Match.index + td1Match[0].length);
-    const td2Match = afterTd1.match(/<td[^>]*>([^<]*)<\/td>/i);
-    const td3Match = td2Match ? afterTd1.substring(td2Match.index + td2Match[0].length).match(/<td[^>]*>([^<]*)<\/td>/i) : null;
-
-    const latestDate = td2Match ? td2Match[1].trim() : "";
-    const inspectionType = td3Match ? td3Match[1].trim() : "";
-
-    // Parse name, address, city, state, zip, phone from the first <td> content
     const parsed = parseNameCell(td1Content, rawNameAddr);
 
-    // Extract establishment Key from the row
-    const keyMatch = rowHtml.match(/Key="(\d+)"/);
+    // Extract establishment Key from nearby HTML
+    const afterMatch = gridHtml.substring(match.index, match.index + 3000);
+    const keyMatch = afterMatch.match(/Key="(\d+)"/);
     const establishmentKey = keyMatch ? keyMatch[1] : "";
 
-    // Format date from MM/DD/YYYY to YYYY-MM-DD
     let formattedDate = "";
     if (latestDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
       const [mm, dd, yyyy] = latestDate.split("/");
       formattedDate = `${yyyy}-${mm}-${dd}`;
     }
+
+    // Skip entries where date doesn't look like MM/DD/YYYY (past inspection rows)
+    if (!latestDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) continue;
+
+    // Skip entries with no name AND no address
+    if (!parsed.name && !parsed.address) continue;
 
     establishments.push({
       name: parsed.name,

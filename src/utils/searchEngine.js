@@ -23,6 +23,7 @@ import {
   processRiversideResults, riversideToDetailRows,
   processAlabamaResults, alabamaToDetailRows,
   processMaricopaResults, maricopaToDetailRows,
+  processArkansasResults, arkansasToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -75,6 +76,7 @@ const SOURCE_TO_COUNTY = {
   riverside: "riverside",
   alabama: "alabama",
   maricopa: "maricopa",
+  arkansas: "arkansas",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -181,6 +183,7 @@ const COUNTRY_CONTEXT = {
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   riverside: "Riverside County Department of Environmental Health (rivcoeh.org) inspects food facilities 1-4 times per year. Public portal at weblink.rivcoeh.org allows searching facility inspection records by name, city, and record type. Facilities receive grade cards (A/B/C or color-coded). Convert: A=90-100, B=80-89, C=70-79, Closed/Failed=0-39. Prioritize: restaurantgrading.rivcoeh.org and weblink.rivcoeh.org for official inspection records.",
   alabama: "Alabama Department of Public Health (ADPH) foodscores.state.al.us — state-wide portal covering ALL 67 counties via county health departments. 100-point scale: 85+=satisfactory, 70-84=follow-up required within 60 days, 60-69=reinspection within 48h, <60=closed immediately. Food service establishments inspected minimum 3x/year. Critical violations have higher point values and must be corrected within 10 days.",
+  arkansas: "Arkansas Department of Health (ADH) foodserviceprod.adh.arkansas.gov — state-wide portal covering ALL 75 counties via county health departments. Food establishments inspected 1-4 times per year. 100-point scale: 85+=satisfactory, 70-84=follow-up required, 60-69=reinspection within 48h, <60=closed. Critical violations have higher point values and must be corrected within 10 days. Public portal at foodserviceprod.adh.arkansas.gov — search by establishment name and city.",
   maricopa: "Maricopa County Environmental Services (envapp.maricopa.gov) Restaurant Ratings Tool. Letter grades A-R: A=90-100 (no priority violations), B=80-89, C=70-79 (2+ priority violations), R=Re-Inspection required (score 50-69). Priority violations are major violations that directly contribute to increasing the risk of foodborne illness. Inspections 1-4 times per year. Public portal at envapp.maricopa.gov/EnvironmentalHealth/FoodInspections — search by business name, address, or city.",
   // Ireland
   dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
@@ -1232,6 +1235,27 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
+  // Arkansas — state-wide ADH Food Establishment Scores portal (all 75 counties)
+  if (countyId === "arkansas") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const res = await base44.functions.invoke("arkansasFoodScores", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processArkansasResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) {
+        // Portal returns inspection date + type but no numeric scores.
+        // Background LLM enrichment fills in scores from training data.
+        enrichResults(liveResults, "arkansas", onAccurateResults);
+        return { results: liveResults, isAI: true };
+      }
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Southern Nevada Health District — Clark County (Las Vegas)
   if (countyId === "snhd") {
     try {
@@ -1361,6 +1385,11 @@ export async function fetchDetail(restaurant) {
   // Alabama (state-wide ADPH)
   if (source === "alabama") {
     return alabamaToDetailRows(restaurant);
+  }
+
+  // Arkansas (state-wide ADH)
+  if (source === "arkansas") {
+    return arkansasToDetailRows(restaurant);
   }
 
   // Maricopa County, AZ — detail from enrichment data (portal is Cloudflare-blocked)

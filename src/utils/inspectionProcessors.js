@@ -1703,6 +1703,48 @@ export function riversideToDetailRows(restaurant) {
   }];
 }
 
+// ── Arkansas (state-wide ADH Food Establishment Scores) ──────────────────────
+// Backend function returns facilities already in standard format.
+// Portal returns inspection date + type but no numeric score — background
+// LLM enrichment fills in scores from training data.
+export function processArkansasResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map(f => ({
+    ...f,
+    safetyScore: null,
+    grade: "U",
+    source: "arkansas",
+    ada_compliance: "unknown",
+  }));
+}
+
+export function arkansasToDetailRows(restaurant) {
+  if (Array.isArray(restaurant.allInspections) && restaurant.allInspections.length > 0) {
+    return restaurant.allInspections.map((insp, i) => ({
+      inspection_serial_num: `arkansas-${restaurant.business_id}-${i}`,
+      inspection_date: insp.date || insp.inspection_date || "",
+      inspection_score: insp.score !== null && insp.score !== undefined
+        ? String(Math.max(0, 100 - insp.score))
+        : "",
+      inspection_result: insp.result || insp.inspection_result || "",
+      inspection_type: insp.type || insp.inspection_type || "Routine",
+      violation_description: (insp.violations || []).map(v => v.description || v).join("; "),
+      violation_type: "",
+      violation_points: insp.violation_points || "0",
+    }));
+  }
+  return [{
+    inspection_serial_num: `arkansas-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: "",
+    inspection_result: restaurant.latestResult || "Routine",
+    inspection_type: restaurant.latestResult || "Routine",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}
+
 // ── Maricopa County, AZ ───────────────────────────────────────────────────────
 // ArcGIS Online FeatureServer (services.arcgis.com) — public REST API.
 // Returns restaurant name, address, city, zip, license number (FD-XXXXX), and

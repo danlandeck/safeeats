@@ -183,7 +183,7 @@
     },
     "default": "none"
   },
-  "AR": { "none": true },
+  "AR": { "default": "arkansas" },
   "CO": { "none": true },
   "DC": { "none": true },
   "FL": { "none": true },
