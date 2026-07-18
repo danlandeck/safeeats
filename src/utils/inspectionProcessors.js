@@ -2189,3 +2189,59 @@ export function georgiaToDetailRows(restaurant) {
     violation_points: insp.score !== null ? String(Math.max(0, 100 - insp.score)) : "0",
   }));
 }
+
+// ── Illinois CDP Portal (Sangamon, Madison, Peoria, Whiteside, McLean, Christian) ──
+// CDP (Custom Data Processing) portal at public.cdpehs.com/ILENVPBL serves
+// multiple IL counties. Uses FDA Food Code categories: Risk Factor Interventions
+// (≈Priority), Good Retail Practices (≈Core). No letter grades — we compute
+// safetyScore = 100 - (riskFactor*7 + goodRetail*1.5 + repeat*3).
+export function processIllinoisCDPResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f) => ({
+    business_id: f.business_id,
+    name: f.name,
+    address: f.address || "",
+    city: f.city || "",
+    zip_code: f.zip_code || "",
+    phone: "", description: "",
+    safetyScore: f.safetyScore ?? null,
+    grade: f.safetyScore !== null ? resolveGrade(f.safetyScore, f.latestResult || "") : "U",
+    totalInspections: f.totalInspections || 0,
+    latestDate: f.latestDate || "",
+    latestResult: f.latestResult || "",
+    latitude: null, longitude: null,
+    isLLMData: false, source: "illinois_cdp",
+    ada_compliance: "unknown",
+    portal_url: f.portal_url || null,
+    portal_name: "IL County Health Dept (CDP Portal)",
+    _inspections: f.allInspections || [],
+  }));
+}
+
+export function illinoisCDPToDetailRows(restaurant) {
+  const inspections = restaurant._inspections || restaurant.allInspections || [];
+  if (!Array.isArray(inspections) || inspections.length === 0) {
+    return [{
+      inspection_serial_num: `il-cdp-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: "",
+      inspection_result: restaurant.latestResult || "No inspections on file",
+      inspection_type: "Routine",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    }];
+  }
+  return inspections.map((insp, i) => ({
+    inspection_serial_num: `il-cdp-${restaurant.business_id}-${i}`,
+    inspection_date: insp.date || "",
+    inspection_score: insp.score !== null ? String(Math.max(0, 100 - insp.score)) : "",
+    inspection_result: insp.result || "Inspection completed",
+    inspection_type: insp.type || "Routine",
+    violation_description: (insp.riskFactor || 0) + (insp.goodRetail || 0) === 0
+      ? "No violations found"
+      : `${insp.riskFactor || 0} risk factor, ${insp.goodRetail || 0} good retail practice, ${insp.repeatViolations || 0} repeat violation(s)`,
+    violation_type: (insp.riskFactor || 0) > 0 ? "RED" : "BLUE",
+    violation_points: String((insp.riskFactor || 0) * 7 + Math.round((insp.goodRetail || 0) * 1.5) + (insp.repeatViolations || 0) * 3),
+  }));
+}

@@ -268,6 +268,39 @@
   "ID": {
     "none": true
   },
+  "IL": {
+    "cities": {
+      "chicago": "chicago",
+      "springfield": "illinois_cdp",
+      "granite city": "illinois_cdp",
+      "alton": "illinois_cdp",
+      "edwardsville": "illinois_cdp",
+      "collinsville": "illinois_cdp",
+      "highland": "illinois_cdp",
+      "troy": "illinois_cdp",
+      "glen carbon": "illinois_cdp",
+      "madison": "illinois_cdp",
+      "peoria": "illinois_cdp",
+      "bartonville": "illinois_cdp",
+      "bellevue": "illinois_cdp",
+      "chillicothe": "illinois_cdp",
+      "elmwood": "illinois_cdp",
+      "sterling": "illinois_cdp",
+      "rock falls": "illinois_cdp",
+      "morrison": "illinois_cdp",
+      "fulton": "illinois_cdp",
+      "bloomington": "illinois_cdp",
+      "normal": "illinois_cdp",
+      "lexington": "illinois_cdp",
+      "leroy": "illinois_cdp",
+      "taylorville": "illinois_cdp",
+      "pana": "illinois_cdp",
+      "rosamond": "illinois_cdp",
+      "assumption": "illinois_cdp",
+      "moweaqua": "illinois_cdp"
+    },
+    "default": "none"
+  },
   "IN": {
     "none": true
   },
