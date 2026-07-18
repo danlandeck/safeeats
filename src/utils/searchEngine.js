@@ -561,6 +561,8 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         name: p.name,
         address: p.address,
         city: p.city || primaryCity,
+        state: p.state || "",
+        country: p.country || "",
         zip_code: p.zip_code || "",
         cuisine: p.cuisine || "",
         data_confidence: "low", // verified to exist; no inspection record (yet)
@@ -581,6 +583,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
       // Willimantic → Windham CT, and "Windham County" vs locality "Windham").
       const needle = (primaryCity || "").toLowerCase().replace(/\s+county$/i, "").trim();
       const inLocation = (r) => {
+        if (r._wrongState) return false; // Hard reject: state/country mismatch
         if (!needle) return true;
         if (!r._wrongLocation) return true;
         return (r.address || "").toLowerCase().includes(needle) ||
@@ -745,6 +748,7 @@ function isDubaiLocation(city, address) {
 function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity) {
   // VALIDATE LOCATION ON ORIGINAL DATA BEFORE ANY OVERRIDES
   let isWrongLocation = false;
+  let isWrongState = false;
   
   if (countyId === "dubai") {
     isWrongLocation = !isDubaiLocation(r.city, r.address);
@@ -777,10 +781,28 @@ function buildRestaurantWithLocationCheck(r, i, countyId, location, expectedCity
                     resultCityLower.startsWith(expectedCleaned + " ");
 
     isWrongLocation = expectedCleaned.length > 2 && !isMatch;
+
+    // Guard against city-name collisions across states/countries
+    // (Manchester CT vs Manchester UK, Las Vegas NV vs Las Vegas NM,
+    // Paris TX vs Paris FR). Only fires when the result actually has
+    // state/country data (Google Places results do; bare LLM results don't).
+    if (!isWrongLocation && location) {
+      const stateMatch = location.match(/,\s*([A-Za-z]{2})\s*$/);
+      if (stateMatch) {
+        const expectedState = stateMatch[1].toUpperCase();
+        const resultState = (r.state || "").toUpperCase().trim();
+        const resultCountry = (r.country || "").toUpperCase().trim();
+        if (resultState && resultState !== expectedState) {
+          isWrongState = true;
+        } else if (resultCountry && resultCountry !== "US" && resultCountry !== "USA") {
+          isWrongState = true;
+        }
+      }
+    }
   }
   
   const built = buildLLMRestaurant(r, i, countyId, location, null);
-  return { ...built, _wrongLocation: isWrongLocation };
+  return { ...built, _wrongLocation: isWrongLocation, _wrongState: isWrongState };
 }
 
 /**
@@ -794,7 +816,7 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
   // Fast (training-data) results get the SAME verification filter as accurate
   // results — address-less or unverified entries must never reach the UI.
   const fastRes = await fastPromise;
-  let fast = filterUnverified(fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation);
+  let fast = filterUnverified(fastRes?.restaurants || []).map(buildFn).filter(r => !r._wrongLocation && !r._wrongState);
   if (isDubaiSearch) {
     fast = fast.filter(r => isDubaiLocation(r.city, r.address));
   }
@@ -807,7 +829,7 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
   if (fast.length > 0) {
     accuratePromise.then((res) => {
       const verified = filterUnverified(res?.restaurants || []);
-      let accurate = verified.map(buildFn).filter(r => !r._wrongLocation);
+      let accurate = verified.map(buildFn).filter(r => !r._wrongLocation && !r._wrongState);
       if (isDubaiSearch) {
         accurate = accurate.filter(r => isDubaiLocation(r.city, r.address));
       }
@@ -823,7 +845,7 @@ async function runWithFastResults(fastPromise, accuratePromise, buildFn, isDubai
   // No fast results — wait for web search to get something to show
   const result = await accuratePromise;
   const verified = filterUnverified(result?.restaurants || []);
-  let restaurants = verified.map(buildFn).filter(r => !r._wrongLocation);
+  let restaurants = verified.map(buildFn).filter(r => !r._wrongLocation && !r._wrongState);
   if (isDubaiSearch) {
     restaurants = restaurants.filter(r => isDubaiLocation(r.city, r.address));
   }
