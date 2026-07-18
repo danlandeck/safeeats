@@ -317,6 +317,15 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
 }
 
 export async function search({ query, countyId, locationLabel, today, signal, onAccurateResults, onCountUpdate }) {
+  // ── Clear all cached AI search results on every new search ──
+  // If a user searched wrong the first time or misclicked, stale cached
+  // results must not bleed into the new query.
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith("se-ai-cache-")) localStorage.removeItem(k);
+    });
+  } catch { /* localStorage unavailable */ }
+
   // All UK cities route through the live FSA API
   if (UK_CITY_IDS.has(countyId) || countyId === "uk_fsa") {
     try {
