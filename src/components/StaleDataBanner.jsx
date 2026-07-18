@@ -6,14 +6,57 @@ import { AlertTriangle, ExternalLink, Search } from "lucide-react";
  * historical/outdated (e.g. Portland OregonLive 2019-2020), plus a prominent
  * link letting the end-user search the official live portal themselves.
  *
- * Renders only when `restaurant.data_warning` is present.
+ * Renders when `restaurant.data_warning` is present OR when the restaurant
+ * is in a known stale-data jurisdiction (matched by county_id or city+state),
+ * so that AI-fallback results for those areas also get the portal link.
  */
+
+// Counties/cities where we know the data is historical or AI-estimated and
+// the user should be directed to the official portal for current records.
+const STALE_DATA_BY_COUNTY = {
+  portland_oregonlive: {
+    data_warning: "Historical data from OregonLive (2019-2020). May not reflect current conditions.",
+    portal_url: "https://inspections.myhealthdepartment.com/multco-eh",
+    portal_name: "Multnomah County Official Inspection Portal",
+  },
+};
+
+// City + state fallback for AI results whose county_id may have been re-routed
+const STALE_DATA_BY_CITY_STATE = {
+  "portland|or": STALE_DATA_BY_COUNTY.portland_oregonlive,
+  "gresham|or": STALE_DATA_BY_COUNTY.portland_oregonlive,
+};
+
+function resolveStaleInfo(restaurant) {
+  // 1. Explicit data_warning on the object (from backend processor)
+  if (restaurant?.data_warning) {
+    return {
+      data_warning: restaurant.data_warning,
+      portal_url: restaurant.portal_url,
+      portal_name: restaurant.portal_name,
+    };
+  }
+  // 2. Lookup by county_id
+  if (restaurant?.county_id && STALE_DATA_BY_COUNTY[restaurant.county_id]) {
+    return STALE_DATA_BY_COUNTY[restaurant.county_id];
+  }
+  // 3. Lookup by city + state (catches AI-fallback results)
+  const city = (restaurant?.city || "").toLowerCase().trim();
+  const state = (restaurant?.state || "").toLowerCase().trim();
+  const key = `${city}|${state}`;
+  if (STALE_DATA_BY_CITY_STATE[key]) {
+    return STALE_DATA_BY_CITY_STATE[key];
+  }
+  return null;
+}
+
 export default function StaleDataBanner({ restaurant, variant = "card" }) {
-  if (!restaurant?.data_warning) return null;
+  const info = resolveStaleInfo(restaurant);
+  if (!info) return null;
 
   const isDetail = variant === "detail";
-  const portalUrl = restaurant.portal_url;
-  const portalName = restaurant.portal_name || "official health department portal";
+  const portalUrl = info.portal_url;
+  const portalName = info.portal_name || "official health department portal";
 
   return (
     <div
@@ -25,7 +68,7 @@ export default function StaleDataBanner({ restaurant, variant = "card" }) {
       <div className="flex items-start gap-1.5">
         <AlertTriangle className={`text-amber-500 flex-shrink-0 mt-0.5 ${isDetail ? "w-4 h-4" : "w-3.5 h-3.5"}`} />
         <span className={`font-bold text-amber-800 ${isDetail ? "text-sm" : "text-[10px]"}`}>
-          {restaurant.data_warning}
+          {info.data_warning}
         </span>
       </div>
       {portalUrl && (
