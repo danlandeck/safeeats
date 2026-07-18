@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
       formData.append("ctl00$ContentPlaceHolder1$TxtEstdNm", name || "");
       formData.append("ctl00$ContentPlaceHolder1$DrpEstdType", "Food Service Establishment");
       formData.append("ctl00$ContentPlaceHolder1$txtCity", "");
-      formData.append("ctl00$ContentPlaceHolder1$DrpCnty", countyId);
+      formData.append("ctl00$ContentPlaceHolder1$DrpCnty", countyValue);
       formData.append("ctl00$ContentPlaceHolder1$BtnSearch.x", "10");
       formData.append("ctl00$ContentPlaceHolder1$BtnSearch.y", "10");
 
