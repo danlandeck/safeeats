@@ -120,7 +120,7 @@
   "DE": {
     "default": "delaware"
   },
-  "CT": { "none": true },
+  "CT": {},
   "AL": { "none": true },
   "AK": { "none": true },
   "AZ": { "none": true },

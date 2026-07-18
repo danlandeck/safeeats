@@ -35,7 +35,7 @@ const ENRICH_CONTEXT = {
   vancouver: "Vancouver Coastal Health (VCH) restaurant inspection records from inspections.vch.ca. Inspection results: Pass, Conditional Pass, or Closed.",
   pierce: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.",
   tacoma: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.",
-  manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs. Also check decadeonline.com which aggregates CT inspection data. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
+  manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
 };
 
 function getContext(countyId) {

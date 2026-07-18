@@ -31,7 +31,7 @@ import usHealthContext from "@/config/usHealthContext.json";
 // Bumped when search logic changes in a way that invalidates old cached results.
 // Module-level purge runs on every page load to nuke stale entries from prior
 // versions before any search can read them.
-const CACHE_VERSION = "v8";
+const CACHE_VERSION = "v9";
 (function purgeStaleCache() {
   try {
     Object.keys(localStorage).forEach(k => {
@@ -172,7 +172,7 @@ const COUNTRY_CONTEXT = {
   san_diego:    "Prioritize: San Diego County Department of Environmental Health (sdcounty.ca.gov) food inspection database.",
   seattle_no_kc: "Prioritize: Washington State Department of Health (doh.wa.gov) and local county health department restaurant inspection records.",
   // Connecticut — local health departments publish PDFs; AI finds data via web search
-  manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs. Also check decadeonline.com which aggregates CT inspection data. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
+  manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   // Ireland
   dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
   cork:         "Prioritize: FSAI (fsai.ie) and Cork City Council food safety inspection records.",
@@ -630,6 +630,18 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
         // CT uses training-data-only enrichment (~5s) — web search is too slow
         // for CT's PDF-based inspection system (30-120s timeouts).
         if (verified[0]?.state === "CT") {
+          // Set the correct portal link on grounded results so it shows
+          // immediately (before enrichment completes). enrichResults spreads
+          // ...r so portal_url persists into enriched results too.
+          const ctPortal = getStatePortalInfo(verified[0]?.state, verified[0]?.city, verified[0]?.country);
+          if (ctPortal.url) {
+            grounded = grounded.map(r => ({
+              ...r,
+              portal_url: ctPortal.url,
+              portal_name: ctPortal.name,
+              data_fetch_notes: (r.data_fetch_notes || "") + (ctPortal.note || ""),
+            }));
+          }
           enrichResults(grounded, "manchester_ct", (enriched) => {
             if (enriched && enriched.length > 0) {
               saveCache(enriched);

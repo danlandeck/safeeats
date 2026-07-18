@@ -119,10 +119,10 @@
   "CT": {
     "description": "Connecticut: CT DPH (portal.ct.gov/dph/food-protection-program/food-service-inspections). Local health departments conduct inspections. Green/Yellow/Red placard system in some towns. Priority (P), Priority Foundation (Pf), Core (C) violations.",
     "counties": {
-      "Statewide (Decade)": {
-        "portal_url": "http://www.decadeonline.com/main.phtml?agency=pas",
-        "portal_name": "Decade Online — CT Aggregated Inspection Search",
-        "cities": ["hartford", "new haven", "bridgeport", "waterbury", "stamford", "norwalk", "danbury", "greenwich", "bristol", "meriden", "manchester", "west hartford", "east hartford", "new britain"]
+      "Manchester": {
+        "portal_url": "https://www.manchesterct.gov/Government/Departments/Health-Department/Recent-Inspections",
+        "portal_name": "Manchester CT Health Department — Recent Inspections",
+        "cities": ["manchester"]
       },
       "Central CT": {
         "portal_url": "https://www.ccthd.org/food-establishments",
