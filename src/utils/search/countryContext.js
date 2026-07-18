@@ -134,7 +134,7 @@ export const COUNTRY_CONTEXT = {
   south_carolina: "SC Department of Agriculture (SCDA) — state-wide portal at apps.dhec.sc.gov/Environment/FoodGrades covering all 46 counties. A/B/C letter grades. Risk-based scoring per Regulation 61-25. Backend scraper provides real grades.",
   rhode_island: "RI Department of Health (RIDOH) — state-wide at health.ri.gov/food-safety. EnvisionConnect platform. 100-point scale with critical/non-critical violations. All 39 cities/towns. AI web search required.",
   tennessee: "TN Department of Health (TDH) — state-wide at inspections.myhealthdepartment.com/tennessee (HealthSpace). MyTN app. Nashville 0-100 scale. Shelby County separate portal. AI web search required.",
-  vermont: "VT Department of Health — state-wide at vtdoh.safefoodinspection.com. 44-item checklist. Inspections since May 2016. IN/OUT/COS/NC/C coding. AI web search required.",
+  vermont: "VT Department of Health — state-wide at vtdoh.safefoodinspection.com. Backend scraper provides live inspection data. 100-point scoring (90+=A, 80-89=B, 70-79=C).",
   virginia: "VA Department of Health (VDH) — inspections.myhealthdepartment.com (HealthSpace, varies by district). Norfolk open data. Fairfax ArcGIS viewer. 100-point scale. AI web search required.",
   west_virginia: "WV Bureau for Public Health (WVDHHR) — no state-wide portal. Local county health departments only. FDA Food Code. AI web search required.",
   wisconsin: "WI DATCP — state-wide at datcp.wi.gov (reports current as of April 2024). Also frog.healthspace.com. ~40,000 establishments. FDA Food Code. AI web search required.",

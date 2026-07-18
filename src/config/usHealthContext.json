@@ -1879,7 +1879,7 @@
   },
   "RI": "Rhode Island: RI Dept of Health (food.ri.digitalhealthdepartment.com/). Statewide. Score: Pass/Fail with violations.",
   "SC": "South Carolina: SC DHEC (apps.dhec.sc.gov/Environment/FoodGrades/). Statewide. Score: 100-point with letter grade (A/B/C).",
-  "SD": "South Dakota: SD Dept of Health (sddoh.safefoodinspection.com/Inspection/publicinspectionsearch.aspx). Statewide. Score: Pass/Fail.",
+  "SD": "South Dakota: SD Dept of Health (sddoh.safefoodinspection.com). Statewide. Score: 100-point (90+=A, 80-89=B, 70-79=C). Backend scraper provides live data.",
   "TN": {
     "description": "Tennessee: TN Dept of Health (tn.gov/health/eh.html). County health departments conduct inspections. Score: 100-point or Pass/Fail. Statewide search at inspections.myhealthdepartment.com/tennessee.",
     "counties": {
@@ -2079,7 +2079,7 @@
       }
     }
   },
-  "VT": "Vermont: VT Dept of Health (vtdoh.safefoodinspection.com/Inspection/PublicInspectionSearch.aspx). Statewide. Score: Pass/Fail.",
+  "VT": "Vermont: VT Dept of Health (vtdoh.safefoodinspection.com). Statewide. Score: 100-point. Backend scraper provides live data.",
   "VA": {
     "description": "Virginia: VA Dept of Health (www.vdh.virginia.gov/data/environmental-health/food-establishments-inspections/). Statewide inspection search. Score: Pass/Fail with risk categories.",
     "counties": {
@@ -2254,7 +2254,7 @@
     }
   },
   "WY": {
-    "description": "Wyoming: WY Dept of Agriculture (agriculture.wy.gov/retail-food-inspections). Statewide routine inspection database. Score: Pass/Fail.",
+    "description": "Wyoming: WY Dept of Agriculture (wda.safefoodinspection.com). Statewide. Score: IN/OUT compliance (In=Pass, Out=Fail). Backend scraper provides live data.",
     "counties": {
       "Laramie": {
         "portal_url": "https://clcpublichealth.org/environmental-health-home/food-restaurants/",

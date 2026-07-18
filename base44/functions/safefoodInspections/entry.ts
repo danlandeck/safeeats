@@ -102,7 +102,8 @@ function parseGridView(html) {
       if (currentFacility) facilities.push(currentFacility);
 
       const name = stripTags(nameMatch[1]);
-      const addressLine = stripTags(nameMatch[2]);
+      // Preserve original spacing for address — don't use stripTags (collapses spaces)
+      const addressLine = decodeHtmlEntities(nameMatch[2].replace(/<[^>]*>/g, '').trim());
       const phoneLine = nameMatch[3] ? stripTags(nameMatch[3]) : '';
 
       // Parse address: "410 E Hwy 38   Hartford, SD 57033"
