@@ -14,6 +14,7 @@ import {
   scToDetailRows,
   utahToDetailRows,
   safefoodToDetailRows,
+  portlandToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -62,6 +63,18 @@ export async function fetchDetail(restaurant) {
   if (source === "oklahoma") return oklahomaToDetailRows(restaurant);
   if (source === "sc_food_grades") return scToDetailRows(restaurant);
   if (source === "utah_cdp") return utahToDetailRows(restaurant);
+  if (source === "portland_oregonlive") {
+    try {
+      const res = await base44.functions.invoke("portlandInspections", {
+        action: "detail", detail_url: restaurant.detail_url || restaurant.business_id,
+      });
+      const inspections = res.data?.inspections || [];
+      if (inspections.length > 0) {
+        return portlandToDetailRows({ ...restaurant, inspections });
+      }
+    } catch { /* fall through to static rows */ }
+    return portlandToDetailRows(restaurant);
+  }
 
   if (source === "mississippi") {
     try {

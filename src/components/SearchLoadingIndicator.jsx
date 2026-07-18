@@ -61,6 +61,7 @@ const SOURCE_INFO = {
   sd_safefood:     { dept: "South Dakota Dept. of Health",                 type: "backend_proxy", icon: "🦬" },
   vt_safefood:     { dept: "Vermont Dept. of Health",                      type: "backend_proxy", icon: "🏔️" },
   wy_safefood:     { dept: "Wyoming Dept. of Agriculture",                  type: "backend_proxy", icon: "🤠" },
+  portland_oregonlive: { dept: "Portland Restaurant Inspections (OregonLive)", type: "backend_proxy", icon: "🌲" },
   maine:           { dept: "Maine CDC Health Inspection Program",          type: "ai",           icon: "🦞" },
   michigan:        { dept: "Michigan Local Health Agencies",               type: "ai",           icon: "🏭" },
   minnesota:       { dept: "Minnesota Dept of Health (MDH)",              type: "ai",           icon: " hockey" },

@@ -48,3 +48,4 @@ export { processOklahomaResults, oklahomaToDetailRows } from "./processors/oklah
 export { processSCResults, scToDetailRows } from "./processors/southCarolina";
 export { processUtahResults, utahToDetailRows } from "./processors/utah";
 export { processSafefoodResults, safefoodToDetailRows } from "./processors/safefood";
+export { processPortlandResults, portlandToDetailRows } from "./processors/portland";

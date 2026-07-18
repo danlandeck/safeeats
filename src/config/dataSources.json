@@ -432,6 +432,23 @@
     "default": "oklahoma"
   },
   "OR": {
+    "cities": {
+      "portland": "portland_oregonlive",
+      "gresham": "portland_oregonlive",
+      "wood village": "portland_oregonlive",
+      "maywood park": "portland_oregonlive",
+      "troutdale": "portland_oregonlive",
+      "fairview": "portland_oregonlive",
+      "milwaukie": "portland_oregonlive",
+      "oregon city": "portland_oregonlive",
+      "west linn": "portland_oregonlive",
+      "lake oswego": "portland_oregonlive",
+      "happy valley": "portland_oregonlive",
+      "gladstone": "portland_oregonlive",
+      "canby": "portland_oregonlive",
+      "wilsonville": "portland_oregonlive",
+      "sandy": "portland_oregonlive"
+    },
     "default": "none"
   },
   "PA": {

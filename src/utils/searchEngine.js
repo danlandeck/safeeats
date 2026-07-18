@@ -16,6 +16,7 @@ import {
   processOklahomaResults, processSCResults,
   processUtahResults,
   processSafefoodResults,
+  processPortlandResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -738,6 +739,23 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const facilities = res.data?.facilities || [];
       const liveResults = rankByQueryRelevance(
         filterByNameRelevance(processUtahResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Portland (Multnomah & Clackamas County) — OregonLive historical database
+  if (countyId === "portland_oregonlive") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const county = cityName.toLowerCase() === "portland" || cityName.toLowerCase() === "gresham" ? "Multnomah" : "Multnomah";
+      const res = await base44.functions.invoke("portlandInspections", { action: "search", name: nameQuery, county });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processPortlandResults(facilities), nameQuery),
         nameQuery, locationHint
       );
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
