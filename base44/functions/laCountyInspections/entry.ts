@@ -3,41 +3,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // LA County Public Health — ArcGIS Feature Service
 // The FeatureServer was unpublished in 2025; the dataset (item 19b6607ac82c4512b10811870975dbdc)
 // is now a CSV-only item on ArcGIS Online with no REST query endpoint.
-// This function returns empty gracefully; the search engine falls back to AI enrichment.
-const BASE_URL = "https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Environmental_Health_Restaurant_and_Market_Inspections_07012023_to_06302026/FeatureServer/0/query";
-const FIELDS = "FACILITY_ID,FACILITY_NAME,FACILITY_ADDRESS,FACILITY_CITY,FACILITY_ZIP,SCORE,GRADE,ACTIVITY_DATE,SERVICE_DESCRIPTION";
-
+// Short-circuit: return empty immediately so the search engine falls back to AI enrichment
+// without wasting a network round-trip to a dead ArcGIS endpoint.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const body = await req.json();
-    const { action, name, facilityId } = body;
+    const body = await req.json().catch(() => ({}));
+    const { action } = body;
 
-    if (action === "search") {
-      if (!name || name.trim().length === 0) return Response.json({ records: [] });
-      const safeName = name.replace(/'/g, "''");
-      const where = `FACILITY_NAME LIKE '%${safeName}%'`;
-      const url = `${BASE_URL}?where=${encodeURIComponent(where)}&outFields=${FIELDS}&f=json&resultRecordCount=100&orderByFields=ACTIVITY_DATE+DESC`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.error) return Response.json({ records: [], error: data.error.message });
-      const records = (data.features || []).map(f => f.attributes);
-      return Response.json({ records });
-    }
-
-    if (action === "detail") {
-      if (!facilityId) return Response.json({ records: [] });
-      const safeFacId = facilityId.replace(/'/g, "''");
-      const where = `FACILITY_ID='${safeFacId}'`;
-      const url = `${BASE_URL}?where=${encodeURIComponent(where)}&outFields=${FIELDS}&f=json&resultRecordCount=500&orderByFields=ACTIVITY_DATE+DESC`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.error) return Response.json({ records: [], error: data.error.message });
-      const records = (data.features || []).map(f => f.attributes);
-      return Response.json({ records });
+    // FeatureServer is dead — return empty for all actions so the search engine
+    // falls back to AI enrichment (Gemini web search) for LA County restaurants.
+    if (action === "search" || action === "detail") {
+      return Response.json({ records: [], note: "LA County FeatureServer unpublished 2025 — AI enrichment fallback" });
     }
 
     return Response.json({ error: "Unknown action" }, { status: 400 });

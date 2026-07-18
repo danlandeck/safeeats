@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const EPA_ECHO_API = "https://echodata.epa.gov/api/echo/facilities/search";
+// EPA ECHO API (echodata.epa.gov) deprecated — returns 403 Forbidden as of 2026.
+// Short-circuit: return null gracefully instead of wasting time on a dead endpoint.
+const EPA_ECHO_API = "https://echodata.epa.gov/api/echo/facilities/search"; // DEAD — kept for reference
 
 function toRad(degrees) {
   return degrees * (Math.PI / 180);
@@ -91,7 +93,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { address, city, state, zip, business_id, latitude, longitude } = await req.json();
+    // EPA ECHO API deprecated (403 Forbidden as of 2026) — short-circuit.
+    // No replacement REST endpoint found. Returns null gracefully.
+    return Response.json({
+      epa_data: null,
+      epa_status: "echo_api_deprecated",
+      logs: { note: "EPA ECHO API at echodata.epa.gov returns 403 — deprecated" },
+    });
 
     const logs = {
       business_id,
