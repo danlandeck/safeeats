@@ -10,6 +10,8 @@ import {
   houstonToDetailRows, wakeCountyToDetailRows, louisvilleToDetailRows,
   ukFSAToDetailRows, delawareToDetailRows,
   mississippiToDetailRows,
+  oklahomaToDetailRows,
+  scToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -55,6 +57,8 @@ export async function fetchDetail(restaurant) {
   if (source === "fvhd") return fvhdToDetailRows(restaurant);
   if (source === "dc") return dcToDetailRows(restaurant);
   if (source === "georgia") return georgiaToDetailRows(restaurant);
+  if (source === "oklahoma") return oklahomaToDetailRows(restaurant);
+  if (source === "sc_food_grades") return scToDetailRows(restaurant);
 
   if (source === "mississippi") {
     try {

@@ -55,6 +55,8 @@ const SOURCE_INFO = {
   kentucky:        { dept: "Kentucky Local Health Departments",            type: "ai",           icon: "🐎" },
   louisiana:       { dept: "Louisiana Dept of Health (LDH)",              type: "ai",           icon: "🎷" },
   mississippi:     { dept: "Mississippi State Dept of Health (MSDH)",      type: "backend_proxy", icon: "🎵" },
+  oklahoma:        { dept: "Oklahoma State Dept of Health (OSDH)",         type: "backend_proxy", icon: "🪶" },
+  sc_food_grades:  { dept: "SC Dept. of Agriculture (FoodGrades)",         type: "backend_proxy", icon: "🌴" },
   maine:           { dept: "Maine CDC Health Inspection Program",          type: "ai",           icon: "🦞" },
   michigan:        { dept: "Michigan Local Health Agencies",               type: "ai",           icon: "🏭" },
   minnesota:       { dept: "Minnesota Dept of Health (MDH)",              type: "ai",           icon: " hockey" },

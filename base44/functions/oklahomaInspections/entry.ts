@@ -16,6 +16,48 @@ function extractCookies(res) {
   return cookies.split(',').map(c => c.split(';')[0]).join('; ');
 }
 
+// Map major Oklahoma cities to their county names (as they appear in the portal dropdown)
+const CITY_TO_COUNTY = {
+  'oklahoma city': 'Oklahoma', 'okc': 'Oklahoma', 'edel': 'Oklahoma', 'del city': 'Oklahoma',
+  'midwest city': 'Oklahoma', 'mustang': 'Oklahoma', 'yukon': 'Canadian', 'norman': 'Cleveland',
+  'moore': 'Cleveland', 'tulsa': 'Tulsa', 'broken arrow': 'Tulsa', 'owasso': 'Tulsa',
+  'jenks': 'Tulsa', 'sapulpa': 'Creek', 'bartlesville': 'Washington', 'muskogee': 'Muskogee',
+  'enid': 'Garfield', 'stillwater': 'Payne', 'ponca city': 'Kay', 'shawnee': 'Pottawatomie',
+  'ardmore': 'Carter', 'lawton': 'Comanche', 'altus': 'Jackson', 'weatherford': 'Custer',
+  'guymon': 'Texas', 'mcalester': 'Pittsburg', 'durant': 'Bryan', 'ada': 'Pontotoc',
+  'chickasha': 'Grady', 'elk city': 'Beckham', ' Woodward': 'Woodward', 'alva': 'Woods',
+  'claremore': 'Rogers', 'miami': 'Ottawa', 'vinita': 'Craig', 'pryor': 'Mayes',
+  'sallisaw': 'Sequoyah', 'tahlequah': 'Cherokee', 'stigler': 'Haskell', 'poteau': 'Le Flore',
+  'miami': 'Ottawa', 'grove': 'Delaware', 'wagoner': 'Wagoner', 'bixby': 'Tulsa',
+  'glenpool': 'Tulsa', 'sand springs': 'Tulsa', 'collinsville': 'Tulsa',
+  'edmond': 'Oklahoma', 'bethany': 'Oklahoma', 'warr acres': 'Oklahoma',
+  'nichols hills': 'Oklahoma', 'the village': 'Oklahoma', 'arcadia': 'Oklahoma',
+  'choctaw': 'Oklahoma', 'harrah': 'Oklahoma', 'jones': 'Oklahoma',
+  'spencer': 'Oklahoma', 'valley brook': 'Oklahoma', 'forest park': 'Oklahoma',
+  'lake aluma': 'Oklahoma', 'smith village': 'Oklahoma', 'carol springs': 'Oklahoma',
+  'nichols hills': 'Oklahoma', 'wheatland': 'Canadian', 'piedmont': 'Canadian',
+  'richmond': 'Canadian', 'union city': 'Canadian', 'calumet': 'Canadian',
+  'geary': 'Canadian', 'hinton': 'Caddo', 'binger': 'Caddo', 'hydro': 'Caddo',
+  'anadarko': 'Caddo', 'fort cobb': 'Caddo', 'cyril': 'Caddo', 'apache': 'Caddo',
+  'cache': 'Comanche', 'elgin': 'Comanche', 'snyder': 'Kiowa', 'chattanooga': 'Comanche',
+  'fletcher': 'Comanche', 'sterling': 'Comanche', 'gotebo': 'Kiowa',
+};
+
+function resolveCounty(city) {
+  if (!city) return null;
+  const key = city.toLowerCase().trim();
+  return CITY_TO_COUNTY[key] || null;
+}
+
+// Fallback: search the 5 most populous counties if no city/county match
+const FALLBACK_COUNTIES = ['Oklahoma', 'Tulsa', 'Cleveland', 'Canadian', 'Comanche'];
+
+function findCountyValue(initHtml, countyName) {
+  const countyOptions = [...initHtml.matchAll(/<option[^>]*value="([^"]*)"[^>]*>([^<]*)<\/option>/g)];
+  const match = countyOptions.find(m => m[2].trim().toUpperCase() === countyName.toUpperCase());
+  return match ? match[1] : null;
+}
+
 function parseSearchResults(html) {
   const dgMatch = html.match(/<table[^>]*id="dgRestaurants"[^>]*>([\s\S]*?)<\/table>/i);
   if (!dgMatch) return [];
@@ -122,114 +164,124 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { action, establishmentName, county, city } = body;
+    const { action, county, city } = body;
+    const establishmentName = body.name || body.establishmentName || '';
 
     if (action === 'search') {
-      // Step 1: GET initial page
-      const initRes = await fetch(BASE_URL, {
-        headers: { 'User-Agent': UA },
-      });
-      const initHtml = await initRes.text();
-      const hidden = extractHiddenFields(initHtml);
-      const cookieStr = extractCookies(initRes);
+      // Resolve which counties to search
+      const resolvedCounty = county || resolveCounty(city);
+      const countiesToSearch = resolvedCounty ? [resolvedCounty] : FALLBACK_COUNTIES;
 
-      // Step 2: POST search
-      const formData = new URLSearchParams();
-      formData.append('__EVENTTARGET', '');
-      formData.append('__EVENTARGUMENT', '');
-      formData.append('__VIEWSTATE', hidden.viewstate);
-      if (hidden.viewstateGenerator) formData.append('__VIEWSTATEGENERATOR', hidden.viewstateGenerator);
-      if (hidden.eventValidation) formData.append('__EVENTVALIDATION', hidden.eventValidation);
-      formData.append('txtSearch', establishmentName || '');
-      // Set county if provided
-      if (county) {
-        const countyOptions = [...initHtml.matchAll(/<option[^>]*value="([^"]*)"[^>]*>([^<]*)<\/option>/g)];
-        const countyOption = countyOptions.find(m => m[2].trim().toUpperCase() === county.toUpperCase());
-        if (countyOption) formData.append('cmbCounties', countyOption[1]);
-      }
-      formData.append('cmdSearch', 'Search');
+      const allFacilities = [];
 
-      const searchRes = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': UA,
-          'Cookie': cookieStr,
-          'Referer': BASE_URL,
-        },
-        body: formData.toString(),
-      });
-      const searchHtml = await searchRes.text();
-      const facilities = parseSearchResults(searchHtml);
+      for (const countyName of countiesToSearch) {
+        // Step 1: GET initial page (fresh session per county for reliability)
+        const initRes = await fetch(BASE_URL, {
+          headers: { 'User-Agent': UA },
+        });
+        const initHtml = await initRes.text();
+        const hidden = extractHiddenFields(initHtml);
+        const cookieStr = extractCookies(initRes);
+        const countyValue = findCountyValue(initHtml, countyName);
 
-      // Filter by city if provided
-      const filtered = city
-        ? facilities.filter(f => f.city.toUpperCase().includes(city.toUpperCase()))
-        : facilities;
+        // Step 2: POST search with county selected
+        const formData = new URLSearchParams();
+        formData.append('__EVENTTARGET', '');
+        formData.append('__EVENTARGUMENT', '');
+        formData.append('__VIEWSTATE', hidden.viewstate);
+        if (hidden.viewstateGenerator) formData.append('__VIEWSTATEGENERATOR', hidden.viewstateGenerator);
+        if (hidden.eventValidation) formData.append('__EVENTVALIDATION', hidden.eventValidation);
+        formData.append('txtSearch', establishmentName || '');
+        if (countyValue) formData.append('cmbCounties', countyValue);
+        formData.append('cmdSearch', 'Find');
 
-      // Step 3: For each facility, get inspection details
-      const results = [];
-      const searchHidden = extractHiddenFields(searchHtml);
-      const searchCookieStr = cookieStr; // reuse session
-
-      for (const facility of filtered.slice(0, 10)) {
-        if (!facility.detailTarget) continue;
-        const detailsFormData = new URLSearchParams();
-        detailsFormData.append('__EVENTTARGET', facility.detailTarget);
-        detailsFormData.append('__EVENTARGUMENT', '');
-        detailsFormData.append('__VIEWSTATE', searchHidden.viewstate);
-        if (searchHidden.viewstateGenerator) detailsFormData.append('__VIEWSTATEGENERATOR', searchHidden.viewstateGenerator);
-        if (searchHidden.eventValidation) detailsFormData.append('__EVENTVALIDATION', searchHidden.eventValidation);
-        detailsFormData.append('txtSearch', establishmentName || '');
-        if (county) {
-          const countyOptions = [...initHtml.matchAll(/<option[^>]*value="([^"]*)"[^>]*>([^<]*)<\/option>/g)];
-          const countyOption = countyOptions.find(m => m[2].trim().toUpperCase() === county.toUpperCase());
-          if (countyOption) detailsFormData.append('cmbCounties', countyOption[1]);
-        }
-
-        const detailsRes = await fetch(BASE_URL, {
+        const searchRes = await fetch(BASE_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': UA,
-            'Cookie': searchCookieStr,
+            'Cookie': cookieStr,
             'Referer': BASE_URL,
           },
-          body: detailsFormData.toString(),
+          body: formData.toString(),
         });
-        const detailsHtml = await detailsRes.text();
-        const { inspections } = parseInspectionDetails(detailsHtml);
-        const safetyScore = calculateSafetyScore(inspections);
+        const searchHtml = await searchRes.text();
+        const facilities = parseSearchResults(searchHtml);
 
-        results.push({
-          business_id: `ok_${facility.name}_${facility.address}`.replace(/\s+/g, '_').toLowerCase(),
-          name: facility.name,
-          address: facility.address,
-          city: facility.city,
-          zip_code: facility.zip,
-          county: facility.county,
-          state: 'OK',
-          source: 'oklahoma',
-          safetyScore,
-          grade: gradeFromScore(safetyScore),
-          totalInspections: inspections.length,
-          latestDate: inspections[0]?.date || null,
-          latestResult: inspections[0]?.violations.length === 0 ? 'No violations' : `${inspections[0]?.violations.length || 0} violations`,
-          inspections: inspections.map(i => ({
-            date: i.date,
-            violations: i.violations,
-            result: i.violations.length === 0 ? 'No violations reported' : `${i.violations.length} violation(s)`,
-          })),
-        });
+        // Filter by city if provided (and we're searching a resolved county, not fallback)
+        const filtered = (city && resolvedCounty)
+          ? facilities.filter(f => f.city.toUpperCase().includes(city.toUpperCase()))
+          : facilities;
 
-        // Update hidden fields for next request
-        const newHidden = extractHiddenFields(detailsHtml);
-        if (newHidden.viewstate) {
-          searchHidden.viewstate = newHidden.viewstate;
-          searchHidden.viewstateGenerator = newHidden.viewstateGenerator;
-          searchHidden.eventValidation = newHidden.eventValidation;
+        // Step 3: For each facility, get inspection details
+        const searchHidden = extractHiddenFields(searchHtml);
+
+        for (const facility of filtered.slice(0, 10)) {
+          if (!facility.detailTarget) continue;
+          const detailsFormData = new URLSearchParams();
+          detailsFormData.append('__EVENTTARGET', facility.detailTarget);
+          detailsFormData.append('__EVENTARGUMENT', '');
+          detailsFormData.append('__VIEWSTATE', searchHidden.viewstate);
+          if (searchHidden.viewstateGenerator) detailsFormData.append('__VIEWSTATEGENERATOR', searchHidden.viewstateGenerator);
+          if (searchHidden.eventValidation) detailsFormData.append('__EVENTVALIDATION', searchHidden.eventValidation);
+          detailsFormData.append('txtSearch', establishmentName || '');
+          if (countyValue) detailsFormData.append('cmbCounties', countyValue);
+
+          const detailsRes = await fetch(BASE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': UA,
+              'Cookie': cookieStr,
+              'Referer': BASE_URL,
+            },
+            body: detailsFormData.toString(),
+          });
+          const detailsHtml = await detailsRes.text();
+          const { inspections } = parseInspectionDetails(detailsHtml);
+          const safetyScore = calculateSafetyScore(inspections);
+
+          allFacilities.push({
+            business_id: `ok_${facility.name}_${facility.address}`.replace(/\s+/g, '_').toLowerCase(),
+            name: facility.name,
+            address: facility.address,
+            city: facility.city,
+            zip_code: facility.zip,
+            county: facility.county,
+            state: 'OK',
+            source: 'oklahoma',
+            safetyScore,
+            grade: gradeFromScore(safetyScore),
+            totalInspections: inspections.length,
+            latestDate: inspections[0]?.date || null,
+            latestResult: inspections[0]?.violations.length === 0 ? 'No violations' : `${inspections[0]?.violations.length || 0} violations`,
+            inspections: inspections.map(i => ({
+              date: i.date,
+              violations: i.violations,
+              result: i.violations.length === 0 ? 'No violations reported' : `${i.violations.length} violation(s)`,
+            })),
+          });
+
+          // Update hidden fields for next request
+          const newHidden = extractHiddenFields(detailsHtml);
+          if (newHidden.viewstate) {
+            searchHidden.viewstate = newHidden.viewstate;
+            searchHidden.viewstateGenerator = newHidden.viewstateGenerator;
+            searchHidden.eventValidation = newHidden.eventValidation;
+          }
         }
+
+        // If we found results in the resolved county, no need to search fallback counties
+        if (allFacilities.length > 0 && resolvedCounty) break;
       }
+
+      // Deduplicate by business_id
+      const seen = new Set();
+      const results = allFacilities.filter(f => {
+        if (seen.has(f.business_id)) return false;
+        seen.add(f.business_id);
+        return true;
+      });
 
       return Response.json({ facilities: results, total: results.length });
     }
