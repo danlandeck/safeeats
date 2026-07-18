@@ -148,7 +148,7 @@
     "default": "delaware"
   },
   "CT": {},
-  "AL": { "none": true },
+  "AL": { "default": "alabama" },
   "AK": { "none": true },
   "AZ": { "none": true },
   "AR": { "none": true },

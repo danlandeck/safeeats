@@ -767,6 +767,64 @@ const CITY_TO_COUNTY = {
   "saratoga springs": { region: "new_york", countyId: "ny_state", locationLabel: "Saratoga Springs, New York" },
   "poughkeepsie": { region: "new_york", countyId: "ny_state", locationLabel: "Poughkeepsie, New York" },
   "endwell": { region: "new_york", countyId: "ny_state", locationLabel: "Endwell, New York" },
+  // Alabama — state-wide ADPH Food Scores (covers all 67 counties)
+  "alabama": { region: "alabama", countyId: "alabama", locationLabel: "Alabama" },
+  "montgomery al": { region: "alabama", countyId: "alabama", locationLabel: "Montgomery, AL" },
+  "montgomery": { region: "alabama", countyId: "alabama", locationLabel: "Montgomery, AL" },
+  "birmingham al": { region: "alabama", countyId: "alabama", locationLabel: "Birmingham, AL" },
+  "birmingham": { region: "alabama", countyId: "alabama", locationLabel: "Birmingham, AL" },
+  "mobile al": { region: "alabama", countyId: "alabama", locationLabel: "Mobile, AL" },
+  "mobile": { region: "alabama", countyId: "alabama", locationLabel: "Mobile, AL" },
+  "huntsville": { region: "alabama", countyId: "alabama", locationLabel: "Huntsville, AL" },
+  "tuscaloosa": { region: "alabama", countyId: "alabama", locationLabel: "Tuscaloosa, AL" },
+  "hoover al": { region: "alabama", countyId: "alabama", locationLabel: "Hoover, AL" },
+  "dothan": { region: "alabama", countyId: "alabama", locationLabel: "Dothan, AL" },
+  "auburn al": { region: "alabama", countyId: "alabama", locationLabel: "Auburn, AL" },
+  "decatur al": { region: "alabama", countyId: "alabama", locationLabel: "Decatur, AL" },
+  "madison al": { region: "alabama", countyId: "alabama", locationLabel: "Madison, AL" },
+  "florence al": { region: "alabama", countyId: "alabama", locationLabel: "Florence, AL" },
+  "phenix city": { region: "alabama", countyId: "alabama", locationLabel: "Phenix City, AL" },
+  "gadsden al": { region: "alabama", countyId: "alabama", locationLabel: "Gadsden, AL" },
+  "prattville": { region: "alabama", countyId: "alabama", locationLabel: "Prattville, AL" },
+  "vestavia hills": { region: "alabama", countyId: "alabama", locationLabel: "Vestavia Hills, AL" },
+  "alabaster": { region: "alabama", countyId: "alabama", locationLabel: "Alabaster, AL" },
+  "bessemer": { region: "alabama", countyId: "alabama", locationLabel: "Bessemer, AL" },
+  "enterprise al": { region: "alabama", countyId: "alabama", locationLabel: "Enterprise, AL" },
+  "trussville": { region: "alabama", countyId: "alabama", locationLabel: "Trussville, AL" },
+  "mountain brook": { region: "alabama", countyId: "alabama", locationLabel: "Mountain Brook, AL" },
+  "northport": { region: "alabama", countyId: "alabama", locationLabel: "Northport, AL" },
+  "daphne": { region: "alabama", countyId: "alabama", locationLabel: "Daphne, AL" },
+  "fairhope": { region: "alabama", countyId: "alabama", locationLabel: "Fairhope, AL" },
+  "homewood al": { region: "alabama", countyId: "alabama", locationLabel: "Homewood, AL" },
+  "pelham": { region: "alabama", countyId: "alabama", locationLabel: "Pelham, AL" },
+  "anniston": { region: "alabama", countyId: "alabama", locationLabel: "Anniston, AL" },
+  "troy al": { region: "alabama", countyId: "alabama", locationLabel: "Troy, AL" },
+  "opelika": { region: "alabama", countyId: "alabama", locationLabel: "Opelika, AL" },
+  "athens al": { region: "alabama", countyId: "alabama", locationLabel: "Athens, AL" },
+  "scottsboro": { region: "alabama", countyId: "alabama", locationLabel: "Scottsboro, AL" },
+  "cullman": { region: "alabama", countyId: "alabama", locationLabel: "Cullman, AL" },
+  "fort payne": { region: "alabama", countyId: "alabama", locationLabel: "Fort Payne, AL" },
+  "sylacauga": { region: "alabama", countyId: "alabama", locationLabel: "Sylacauga, AL" },
+  "alexander city": { region: "alabama", countyId: "alabama", locationLabel: "Alexander City, AL" },
+  "selma": { region: "alabama", countyId: "alabama", locationLabel: "Selma, AL" },
+  "andalusia": { region: "alabama", countyId: "alabama", locationLabel: "Andalusia, AL" },
+  "muscle shoals": { region: "alabama", countyId: "alabama", locationLabel: "Muscle Shoals, AL" },
+  "eufaula": { region: "alabama", countyId: "alabama", locationLabel: "Eufaula, AL" },
+  "jasper al": { region: "alabama", countyId: "alabama", locationLabel: "Jasper, AL" },
+  "hamilton al": { region: "alabama", countyId: "alabama", locationLabel: "Hamilton, AL" },
+  "guntersville": { region: "alabama", countyId: "alabama", locationLabel: "Guntersville, AL" },
+  "albertville": { region: "alabama", countyId: "alabama", locationLabel: "Albertville, AL" },
+  "arab": { region: "alabama", countyId: "alabama", locationLabel: "Arab, AL" },
+  "brewton": { region: "alabama", countyId: "alabama", locationLabel: "Brewton, AL" },
+  "demopolis": { region: "alabama", countyId: "alabama", locationLabel: "Demopolis, AL" },
+  "camden al": { region: "alabama", countyId: "alabama", locationLabel: "Camden, AL" },
+  "greenville al": { region: "alabama", countyId: "alabama", locationLabel: "Greenville, AL" },
+  "evergreen al": { region: "alabama", countyId: "alabama", locationLabel: "Evergreen, AL" },
+  "monroeville": { region: "alabama", countyId: "alabama", locationLabel: "Monroeville, AL" },
+  "clanton": { region: "alabama", countyId: "alabama", locationLabel: "Clanton, AL" },
+  "oneonta": { region: "alabama", countyId: "alabama", locationLabel: "Oneonta, AL" },
+  "wetumpka": { region: "alabama", countyId: "alabama", locationLabel: "Wetumpka, AL" },
+  "talladega": { region: "alabama", countyId: "alabama", locationLabel: "Talladega, AL" },
   // Connecticut — Manchester CT Health Department (AI web search)
   "manchester ct": { region: "connecticut", countyId: "manchester_ct", locationLabel: "Manchester, CT" },
   // Nevada — Clark County (SNHD live API)
@@ -831,6 +889,7 @@ const LIVE_API_CITIES = [
   { label: "Las Vegas, NV", region: "nevada", countyId: "snhd", emoji: "🎰", example: "McDonald's", locationLabel: "Las Vegas, NV" },
   { label: "Raleigh / Wake Co., NC", region: "north_carolina", countyId: "wake", emoji: "🌲", example: "McDonald's", locationLabel: "Raleigh, NC" },
   { label: "Louisville, KY", region: "kentucky", countyId: "jefferson_ky", emoji: "🍗", example: "KFC", locationLabel: "Louisville, KY" },
+  { label: "Alabama (State-wide)", region: "alabama", countyId: "alabama", emoji: "Alabama", example: "McDonald's", locationLabel: "Montgomery, AL" },
 ];
 
 export default function Home() {
@@ -1029,7 +1088,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver","alabama"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);
@@ -1377,7 +1436,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-4 sm:p-5">
               <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
               <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🗽 Alabama (State-wide — 67 counties)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

@@ -1622,6 +1622,30 @@ export function louisvilleToDetailRows(data) {
   }).filter(Boolean);
 }
 
+// ── Alabama (state-wide ADPH Food Establishment Scores) ──────────────────────
+// Backend function returns facilities already in standard format with scores.
+export function processAlabamaResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map(f => ({
+    ...f,
+    source: "alabama",
+    ada_compliance: "unknown",
+  }));
+}
+
+export function alabamaToDetailRows(restaurant) {
+  return [{
+    inspection_serial_num: `al-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: restaurant.safetyScore !== null ? String(Math.max(0, 100 - restaurant.safetyScore)) : "",
+    inspection_result: restaurant.latestResult || "Unknown",
+    inspection_type: "Routine Inspection (ADPH)",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}
+
 // ── Riverside County, CA ──────────────────────────────────────────────────────
 // Portal: weblink.rivcoeh.org (ASP.NET MVC, server-rendered HTML)
 // Search returns facility name, address, city, zip, inspection count, and a

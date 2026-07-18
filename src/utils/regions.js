@@ -1,9 +1,6 @@
 export const REGIONS = {
   alabama: { name: "Alabama", abbr: "AL", counties: [
-    { id: "jefferson", name: "Jefferson County (Birmingham)", city: "Birmingham", hasPublicApi: true },
-    { id: "mobile", name: "Mobile County", city: "Mobile", hasPublicApi: true },
-    { id: "madison", name: "Madison County (Huntsville)", city: "Huntsville", hasPublicApi: true },
-    { id: "montgomery", name: "Montgomery County", city: "Montgomery", hasPublicApi: true },
+    { id: "alabama", name: "Alabama (State-wide — all 67 counties)", city: "Montgomery", hasPublicApi: true },
   ]},
   alaska: { name: "Alaska", abbr: "AK", counties: [
     { id: "anchorage", name: "Municipality of Anchorage", city: "Anchorage", hasPublicApi: true },
@@ -621,6 +618,7 @@ export const SOURCE_TO_STATE = {
   pierce:        "WA",
   tacoma_pierce: "WA",
   snhd:          "NV",
+  alabama:       "AL",
   toronto:       null,  // Canada
   dubai:         null,  // UAE
   uk_fsa:        null,  // UK
