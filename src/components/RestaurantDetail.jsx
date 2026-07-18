@@ -178,7 +178,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         {/* Grade color top bar */}
         <div className={`h-2 w-full ${getGradeColor(grade).split(" ")[0]}`} />
 
-        <div className="p-5 md:p-7">
+        <div className="p-4 sm:p-5 md:p-7">
           {/* Name + actions row */}
           <div className="flex items-start justify-between gap-3 mb-5">
             <div className="flex-1 min-w-0">
@@ -327,7 +327,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         </div>
 
         {/* Data source — always visible, no dropdown */}
-        <div className="border-t border-slate-100 px-6 py-4 text-xs text-slate-500 space-y-2">
+        <div className="border-t border-slate-100 px-4 sm:px-6 py-4 text-xs text-slate-500 space-y-2">
           <div className="flex items-center gap-2 mb-1">
             <DataSourceBadge restaurant={restaurant} size="md" />
           </div>
@@ -456,7 +456,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 >
                   {/* Inspection header — always visible, tap to expand */}
                   <button
-                    className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
+                    className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
                     onClick={() => setExpandedInspection(isExpanded ? null : idx)}
                     aria-expanded={isExpanded}
                     aria-controls={`inspection-panel-${idx}`}
@@ -502,7 +502,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                         transition={{ duration: 0.25 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-5 pb-5 pt-1 border-t border-slate-100">
+                        <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-slate-100">
                           {insp.violations.length === 0 ? (
                             <div className="flex items-center gap-3 py-4">
                               <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">

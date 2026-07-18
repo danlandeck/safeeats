@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const levels = [
   { grade: "A", range: "90–100", color: "bg-green-700",  textColor: "text-white",     label: "A — Excellent", tip: "Very safe ✅" },
@@ -12,16 +13,27 @@ const levels = [
 
 export default function ScoreLegend({ activeGrade, onGradeFilter }) {
   const interactive = typeof onGradeFilter === "function";
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-0.5">
-        What do the grades mean?
-      </h3>
+      {/* Mobile: collapsible header; Desktop: always visible */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between sm:cursor-default sm:pointer-events-none"
+        aria-expanded={expanded}
+      >
+        <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-0.5">
+          What do the grades mean?
+        </h3>
+        <span className="sm:hidden">
+          {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </span>
+      </button>
       {interactive && (
         <p className="text-[10px] text-slate-400 mb-3">Tap a grade to filter results</p>
       )}
-      <div className="space-y-1">
+      <div className={`space-y-1 ${!expanded ? 'hidden sm:block' : ''}`}>
         {levels.map((level) => {
           const isActive = activeGrade === level.grade;
           return (
@@ -49,12 +61,12 @@ export default function ScoreLegend({ activeGrade, onGradeFilter }) {
       {activeGrade && interactive && (
         <button
           onClick={() => onGradeFilter(null)}
-          className="mt-3 w-full text-xs font-semibold text-blue-600 hover:underline text-center"
+          className={`mt-3 w-full text-xs font-semibold text-blue-600 hover:underline text-center ${!expanded ? 'hidden sm:block' : ''}`}
         >
           Clear filter
         </button>
       )}
-      <p className="text-[10px] text-slate-400 mt-3 leading-relaxed border-t border-slate-100 pt-2">
+      <p className={`text-[10px] text-slate-400 mt-3 leading-relaxed border-t border-slate-100 pt-2 ${!expanded ? 'hidden sm:block' : ''}`}>
         Scores are normalized from official government records. The A–F scale lets you compare any restaurant, anywhere. "P" means the jurisdiction uses Pass/Fail — the restaurant met minimum standards.
       </p>
     </div>

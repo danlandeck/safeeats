@@ -171,20 +171,20 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
         {open ? `${suggestions.length} suggestion${suggestions.length !== 1 ? "s" : ""} available` : ""}
       </div>
 
-      {/* Filter chips */}
+      {/* Filter chips — compact on mobile, labeled on sm+ */}
       {results.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {/* Cuisine filter */}
           {cuisines.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <label htmlFor="filter-cuisine" className="text-xs font-bold text-slate-500 whitespace-nowrap">Cuisine:</label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="filter-cuisine" className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">Cuisine:</label>
               <select
                 id="filter-cuisine"
                 value={cuisine}
                 onChange={e => setCuisine(e.target.value)}
-                className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"
+                className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1.5 sm:py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer min-h-[36px]"
               >
-                <option value="">All</option>
+                <option value="">All cuisine</option>
                 {cuisines.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -192,30 +192,30 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
 
           {/* City filter */}
           {cities.length > 1 && (
-            <div className="flex items-center gap-1.5">
-              <label htmlFor="filter-city" className="text-xs font-bold text-slate-500 whitespace-nowrap">City:</label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="filter-city" className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">City:</label>
               <select
                 id="filter-city"
                 value={city}
                 onChange={e => setCity(e.target.value)}
-                className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"
+                className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1.5 sm:py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer min-h-[36px]"
               >
-                <option value="">All</option>
+                <option value="">All cities</option>
                 {cities.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           )}
 
           {/* Min grade filter */}
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="filter-grade" className="text-xs font-bold text-slate-500 whitespace-nowrap">Min grade:</label>
+          <div className="flex items-center gap-1">
+            <label htmlFor="filter-grade" className="text-xs font-bold text-slate-500 whitespace-nowrap hidden sm:inline">Min grade:</label>
             <select
               id="filter-grade"
               value={minGrade}
               onChange={e => setMinGrade(e.target.value)}
-              className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer"
+              className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1.5 sm:py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer min-h-[36px]"
             >
-              <option value="">Any</option>
+              <option value="">Any grade</option>
               <option value="A">A+</option>
               <option value="B">B or better</option>
               <option value="C">C or better</option>
