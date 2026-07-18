@@ -14,6 +14,7 @@ import {
   processUKFSAResults, llmToDetailRows, buildLLMRestaurant,
   processMississippiResults,
   processOklahomaResults, processSCResults,
+  processUtahResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -694,6 +695,22 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const facilities = res.data?.facilities || [];
       const liveResults = rankByQueryRelevance(
         filterByNameRelevance(processOklahomaResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Utah — Salt Lake County CDP Portal
+  if (countyId === "utah_cdp") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const res = await base44.functions.invoke("utahInspections", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processUtahResults(facilities), nameQuery),
         nameQuery, locationHint
       );
       if (liveResults.length > 0) return { results: liveResults, isAI: false };

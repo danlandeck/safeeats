@@ -57,6 +57,7 @@ const SOURCE_INFO = {
   mississippi:     { dept: "Mississippi State Dept of Health (MSDH)",      type: "backend_proxy", icon: "🎵" },
   oklahoma:        { dept: "Oklahoma State Dept of Health (OSDH)",         type: "backend_proxy", icon: "🪶" },
   sc_food_grades:  { dept: "SC Dept. of Agriculture (FoodGrades)",         type: "backend_proxy", icon: "🌴" },
+  utah_cdp:        { dept: "Salt Lake County Health Dept. (CDP Portal)",   type: "backend_proxy", icon: "🏔️" },
   maine:           { dept: "Maine CDC Health Inspection Program",          type: "ai",           icon: "🦞" },
   michigan:        { dept: "Michigan Local Health Agencies",               type: "ai",           icon: "🏭" },
   minnesota:       { dept: "Minnesota Dept of Health (MDH)",              type: "ai",           icon: " hockey" },

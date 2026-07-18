@@ -12,6 +12,7 @@ import {
   mississippiToDetailRows,
   oklahomaToDetailRows,
   scToDetailRows,
+  utahToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -59,6 +60,7 @@ export async function fetchDetail(restaurant) {
   if (source === "georgia") return georgiaToDetailRows(restaurant);
   if (source === "oklahoma") return oklahomaToDetailRows(restaurant);
   if (source === "sc_food_grades") return scToDetailRows(restaurant);
+  if (source === "utah_cdp") return utahToDetailRows(restaurant);
 
   if (source === "mississippi") {
     try {

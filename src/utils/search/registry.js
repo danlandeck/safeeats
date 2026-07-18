@@ -77,4 +77,5 @@ export const SOURCE_TO_COUNTY = {
   mississippi: "mississippi",
   oklahoma: "oklahoma",
   sc_food_grades: "sc_food_grades",
+  utah_cdp: "utah_cdp",
 };
