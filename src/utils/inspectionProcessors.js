@@ -1621,3 +1621,60 @@ export function louisvilleToDetailRows(data) {
     };
   }).filter(Boolean);
 }
+
+// ── Riverside County, CA ──────────────────────────────────────────────────────
+// Portal: weblink.rivcoeh.org (ASP.NET MVC, server-rendered HTML)
+// Search returns facility name, address, city, zip, inspection count, and a
+// detail link. No numeric scores or dates at the search level — background
+// LLM enrichment fills those in from training data.
+export function processRiversideResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f, i) => ({
+    business_id: f.facility_id || `riverside-${i}-${f.name}`,
+    name: f.name,
+    address: f.address,
+    city: f.city,
+    zip_code: f.zip_code || "",
+    phone: "", description: "",
+    safetyScore: null,
+    grade: "U",
+    totalInspections: f.inspection_count || 0,
+    latestDate: null,
+    latestResult: "Open",
+    latitude: null, longitude: null,
+    isLLMData: false, source: "riverside",
+    ada_compliance: "unknown",
+    portal_url: f.portal_url || null,
+    _rawFacility: f,
+  }));
+}
+
+export function riversideToDetailRows(restaurant) {
+  // If enrichment provided allInspections, convert those to detail rows
+  if (Array.isArray(restaurant.allInspections) && restaurant.allInspections.length > 0) {
+    return restaurant.allInspections.map((insp, i) => ({
+      inspection_serial_num: `riverside-${restaurant.business_id}-${i}`,
+      inspection_date: insp.date || "",
+      inspection_score: insp.score !== null && insp.score !== undefined
+        ? String(Math.max(0, 100 - insp.score))
+        : "",
+      inspection_result: insp.result || "",
+      inspection_type: insp.type || "Routine",
+      violation_description: (insp.violations || []).map(v => v.description || v).join("; "),
+      violation_type: "",
+      violation_points: insp.violation_points || "0",
+    }));
+  }
+  // No enrichment data — return a single row from what the portal gave us
+  const f = restaurant._rawFacility || {};
+  return [{
+    inspection_serial_num: `riverside-${restaurant.business_id}`,
+    inspection_date: restaurant.latestDate || "",
+    inspection_score: "",
+    inspection_result: restaurant.latestResult || "Open",
+    inspection_type: "Routine",
+    violation_description: "",
+    violation_type: "",
+    violation_points: "0",
+  }];
+}

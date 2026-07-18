@@ -36,6 +36,7 @@ const ENRICH_CONTEXT = {
   pierce: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.",
   tacoma: "Tacoma-Pierce County Health Department (TPCHD) food safety rating: Great, Okay, Needs to Improve, or Closed. Based on red critical violation points from last 4 routine inspections. Great=95, Okay=80, Needs to Improve=55, Closed=25.",
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
+  riverside: "Riverside County Department of Environmental Health (rivcoeh.org) restaurant inspection records. Facilities inspected 1-4 times per year. Uses a grade card system (A/B/C or color-coded). Search portal at weblink.rivcoeh.org. Convert letter grades: A=90-100, B=80-89, C=70-79. If closed/failed → 0-39.",
 };
 
 function getContext(countyId) {

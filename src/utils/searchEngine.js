@@ -20,6 +20,7 @@ import {
   processSNHDResults, snhdToDetailRows,
   processWakeCountyResults, wakeCountyToDetailRows,
   processLouisvilleResults, louisvilleToDetailRows,
+  processRiversideResults, riversideToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -69,6 +70,7 @@ const SOURCE_TO_COUNTY = {
   australia_nsw: "sydney", australia_qld: "brisbane",
   wake: "wake",
   louisville: "jefferson_ky",
+  riverside: "riverside",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -173,6 +175,7 @@ const COUNTRY_CONTEXT = {
   seattle_no_kc: "Prioritize: Washington State Department of Health (doh.wa.gov) and local county health department restaurant inspection records.",
   // Connecticut — local health departments publish PDFs; AI finds data via web search
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
+  riverside: "Riverside County Department of Environmental Health (rivcoeh.org) inspects food facilities 1-4 times per year. Public portal at weblink.rivcoeh.org allows searching facility inspection records by name, city, and record type. Facilities receive grade cards (A/B/C or color-coded). Convert: A=90-100, B=80-89, C=70-79, Closed/Failed=0-39. Prioritize: restaurantgrading.rivcoeh.org and weblink.rivcoeh.org for official inspection records.",
   // Ireland
   dublin:       "Prioritize: FSAI (fsai.ie) enforcement orders and closure notices, and Dublin City Council food safety inspection records.",
   cork:         "Prioritize: FSAI (fsai.ie) and Cork City Council food safety inspection records.",
@@ -1164,6 +1167,27 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
+  // Riverside County, CA — DEH Facility Records Portal (HTML scrape)
+  if (countyId === "riverside") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const res = await base44.functions.invoke("riversideInspections", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processRiversideResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) {
+        // Portal returns facility info + inspection count but no scores/dates.
+        // Background LLM enrichment fills in scores from training data.
+        enrichResults(liveResults, "riverside", onAccurateResults);
+        return { results: liveResults, isAI: true };
+      }
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Southern Nevada Health District — Clark County (Las Vegas)
   if (countyId === "snhd") {
     try {
@@ -1283,6 +1307,11 @@ export async function fetchDetail(restaurant) {
   // Stanislaus County
   if (source === "stanislaus") {
     return stanislausToDetailRows(restaurant);
+  }
+
+  // Riverside County, CA
+  if (source === "riverside") {
+    return riversideToDetailRows(restaurant);
   }
 
   // Tacoma-Pierce County — detail from enrichment data stored on restaurant
