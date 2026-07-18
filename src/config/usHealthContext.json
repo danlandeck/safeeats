@@ -409,7 +409,7 @@
       }
     }
   },
-  "FL": "Florida: FL DBPR Division of Hotels & Restaurants (www2.myfloridalicense.com/hotels-restaurants/inspections/). Statewide. Score: Pass/Fail with violations reported.",
+  "FL": "Florida: FL DBPR Division of Hotels & Restaurants (myfloridalicense.com/wl11.asp). Statewide portal covering all 67 counties. Food service inspected 2+ times/year. Violations: High Priority (foodborne illness risk), Intermediate, Basic. Result: Met Inspection Standards / Inspection Not Met. Scoring: HP=10pts, INT=5pts, Basic=2pts. Public portal at myfloridalicense.com — search by business name and city.",
   "GA": {
     "description": "Georgia: GA Dept of Public Health (dph.georgia.gov/environmental-health/environmental-health-inspections). County health departments conduct inspections. Score: 100-point or letter grade in some counties. Note: Gwinnett/Newton/Rockdale are excluded from the statewide search.",
     "counties": {

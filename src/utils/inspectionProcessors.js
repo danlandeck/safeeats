@@ -1973,6 +1973,77 @@ export function dcToDetailRows(restaurant) {
   });
 }
 
+// ── Florida DBPR (Division of Hotels & Restaurants) ───────────────────────────
+// State-wide portal at myfloridalicense.com covering all 67 counties.
+// Backend function returns facilities with license_id, name, address, city, etc.
+// No scores at the search level — detail fetch retrieves inspection history.
+// Scoring: High Priority=10pts, Intermediate=5pts, Basic=2pts.
+// safetyScore = 100 - penalty (clamped 0-100).
+export function processFloridaResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities
+    .filter(f => f.name && f.license_id)
+    .map((f, i) => ({
+      business_id: f.license_id,
+      name: f.name,
+      address: f.address || "",
+      city: f.city || "",
+      zip_code: f.zip_code || "",
+      phone: "",
+      description: f.license_number || "",
+      safetyScore: null,
+      grade: "U",
+      totalInspections: 0,
+      latestDate: "",
+      latestResult: f.status || "",
+      latitude: null,
+      longitude: null,
+      isLLMData: false,
+      source: "florida",
+      ada_compliance: "unknown",
+      portal_url: `https://www.myfloridalicense.com/inspectionDates.asp?SID=&id=${f.license_id}`,
+      portal_name: "FL DBPR Inspection Portal",
+      _license_id: f.license_id,
+    }));
+}
+
+export function floridaToDetailRows(restaurant) {
+  const inspections = restaurant._inspections || restaurant.allInspections || [];
+  if (!Array.isArray(inspections) || inspections.length === 0) {
+    return [{
+      inspection_serial_num: `fl-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: "",
+      inspection_result: restaurant.latestResult || "No inspections on file",
+      inspection_type: "Routine",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    }];
+  }
+  return inspections.map((insp, i) => {
+    const hp = insp.highPriority || 0;
+    const int = insp.intermediate || 0;
+    const basic = insp.basic || 0;
+    const hasData = insp.safetyScore !== null && insp.safetyScore !== undefined;
+    const totalViol = hp + int + basic;
+    return {
+      inspection_serial_num: `fl-${restaurant.business_id}-${insp.visit_id || i}`,
+      inspection_date: insp.date || "",
+      inspection_score: hasData ? String(Math.max(0, 100 - insp.safetyScore)) : "",
+      inspection_result: insp.result || (hasData ? "Met Inspection Standards" : "Unknown"),
+      inspection_type: insp.inspectionType || "Routine",
+      violation_description: hasData
+        ? totalViol === 0
+          ? "No violations found"
+          : `${hp} high priority, ${int} intermediate, ${basic} basic violation(s)`
+        : "",
+      violation_type: hp > 0 ? "RED" : "BLUE",
+      violation_points: hasData ? String(hp * 10 + int * 5 + basic * 2) : "0",
+    };
+  });
+}
+
 // ── Farmington Valley Health District (FVHD), CT ──────────────────────────────
 // FVHD covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington,
 // Granby, Hartland, New Hartford, and Simsbury. Publishes A/B/C/U ratings

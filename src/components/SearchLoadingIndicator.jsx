@@ -45,6 +45,7 @@ const SOURCE_INFO = {
   tri_county_co:   { dept: "Tri-County Health Department (CO)",     type: "live_api",       icon: "⛰️" },
   fvhd:            { dept: "Farmington Valley Health District (CT)", type: "backend_proxy",  icon: "🌲" },
   dc:              { dept: "DC Health (Washington, DC)",              type: "backend_proxy",  icon: "🏛️" },
+  florida:         { dept: "Florida DBPR (Hotels & Restaurants)",     type: "backend_proxy",  icon: "🌴" },
 };
 
 const TYPE_META = {

@@ -257,7 +257,7 @@
     "default": "dc"
   },
   "FL": {
-    "none": true
+    "default": "florida"
   },
   "GA": {
     "none": true

@@ -27,6 +27,7 @@ import {
   processTriCountyCoResults, triCountyCoToDetailRows,
   processFVHDResults, fvhdToDetailRows,
   processDCResults, dcToDetailRows,
+  processFloridaResults, floridaToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -62,6 +63,7 @@ const PROCESSORS = {
   tri_county_co:    { process: processTriCountyCoResults,  toDetailRows: triCountyCoToDetailRows },
   fvhd:             { process: processFVHDResults,         toDetailRows: fvhdToDetailRows },
   dc:               { process: processDCResults,           toDetailRows: dcToDetailRows },
+  florida:          { process: processFloridaResults,      toDetailRows: floridaToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
   };
 
@@ -86,6 +88,7 @@ const SOURCE_TO_COUNTY = {
   tri_county_co: "tri_county_co",
   fvhd: "fvhd",
   dc: "dc",
+  florida: "florida",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -192,6 +195,7 @@ const COUNTRY_CONTEXT = {
   manchester_ct: "Manchester CT Health Department (manchesterct.gov) uses a Green/Yellow/Red placard system. Green = Pass (0-1 priority violations) → score 90-100, Yellow = Conditional Pass (2+ priority violations corrected on site) → score 70-89, Red = Closed/Fail (imminent health hazard) → score 0-39. Inspection reports published monthly as PDFs at manchesterct.gov. CT DPH uses Priority (P), Priority Foundation (Pf), and Core (C) violation categories.",
   fvhd: "Farmington Valley Health District (fvhd.org) covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington, Granby, Hartland, New Hartford, and Simsbury CT. Uses A/B/C/U rating system: A=Excellent (no significant issues)→score 90-100, B=Good (minor non-critical issues)→score 80-89, C=Fair (noticeable violations)→score 70-79, U=Unsatisfactory (significant violations)→score 0-39. Ratings published on fvhd.org/environmental-health/food/food-ratings/ by town with full inspection history.",
   dc: "DC Health (dc.healthinspections.us) uses FDA Food Code pass/fail inspection with Priority, Priority Foundation, and Core violation categories. No letter grade or percentage assigned. Priority violations are most severe (foodborne illness risk factors), Priority Foundation are medium severity, Core are minor (good retail practices). Inspection reports include full violation details, corrective actions, and temperature readings. Follow-up inspections verify correction of cited violations.",
+  florida: "Florida DBPR Division of Hotels & Restaurants (myfloridalicense.com) — state-wide portal covering ALL 67 counties. Food service establishments inspected 2+ times per year. Violations categorized as High Priority (could contribute directly to foodborne illness), Intermediate (could lead to risk factors), and Basic (best practices). Result is Pass/Fail: 'Met Inspection Standards' = pass, 'Inspection Not Met' = fail. Public portal at myfloridalicense.com/wl11.asp — search by business name and city. Inspection details at inspectionDetail.asp with full violation descriptions.",
   riverside: "Riverside County Department of Environmental Health (rivcoeh.org) inspects food facilities 1-4 times per year. Public portal at weblink.rivcoeh.org allows searching facility inspection records by name, city, and record type. Facilities receive grade cards (A/B/C or color-coded). Convert: A=90-100, B=80-89, C=70-79, Closed/Failed=0-39. Prioritize: restaurantgrading.rivcoeh.org and weblink.rivcoeh.org for official inspection records.",
   alabama: "Alabama Department of Public Health (ADPH) foodscores.state.al.us — state-wide portal covering ALL 67 counties via county health departments. 100-point scale: 85+=satisfactory, 70-84=follow-up required within 60 days, 60-69=reinspection within 48h, <60=closed immediately. Food service establishments inspected minimum 3x/year. Critical violations have higher point values and must be corrected within 10 days.",
   tri_county_co: "Colorado Tri-County Health Department (TCHD) covers Adams, Arapahoe, and Douglas counties. Socrata open data at data.colorado.gov (dataset 869n-zj3f). CDPHE risk index scoring: 0-49 points=Pass, 50-109=Re-Inspection Required, 110+=Closed. Data includes foodborne illness risk violations (priority items) and good retail practices violations (core items). Dataset frozen at Dec 2022 — current scores may differ.",
@@ -1283,6 +1287,27 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 
+  // Florida — state-wide DBPR Division of Hotels & Restaurants (all 67 counties)
+  if (countyId === "florida") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const cityName = locationLabel?.split(",")[0]?.trim() || "";
+      const res = await base44.functions.invoke("floridaInspections", { action: "search", name: nameQuery, city: cityName });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processFloridaResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) {
+        // Portal returns facility data but scores require detail fetches.
+        // Background LLM enrichment fills in scores from training data.
+        enrichResults(liveResults, "florida", onAccurateResults);
+        return { results: liveResults, isAI: true };
+      }
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Farmington Valley Health District (FVHD) — CT
   // Covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington,
   // Granby, Hartland, New Hartford, Simsbury
@@ -1445,6 +1470,25 @@ export async function fetchDetail(restaurant) {
   // Washington DC
   if (source === "dc") {
     return dcToDetailRows(restaurant);
+  }
+
+  // Florida DBPR
+  if (source === "florida") {
+    try {
+      const res = await base44.functions.invoke("floridaInspections", { action: "detail", license_id: restaurant._license_id || restaurant.business_id });
+      const inspections = res.data?.inspections || [];
+      const enriched = { ...restaurant, _inspections: inspections };
+      // Update restaurant with latest inspection data
+      if (inspections.length > 0) {
+        const latest = inspections[0];
+        enriched.safetyScore = latest.safetyScore;
+        enriched.latestDate = latest.date;
+        enriched.latestResult = latest.result;
+        enriched.totalInspections = inspections.length;
+        enriched.grade = latest.safetyScore >= 90 ? "A" : latest.safetyScore >= 80 ? "B" : latest.safetyScore >= 70 ? "C" : latest.safetyScore >= 50 ? "D" : "F";
+      }
+      return floridaToDetailRows(enriched);
+    } catch { return floridaToDetailRows(restaurant); }
   }
 
   // Maricopa County, AZ — detail from enrichment data (portal is Cloudflare-blocked)

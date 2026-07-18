@@ -1,326 +1,318 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
-// ── Florida DBPR Division of Hotels and Restaurants ──────────────────────────
-// State-wide portal at myfloridalicense.com covering all 67 counties.
-// Classic ASP form flow: mode=0 (select search type) → mode=1 (criteria form)
-// → mode=2 (results list) → inspectionDetail.asp (per-inspection violations).
-//
-// Florida uses a violation-based system (no numeric score):
-//   - High Priority violations (foodborne illness risk) — 7 pts each
-//   - Intermediate violations — 4 pts each
-//   - Basic violations (good retail practices) — 1.5 pts each
-// safetyScore = 100 - total_pts (clamped 0-100).
-// Inspection result: "Satisfactory" or "Follow-up Inspection Required" or "Closed".
-
 const BASE_URL = "https://www.myfloridalicense.com";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-function decodeEntities(str) {
-  if (!str) return "";
-  return str
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function decodeEntities(s) {
+  return (s || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
 }
 
-function stripHtml(str) {
-  if (!str) return "";
-  return str.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+function stripTags(s) {
+  return decodeEntities((s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim());
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  // Florida dates come as "M/D/YYYY" — normalize to YYYY-MM-DD
-  const m = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (!m) return "";
-  const [, mo, dy, yr] = m;
-  return `${yr}-${mo.padStart(2, "0")}-${dy.padStart(2, "0")}`;
-}
-
-/**
- * Extract all form input/select/textarea fields from an HTML form section.
- */
-function extractFormFields(html) {
+function extractFormFields(formHtml) {
   const fields = {};
-  // Hidden inputs
-  const inputRe = /<input[^>]*name=["']([^"']+)["'][^>]*value=["']([^"']*)["'][^>]*>/gi;
+  // Hidden/text inputs: name before value
   let m;
-  while ((m = inputRe.exec(html)) !== null) {
-    if (!fields[m[1]]) fields[m[1]] = decodeEntities(m[2]);
-  }
-  // Also catch inputs where value comes before name
-  const inputRe2 = /<input[^>]*value=["']([^"']*)["'][^>]*name=["']([^"']+)["'][^>]*>/gi;
-  while ((m = inputRe2.exec(html)) !== null) {
-    if (!fields[m[2]]) fields[m[2]] = decodeEntities(m[1]);
-  }
-  // Select fields — get selected option or first option
-  const selectRe = /<select[^>]*name=["']([^"']+)["'][^>]*>([\s\S]*?)<\/select>/gi;
-  while ((m = selectRe.exec(html)) !== null) {
-    const name = m[1];
-    const optionsHtml = m[2];
-    const selectedRe = /<option[^>]*value=["']([^"']*)["'][^>]*selected[^>]*>|<option[^>]*selected[^>]*value=["']([^"']*)["']/i;
-    const selM = optionsHtml.match(selectedRe);
-    if (selM) {
-      fields[name] = selM[1] || selM[2] || "";
+  const re1 = /<input[^>]*name=["']([^"']+)["'][^>]*value=["']([^"']*)["']/gi;
+  while ((m = re1.exec(formHtml)) !== null) fields[m[1]] = m[2];
+  // value before name
+  const re2 = /<input[^>]*value=["']([^"']*)["'][^>]*name=["']([^"']+)["']/gi;
+  while ((m = re2.exec(formHtml)) !== null) { if (!(m[2] in fields)) fields[m[2]] = m[1]; }
+  // name only, no value
+  const re3 = /<input[^>]*name=["']([^"']+)["'][^>]*>/gi;
+  while ((m = re3.exec(formHtml)) !== null) { if (!(m[1] in fields)) fields[m[1]] = ""; }
+  // Selects: take first option value
+  const selRe = /<select[^>]*name=["']([^"']+)["'][^>]*>([\s\S]*?)<\/select>/gi;
+  while ((m = selRe.exec(formHtml)) !== null) {
+    if (!(m[1] in fields)) {
+      const opt = m[2].match(/<option[^>]*value=["']([^"']*)["']/i);
+      fields[m[1]] = opt ? opt[1] : "";
     }
   }
   return fields;
 }
 
-/**
- * Parse the results table from mode=2 response.
- * Each result row has: License Type, Name (link), Name Type, License Number/Rank, Status/Expires.
- * The Name link contains the license ID and visit ID for the detail page.
- */
-function parseResultsTable(html) {
-  const results = [];
-  // Find result rows — they contain links to inspectionDetail.asp or wl11.asp with mode=3
-  // Links look like: <a href="...?mode=3&search=Name&SID=&brd=H&typ=&LicNbr=XXX&...">
-  // or links to inspectionDetail.asp?InspVisitID=XXX&licid=YYY
-  const rowRe = /<a\s+href=["']([^"']*(?:inspectionDetail|wl11)[^"']*)["'][^>]*>([^<]+)<\/a>/gi;
+// Parse "MM/DD/YYYY" → "YYYY-MM-DD"
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const m = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return "";
+  return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+}
+
+// Parse the results table: find all inspectionDates.asp links and their
+// surrounding context (name, address, city, license number, status).
+function parseSearchResults(html) {
+  const facilities = [];
+  // Find all inspectionDates links with the restaurant name
+  const linkRe = /<a\s+href=["']inspectionDates\.asp\?SID=&id=(\d+)["'][^>]*>([^<]+)<\/a>/gi;
   let m;
-  while ((m = rowRe.exec(html)) !== null) {
-    const href = m[1];
-    const name = stripHtml(decodeEntities(m[2]));
-    if (!name || name.length < 2) continue;
-
-    // Extract license number and visit ID from the href
-    const licNbrMatch = href.match(/[?&]LicNbr=([^&]+)/i);
-    const licIdMatch = href.match(/[?&]licid=([^&]+)/i);
-    const visitIdMatch = href.match(/[?&]InspVisitID=([^&]+)/i);
-
-    // Find the surrounding row to extract address, city, county, etc.
-    const rowStart = html.lastIndexOf("<tr", m.index);
-    const rowEnd = html.indexOf("</tr>", m.index);
-    const rowHtml = rowEnd > 0 ? html.slice(rowStart, rowEnd + 5) : "";
-
-    // Extract table cells
-    const cells = [];
-    const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-    let cm;
-    while ((cm = cellRe.exec(rowHtml)) !== null) {
-      cells.push(stripHtml(decodeEntities(cm[1])));
+  while ((m = linkRe.exec(html)) !== null) {
+    const licenseId = m[1];
+    const name = stripTags(m[2]);
+    // Look forward in the HTML for the License Location address
+    // The address is in a <font> tag after "License Location" text, in the format:
+    // "STREET  CITY, FL ZIP"
+    const afterLink = html.slice(m.index, m.index + 3000);
+    // Find the License Location section
+    const locIdx = afterLink.indexOf("License Location");
+    let address = "";
+    let city = "";
+    let zip = "";
+    let state = "FL";
+    if (locIdx >= 0) {
+      // Get the next <font> content after License Location
+      const afterLoc = afterLink.slice(locIdx);
+      const fontMatch = afterLoc.match(/<font[^>]*>([^<]+)<\/font>/i);
+      if (fontMatch) {
+        const addrText = decodeEntities(fontMatch[1]).replace(/\s+/g, " ").trim();
+        // Parse "STREET CITY, FL ZIP" — city is the word(s) right before ", FL"
+        const addrParts = addrText.match(/^(.+)\s+([^,]+),\s*FL\s*(\d{5}.*)$/i);
+        if (addrParts) {
+          address = addrParts[1].trim();
+          city = addrParts[2].trim();
+          zip = addrParts[3].trim().slice(0, 5);
+        } else {
+          // Fallback: try to at least split on ", FL"
+          const flSplit = addrText.split(/,\s*FL\s*/i);
+          if (flSplit.length >= 2) {
+            const streetCity = flSplit[0].trim();
+            zip = flSplit[1].trim().slice(0, 5);
+            // City is the last word(s) — split from the right
+            const lastSpace = streetCity.lastIndexOf(" ");
+            if (lastSpace > 0) {
+              address = streetCity.slice(0, lastSpace).trim();
+              city = streetCity.slice(lastSpace + 1).trim();
+            } else {
+              address = streetCity;
+            }
+          } else {
+            address = addrText;
+          }
+        }
+      }
     }
-
-    results.push({
+    // Also find license number and status from the row
+    const rowHtml = afterLink.slice(0, 1500);
+    const licMatch = rowHtml.match(/>([A-Z]{3}\d{4,})</);
+    const statusMatch = rowHtml.match(/(Current,\s*Active|Voluntary\s*Inactive|Inactive|Delinquent)/i);
+    facilities.push({
+      license_id: licenseId,
       name,
-      href: href.startsWith("http") ? href : BASE_URL + "/" + href.replace(/^\.\.\//, ""),
-      license_number: licNbrMatch ? decodeEntities(licNbrMatch[1]) : (licIdMatch ? decodeEntities(licIdMatch[1]) : ""),
-      visit_id: visitIdMatch ? decodeEntities(visitIdMatch[1]) : "",
-      cells,
-      rowHtml,
+      address,
+      city,
+      state,
+      zip_code: zip,
+      license_number: licMatch ? licMatch[1] : "",
+      status: statusMatch ? statusMatch[1] : "",
     });
   }
-  return results;
+  return facilities;
 }
 
-/**
- * Parse the inspection detail page for violations and inspection metadata.
- */
-function parseInspectionDetail(html, facility) {
-  // Florida inspection detail pages list violations in a table with categories:
-  // High Priority, Intermediate, Basic
-  const violations = [];
-  let highPriority = 0, intermediate = 0, basic = 0;
-
-  // Violation entries typically appear as table rows with violation code + description
-  // Pattern: <td>...</td><td>...</td><td>Violation: CODE - Description</td>
-  const violRe = /Violation[:\s]*.*?(\d{1,3})\s*[-–—]\s*([^<]+)/gi;
+// Parse inspection dates page — find all inspectionDetail.asp links
+function parseInspectionDates(html) {
+  const inspections = [];
+  const linkRe = /<a\s+href=["']inspectionDetail\.asp\?(InspVisitID=\d+&id=\d+)["'][^>]*>([^<]+)<\/a>/gi;
   let m;
-  while ((m = violRe.exec(html)) !== null) {
-    const code = parseInt(m[1]) || 0;
-    const desc = stripHtml(m[2]);
-    if (!desc) continue;
-    // Florida violation codes: 1-29 = High Priority, 30-49 = Intermediate, 50-99 = Basic
-    let category, points;
-    if (code <= 29) { category = "High Priority"; points = 7; highPriority++; }
-    else if (code <= 49) { category = "Intermediate"; points = 4; intermediate++; }
-    else { category = "Basic"; points = 1.5; basic++; }
-    violations.push({ code: String(code), description: desc, category, points });
+  while ((m = linkRe.exec(html)) !== null) {
+    inspections.push({
+      params: m[1],
+      date: formatDate(stripTags(m[2])),
+      dateRaw: stripTags(m[2]),
+    });
+  }
+  return inspections;
+}
+
+// Parse an inspection detail page — extract type, result, violation counts.
+// The date comes from the inspectionDates.asp link text (more reliable).
+function parseInspectionDetail(html, linkDate) {
+  const text = stripTags(html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ""));
+
+  // Inspection type: look for the type that appears right before the date
+  // The detail page shows: "Routine - Food | 03/05/2026 | Met Inspection Standards"
+  // But "Complaint" may appear elsewhere in the page text. We look for the type
+  // that appears near the result/date.
+  const resultIdx = text.indexOf("Met Inspection Standards") >= 0
+    ? text.indexOf("Met Inspection Standards")
+    : text.indexOf("Inspection Not Met");
+  // Search backwards from result for the inspection type
+  const beforeResult = resultIdx > 0 ? text.slice(Math.max(0, resultIdx - 200), resultIdx) : "";
+  const typeMatch = beforeResult.match(/(Routine\s*-\s*Food|Callback\s*-\s*Food|Callback|Opening|Complaint\s*-\s*Food|Complaint|Licensing|Change\s+of\s+Ownership|Temporary\s+Food\s+Service)/i);
+  const inspectionType = typeMatch ? typeMatch[1].replace(/\s+/g, " ").trim() : "Routine";
+
+  // Result
+  const resultMatch = text.match(/(Met Inspection Standards|Inspection Not Met)/i);
+  const result = resultMatch ? resultMatch[1].trim() : "";
+
+  // Violation counts — the three numbers appear right after the result text
+  // Format in page: "Met Inspection Standards During This Visit ... 1 0 1"
+  let hp = 0, intermediate = 0, basic = 0;
+  const afterResultIdx = resultIdx >= 0 ? resultIdx + 40 : 0;
+  const afterResult = text.slice(afterResultIdx, afterResultIdx + 300);
+  // Find sequences of standalone numbers
+  const nums = afterResult.match(/\b(\d+)\b/g);
+  if (nums && nums.length >= 3) {
+    hp = parseInt(nums[0]) || 0;
+    intermediate = parseInt(nums[1]) || 0;
+    basic = parseInt(nums[2]) || 0;
   }
 
-  // Also try broader pattern for violation rows
-  if (violations.length === 0) {
-    const broadRe = /<td[^>]*>\s*(\d{1,3})\s*<\/td>\s*<td[^>]*>([^<]+(?:High Priority|Intermediate|Basic)[^<]*)<\/td>/gi;
-    while ((m = broadRe.exec(html)) !== null) {
-      const code = parseInt(m[1]) || 0;
-      const desc = stripHtml(m[2]);
-      if (code <= 29) { highPriority++; }
-      else if (code <= 49) { intermediate++; }
-      else { basic++; }
-      violations.push({ code: String(code), description: desc, category: code <= 29 ? "High Priority" : code <= 49 ? "Intermediate" : "Basic", points: code <= 29 ? 7 : code <= 49 ? 4 : 1.5 });
-    }
+  // Calculate safety score
+  const penalty = hp * 10 + intermediate * 5 + basic * 2;
+  let safetyScore = Math.max(0, Math.min(100, 100 - penalty));
+  if (/Met Inspection Standards/i.test(result) && safetyScore < 85) {
+    safetyScore = Math.max(85, safetyScore);
   }
-
-  // Extract inspection date
-  let dateStr = "";
-  const dateRe = /(\d{1,2}\/\d{1,2}\/\d{4})/;
-  const dateM = html.match(dateRe);
-  if (dateM) dateStr = formatDate(dateM[1]);
-
-  // Extract inspection type (Routine, Follow-up, etc.)
-  let inspType = "Routine";
-  if (/follow\s*-?\s*up/i.test(html)) inspType = "Follow-up";
-  if (/complaint/i.test(html)) inspType = "Complaint";
-  if (/opening/i.test(html)) inspType = "Opening";
-
-  // Determine result
-  let result = "Satisfactory";
-  if (/closed?/i.test(html) || /suspended/i.test(html)) result = "Closed";
-  else if (violations.length > 0 || /follow\s*-?\s*up/i.test(html)) result = "Follow-up Inspection Required";
-
-  const totalPts = highPriority * 7 + intermediate * 4 + Math.round(basic * 1.5);
-  const safetyScore = Math.max(0, Math.min(100, 100 - totalPts));
+  if (/Not Met/i.test(result)) {
+    safetyScore = Math.min(safetyScore, 69);
+  }
 
   return {
-    ...facility,
-    allInspections: [{
-      inspection_id: facility.visit_id || "",
-      date: dateStr,
-      type: inspType,
-      result,
-      high_priority_violations: highPriority,
-      intermediate_violations: intermediate,
-      core_violations: basic,
-      score: safetyScore,
-      violations: violations.map(v => ({ description: `${v.category}: ${v.description}`, severity: v.category === "High Priority" ? "critical" : "minor", points: v.points })),
-      report_url: facility.detail_url || "",
-    }],
+    inspectionType,
+    date: linkDate || "",
+    result: result || (safetyScore >= 85 ? "Met Inspection Standards" : "Inspection Not Met"),
+    highPriority: hp,
+    intermediate,
+    basic,
     safetyScore,
-    latestDate: dateStr,
-    latestResult: result,
-    totalInspections: 1,
+    penalty,
   };
 }
+
+// ── Session management: 3-step form flow ─────────────────────────────────────
+
+async function getSessionAndSearchForm(cookieStr) {
+  // Step 1: GET the landing page to establish session
+  await fetch(`${BASE_URL}/wl11.asp?mode=0&SID=&brd=H`, {
+    headers: { "User-Agent": UA, "Cookie": cookieStr },
+  });
+  // Merge any new cookies
+  return cookieStr;
+}
+
+async function submitSearch(name, city, cookieStr) {
+  // Step 2: POST to mode=1 to get the search form with all hidden fields
+  const step1Data = new URLSearchParams();
+  step1Data.append("SearchType", "Name");
+  step1Data.append("SelectSearchType", "Search");
+  step1Data.append("SID", "");
+  step1Data.append("brd", "H");
+  
+  const res1 = await fetch(`${BASE_URL}/wl11.asp?mode=1&SID=&brd=H&typ=`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": UA,
+      "Cookie": cookieStr,
+    },
+    body: step1Data.toString(),
+  });
+  const html1 = await res1.text();
+  
+  // Extract the form and all its fields
+  const formStart = html1.indexOf("<form");
+  const formEnd = html1.indexOf("</form>");
+  if (formStart < 0 || formEnd < 0) return [];
+  const formHtml = html1.slice(formStart, formEnd + 7);
+  const fields = extractFormFields(formHtml);
+  
+  // Step 3: Set search criteria and submit to mode=2
+  fields["OrgName"] = name;
+  fields["HRLicType"] = "F"; // Food Service
+  fields["SearchFuzzy"] = "Y";
+  fields["SearchHistoric"] = "Yes";
+  if (city) fields["City"] = city;
+  fields["Search1"] = "Search";
+  
+  const step2Data = new URLSearchParams();
+  for (const [k, v] of Object.entries(fields)) {
+    step2Data.append(k, v);
+  }
+  
+  const res2 = await fetch(`${BASE_URL}/wl11.asp?mode=2&search=Name&SID=&brd=H&typ=`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": UA,
+      "Referer": `${BASE_URL}/wl11.asp?mode=1&SID=&brd=H&typ=`,
+      "Cookie": cookieStr,
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Origin": BASE_URL,
+    },
+    body: step2Data.toString(),
+  });
+  const html2 = await res2.text();
+  return parseSearchResults(html2);
+}
+
+async function fetchInspectionHistory(licenseId, cookieStr) {
+  // Get the list of inspection dates
+  const res = await fetch(`${BASE_URL}/inspectionDates.asp?SID=&id=${licenseId}`, {
+    headers: { "User-Agent": UA, "Cookie": cookieStr },
+  });
+  const html = await res.text();
+  
+  // Check if there are no recent inspections
+  if (/no recent inspections/i.test(html)) return [];
+  
+  const dateLinks = parseInspectionDates(html);
+  // Limit to 5 most recent inspections to avoid excessive requests
+  const recent = dateLinks.slice(0, 5);
+  
+  const inspections = [];
+  for (const dl of recent) {
+    try {
+      const detailRes = await fetch(`${BASE_URL}/inspectionDetail.asp?${dl.params}`, {
+        headers: { "User-Agent": UA, "Cookie": cookieStr },
+      });
+      const detailHtml = await detailRes.text();
+      const parsed = parseInspectionDetail(detailHtml, dl.date);
+      inspections.push({
+        ...parsed,
+        visit_id: dl.params.match(/InspVisitID=(\d+)/)?.[1] || "",
+      });
+    } catch { /* skip failed detail fetch */ }
+  }
+  return inspections;
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-
+    
     const body = await req.json().catch(() => ({}));
-    const { action, name, city, county } = body;
-
+    const { action, name, city, license_id } = body;
+    
+    // Initialize session
+    const cookieStr = await getSessionAndSearchForm("");
+    
     if (action === "search") {
-      const searchName = (name || "").trim();
-      if (!searchName) return Response.json({ error: "Restaurant name required" }, { status: 400 });
-
-      // Step 1: Submit the search form directly to mode=2
-      // The form fields from mode=1: HRLicType, City, County, Name, LicenseNbr, etc.
-      const formData = new URLSearchParams();
-      formData.append("HRLicType", "F"); // Food Service
-      formData.append("City", city || "");
-      formData.append("County", county || "");
-      formData.append("Name", searchName);
-      formData.append("LicenseNbr", "");
-      formData.append("SortBy", "L");
-      formData.append("btnSearch", "Search");
-      formData.append("SearchType", "Name");
-      formData.append("SID", "");
-      formData.append("brd", "H");
-
-      const searchUrl = `${BASE_URL}/wl11.asp?mode=2&search=Name&SID=&brd=H&typ=`;
-      const searchRes = await fetch(searchUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          "Referer": `${BASE_URL}/wl11.asp?mode=1&SID=&brd=H&typ=`,
-        },
-        body: formData.toString(),
-      });
-      const searchHtml = await searchRes.text();
-
-      // Check for "no records found"
-      if (/no records found/i.test(searchHtml)) {
-        return Response.json({ facilities: [] });
-      }
-
-      // Parse results
-      let results = parseResultsTable(searchHtml);
-
-      // If no results with link parsing, try a broader approach
-      if (results.length === 0) {
-        // Look for any table rows with license numbers
-        const broadRowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-        let rm;
-        while ((rm = broadRowRe.exec(searchHtml)) !== null) {
-          const rowContent = rm[1];
-          if (/Food Service|Restaurant/i.test(rowContent) && /<a\s/i.test(rowContent)) {
-            const nameMatch = rowContent.match(/<a[^>]*>([^<]+)<\/a>/i);
-            const hrefMatch = rowContent.match(/<a[^>]*href=["']([^"']+)["']/i);
-            if (nameMatch && hrefMatch) {
-              const cells = [];
-              const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-              let cm;
-              while ((cm = cellRe.exec(rowContent)) !== null) {
-                cells.push(stripHtml(decodeEntities(cm[1])));
-              }
-              results.push({
-                name: stripHtml(decodeEntities(nameMatch[1])),
-                href: hrefMatch[1].startsWith("http") ? hrefMatch[1] : BASE_URL + "/" + hrefMatch[1].replace(/^\.\.\//, ""),
-                license_number: "",
-                visit_id: "",
-                cells,
-                rowHtml: rowContent,
-              });
-            }
-          }
-        }
-      }
-
-      // Extract facility details from result rows
-      const facilities = results.slice(0, 20).map((r) => {
-        // Parse address from the row cells or surrounding HTML
-        const allText = stripHtml(decodeEntities(r.rowHtml));
-        // Try to extract address, city, zip from the cells
-        const cells = r.cells || [];
-        // Florida results table columns: License Type | Name | Name Type | License Number/Rank | Status/Expires | Address info
-        const addressInfo = cells.find(c => /\d+\s+\w+/i.test(c)) || "";
-        const licenseNumber = r.license_number || cells.find(c => /^\d+$/.test(c.trim())) || "";
-
-        return {
-          business_id: r.license_number || `fl-${r.name}-${licenseNumber}`,
-          name: r.name,
-          address: addressInfo,
-          city: city || "",
-          zip_code: "",
-          phone: "",
-          license_number: licenseNumber,
-          detail_url: r.href,
-          safetyScore: null,
-          latestResult: "",
-          latestDate: "",
-        };
-      });
-
+      const facilities = await submitSearch(name || "", city || "", cookieStr);
       return Response.json({ facilities });
     }
-
-    if (action === "detail") {
-      const { detail_url, name, address, city } = body;
-      if (!detail_url) return Response.json({ error: "detail_url required" }, { status: 400 });
-
-      const detailRes = await fetch(detail_url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          "Referer": `${BASE_URL}/wl11.asp?mode=2&search=Name&SID=&brd=H&typ=`,
-        },
-      });
-      const detailHtml = await detailRes.text();
-
-      const facility = { name, address, city, detail_url };
-      const enriched = parseInspectionDetail(detailHtml, facility);
-
-      return Response.json({ facility: enriched });
+    
+    if (action === "detail" && license_id) {
+      const inspections = await fetchInspectionHistory(license_id, cookieStr);
+      return Response.json({ inspections });
     }
-
-    return Response.json({ error: "Unknown action" }, { status: 400 });
+    
+    return Response.json({ error: "Invalid action. Use 'search' or 'detail'." }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
