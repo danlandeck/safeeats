@@ -12,9 +12,9 @@ const LIVE_MARKETS = [
     sources: [
       { city: "New York City, NY", note: "NYC DOHMH — Socrata open API. Letter grades A/B/C, full violation history. Tested & confirmed live.", url: "https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j" },
       { city: "New York State (statewide)", note: "NY State Health Data — Socrata API covering all NY state counties outside NYC.", url: "https://health.data.ny.gov/Restaurant-Inspections-Statewide/cnih-y5dw" },
-      { city: "San Francisco, CA", note: "SF DPH — Socrata LIVES-standard API. Scored inspections 0–100.", url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores-LIVES-Standard/pyih-qa8i" },
-      { city: "Chicago / Cook County, IL", note: "Chicago CDPH — Socrata open API. Pass/fail + violation codes.", url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4dn6-by35" },
-      { city: "King County, WA (Seattle)", note: "KCHD — Socrata API. Scored inspections with full violation detail.", url: "https://data.kingcounty.gov/Health/Restaurant-inspection/f29f-zza5" },
+      { city: "San Francisco, CA", note: "SF DPH — Socrata LIVES-standard API. Scored inspections 0–100 (2024–Present dataset).", url: "https://data.sfgov.org/Health-and-Social-Services/Restaurant-Scores/tvy3-wexg" },
+      { city: "Chicago / Cook County, IL", note: "Chicago CDPH — Socrata open API. Pass/fail + violation codes.", url: "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5" },
+      { city: "King County, WA (Seattle)", note: "KCHD — ArcGIS REST API. Scored inspections with full violation detail.", url: "https://services.arcgis.com/Ej0PsM5Aw677QF1W/arcgis/rest/services/RESTAURANT_INSPECTIONS_POINT_857/FeatureServer" },
       { city: "Austin / Travis County, TX", note: "Austin Public Health — Socrata API. Inspection results + scores.", url: "https://data.austintexas.gov/Health-and-Community-Services/Food-Establishment-Inspection-Scores/ecmv-9xxi" },
       { city: "Montgomery County, MD", note: "MCDH — Socrata API. Full inspection records, open dataset.", url: "https://data.montgomerycountymd.gov/Health-and-Human-Services/Food-Inspections/9tm3-jscp" },
       { city: "Delaware (statewide)", note: "Delaware Open Data — Socrata API. Statewide restaurant inspections.", url: "https://data.delaware.gov/Health-and-Social-Services/Restaurant-Inspections/384s-wygj" },
@@ -226,7 +226,7 @@ export default function GlobalCoverage() {
         <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
           <h2 className="font-extrabold text-base mb-2">🌍 Everywhere Else — AI-Powered</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
-            For the 71 countries where live government APIs don't yet exist, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated. If we can't verify it, we say so.
+            For the 74 countries where live government APIs don't yet exist, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated. If we can't verify it, we say so.
           </p>
         </div>
 
