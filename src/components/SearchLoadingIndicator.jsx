@@ -36,6 +36,8 @@ const SOURCE_INFO = {
   dubai:          { dept: "Dubai Municipality Food Safety Dept.", type: "ai_only",        icon: "🏙️" },
   manchester_ct:  { dept: "Manchester CT Health Department",      type: "ai_enrichment",  icon: "🏥" },
   philly:         { dept: "Philadelphia Dept. of Public Health",  type: "ai_enrichment",  icon: "🔔" },
+  wake:           { dept: "Wake County Environmental Health",      type: "backend_proxy",  icon: "🌲" },
+  jefferson_ky:   { dept: "Louisville Metro Public Health",        type: "backend_proxy",  icon: "🍗" },
 };
 
 const TYPE_META = {

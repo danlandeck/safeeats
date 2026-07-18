@@ -761,6 +761,24 @@ const CITY_TO_COUNTY = {
   "philly": { region: "pennsylvania", countyId: "philly", locationLabel: "Philadelphia, Pennsylvania" },
   "pittsburgh": { region: "pennsylvania", countyId: "philly", locationLabel: "Pittsburgh, Pennsylvania" },
   "pennsylvania": { region: "pennsylvania", countyId: "philly", locationLabel: "Pennsylvania" },
+  // Wake County, NC (Raleigh area) — live ArcGIS API
+  "raleigh": { region: "north_carolina", countyId: "wake", locationLabel: "Raleigh, NC" },
+  "cary nc": { region: "north_carolina", countyId: "wake", locationLabel: "Cary, NC" },
+  "apex nc": { region: "north_carolina", countyId: "wake", locationLabel: "Apex, NC" },
+  "morrisville nc": { region: "north_carolina", countyId: "wake", locationLabel: "Morrisville, NC" },
+  "garner nc": { region: "north_carolina", countyId: "wake", locationLabel: "Garner, NC" },
+  "wake forest nc": { region: "north_carolina", countyId: "wake", locationLabel: "Wake Forest, NC" },
+  "fuquay-varina": { region: "north_carolina", countyId: "wake", locationLabel: "Fuquay-Varina, NC" },
+  "holly springs nc": { region: "north_carolina", countyId: "wake", locationLabel: "Holly Springs, NC" },
+  "knightdale": { region: "north_carolina", countyId: "wake", locationLabel: "Knightdale, NC" },
+  "rolesville": { region: "north_carolina", countyId: "wake", locationLabel: "Rolesville, NC" },
+  "zebulon nc": { region: "north_carolina", countyId: "wake", locationLabel: "Zebulon, NC" },
+  "wendell nc": { region: "north_carolina", countyId: "wake", locationLabel: "Wendell, NC" },
+  "wake county": { region: "north_carolina", countyId: "wake", locationLabel: "Wake County, NC" },
+  // Louisville / Jefferson County, KY — live ArcGIS API
+  "louisville": { region: "kentucky", countyId: "jefferson_ky", locationLabel: "Louisville, KY" },
+  "louisville ky": { region: "kentucky", countyId: "jefferson_ky", locationLabel: "Louisville, KY" },
+  "jefferson county ky": { region: "kentucky", countyId: "jefferson_ky", locationLabel: "Jefferson County, KY" },
 };
 
 const LIVE_API_CITIES = [
@@ -781,6 +799,8 @@ const LIVE_API_CITIES = [
   { label: "Modesto / Stanislaus Co., CA", region: "california", countyId: "stanislaus", emoji: "🌾", example: "restaurant", locationLabel: "Modesto, CA" },
   { label: "Tacoma / Pierce Co., WA", region: "washington", countyId: "pierce", emoji: "🏔️", example: "Sonic", locationLabel: "Tacoma, WA" },
   { label: "Las Vegas, NV", region: "nevada", countyId: "snhd", emoji: "🎰", example: "McDonald's", locationLabel: "Las Vegas, NV" },
+  { label: "Raleigh / Wake Co., NC", region: "north_carolina", countyId: "wake", emoji: "🌲", example: "McDonald's", locationLabel: "Raleigh, NC" },
+  { label: "Louisville, KY", region: "kentucky", countyId: "jefferson_ky", emoji: "🍗", example: "KFC", locationLabel: "Louisville, KY" },
 ];
 
 export default function Home() {
@@ -967,7 +987,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);
@@ -1300,7 +1320,7 @@ export default function Home() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
-                { value: "18", label: t.statSources, emoji: "🟢" },
+                { value: "20", label: t.statSources, emoji: "🟢" },
                 { value: "170+", label: t.statDepts, emoji: "🌍" },
                 { value: "A–F", label: t.statGrade, emoji: "📋" },
                 { value: "100%", label: t.statFree, emoji: "✅" },
@@ -1315,7 +1335,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-4 sm:p-5">
               <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
               <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

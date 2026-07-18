@@ -18,6 +18,8 @@ import {
   processNSWResults, nswToDetailRows,
   processTacomaPierceResults, tacomaPierceToDetailRows,
   processSNHDResults, snhdToDetailRows,
+  processWakeCountyResults, wakeCountyToDetailRows,
+  processLouisvilleResults, louisvilleToDetailRows,
 } from "./inspectionProcessors";
 import { getGrade } from "./grading";
 import { enrichResults, isStale } from "./backgroundEnrich";
@@ -65,6 +67,8 @@ const SOURCE_TO_COUNTY = {
   snhd: "snhd",
   singapore: "singapore",
   australia_nsw: "sydney", australia_qld: "brisbane",
+  wake: "wake",
+  louisville: "jefferson_ky",
 };
 
 // All UK city IDs that should route through the live UK FSA API
@@ -1022,6 +1026,34 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     return { results, isAI: false };
   }
 
+  // Wake County, NC (Raleigh area) — ArcGIS REST API
+  if (countyId === "wake") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("wakeCountyInspections", { action: "search", name: nameQuery });
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processWakeCountyResults(res.data), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Louisville / Jefferson County, KY — ArcGIS Hub FeatureServer
+  if (countyId === "jefferson_ky") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("louisvilleInspections", { action: "search", name: nameQuery });
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processLouisvilleResults(res.data?.records || []), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
   // Southern Nevada Health District — Clark County (Las Vegas)
   if (countyId === "snhd") {
     try {
@@ -1161,6 +1193,22 @@ export async function fetchDetail(restaurant) {
     try {
       const res = await base44.functions.invoke("houstonFoodInspections", { action: "detail", facilityAccountNumber: business_id });
       return houstonToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  // Wake County, NC — full inspection history
+  if (source === "wake") {
+    try {
+      const res = await base44.functions.invoke("wakeCountyInspections", { action: "detail", hsisid: business_id });
+      return wakeCountyToDetailRows(res.data);
+    } catch { return []; }
+  }
+
+  // Louisville / Jefferson County, KY — full inspection history
+  if (source === "louisville") {
+    try {
+      const res = await base44.functions.invoke("louisvilleInspections", { action: "detail", establishmentId: business_id });
+      return louisvilleToDetailRows(res.data?.records || []);
     } catch { return []; }
   }
 

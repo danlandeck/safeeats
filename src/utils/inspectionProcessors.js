@@ -1467,3 +1467,156 @@ export function vancouverBCToDetailRows(inspections) {
     })
     .sort((a, b) => new Date(b.inspection_date) - new Date(a.inspection_date));
 }
+
+// ── Wake County, NC (Raleigh area) ─────────────────────────────────────────────
+// Two-layer ArcGIS join: restaurants (layer 0) + inspections (layer 1).
+// SCORE is a safety score (higher = better, 0–100).
+export function processWakeCountyResults(data) {
+  const restaurants = Array.isArray(data?.restaurants) ? data.restaurants : [];
+  const inspections = Array.isArray(data?.inspections) ? data.inspections : [];
+  if (restaurants.length === 0) return [];
+
+  // Group inspections by HSISID, sorted by date DESC
+  const inspByHsisid = {};
+  inspections.forEach(row => {
+    const id = row.HSISID;
+    if (!id) return;
+    if (!inspByHsisid[id]) inspByHsisid[id] = [];
+    inspByHsisid[id].push(row);
+  });
+  Object.values(inspByHsisid).forEach(arr => {
+    arr.sort((a, b) => (b.DATE_ || 0) - (a.DATE_ || 0));
+  });
+
+  return restaurants.map(rest => {
+    const id = rest.HSISID;
+    const restInspections = inspByHsisid[id] || [];
+    const latest = restInspections[0];
+    const score = latest?.SCORE ?? null;
+    const safetyScore = score !== null ? Math.max(0, Math.min(100, score)) : null;
+    const latestDate = latest?.DATE_ ? new Date(latest.DATE_).toISOString().split("T")[0] : null;
+    const latestResult = latest?.TYPE || "";
+
+    return {
+      business_id: id,
+      name: rest.NAME || "",
+      address: rest.ADDRESS1 || "",
+      city: rest.CITY || "Wake County",
+      zip_code: rest.POSTALCODE || "",
+      phone: rest.PHONENUMBER || "",
+      description: rest.FACILITYTYPE || "",
+      safetyScore,
+      grade: safetyScore !== null ? getGrade(safetyScore) : "U",
+      totalInspections: restInspections.length,
+      latestDate,
+      latestResult,
+      latitude: rest.Y || null,
+      longitude: rest.X || null,
+      isLLMData: false,
+      source: "wake",
+      ada_compliance: "unknown",
+    };
+  });
+}
+
+export function wakeCountyToDetailRows(data) {
+  const inspections = Array.isArray(data?.inspections) ? data.inspections : (Array.isArray(data) ? data : []);
+  if (inspections.length === 0) return [];
+  const seen = new Set();
+  return inspections.map(row => {
+    const dateStr = row.DATE_ ? new Date(row.DATE_).toISOString().split("T")[0] : "unknown";
+    const serial = `wake-${row.HSISID}-${dateStr}`;
+    if (seen.has(serial)) return null;
+    seen.add(serial);
+    const score = row.SCORE ?? 0;
+    return {
+      inspection_serial_num: serial,
+      inspection_date: dateStr,
+      inspection_score: String(100 - score),
+      inspection_result: row.TYPE || "Inspection",
+      inspection_type: row.TYPE || "Routine Inspection",
+      violation_description: row.DESCRIPTION || "",
+      violation_type: "",
+      violation_points: "0",
+    };
+  }).filter(Boolean);
+}
+
+// ── Louisville / Jefferson County, KY ──────────────────────────────────────────
+// Single-layer ArcGIS: each row = one inspection for one establishment.
+// score is 0–100 (higher = better). Grade is A/B/C/F or null.
+export function processLouisvilleResults(data) {
+  const records = Array.isArray(data) ? data : (data?.records || []);
+  if (records.length === 0) return [];
+  const businesses = {};
+  records.forEach(row => {
+    const id = row.EstablishmentID;
+    if (!id) return;
+    if (!businesses[id]) {
+      businesses[id] = {
+        business_id: String(id),
+        name: row.EstablishmentName || "",
+        address: row.Address || "",
+        city: row.City || "Louisville",
+        zip_code: row.Zip ? String(row.Zip) : "",
+        phone: "",
+        description: row.TypeDescription || "",
+        inspections: [],
+      };
+    }
+    const dateStr = row.InspectionDate ? row.InspectionDate.split(" ")[0] : null;
+    const serial = `louisville-${row.InspectionID}`;
+    if (!businesses[id].inspections.find(i => i.serial === serial)) {
+      businesses[id].inspections.push({
+        serial,
+        date: dateStr,
+        score: row.score ?? null,
+        grade: row.Grade || null,
+        type: row.Ins_TypeDesc || "",
+      });
+    }
+  });
+  return Object.values(businesses).map(biz => {
+    biz.inspections.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    const latest = biz.inspections[0];
+    const score = latest?.score ?? null;
+    const safetyScore = score !== null ? Math.max(0, Math.min(100, score)) : null;
+    const grade = latest?.grade || (safetyScore !== null ? getGrade(safetyScore) : "U");
+    return {
+      ...biz,
+      safetyScore,
+      grade,
+      totalInspections: biz.inspections.length,
+      latestDate: latest?.date,
+      latestResult: grade !== "U" ? `Grade ${grade} (Score: ${score}/100)` : (latest?.type || "Unknown"),
+      latitude: null,
+      longitude: null,
+      isLLMData: false,
+      source: "louisville",
+      ada_compliance: "unknown",
+    };
+  });
+}
+
+export function louisvilleToDetailRows(data) {
+  const records = Array.isArray(data) ? data : (data?.records || []);
+  if (records.length === 0) return [];
+  const seen = new Set();
+  return records.map(row => {
+    const dateStr = row.InspectionDate ? row.InspectionDate.split(" ")[0] : "unknown";
+    const serial = `louisville-${row.InspectionID}`;
+    if (seen.has(serial)) return null;
+    seen.add(serial);
+    const score = row.score ?? 0;
+    return {
+      inspection_serial_num: serial,
+      inspection_date: dateStr,
+      inspection_score: String(100 - score),
+      inspection_result: row.Grade ? `Grade ${row.Grade} (Score: ${score}/100)` : `Score: ${score}/100`,
+      inspection_type: row.Ins_TypeDesc || "Routine Inspection",
+      violation_description: "",
+      violation_type: "",
+      violation_points: "0",
+    };
+  }).filter(Boolean);
+}
