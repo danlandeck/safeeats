@@ -5,17 +5,48 @@
       "Jefferson": {
         "portal_url": "https://www.jcdh.org/SitePages/Programs-Services/Scores-Lists/Food/FoodServScores.aspx",
         "portal_name": "Jefferson County Dept of Health — Food Service Scores",
-        "cities": ["birmingham", "homewood", "hoover", "mountain brook", "vestavia hills", "trussville", "gardendale", "fultondale", "tarrant", "fairfield", "midfield", "bessemer", "brighton", "lipscomb"]
+        "cities": [
+          "birmingham",
+          "homewood",
+          "hoover",
+          "mountain brook",
+          "vestavia hills",
+          "trussville",
+          "gardendale",
+          "fultondale",
+          "tarrant",
+          "fairfield",
+          "midfield",
+          "bessemer",
+          "brighton",
+          "lipscomb"
+        ]
       },
       "Mobile": {
         "portal_url": "https://mchd.org/restaurant-ratings-mobile/",
         "portal_name": "Mobile County Health Department — Restaurant Ratings",
-        "cities": ["mobile", "prichard", "saraland", "chickasaw", "creola", "satsuma", "bayou la batre", "dauphin island", "mt. vernon"]
+        "cities": [
+          "mobile",
+          "prichard",
+          "saraland",
+          "chickasaw",
+          "creola",
+          "satsuma",
+          "bayou la batre",
+          "dauphin island",
+          "mt. vernon"
+        ]
       },
       "Madison": {
         "portal_url": "https://www.alabamapublichealth.gov/foodscores/",
         "portal_name": "AL Dept of Public Health — Food Establishment Scores",
-        "cities": ["huntsville", "madison", "new hope", "owens cross roads", "triana"]
+        "cities": [
+          "huntsville",
+          "madison",
+          "new hope",
+          "owens cross roads",
+          "triana"
+        ]
       }
     }
   },
@@ -26,22 +57,66 @@
       "Maricopa": {
         "portal_url": "https://envapp.maricopa.gov/EnvironmentalHealth/FoodInspections",
         "portal_name": "Maricopa County Environmental Services — Restaurant Search",
-        "cities": ["phoenix", "mesa", "scottsdale", "chandler", "tempe", "glendale", "peoria", "surprise", "avondale", "goodyear", "buckeye", "el mirage", "fountain hills", "guadalupe", "litchfield park", "tolleson", "youngtown", "paradise valley", "wickenburg", "queen creek"]
+        "cities": [
+          "phoenix",
+          "mesa",
+          "scottsdale",
+          "chandler",
+          "tempe",
+          "glendale",
+          "peoria",
+          "surprise",
+          "avondale",
+          "goodyear",
+          "buckeye",
+          "el mirage",
+          "fountain hills",
+          "guadalupe",
+          "litchfield park",
+          "tolleson",
+          "youngtown",
+          "paradise valley",
+          "wickenburg",
+          "queen creek"
+        ]
       },
       "Pima": {
         "portal_url": "https://healthinspect.pima.gov/portal/",
         "portal_name": "Pima County Health Inspect Portal",
-        "cities": ["tucson", "south tucson", "oro valley", "marana", "sahuarita", "ajo"]
+        "cities": [
+          "tucson",
+          "south tucson",
+          "oro valley",
+          "marana",
+          "sahuarita",
+          "ajo"
+        ]
       },
       "Pinal": {
         "portal_url": "https://app1.pinal.gov/search/foodinspection-search.aspx",
         "portal_name": "Pinal County Environmental Health — Food Inspection Search",
-        "cities": ["casa grande", "apache junction", "florence", "coolidge", "eloy", "maricopa", "mammoth", "kearny", "superior"]
+        "cities": [
+          "casa grande",
+          "apache junction",
+          "florence",
+          "coolidge",
+          "eloy",
+          "maricopa",
+          "mammoth",
+          "kearny",
+          "superior"
+        ]
       },
       "Coconino": {
         "portal_url": "https://www.coconino.az.gov/EnvironmentalHealth",
         "portal_name": "Coconino County Environmental Health",
-        "cities": ["flagstaff", "williams", "page", "tuba city", "sedona"]
+        "cities": [
+          "flagstaff",
+          "williams",
+          "page",
+          "tuba city",
+          "sedona"
+        ]
       }
     }
   },
@@ -52,32 +127,132 @@
       "San Diego": {
         "portal_url": "https://www.sandiegocounty.gov/content/sdc/deh/fhd/ffis/intro.html.html",
         "portal_name": "SD Food Info — San Diego County Food Facility Inspections",
-        "cities": ["san diego", "chula vista", "oceanside", "escondido", "carlsbad", "el cajon", "vista", "san marcos", "encinitas", "national city", "la mesa", "santee", "imperial beach", "coronado", "lemon grove", "poway", "del mar", "solana beach"]
+        "cities": [
+          "san diego",
+          "chula vista",
+          "oceanside",
+          "escondido",
+          "carlsbad",
+          "el cajon",
+          "vista",
+          "san marcos",
+          "encinitas",
+          "national city",
+          "la mesa",
+          "santee",
+          "imperial beach",
+          "coronado",
+          "lemon grove",
+          "poway",
+          "del mar",
+          "solana beach"
+        ]
       },
       "Sacramento": {
         "portal_url": "https://www.emd.saccounty.gov/EH/Food/Pages/FoodFacilityInspectionSearch.aspx",
         "portal_name": "Sacramento County Environmental Management — Food Facility Inspection Search",
-        "cities": ["sacramento", "elk grove", "folsom", "citrus heights", "rancho cordova", "rosemont", "carmichael", "antelope", "north highlands", "florin", "laundry", "rio linda", "watt"]
+        "cities": [
+          "sacramento",
+          "elk grove",
+          "folsom",
+          "citrus heights",
+          "rancho cordova",
+          "rosemont",
+          "carmichael",
+          "antelope",
+          "north highlands",
+          "florin",
+          "laundry",
+          "rio linda",
+          "watt"
+        ]
       },
       "Orange": {
         "portal_url": "https://www.ocfoodinfo.com/search",
         "portal_name": "OC Food Info — Orange County Restaurant Inspection Search",
-        "cities": ["anaheim", "santa ana", "irvine", "huntington beach", "garden grove", "orange", "fullerton", "costa mesa", "mission viejo", "westminster", "newport beach", "buena park", "laguna niguel", "tustin", "yorba linda", "san clemente", "lake forest", "fountain valley", "placentia", "brea", "cypress", "dana point"]
+        "cities": [
+          "anaheim",
+          "santa ana",
+          "irvine",
+          "huntington beach",
+          "garden grove",
+          "orange",
+          "fullerton",
+          "costa mesa",
+          "mission viejo",
+          "westminster",
+          "newport beach",
+          "buena park",
+          "laguna niguel",
+          "tustin",
+          "yorba linda",
+          "san clemente",
+          "lake forest",
+          "fountain valley",
+          "placentia",
+          "brea",
+          "cypress",
+          "dana point"
+        ]
       },
       "Alameda": {
         "portal_url": "https://health.alamedacountyca.gov/service-area/inspection-reports/",
         "portal_name": "Alameda County Environmental Health — Inspection Reports",
-        "cities": ["oakland", "fremont", "hayward", "berkeley", "san leandro", "union city", "dublin", "pleasanton", "livermore", "alameda", "emeryville", "newark", "castro valley", "san lorenzo", "ashland"]
+        "cities": [
+          "oakland",
+          "fremont",
+          "hayward",
+          "berkeley",
+          "san leandro",
+          "union city",
+          "dublin",
+          "pleasanton",
+          "livermore",
+          "alameda",
+          "emeryville",
+          "newark",
+          "castro valley",
+          "san lorenzo",
+          "ashland"
+        ]
       },
       "Santa Clara": {
         "portal_url": "https://deh.santaclaracounty.gov/consumers/food",
         "portal_name": "Santa Clara County Environmental Health — Food Facilities",
-        "cities": ["san jose", "sunnyvale", "santa clara", "mountain view", "palo alto", "cupertino", "milpitas", "gilroy", "morgan hill", "campbell", "los gatos", "saratoga", "los altos", "morgan hill"]
+        "cities": [
+          "san jose",
+          "sunnyvale",
+          "santa clara",
+          "mountain view",
+          "palo alto",
+          "cupertino",
+          "milpitas",
+          "gilroy",
+          "morgan hill",
+          "campbell",
+          "los gatos",
+          "saratoga",
+          "los altos",
+          "morgan hill"
+        ]
       },
       "Fresno": {
         "portal_url": "https://www.fresnohealthinspections.com/",
         "portal_name": "Fresno County Public Health — Restaurant Inspections",
-        "cities": ["fresno", "clovis", "sanger", "selma", "kingsburg", "fowler", "parlier", "reedley", "coalinga", "kerman", "mendota", "orange cove"]
+        "cities": [
+          "fresno",
+          "clovis",
+          "sanger",
+          "selma",
+          "kingsburg",
+          "fowler",
+          "parlier",
+          "reedley",
+          "coalinga",
+          "kerman",
+          "mendota",
+          "orange cove"
+        ]
       }
     }
   },
@@ -87,32 +262,86 @@
       "Denver": {
         "portal_url": "https://denvergov.org/restaurantinspections",
         "portal_name": "Denver Restaurant Health Inspection Search",
-        "cities": ["denver"]
+        "cities": [
+          "denver"
+        ]
       },
       "El Paso": {
         "portal_url": "https://www.elpasocountyhealth.org/licenses-permits-inspections-water-testing/view-inspection-reports/",
         "portal_name": "El Paso County Public Health — View Inspection Reports",
-        "cities": ["colorado springs", "fountain", "manitou springs", "calhan", "monument", "palmer lake", "ramah"]
+        "cities": [
+          "colorado springs",
+          "fountain",
+          "manitou springs",
+          "calhan",
+          "monument",
+          "palmer lake",
+          "ramah"
+        ]
       },
       "Boulder": {
         "portal_url": "https://bouldercounty.gov/families/food/restaurant-inspection-data/",
         "portal_name": "Boulder County — Restaurant Inspection Data",
-        "cities": ["boulder", "longmont", "lafayette", "louisville", "superior", "erie", "nederland", "lyons", "jamestown", "ward"]
+        "cities": [
+          "boulder",
+          "longmont",
+          "lafayette",
+          "louisville",
+          "superior",
+          "erie",
+          "nederland",
+          "lyons",
+          "jamestown",
+          "ward"
+        ]
       },
       "Arapahoe": {
         "portal_url": "https://inspections.myhealthdepartment.com/acph",
         "portal_name": "Arapahoe County Public Health — HealthSpace Portal",
-        "cities": ["aurora", "littleton", "centennial", "englewood", "greenwood village", "sheridan", "glendale", "cherry hills village", "deer trail", "bennett", "bow mar", "columbine valley", "foxfield"]
+        "cities": [
+          "aurora",
+          "littleton",
+          "centennial",
+          "englewood",
+          "greenwood village",
+          "sheridan",
+          "glendale",
+          "cherry hills village",
+          "deer trail",
+          "bennett",
+          "bow mar",
+          "columbine valley",
+          "foxfield"
+        ]
       },
       "Larimer": {
         "portal_url": "https://www.larimer.gov/health/environmental-health/food-safety-program/restaurant-grocery-store-inspections",
         "portal_name": "Larimer County — Retail Food Establishment Inspections",
-        "cities": ["fort collins", "loveland", "estes park", "berthoud", "wellington", "timnath"]
+        "cities": [
+          "fort collins",
+          "loveland",
+          "estes park",
+          "berthoud",
+          "wellington",
+          "timnath"
+        ]
       },
       "Jefferson": {
         "portal_url": "https://inspections.myhealthdepartment.com/jcph",
         "portal_name": "Jefferson County Public Health — HealthSpace Portal",
-        "cities": ["golden", "lakewood", "wheat ridge", "arvada", "westminster", "edgewater", "mountain view", "lakeside", "evergreen", "conifer", "genesee"]
+        "cities": [
+          "golden",
+          "lakewood",
+          "wheat ridge",
+          "arvada",
+          "westminster",
+          "edgewater",
+          "mountain view",
+          "lakeside",
+          "evergreen",
+          "conifer",
+          "genesee"
+        ]
       }
     }
   },
@@ -122,17 +351,45 @@
       "Manchester": {
         "portal_url": "https://www.manchesterct.gov/Government/Departments/Health-Department/Recent-Inspections",
         "portal_name": "Manchester CT Health Department — Recent Inspections",
-        "cities": ["manchester"]
+        "cities": [
+          "manchester"
+        ]
       },
       "Central CT": {
         "portal_url": "https://www.ccthd.org/food-establishments",
         "portal_name": "Central Connecticut Health District — Food Establishments",
-        "cities": ["rocky hill", "wethersfield", "newington", "berlin"]
+        "cities": [
+          "rocky hill",
+          "wethersfield",
+          "newington",
+          "berlin"
+        ]
       },
       "Quinnipiack Valley": {
         "portal_url": "https://www.qvhd.site/food-service-ratings",
         "portal_name": "Quinnipiack Valley Health District — Food Service Ratings",
-        "cities": ["hamden", "north haven", "bethany", "woodbridge"]
+        "cities": [
+          "hamden",
+          "north haven",
+          "bethany",
+          "woodbridge"
+        ]
+      },
+      "Farmington Valley": {
+        "portal_url": "https://fvhd.org/environmental-health/food/food-ratings/",
+        "portal_name": "Farmington Valley Health District — Food Ratings",
+        "cities": [
+          "avon",
+          "barkhamsted",
+          "canton",
+          "colebrook",
+          "east granby",
+          "farmington",
+          "granby",
+          "hartland",
+          "new hartford",
+          "simsbury"
+        ]
       }
     }
   },
@@ -145,22 +402,65 @@
       "Fulton": {
         "portal_url": "https://fultoncountyboh.com/environmental-health/food-service/",
         "portal_name": "Fulton County Board of Health — Food Service",
-        "cities": ["atlanta", "sandy springs", "roswell", "alpharetta", "east point", "college park", "union city", "fairburn", "hapeville", "palmetto", "milton", "mountain park"]
+        "cities": [
+          "atlanta",
+          "sandy springs",
+          "roswell",
+          "alpharetta",
+          "east point",
+          "college park",
+          "union city",
+          "fairburn",
+          "hapeville",
+          "palmetto",
+          "milton",
+          "mountain park"
+        ]
       },
       "Cobb & Douglas": {
         "portal_url": "https://cobbanddouglaspublichealth.com/programs/environmental-health/inspection-scores/",
         "portal_name": "Cobb & Douglas Public Health — Inspection Scores",
-        "cities": ["marietta", "smyrna", "kennesaw", "acworth", "austell", "powder springs", "douglasville", "lithia springs"]
+        "cities": [
+          "marietta",
+          "smyrna",
+          "kennesaw",
+          "acworth",
+          "austell",
+          "powder springs",
+          "douglasville",
+          "lithia springs"
+        ]
       },
       "Gwinnett, Newton & Rockdale": {
         "portal_url": "https://www.gnrhealth.com/environmental-health/",
         "portal_name": "GNR Public Health — Environmental Health",
-        "cities": ["lawrenceville", "duluth", "norcross", "suwanee", "snellville", "lilburn", "peachtree corners", "loganville", "grayson", "auburn", "dacula", "covington", "conyers", "oxford", "porterdale"]
+        "cities": [
+          "lawrenceville",
+          "duluth",
+          "norcross",
+          "suwanee",
+          "snellville",
+          "lilburn",
+          "peachtree corners",
+          "loganville",
+          "grayson",
+          "auburn",
+          "dacula",
+          "covington",
+          "conyers",
+          "oxford",
+          "porterdale"
+        ]
       },
       "Coastal (Chatham)": {
         "portal_url": "https://coastalhealthdistrict.org/home/restaurant_inspections/",
         "portal_name": "Georgia Coastal Health District — Restaurant Inspections",
-        "cities": ["savannah", "pooler", "garden city", "tybee island"]
+        "cities": [
+          "savannah",
+          "pooler",
+          "garden city",
+          "tybee island"
+        ]
       }
     }
   },
@@ -171,22 +471,63 @@
       "Eastern Idaho (EIPH)": {
         "portal_url": "https://eiph.id.gov/environmental-health/food-program/food-inspection-results/",
         "portal_name": "Eastern Idaho Public Health — Food Inspection Results",
-        "cities": ["idaho falls", "ammon", "rigby", "rexburg", "st. anthony", "ashton", "driggs", "victor", "preston", "blackfoot", "shelley", "chubbuck", "pocatello"]
+        "cities": [
+          "idaho falls",
+          "ammon",
+          "rigby",
+          "rexburg",
+          "st. anthony",
+          "ashton",
+          "driggs",
+          "victor",
+          "preston",
+          "blackfoot",
+          "shelley",
+          "chubbuck",
+          "pocatello"
+        ]
       },
       "Southeastern Idaho (SIPH)": {
         "portal_url": "https://www.siphidaho.org/environmental-health/food-inspections.php",
         "portal_name": "Southeastern Idaho Public Health — Food Inspections",
-        "cities": ["pocatello", "chubbuck", "american falls", "malad city", "preston", "downey", "lava hot springs", "mccammon"]
+        "cities": [
+          "pocatello",
+          "chubbuck",
+          "american falls",
+          "malad city",
+          "preston",
+          "downey",
+          "lava hot springs",
+          "mccammon"
+        ]
       },
       "South Central (SCPHD)": {
         "portal_url": "https://phd5.idaho.gov/inspections/",
         "portal_name": "South Central Public Health District — Health Inspections",
-        "cities": ["twin falls", "jerome", "burley", "rupert", "hailey", "ketchum", "gooding", "wendell", "buhl", "filer"]
+        "cities": [
+          "twin falls",
+          "jerome",
+          "burley",
+          "rupert",
+          "hailey",
+          "ketchum",
+          "gooding",
+          "wendell",
+          "buhl",
+          "filer"
+        ]
       },
       "Spokane/Northern Idaho (SRHD)": {
         "portal_url": "https://srhd.org/programs-and-services/foodsafety/food-establishment-inspections",
         "portal_name": "Spokane Regional Health District — Food Establishment Inspections",
-        "cities": ["coeur d'alene", "post falls", "hayden", "rathdrum", "athol", "spirit lake"]
+        "cities": [
+          "coeur d'alene",
+          "post falls",
+          "hayden",
+          "rathdrum",
+          "athol",
+          "spirit lake"
+        ]
       }
     }
   },
@@ -196,12 +537,50 @@
       "DuPage": {
         "portal_url": "https://www.dupagehealth.org/185/Food-Safety",
         "portal_name": "DuPage County Health Dept — Food Safety",
-        "cities": ["wheaton", "naperville", "aurora", "downers grove", "lisle", "lombard", "oak brook", "elk grove village", "addison", "bloomingdale", "carol stream", "glendale heights", "glen ellyn", "hanover park", "hinsdale", "itasca", "medinah", "roselle", "villa park", "west chicago", "winfield", "wood dale", "woodridge", "claremont"]
+        "cities": [
+          "wheaton",
+          "naperville",
+          "aurora",
+          "downers grove",
+          "lisle",
+          "lombard",
+          "oak brook",
+          "elk grove village",
+          "addison",
+          "bloomingdale",
+          "carol stream",
+          "glendale heights",
+          "glen ellyn",
+          "hanover park",
+          "hinsdale",
+          "itasca",
+          "medinah",
+          "roselle",
+          "villa park",
+          "west chicago",
+          "winfield",
+          "wood dale",
+          "woodridge",
+          "claremont"
+        ]
       },
       "Peoria": {
         "portal_url": "https://www.pcchd.org/151/Food-Establishment-Inspections",
         "portal_name": "Peoria City/County Health Dept — Food Inspections",
-        "cities": ["peoria", "peoria heights", "west peoria", "bartonville", "bellevue", "chillicothe", "dunlap", "elmwood", "germantown hills", "metamora", "mossville", "washington"]
+        "cities": [
+          "peoria",
+          "peoria heights",
+          "west peoria",
+          "bartonville",
+          "bellevue",
+          "chillicothe",
+          "dunlap",
+          "elmwood",
+          "germantown hills",
+          "metamora",
+          "mossville",
+          "washington"
+        ]
       }
     }
   },
@@ -211,12 +590,26 @@
       "Marion": {
         "portal_url": "https://hhcwebfood.hhcorp.org/",
         "portal_name": "Marion County Public Health — Food Inspections",
-        "cities": ["indianapolis", "speedway", "lawrence", "beech grove", "southport"]
+        "cities": [
+          "indianapolis",
+          "speedway",
+          "lawrence",
+          "beech grove",
+          "southport"
+        ]
       },
       "Allen": {
         "portal_url": "https://allencountyhealthinspector.acfw.net/",
         "portal_name": "Allen County Health Inspector — Food Search",
-        "cities": ["fort wayne", "new haven", "grabill", "huntertown", "leo-cedarville", "monroeville", "woodburn"]
+        "cities": [
+          "fort wayne",
+          "new haven",
+          "grabill",
+          "huntertown",
+          "leo-cedarville",
+          "monroeville",
+          "woodburn"
+        ]
       }
     }
   },
@@ -228,12 +621,79 @@
       "Jefferson": {
         "portal_url": "https://louisvilleky.gov/government/health-wellness/services/see-restaurant-inspection-scores",
         "portal_name": "Louisville Metro Health — Restaurant Inspection Scores",
-        "cities": ["louisville", "jeffersontown", "shively", "st. matthews", "anchorage", "audubon park", "bancroft", "bellewood", "buechel", "fern creek", "highview", "huron", "lyndon", "mcafee", "middletown", "parkway village", "poplar hills", "richlawn", "riverwood", "rolling fields", "spring mill", "st. regis park", "watterson park", "west buechel", "windy hills"]
+        "cities": [
+          "louisville",
+          "jeffersontown",
+          "shively",
+          "st. matthews",
+          "anchorage",
+          "audubon park",
+          "bancroft",
+          "bellewood",
+          "buechel",
+          "fern creek",
+          "highview",
+          "huron",
+          "lyndon",
+          "mcafee",
+          "middletown",
+          "parkway village",
+          "poplar hills",
+          "richlawn",
+          "riverwood",
+          "rolling fields",
+          "spring mill",
+          "st. regis park",
+          "watterson park",
+          "west buechel",
+          "windy hills"
+        ]
       },
       "Fayette": {
         "portal_url": "https://www.lfchd.org/food-protection/",
         "portal_name": "Lexington-Fayette County Health Dept — Food Protection",
-        "cities": ["lexington", "athens", "blueberry hills", "buckhorn", "cadentown", "colby", "coletown", "cross plains", "delong", "east lexington", "great crossings", "greendale", "jollytown", "jonestown", "lake edge", "lewtown", "lipton", "little texas", "london", "loudon", "maddoxtown", "mintwood", "mount liberty", "newtown", "north elkhorn", "oldham", "paddon", "parks place", "paynes depot", "pinckard", "pike", "ridgehill", "sarah scoff town", "shawhan", "silver creek", "sulphur springs", "virginia addition", "waco", "wellington", "wilgreen"]
+        "cities": [
+          "lexington",
+          "athens",
+          "blueberry hills",
+          "buckhorn",
+          "cadentown",
+          "colby",
+          "coletown",
+          "cross plains",
+          "delong",
+          "east lexington",
+          "great crossings",
+          "greendale",
+          "jollytown",
+          "jonestown",
+          "lake edge",
+          "lewtown",
+          "lipton",
+          "little texas",
+          "london",
+          "loudon",
+          "maddoxtown",
+          "mintwood",
+          "mount liberty",
+          "newtown",
+          "north elkhorn",
+          "oldham",
+          "paddon",
+          "parks place",
+          "paynes depot",
+          "pinckard",
+          "pike",
+          "ridgehill",
+          "sarah scoff town",
+          "shawhan",
+          "silver creek",
+          "sulphur springs",
+          "virginia addition",
+          "waco",
+          "wellington",
+          "wilgreen"
+        ]
       }
     }
   },
@@ -243,7 +703,12 @@
       "East Baton Rouge": {
         "portal_url": "https://data.brla.gov/Government/Retail-Food-Inspections/ux2t-b9wr",
         "portal_name": "Baton Rouge Open Data — Retail Food Inspections",
-        "cities": ["baton rouge", "baker", "central", "zachary"]
+        "cities": [
+          "baton rouge",
+          "baker",
+          "central",
+          "zachary"
+        ]
       }
     }
   },
@@ -253,12 +718,25 @@
       "Suffolk (Boston)": {
         "portal_url": "https://www.cityofboston.gov/isd/health/mfc/search.asp",
         "portal_name": "Boston Mayor's Food Court — Establishment Search",
-        "cities": ["boston", "revere", "chelsea", "winthrop"]
+        "cities": [
+          "boston",
+          "revere",
+          "chelsea",
+          "winthrop"
+        ]
       },
       "Worcester": {
         "portal_url": "https://www.worcesterma.gov/housing-health",
         "portal_name": "City of Worcester — Housing & Health Inspections",
-        "cities": ["worcester", "auburn", "holden", "leicester", "millbury", "shrewsbury", "west boylston"]
+        "cities": [
+          "worcester",
+          "auburn",
+          "holden",
+          "leicester",
+          "millbury",
+          "shrewsbury",
+          "west boylston"
+        ]
       }
     }
   },
@@ -268,22 +746,83 @@
       "Prince George's": {
         "portal_url": "https://data.princegeorgescountymd.gov/Health/Food-Inspection/umjn-t2iz",
         "portal_name": "Prince George's County — Food Inspection Search",
-        "cities": ["upper marlboro", "college park", "hyattsville", "greenbelt", "bowie", "laurel", "new carrollton", "seat pleasant", "district heights", "fairmount heights", "glenarden", "bladensburg", "capitol heights", "landover hills", "mount rainier", "north brentwood", "riverdale park"]
+        "cities": [
+          "upper marlboro",
+          "college park",
+          "hyattsville",
+          "greenbelt",
+          "bowie",
+          "laurel",
+          "new carrollton",
+          "seat pleasant",
+          "district heights",
+          "fairmount heights",
+          "glenarden",
+          "bladensburg",
+          "capitol heights",
+          "landover hills",
+          "mount rainier",
+          "north brentwood",
+          "riverdale park"
+        ]
       },
       "Anne Arundel": {
         "portal_url": "https://www.aahealth.org/environmental-health/food-protection",
         "portal_name": "Anne Arundel County — Food Protection Services",
-        "cities": ["annapolis", "severn", "glen burnie", "crofton", "odenton", "pasadena", "severna park", "arnold", "cape st. claire", "edgewater", "deale", "davidsonville", "gambrills", "harwood", "jessup", "lake shore", "linthicum", "maryland city", "mayo", "riva", "shady side"]
+        "cities": [
+          "annapolis",
+          "severn",
+          "glen burnie",
+          "crofton",
+          "odenton",
+          "pasadena",
+          "severna park",
+          "arnold",
+          "cape st. claire",
+          "edgewater",
+          "deale",
+          "davidsonville",
+          "gambrills",
+          "harwood",
+          "jessup",
+          "lake shore",
+          "linthicum",
+          "maryland city",
+          "mayo",
+          "riva",
+          "shady side"
+        ]
       },
       "Baltimore City": {
         "portal_url": "https://baltimoreportal.jadian.com/",
         "portal_name": "Baltimore City — Health Inspection Portal",
-        "cities": ["baltimore"]
+        "cities": [
+          "baltimore"
+        ]
       },
       "Baltimore County": {
         "portal_url": "https://www.baltimorecountymd.gov/departments/health/environmental/food-program",
         "portal_name": "Baltimore County — Food Inspection Program",
-        "cities": ["towson", "catonsville", "dundalk", "essex", "parkville", "rosedale", "perry hall", "cockeysville", "owings mills", "reisterstown", "randallstown", "woodlawn", "arbutus", "lutherville", "timonium", "hamilton", "kingsville", "sparks"]
+        "cities": [
+          "towson",
+          "catonsville",
+          "dundalk",
+          "essex",
+          "parkville",
+          "rosedale",
+          "perry hall",
+          "cockeysville",
+          "owings mills",
+          "reisterstown",
+          "randallstown",
+          "woodlawn",
+          "arbutus",
+          "lutherville",
+          "timonium",
+          "hamilton",
+          "kingsville",
+          "sparks"
+        ]
       }
     }
   },
@@ -294,22 +833,111 @@
       "Wayne": {
         "portal_url": "https://www.waynecountymi.gov/Government/Departments/Health-Human-Veterans-Services/Public-Health/Environmental-Health/Food-Safety",
         "portal_name": "Wayne County Environmental Health — Food Safety",
-        "cities": ["detroit", "dearborn", "livonia", "westland", "garden city", "inkster", "wayne", "taylor", "romulus", "canton", "plymouth", "flat rock", "grosse ile", "lincoln park", "allen park", "melvindale", "ecorse", "river rouge", "wyandotte", "trenton", "rockwood", "southgate", "riverview", "woodhaven", "brownstown", "van buren", "belleville", "ypsilanti"]
+        "cities": [
+          "detroit",
+          "dearborn",
+          "livonia",
+          "westland",
+          "garden city",
+          "inkster",
+          "wayne",
+          "taylor",
+          "romulus",
+          "canton",
+          "plymouth",
+          "flat rock",
+          "grosse ile",
+          "lincoln park",
+          "allen park",
+          "melvindale",
+          "ecorse",
+          "river rouge",
+          "wyandotte",
+          "trenton",
+          "rockwood",
+          "southgate",
+          "riverview",
+          "woodhaven",
+          "brownstown",
+          "van buren",
+          "belleville",
+          "ypsilanti"
+        ]
       },
       "Oakland": {
         "portal_url": "https://www.oakgov.com/health/food-safety",
         "portal_name": "Oakland County Health Division — Food Safety",
-        "cities": ["pontiac", "southfield", "rochester hills", "troy", "farmington hills", "novi", "royal oak", "birmingham", "bloomfield", "west bloomfield", "waterford", "commerce", "orion", "clarkston", "holly", "highland", "white lake", "milford", "south lyon", "wixom", "walled lake", "ferndale", "hazel park", "madison heights", "clawson", "berkley", "oak park"]
+        "cities": [
+          "pontiac",
+          "southfield",
+          "rochester hills",
+          "troy",
+          "farmington hills",
+          "novi",
+          "royal oak",
+          "birmingham",
+          "bloomfield",
+          "west bloomfield",
+          "waterford",
+          "commerce",
+          "orion",
+          "clarkston",
+          "holly",
+          "highland",
+          "white lake",
+          "milford",
+          "south lyon",
+          "wixom",
+          "walled lake",
+          "ferndale",
+          "hazel park",
+          "madison heights",
+          "clawson",
+          "berkley",
+          "oak park"
+        ]
       },
       "Macomb": {
         "portal_url": "https://www.macombgov.org/departments/health-department/environmental-health-services/food-safety-program/food-3",
         "portal_name": "Macomb County Health Department — Food Service Inspections",
-        "cities": ["warren", "sterling heights", "clinton township", "macomb township", "chesterfield", "new baltimore", "st. clair shores", "eastpointe", "roseville", "fraser", "center line", "utica", "shelby township", "washington township", "romeo", "harrison township", "mount clemens"]
+        "cities": [
+          "warren",
+          "sterling heights",
+          "clinton township",
+          "macomb township",
+          "chesterfield",
+          "new baltimore",
+          "st. clair shores",
+          "eastpointe",
+          "roseville",
+          "fraser",
+          "center line",
+          "utica",
+          "shelby township",
+          "washington township",
+          "romeo",
+          "harrison township",
+          "mount clemens"
+        ]
       },
       "Kent": {
         "portal_url": "https://www.kentcountymi.gov/1677/Inspection-Reports",
         "portal_name": "Kent County Health Department — Inspection Reports",
-        "cities": ["grand rapids", "wyoming", "kentwood", "walker", "grandville", "east grand rapids", "lowell", "cedar springs", "sparta", "caledonia", "kent city", "byron center", "cutlerville"]
+        "cities": [
+          "grand rapids",
+          "wyoming",
+          "kentwood",
+          "walker",
+          "grandville",
+          "east grand rapids",
+          "lowell",
+          "cedar springs",
+          "sparta",
+          "caledonia",
+          "kent city",
+          "byron center",
+          "cutlerville"
+        ]
       }
     }
   },
@@ -319,12 +947,62 @@
       "Hennepin": {
         "portal_url": "https://www.minneapolismn.gov/government/government-data/datasource/health-inspection-lookup-dashboard/",
         "portal_name": "Minneapolis Health Inspection Lookup Dashboard",
-        "cities": ["minneapolis", "bloomington", "brooklyn center", "brooklyn park", "champlin", "corcoran", "crystal", "dayton", "eden prairie", "edina", "golden valley", "greenfield", "hopkins", "independence", "long lake", "maple grove", "maple plain", "medina", "minnetonka", "minnetrista", "mound", "new hope", "oregon", "osseo", "plymouth", "richfield", "robbinsdale", "rockford", "rogers", "st. bonifacius", "st. louis park", "shorewood", "spring park", "tonka bay", "wayzata", "woodland"]
+        "cities": [
+          "minneapolis",
+          "bloomington",
+          "brooklyn center",
+          "brooklyn park",
+          "champlin",
+          "corcoran",
+          "crystal",
+          "dayton",
+          "eden prairie",
+          "edina",
+          "golden valley",
+          "greenfield",
+          "hopkins",
+          "independence",
+          "long lake",
+          "maple grove",
+          "maple plain",
+          "medina",
+          "minnetonka",
+          "minnetrista",
+          "mound",
+          "new hope",
+          "oregon",
+          "osseo",
+          "plymouth",
+          "richfield",
+          "robbinsdale",
+          "rockford",
+          "rogers",
+          "st. bonifacius",
+          "st. louis park",
+          "shorewood",
+          "spring park",
+          "tonka bay",
+          "wayzata",
+          "woodland"
+        ]
       },
       "Ramsey": {
         "portal_url": "https://www.stpaul.gov/departments/safety-inspections",
         "portal_name": "St. Paul Safety and Inspections",
-        "cities": ["st. paul", "saint paul", "maplewood", "roseville", "falcon heights", "lauderdale", "little canada", "north st. paul", "shoreview", "vadnais heights", "white bear lake", "white bear township"]
+        "cities": [
+          "st. paul",
+          "saint paul",
+          "maplewood",
+          "roseville",
+          "falcon heights",
+          "lauderdale",
+          "little canada",
+          "north st. paul",
+          "shoreview",
+          "vadnais heights",
+          "white bear lake",
+          "white bear township"
+        ]
       }
     }
   },
@@ -335,22 +1013,52 @@
       "St. Louis City": {
         "portal_url": "https://www.stlouis-mo.gov/government/departments/health/environmental-health/food-control/restaurant-ratings-search.cfm",
         "portal_name": "St. Louis City — Restaurant Health Ratings",
-        "cities": ["st. louis"]
+        "cities": [
+          "st. louis"
+        ]
       },
       "St. Louis County": {
         "portal_url": "https://stlouiscountymo.gov/st-louis-county-departments/public-health/food-and-restaurants/inspections/",
         "portal_name": "St. Louis County — Food Inspections",
-        "cities": ["florissant", "chesterfield", "kirkwood", "university city", "clayton", "maryland heights", "wildwood", "ballwin", "town and country", "creve coeur", "webster groves", "oakville", "affton", "ferguson", "hazelwood"]
+        "cities": [
+          "florissant",
+          "chesterfield",
+          "kirkwood",
+          "university city",
+          "clayton",
+          "maryland heights",
+          "wildwood",
+          "ballwin",
+          "town and country",
+          "creve coeur",
+          "webster groves",
+          "oakville",
+          "affton",
+          "ferguson",
+          "hazelwood"
+        ]
       },
       "Jackson": {
         "portal_url": "https://www.kcmo.gov/city-hall/departments/health/restaurant-inspection-results",
         "portal_name": "Kansas City — Restaurant Inspection Results",
-        "cities": ["kansas city"]
+        "cities": [
+          "kansas city"
+        ]
       },
       "Greene": {
         "portal_url": "https://www.springfieldmo.gov/2919/Recent-Food-Inspections",
         "portal_name": "Springfield/Greene County — Recent Food Inspections",
-        "cities": ["springfield", "republic", "battlefield", "fair grove", "walnut grove", "willard", "strafford", "rogersville", "ash grove"]
+        "cities": [
+          "springfield",
+          "republic",
+          "battlefield",
+          "fair grove",
+          "walnut grove",
+          "willard",
+          "strafford",
+          "rogersville",
+          "ash grove"
+        ]
       }
     }
   },
@@ -360,17 +1068,47 @@
       "Yellowstone": {
         "portal_url": "https://riverstonehealth.org/inspections-permits/restaurants-inspections-licenses/",
         "portal_name": "RiverStone Health — Restaurant Inspections (Yellowstone County)",
-        "cities": ["billings", "laurel", "shepherd", "huntley", "worden", "broadview", "custer", "ballantine", "pompeys pillar", "acton"]
+        "cities": [
+          "billings",
+          "laurel",
+          "shepherd",
+          "huntley",
+          "worden",
+          "broadview",
+          "custer",
+          "ballantine",
+          "pompeys pillar",
+          "acton"
+        ]
       },
       "Gallatin": {
         "portal_url": "https://www.healthygallatin.org/environmental-health/inspection-reports/restaurant-inspection-reports/",
         "portal_name": "Healthy Gallatin — Restaurant Inspection Reports",
-        "cities": ["bozeman", "belgrade", "manhattan", "three forks", "livingston", "big sky", "west yellowstone"]
+        "cities": [
+          "bozeman",
+          "belgrade",
+          "manhattan",
+          "three forks",
+          "livingston",
+          "big sky",
+          "west yellowstone"
+        ]
       },
       "Missoula": {
         "portal_url": "https://webapps.missoulacounty.us/foodinspections/",
         "portal_name": "Missoula County — Food Inspection Report Search",
-        "cities": ["missoula", "lolo", "frenchtown", "clinton", "bonner", "east missoula", "turah", "potomac", "seeley lake", "condon"]
+        "cities": [
+          "missoula",
+          "lolo",
+          "frenchtown",
+          "clinton",
+          "bonner",
+          "east missoula",
+          "turah",
+          "potomac",
+          "seeley lake",
+          "condon"
+        ]
       }
     }
   },
@@ -380,12 +1118,33 @@
       "Douglas": {
         "portal_url": "https://www.douglascountyfoodinspections.com/",
         "portal_name": "Douglas County — Restaurant Inspection Search",
-        "cities": ["omaha", "bennington", "boys town", "ralston", "valley", "waterloo"]
+        "cities": [
+          "omaha",
+          "bennington",
+          "boys town",
+          "ralston",
+          "valley",
+          "waterloo"
+        ]
       },
       "Lancaster": {
         "portal_url": "https://www.lincoln.ne.gov/City/Departments/Health-Department/Environmental/Food-Safety/Food-Est-Inspection-Viewer",
         "portal_name": "Lincoln-Lancaster County — Food Establishment Inspection Viewer",
-        "cities": ["lincoln", "waverly", "bennet", "davey", "firth", "hickman", "malcolm", "panama", "prairie home", "raymond", "rupton", "sprague", "cortland"]
+        "cities": [
+          "lincoln",
+          "waverly",
+          "bennet",
+          "davey",
+          "firth",
+          "hickman",
+          "malcolm",
+          "panama",
+          "prairie home",
+          "raymond",
+          "rupton",
+          "sprague",
+          "cortland"
+        ]
       }
     }
   },
@@ -395,12 +1154,35 @@
       "Clark (SNHD)": {
         "portal_url": "https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/restaurant-inspection-search/",
         "portal_name": "Southern Nevada Health District — Restaurant Inspection Search",
-        "cities": ["las vegas", "henderson", "north las vegas", "boulder city", "mesquite", "laughlin", "summerlin", "enterprise", "spring valley", "paradise", "sunrise manor", "winchester", "whitney"]
+        "cities": [
+          "las vegas",
+          "henderson",
+          "north las vegas",
+          "boulder city",
+          "mesquite",
+          "laughlin",
+          "summerlin",
+          "enterprise",
+          "spring valley",
+          "paradise",
+          "sunrise manor",
+          "winchester",
+          "whitney"
+        ]
       },
       "Washoe": {
         "portal_url": "https://www.nnph.org/programs-and-services/environmental-health/food-protection-services/index.php",
         "portal_name": "Northern Nevada Public Health — Washoe Eats",
-        "cities": ["reno", "sparks", "sun valley", "spanish springs", "cold springs", "verdi", "washoe valley", "incline village"]
+        "cities": [
+          "reno",
+          "sparks",
+          "sun valley",
+          "spanish springs",
+          "cold springs",
+          "verdi",
+          "washoe valley",
+          "incline village"
+        ]
       }
     }
   },
@@ -411,27 +1193,98 @@
       "Essex": {
         "portal_url": "https://www.newarknj.gov/205/Health-Inspection-Lookup",
         "portal_name": "Newark Health Inspection Lookup",
-        "cities": ["newark", "east orange", "irvington", "montclair", "bloomfield", "nutley", "belleville", "glen ridge", "maplewood", "south orange", "west orange", "orange", "caldwell", "livingston", "millburn"]
+        "cities": [
+          "newark",
+          "east orange",
+          "irvington",
+          "montclair",
+          "bloomfield",
+          "nutley",
+          "belleville",
+          "glen ridge",
+          "maplewood",
+          "south orange",
+          "west orange",
+          "orange",
+          "caldwell",
+          "livingston",
+          "millburn"
+        ]
       },
       "Camden": {
         "portal_url": "https://www.camdencounty.com/service/health-human-services/restaurant-inspections/",
         "portal_name": "Camden County — Online Restaurant Inspections",
-        "cities": ["camden", "cherry hill", "voorhees", "pennsauken", "gloucester township", "winslow", "berlin", "clementon", "collingswood", "haddonfield", "haddon township", "lindenwold", "merchantville", "pine hill", "runnemede", "somerdale", "stratford"]
+        "cities": [
+          "camden",
+          "cherry hill",
+          "voorhees",
+          "pennsauken",
+          "gloucester township",
+          "winslow",
+          "berlin",
+          "clementon",
+          "collingswood",
+          "haddonfield",
+          "haddon township",
+          "lindenwold",
+          "merchantville",
+          "pine hill",
+          "runnemede",
+          "somerdale",
+          "stratford"
+        ]
       },
       "Ocean": {
         "portal_url": "https://oceancountyhealth.gov/services/environmental-health-services/restaurants/",
         "portal_name": "Ocean County Health Department — Restaurants",
-        "cities": ["toms river", "brick", "lakewood", "jackson", "manchester", "berkeley", "lacey", "barnegat", "stafford", "seaside heights", "seaside park", "long beach island"]
+        "cities": [
+          "toms river",
+          "brick",
+          "lakewood",
+          "jackson",
+          "manchester",
+          "berkeley",
+          "lacey",
+          "barnegat",
+          "stafford",
+          "seaside heights",
+          "seaside park",
+          "long beach island"
+        ]
       },
       "Gloucester": {
         "portal_url": "https://gloucestercountynj.gov/690/Food-Inspections",
         "portal_name": "Gloucester County — Food Inspections",
-        "cities": ["glassboro", "sewell", "mullica hill", "swedesboro", "pitman", "woodbury", "washington township", "clayton", "franklinville", "wenonah"]
+        "cities": [
+          "glassboro",
+          "sewell",
+          "mullica hill",
+          "swedesboro",
+          "pitman",
+          "woodbury",
+          "washington township",
+          "clayton",
+          "franklinville",
+          "wenonah"
+        ]
       },
       "Burlington": {
         "portal_url": "https://bcnj.co.burlington.nj.us/Views/HealthInspections/",
         "portal_name": "Burlington County — Health Inspection Results",
-        "cities": ["mount holly", "moorestown", "mount laurel", "burlington", "cinnaminson", "delran", "evesham", "medford", "willingboro", "florence", "bordentown", "pemberton"]
+        "cities": [
+          "mount holly",
+          "moorestown",
+          "mount laurel",
+          "burlington",
+          "cinnaminson",
+          "delran",
+          "evesham",
+          "medford",
+          "willingboro",
+          "florence",
+          "bordentown",
+          "pemberton"
+        ]
       }
     }
   },
@@ -441,7 +1294,9 @@
       "Bernalillo": {
         "portal_url": "https://www.cabq.gov/environmentalhealth/food-safety/restaurant-inspection-results",
         "portal_name": "City of Albuquerque — Restaurant Inspection Results",
-        "cities": ["albuquerque"]
+        "cities": [
+          "albuquerque"
+        ]
       }
     }
   },
@@ -451,17 +1306,48 @@
       "NYC (5 Boroughs)": {
         "portal_url": "https://a816-health.nyc.gov/ABCEats/",
         "portal_name": "NYC DOHMH — ABCEats Restaurant Inspection Lookup",
-        "cities": ["new york", "manhattan", "brooklyn", "queens", "bronx", "the bronx", "staten island"]
+        "cities": [
+          "new york",
+          "manhattan",
+          "brooklyn",
+          "queens",
+          "bronx",
+          "the bronx",
+          "staten island"
+        ]
       },
       "Monroe": {
         "portal_url": "https://www.monroecounty.gov/eh-food",
         "portal_name": "Monroe County — Food Protection Inspections & Permits",
-        "cities": ["rochester", "brighton", "gates", "henrietta", "greece", "irondequoit", "chili", "penfield", "webster", "fairport", "pittsford"]
+        "cities": [
+          "rochester",
+          "brighton",
+          "gates",
+          "henrietta",
+          "greece",
+          "irondequoit",
+          "chili",
+          "penfield",
+          "webster",
+          "fairport",
+          "pittsford"
+        ]
       },
       "Suffolk": {
         "portal_url": "https://opendata.suffolkcountyny.gov/",
         "portal_name": "Suffolk County Open Data — Food Establishment Violations",
-        "cities": ["brookhaven", "islip", "babylon", "smithtown", "huntington", "southampton", "east hampton", "riverhead", "southold", "shelter island"]
+        "cities": [
+          "brookhaven",
+          "islip",
+          "babylon",
+          "smithtown",
+          "huntington",
+          "southampton",
+          "east hampton",
+          "riverhead",
+          "southold",
+          "shelter island"
+        ]
       }
     }
   },
@@ -471,17 +1357,46 @@
       "Forsyth": {
         "portal_url": "https://www.forsyth.cc/publichealth/environmentalhealth/facilitysearchver2.aspx",
         "portal_name": "Forsyth County Environmental Health — Facility Search",
-        "cities": ["winston-salem", "kernersville", "clemmons", "lewisville", "walkertown", "rural hall", "pfafftown"]
+        "cities": [
+          "winston-salem",
+          "kernersville",
+          "clemmons",
+          "lewisville",
+          "walkertown",
+          "rural hall",
+          "pfafftown"
+        ]
       },
       "Wake": {
         "portal_url": "https://www.wake.gov/departments-government/public-health/environmental-health-and-safety/food-and-lodging",
         "portal_name": "Wake County Environmental Health — Food & Lodging",
-        "cities": ["raleigh", "cary", "apex", "garner", "wake forest", "holly springs", "fuquay-varina", "morrisville", "knightdale", "wendell", "zebulon", "rolesville"]
+        "cities": [
+          "raleigh",
+          "cary",
+          "apex",
+          "garner",
+          "wake forest",
+          "holly springs",
+          "fuquay-varina",
+          "morrisville",
+          "knightdale",
+          "wendell",
+          "zebulon",
+          "rolesville"
+        ]
       },
       "Mecklenburg": {
         "portal_url": "https://www.mecknc.gov/Health-Department/Environmental-Health/Pages/default.aspx",
         "portal_name": "Mecklenburg County Environmental Health",
-        "cities": ["charlotte", "cornelius", "davidson", "huntersville", "matthews", "mint hill", "pineville"]
+        "cities": [
+          "charlotte",
+          "cornelius",
+          "davidson",
+          "huntersville",
+          "matthews",
+          "mint hill",
+          "pineville"
+        ]
       }
     }
   },
@@ -492,27 +1407,122 @@
       "Cuyahoga": {
         "portal_url": "https://www.ccbh.net/food-safety/",
         "portal_name": "Cuyahoga County Board of Health — Food Safety",
-        "cities": ["cleveland", "parma", "lakewood", "euclid", "cleveland heights", "south euclid", "maple heights", "garfield heights", "bedford", "bedford heights", "warrensville heights", "shaker heights", "east cleveland", "brook park", "fairview park", "north olmsted", "olmsted falls", "strongsville", "berea", "middleburg heights", "north royalton", "broadview heights", "brecksville", "independence", "seven hills", "parma heights", "rocky river", "bay village", "westlake"]
+        "cities": [
+          "cleveland",
+          "parma",
+          "lakewood",
+          "euclid",
+          "cleveland heights",
+          "south euclid",
+          "maple heights",
+          "garfield heights",
+          "bedford",
+          "bedford heights",
+          "warrensville heights",
+          "shaker heights",
+          "east cleveland",
+          "brook park",
+          "fairview park",
+          "north olmsted",
+          "olmsted falls",
+          "strongsville",
+          "berea",
+          "middleburg heights",
+          "north royalton",
+          "broadview heights",
+          "brecksville",
+          "independence",
+          "seven hills",
+          "parma heights",
+          "rocky river",
+          "bay village",
+          "westlake"
+        ]
       },
       "Franklin": {
         "portal_url": "https://myfcph.org/food-safety/",
         "portal_name": "Franklin County Public Health — Food Safety",
-        "cities": ["columbus", "dublin", "westerville", "hilliard", "grove city", "reynoldsburg", "upper arlington", "gahanna", "new albany", "pickerington", "canal winchester", "obetz", "groveport", "harrisburg", "plain city"]
+        "cities": [
+          "columbus",
+          "dublin",
+          "westerville",
+          "hilliard",
+          "grove city",
+          "reynoldsburg",
+          "upper arlington",
+          "gahanna",
+          "new albany",
+          "pickerington",
+          "canal winchester",
+          "obetz",
+          "groveport",
+          "harrisburg",
+          "plain city"
+        ]
       },
       "Hamilton": {
         "portal_url": "https://www.hamiltoncountyhealth.org/inspections/",
         "portal_name": "Hamilton County Public Health — Inspections",
-        "cities": ["cincinnati", "norwood", "reading", "st. bernard", "madeira", "indian hill", "blue ash", "montgomery", "sharonville", "evendale", "glendale", "springdale", "forest park", "fairfield", "west chester", "mason", "loveland", "milford"]
+        "cities": [
+          "cincinnati",
+          "norwood",
+          "reading",
+          "st. bernard",
+          "madeira",
+          "indian hill",
+          "blue ash",
+          "montgomery",
+          "sharonville",
+          "evendale",
+          "glendale",
+          "springdale",
+          "forest park",
+          "fairfield",
+          "west chester",
+          "mason",
+          "loveland",
+          "milford"
+        ]
       },
       "Summit": {
         "portal_url": "https://schdph.org/environmental-health/food-protection",
         "portal_name": "Summit County Public Health — Food Protection",
-        "cities": ["akron", "barberton", "cuyahoga falls", "stow", "hudson", "tallmadge", "fairlawn", "norton", "mogadore", "lakemore", "twinsburg", "reminderville", "northfield", "macedonia"]
+        "cities": [
+          "akron",
+          "barberton",
+          "cuyahoga falls",
+          "stow",
+          "hudson",
+          "tallmadge",
+          "fairlawn",
+          "norton",
+          "mogadore",
+          "lakemore",
+          "twinsburg",
+          "reminderville",
+          "northfield",
+          "macedonia"
+        ]
       },
       "Montgomery": {
         "portal_url": "https://www.phdmc.org/environmental-health/food-safety",
         "portal_name": "Montgomery County Public Health — Food Safety",
-        "cities": ["dayton", "kettering", "huber heights", "trotwood", "centerville", "miamisburg", "englewood", "vandalia", "brookville", "clayton", "riverside", "germantown", "west carrollton", "moraine"]
+        "cities": [
+          "dayton",
+          "kettering",
+          "huber heights",
+          "trotwood",
+          "centerville",
+          "miamisburg",
+          "englewood",
+          "vandalia",
+          "brookville",
+          "clayton",
+          "riverside",
+          "germantown",
+          "west carrollton",
+          "moraine"
+        ]
       }
     }
   },
@@ -522,12 +1532,42 @@
       "Oklahoma County": {
         "portal_url": "https://occhd.org/foodest/",
         "portal_name": "OKC-County Health Department — Food Establishments",
-        "cities": ["oklahoma city", "edmond", "midwest city", "del city", "moore", "norman", "yukon", "mustang", "bethany", "warr acres", "the village", "nichols hills", "harrah", "choctaw", "spencer", "luther", "jones"]
+        "cities": [
+          "oklahoma city",
+          "edmond",
+          "midwest city",
+          "del city",
+          "moore",
+          "norman",
+          "yukon",
+          "mustang",
+          "bethany",
+          "warr acres",
+          "the village",
+          "nichols hills",
+          "harrah",
+          "choctaw",
+          "spencer",
+          "luther",
+          "jones"
+        ]
       },
       "Tulsa County": {
         "portal_url": "https://tulsa-health.org/permits-inspections/food/food-service-industry-inspections/",
         "portal_name": "Tulsa Health Department — Food Inspection Search",
-        "cities": ["tulsa", "broken arrow", "owasso", "jenks", "bixby", "sand springs", "sperry", "skiatook", "collinsville", "glenpool", "liberty"]
+        "cities": [
+          "tulsa",
+          "broken arrow",
+          "owasso",
+          "jenks",
+          "bixby",
+          "sand springs",
+          "sperry",
+          "skiatook",
+          "collinsville",
+          "glenpool",
+          "liberty"
+        ]
       }
     }
   },
@@ -537,107 +1577,232 @@
       "Multnomah": {
         "portal_url": "https://multco.us/services/look-current-restaurant-scores",
         "portal_name": "Multnomah County Restaurant Inspections",
-        "cities": ["portland", "gresham", "troutdale", "fairview", "wood village", "maywood park"]
+        "cities": [
+          "portland",
+          "gresham",
+          "troutdale",
+          "fairview",
+          "wood village",
+          "maywood park"
+        ]
       },
       "Clatsop": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-clatsop-county",
         "portal_name": "Clatsop County HealthSpace Portal",
-        "cities": ["astoria", "seaside", "cannon beach", "warrenton", "gearhart"]
+        "cities": [
+          "astoria",
+          "seaside",
+          "cannon beach",
+          "warrenton",
+          "gearhart"
+        ]
       },
       "Lane": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-lane-county",
         "portal_name": "Lane County HealthSpace Portal",
-        "cities": ["eugene", "springfield", "cottage grove", "florence", "junction city"]
+        "cities": [
+          "eugene",
+          "springfield",
+          "cottage grove",
+          "florence",
+          "junction city"
+        ]
       },
       "Marion": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-marion-county",
         "portal_name": "Marion County HealthSpace Portal",
-        "cities": ["salem", "silverton", "woodburn", "stayton", "keizer", "mount angel"]
+        "cities": [
+          "salem",
+          "silverton",
+          "woodburn",
+          "stayton",
+          "keizer",
+          "mount angel"
+        ]
       },
       "Washington": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-washington-county",
         "portal_name": "Washington County HealthSpace Portal",
-        "cities": ["beaverton", "hillsboro", "tigard", "tualatin", "forest grove", "cornelius", "sherwood", "aloha"]
+        "cities": [
+          "beaverton",
+          "hillsboro",
+          "tigard",
+          "tualatin",
+          "forest grove",
+          "cornelius",
+          "sherwood",
+          "aloha"
+        ]
       },
       "Clackamas": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-clackamas-county",
         "portal_name": "Clackamas County HealthSpace Portal",
-        "cities": ["oregon city", "lake oswego", "west linn", "milwaukie", "happy valley", "gladstone", "canby", "sandy"]
+        "cities": [
+          "oregon city",
+          "lake oswego",
+          "west linn",
+          "milwaukie",
+          "happy valley",
+          "gladstone",
+          "canby",
+          "sandy"
+        ]
       },
       "Deschutes": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-deschutes-county",
         "portal_name": "Deschutes County HealthSpace Portal",
-        "cities": ["bend", "redmond", "sisters", "la pine", "sunriver"]
+        "cities": [
+          "bend",
+          "redmond",
+          "sisters",
+          "la pine",
+          "sunriver"
+        ]
       },
       "Jackson": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-jackson-county",
         "portal_name": "Jackson County HealthSpace Portal",
-        "cities": ["medford", "ashland", "central point", "eagle point", "talent", "phoenix", "rogue river"]
+        "cities": [
+          "medford",
+          "ashland",
+          "central point",
+          "eagle point",
+          "talent",
+          "phoenix",
+          "rogue river"
+        ]
       },
       "Yamhill": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-yamhill-county",
         "portal_name": "Yamhill County HealthSpace Portal",
-        "cities": ["mcminnville", "newberg", "dundee", "dayton", "yamhill", "carlton"]
+        "cities": [
+          "mcminnville",
+          "newberg",
+          "dundee",
+          "dayton",
+          "yamhill",
+          "carlton"
+        ]
       },
       "Linn": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-linn-county",
         "portal_name": "Linn County HealthSpace Portal",
-        "cities": ["albany", "lebanon", "sweet home", "brownsville", "scio"]
+        "cities": [
+          "albany",
+          "lebanon",
+          "sweet home",
+          "brownsville",
+          "scio"
+        ]
       },
       "Benton": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-benton-county",
         "portal_name": "Benton County HealthSpace Portal",
-        "cities": ["corvallis", "philomath", "monroe", "alsea"]
+        "cities": [
+          "corvallis",
+          "philomath",
+          "monroe",
+          "alsea"
+        ]
       },
       "Lincoln": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-lincoln-county",
         "portal_name": "Lincoln County HealthSpace Portal",
-        "cities": ["newport", "lincoln city", "toledo", "waldport", "depoe bay", "yachats"]
+        "cities": [
+          "newport",
+          "lincoln city",
+          "toledo",
+          "waldport",
+          "depoe bay",
+          "yachats"
+        ]
       },
       "Hood River": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-hood-river-county",
         "portal_name": "Hood River County HealthSpace Portal",
-        "cities": ["hood river", "parkdale", "odell"]
+        "cities": [
+          "hood river",
+          "parkdale",
+          "odell"
+        ]
       },
       "Douglas": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-douglas-county",
         "portal_name": "Douglas County HealthSpace Portal",
-        "cities": ["roseburg", "sutherlin", "drain", "reedsport"]
+        "cities": [
+          "roseburg",
+          "sutherlin",
+          "drain",
+          "reedsport"
+        ]
       },
       "Josephine": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-josephine-county",
         "portal_name": "Josephine County HealthSpace Portal",
-        "cities": ["grants pass", "cave junction"]
+        "cities": [
+          "grants pass",
+          "cave junction"
+        ]
       },
       "Klamath": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-klamath-county",
         "portal_name": "Klamath County HealthSpace Portal",
-        "cities": ["klamath falls", "merrill", "malin"]
+        "cities": [
+          "klamath falls",
+          "merrill",
+          "malin"
+        ]
       },
       "Polk": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-polk-county",
         "portal_name": "Polk County HealthSpace Portal",
-        "cities": ["dallas", "independence", "monmouth", "falls city"]
+        "cities": [
+          "dallas",
+          "independence",
+          "monmouth",
+          "falls city"
+        ]
       },
       "Columbia": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-columbia-county",
         "portal_name": "Columbia County HealthSpace Portal",
-        "cities": ["st. helens", "scappoose", "rainier", "vernonia", "clatskanie"]
+        "cities": [
+          "st. helens",
+          "scappoose",
+          "rainier",
+          "vernonia",
+          "clatskanie"
+        ]
       },
       "Wasco": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-wasco-county",
         "portal_name": "Wasco County HealthSpace Portal",
-        "cities": ["the dalles", "maupin", "dufur"]
+        "cities": [
+          "the dalles",
+          "maupin",
+          "dufur"
+        ]
       },
       "Umatilla": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-umatilla-county",
         "portal_name": "Umatilla County HealthSpace Portal",
-        "cities": ["pendleton", "hermiston", "umatilla", "echo", "stanfield"]
+        "cities": [
+          "pendleton",
+          "hermiston",
+          "umatilla",
+          "echo",
+          "stanfield"
+        ]
       },
       "Union": {
         "portal_url": "https://inspections.myhealthdepartment.com/or-union-county",
         "portal_name": "Union County HealthSpace Portal",
-        "cities": ["la grande", "union", "cove", "elgin"]
+        "cities": [
+          "la grande",
+          "union",
+          "cove",
+          "elgin"
+        ]
       }
     }
   },
@@ -647,17 +1812,54 @@
       "Philadelphia": {
         "portal_url": "https://www.phila.gov/services/permits-violations-licenses/get-a-license/business-licenses/food-businesses/look-up-a-food-safety-inspection-report/",
         "portal_name": "Philadelphia Office of Food Protection — Inspection Lookup",
-        "cities": ["philadelphia", "philly"]
+        "cities": [
+          "philadelphia",
+          "philly"
+        ]
       },
       "Allegheny": {
         "portal_url": "https://aca-prod.accela.com/ALLEGHENYCO/Cap/CapHome.aspx?module=EnvHealth&TabName=Home",
         "portal_name": "Allegheny County Environmental Health — Citizen Access",
-        "cities": ["pittsburgh", "monroeville", "bethel park", "mount lebanon", "upper st. clair", "ross township", "mckeesport", "plum", "west mifflin", "wilkinsburg", "forest hills", "moon township", "hampton township", "shaler township", "scott township"]
+        "cities": [
+          "pittsburgh",
+          "monroeville",
+          "bethel park",
+          "mount lebanon",
+          "upper st. clair",
+          "ross township",
+          "mckeesport",
+          "plum",
+          "west mifflin",
+          "wilkinsburg",
+          "forest hills",
+          "moon township",
+          "hampton township",
+          "shaler township",
+          "scott township"
+        ]
       },
       "Montgomery": {
         "portal_url": "https://pa.healthinspections.us/montgomery/",
         "portal_name": "Montgomery County Restaurant Inspections",
-        "cities": ["norristown", "king of prussia", "abington", "cheltenham", "upper merion", "lower merion", "springfield", "upper dublin", "whitemarsh", "horsham", "hatboro", "ambler", "lansdale", "north wales", "blue bell", "conshohocken", "plymouth meeting"]
+        "cities": [
+          "norristown",
+          "king of prussia",
+          "abington",
+          "cheltenham",
+          "upper merion",
+          "lower merion",
+          "springfield",
+          "upper dublin",
+          "whitemarsh",
+          "horsham",
+          "hatboro",
+          "ambler",
+          "lansdale",
+          "north wales",
+          "blue bell",
+          "conshohocken",
+          "plymouth meeting"
+        ]
       }
     }
   },
@@ -670,17 +1872,47 @@
       "Davidson": {
         "portal_url": "https://www.nashville.gov/departments/health/environmental-health/food-and-public-facilities/food-protection-services",
         "portal_name": "Metro Nashville Public Health — Food Protection Services",
-        "cities": ["nashville", "antioch", "madison", "goodlettsville", "old hickory", "whites creek", "joelton", "bellevue", "donelson", "hermitage", "pleasant view"]
+        "cities": [
+          "nashville",
+          "antioch",
+          "madison",
+          "goodlettsville",
+          "old hickory",
+          "whites creek",
+          "joelton",
+          "bellevue",
+          "donelson",
+          "hermitage",
+          "pleasant view"
+        ]
       },
       "Shelby": {
         "portal_url": "https://www.shelbytnhealth.com/Faq.aspx?QID=86",
         "portal_name": "Shelby County Health Dept — Restaurant Scores",
-        "cities": ["memphis", "bartlett", "collierville", "cordova", "germantown", "lakeland", "arlington", "millington"]
+        "cities": [
+          "memphis",
+          "bartlett",
+          "collierville",
+          "cordova",
+          "germantown",
+          "lakeland",
+          "arlington",
+          "millington"
+        ]
       },
       "Knox": {
         "portal_url": "https://www.knoxcounty.org/health/EH/foodProtection.php",
         "portal_name": "Knox County Health Dept — Food Protection",
-        "cities": ["knoxville", "farragut", "powell", "corryton", "karns", "halls", "strawberry plains", "mascot"]
+        "cities": [
+          "knoxville",
+          "farragut",
+          "powell",
+          "corryton",
+          "karns",
+          "halls",
+          "strawberry plains",
+          "mascot"
+        ]
       }
     }
   },
@@ -690,17 +1922,72 @@
       "Harris": {
         "portal_url": "https://apps.harriscountytx.gov/PublicHealthPortal/FoodEstablishments",
         "portal_name": "Harris County Public Health — Food Establishment Search",
-        "cities": ["houston", "pasadena", "baytown", "spring", "cypress", "katy", "humble", "tomball", "kingwood", "atascocita", "channelview", "deer park", "galena park", "jacinto city", "la porte", "league city", "missouri city", "pearland", "seabrook", "south houston", "webster", "friendswood"]
+        "cities": [
+          "houston",
+          "pasadena",
+          "baytown",
+          "spring",
+          "cypress",
+          "katy",
+          "humble",
+          "tomball",
+          "kingwood",
+          "atascocita",
+          "channelview",
+          "deer park",
+          "galena park",
+          "jacinto city",
+          "la porte",
+          "league city",
+          "missouri city",
+          "pearland",
+          "seabrook",
+          "south houston",
+          "webster",
+          "friendswood"
+        ]
       },
       "Bexar": {
         "portal_url": "https://www.sa.gov/Directory/Departments/SAMHD/Reports-Statistics/Food-Establishment-Inspections",
         "portal_name": "San Antonio Metro Health — Food Establishment Inspections",
-        "cities": ["san antonio", "converse", "live oak", "selma", "schertz", "universal city", "windcrest", "kirby", "terrebonne"]
+        "cities": [
+          "san antonio",
+          "converse",
+          "live oak",
+          "selma",
+          "schertz",
+          "universal city",
+          "windcrest",
+          "kirby",
+          "terrebonne"
+        ]
       },
       "Tarrant": {
         "portal_url": "https://www.fortworthtexas.gov/departments/environmental-services/consumer-health/health-reports",
         "portal_name": "Fort Worth Environmental Services — Health Reports",
-        "cities": ["fort worth", "arlington", "north richland hills", "richland hills", "haltom city", "watauga", "keller", "southlake", "colleyville", "grapevine", "bedford", "euless", "hurst", "mansfield", "benbrook", "white settlement", "forest hill", "everman", "crowley", "saginaw", "azle"]
+        "cities": [
+          "fort worth",
+          "arlington",
+          "north richland hills",
+          "richland hills",
+          "haltom city",
+          "watauga",
+          "keller",
+          "southlake",
+          "colleyville",
+          "grapevine",
+          "bedford",
+          "euless",
+          "hurst",
+          "mansfield",
+          "benbrook",
+          "white settlement",
+          "forest hill",
+          "everman",
+          "crowley",
+          "saginaw",
+          "azle"
+        ]
       }
     }
   },
@@ -710,17 +1997,71 @@
       "Salt Lake": {
         "portal_url": "https://public.cdpehs.com/UTEnvPbl/VW_EST_PUBLIC/ShowVW_EST_PUBLICTablePage.aspx",
         "portal_name": "Salt Lake County — Health Inspection Reports",
-        "cities": ["salt lake city", "sandy", "west jordan", "south jordan", "saratoga springs", "herriman", "lehi", "draper", "murray", "midvale", "taylorsville", "west valley city", "kearns", "magna", "cottonwood heights", "holladay", "millcreek", "riverton", "bluffdale", "south salt lake", "cottonwood"]
+        "cities": [
+          "salt lake city",
+          "sandy",
+          "west jordan",
+          "south jordan",
+          "saratoga springs",
+          "herriman",
+          "lehi",
+          "draper",
+          "murray",
+          "midvale",
+          "taylorsville",
+          "west valley city",
+          "kearns",
+          "magna",
+          "cottonwood heights",
+          "holladay",
+          "millcreek",
+          "riverton",
+          "bluffdale",
+          "south salt lake",
+          "cottonwood"
+        ]
       },
       "Davis": {
         "portal_url": "https://aca-prod.accela.com/DAVISCO/GeneralProperty/PropertyLookUp.aspx?isLicensee=Y&TabName=APO",
         "portal_name": "Davis County — Accela Citizen Access (Restaurant Inspections)",
-        "cities": ["layton", "clearfield", "syracuse", "kaysville", "farmington", "centerville", "bountiful", "woods cross", "north salt lake", "west point", "clinton", "roy", "fruit heights", "sunset"]
+        "cities": [
+          "layton",
+          "clearfield",
+          "syracuse",
+          "kaysville",
+          "farmington",
+          "centerville",
+          "bountiful",
+          "woods cross",
+          "north salt lake",
+          "west point",
+          "clinton",
+          "roy",
+          "fruit heights",
+          "sunset"
+        ]
       },
       "Utah County": {
         "portal_url": "https://health.utahcounty.gov/environmental-health/restaurant-inspection/",
         "portal_name": "Utah County Health Dept — Restaurant Inspection Reports",
-        "cities": ["provo", "orem", "lehi", "spanish fork", "springville", "pleasant grove", "american fork", "lindon", "mapleton", "salem", "payson", "santaquin", "alpine", "highland", "cedar hills", "saratoga springs"]
+        "cities": [
+          "provo",
+          "orem",
+          "lehi",
+          "spanish fork",
+          "springville",
+          "pleasant grove",
+          "american fork",
+          "lindon",
+          "mapleton",
+          "salem",
+          "payson",
+          "santaquin",
+          "alpine",
+          "highland",
+          "cedar hills",
+          "saratoga springs"
+        ]
       }
     }
   },
@@ -731,7 +2072,23 @@
       "Fairfax": {
         "portal_url": "https://www.fairfaxcounty.gov/health/food/inspection-reports",
         "portal_name": "Fairfax County Health Department — Food Inspection Reports",
-        "cities": ["fairfax", "reston", "herndon", "vienna", "annandale", "burke", "springfield", "alexandria", "falls church", "mclean", "great falls", "chantilly", "centreville", "clifton", "loudoun"]
+        "cities": [
+          "fairfax",
+          "reston",
+          "herndon",
+          "vienna",
+          "annandale",
+          "burke",
+          "springfield",
+          "alexandria",
+          "falls church",
+          "mclean",
+          "great falls",
+          "chantilly",
+          "centreville",
+          "clifton",
+          "loudoun"
+        ]
       }
     }
   },
@@ -741,37 +2098,111 @@
       "Snohomish": {
         "portal_url": "https://www.snohd.org/571/Food-Safety",
         "portal_name": "Snohomish County Health Dept — Food Safety",
-        "cities": ["everett", "snohomish", "marysville", "arlington", "lynnwood", "mountlake terrace", "mukilteo", "edmonds", "bothell", "mill creek", "monroe", "sultan", "granite falls", "lake stevens", "stanwood", "camano island"]
+        "cities": [
+          "everett",
+          "snohomish",
+          "marysville",
+          "arlington",
+          "lynnwood",
+          "mountlake terrace",
+          "mukilteo",
+          "edmonds",
+          "bothell",
+          "mill creek",
+          "monroe",
+          "sultan",
+          "granite falls",
+          "lake stevens",
+          "stanwood",
+          "camano island"
+        ]
       },
       "Spokane": {
         "portal_url": "https://srhd.org/programs-and-services/foodsafety/food-establishment-inspections",
         "portal_name": "Spokane Regional Health District — Food Establishment Inspections",
-        "cities": ["spokane", "spokane valley", "liberty lake", "chewelah", "medical lake", "airway heights", "millwood", "deer park", "fairfield", "rockford", "spangle", "chattaroy", "mead"]
+        "cities": [
+          "spokane",
+          "spokane valley",
+          "liberty lake",
+          "chewelah",
+          "medical lake",
+          "airway heights",
+          "millwood",
+          "deer park",
+          "fairfield",
+          "rockford",
+          "spangle",
+          "chattaroy",
+          "mead"
+        ]
       },
       "Clark": {
         "portal_url": "https://clark.wa.gov/public-health/food-safety",
         "portal_name": "Clark County Public Health — Food Safety",
-        "cities": ["vancouver", "battle ground", "camas", "washougal", "ridgefield", "la center", "yacolt"]
+        "cities": [
+          "vancouver",
+          "battle ground",
+          "camas",
+          "washougal",
+          "ridgefield",
+          "la center",
+          "yacolt"
+        ]
       },
       "Thurston": {
         "portal_url": "https://www.thurstoncountywa.gov/departments/public-health-and-social-services/environmental-health/food-safety/food-safety-look-up",
         "portal_name": "Thurston County — Food Safety Inspection Lookup",
-        "cities": ["olympia", "lacey", "tumwater", "yelm", "rainier", "tenino", "rochester", "bucoda"]
+        "cities": [
+          "olympia",
+          "lacey",
+          "tumwater",
+          "yelm",
+          "rainier",
+          "tenino",
+          "rochester",
+          "bucoda"
+        ]
       },
       "Kitsap": {
         "portal_url": "https://kitsappublichealth.org/food/",
         "portal_name": "Kitsap Public Health — Food Safety",
-        "cities": ["bremerton", "bainbridge island", "port orchard", "poulsbo", "silverdale", "kingston", "gorst"]
+        "cities": [
+          "bremerton",
+          "bainbridge island",
+          "port orchard",
+          "poulsbo",
+          "silverdale",
+          "kingston",
+          "gorst"
+        ]
       },
       "Whatcom": {
         "portal_url": "https://www.whatcomcounty.us/3503/Food-Safety",
         "portal_name": "Whatcom County Health Dept — Food Safety",
-        "cities": ["bellingham", "ferndale", "lynden", "blaine", "everson", "nuksack", "sumas"]
+        "cities": [
+          "bellingham",
+          "ferndale",
+          "lynden",
+          "blaine",
+          "everson",
+          "nuksack",
+          "sumas"
+        ]
       },
       "Benton-Franklin": {
         "portal_url": "https://www.bfhd.wa.gov/programs_services/food_safety/food_safety_inspections",
         "portal_name": "Benton-Franklin Health District — Food Safety Inspections",
-        "cities": ["richland", "kennewick", "pasco", "west richland", "benton city", "prosser", "connell", "mesa", "kahlotus"]
+        "cities": [
+          "richland",
+          "kennewick",
+          "pasco",
+          "west richland",
+          "benton city",
+          "prosser",
+          "connell",
+          "mesa",
+          "kahlotus"
+        ]
       }
     }
   },
@@ -782,12 +2213,29 @@
       "Milwaukee": {
         "portal_url": "https://itmdapps.milwaukee.gov/cehri/",
         "portal_name": "Milwaukee Health Dept — Restaurant Inspection Reports",
-        "cities": ["milwaukee"]
+        "cities": [
+          "milwaukee"
+        ]
       },
       "Dane": {
         "portal_url": "https://elam.cityofmadison.com/healthInspections/",
         "portal_name": "Madison/Dane County — Health Inspection Reports",
-        "cities": ["madison", "middleton", "sun prairie", "fitchburg", "verona", "stoughton", "waunakee", "oregon", "monona", "mcfarland", "de forest", "cottage grove", "maple bluff", "shorewood hills"]
+        "cities": [
+          "madison",
+          "middleton",
+          "sun prairie",
+          "fitchburg",
+          "verona",
+          "stoughton",
+          "waunakee",
+          "oregon",
+          "monona",
+          "mcfarland",
+          "de forest",
+          "cottage grove",
+          "maple bluff",
+          "shorewood hills"
+        ]
       }
     }
   },
@@ -797,7 +2245,15 @@
       "Laramie": {
         "portal_url": "https://clcpublichealth.org/environmental-health-home/food-restaurants/",
         "portal_name": "Cheyenne-Laramie County Public Health — Restaurants",
-        "cities": ["cheyenne", "altus", "burns", "albin", "pine bluffs", "carpenter", "hillsdale"]
+        "cities": [
+          "cheyenne",
+          "altus",
+          "burns",
+          "albin",
+          "pine bluffs",
+          "carpenter",
+          "hillsdale"
+        ]
       }
     }
   }

@@ -1893,3 +1893,78 @@ export function maricopaToDetailRows(restaurant) {
     violation_points: "0",
   }];
 }
+
+// ── Farmington Valley Health District (FVHD), CT ──────────────────────────────
+// FVHD covers Avon, Barkhamsted, Canton, Colebrook, East Granby, Farmington,
+// Granby, Hartland, New Hartford, and Simsbury. Publishes A/B/C/U ratings
+// per town on fvhd.org. Backend function scrapes the accordion-based town pages.
+const FVHD_GRADE_TO_SCORE = { A: 95, B: 85, C: 75, U: 30 };
+const FVHD_GRADE_TO_RESULT = {
+  A: "Excellent — No significant issues",
+  B: "Good — Minor non-critical issues",
+  C: "Fair — Noticeable violations, needs improvement",
+  U: "Unsatisfactory — Significant violations",
+};
+
+export function processFVHDResults(facilities) {
+  if (!Array.isArray(facilities) || facilities.length === 0) return [];
+  return facilities.map((f, i) => ({
+    business_id: f.business_id || `fvhd-${i}`,
+    name: f.name,
+    address: f.address,
+    city: f.city || f.town || "",
+    zip_code: f.zip_code || "",
+    phone: "", description: "",
+    safetyScore: f.latest_score ?? null,
+    grade: f.latest_grade || f.current_grade || "U",
+    totalInspections: f.total_inspections || 1,
+    latestDate: standardizeDate(f.current_date) || null,
+    latestResult: f.latest_result || FVHD_GRADE_TO_RESULT[f.current_grade] || "",
+    isLLMData: false, source: "fvhd",
+    ada_compliance: "unknown",
+    portal_url: f.source_url || `https://fvhd.org/environmental-health/food/food-ratings/`,
+    portal_name: "FVHD Food Ratings",
+    _history: f.history || "[]",
+  }));
+}
+
+export function fvhdToDetailRows(restaurant) {
+  let history = [];
+  try {
+    history = JSON.parse(restaurant._history || restaurant.history || "[]");
+  } catch { history = []; }
+  if (!Array.isArray(history) || history.length === 0) {
+    return [{
+      inspection_serial_num: `fvhd-${restaurant.business_id}`,
+      inspection_date: restaurant.latestDate || "",
+      inspection_score: String(restaurant.safetyScore ?? ""),
+      inspection_result: restaurant.latestResult || "",
+      inspection_type: "Routine Inspection",
+      violation_description: restaurant.grade === "U"
+        ? "Significant violations posing potential risks to public health"
+        : "No significant issues noted in FVHD rating",
+      violation_type: restaurant.grade === "U" ? "RED" : "BLUE",
+      violation_points: restaurant.grade === "U" ? "1" : "0",
+    }];
+  }
+  return history.map((h, i) => {
+    const score = FVHD_GRADE_TO_SCORE[h.grade] ?? 0;
+    const result = FVHD_GRADE_TO_RESULT[h.grade] || "";
+    return {
+      inspection_serial_num: `fvhd-${restaurant.business_id}-${i}`,
+      inspection_date: standardizeDate(h.date) || "",
+      inspection_score: String(score),
+      inspection_result: result,
+      inspection_type: "Routine Inspection",
+      violation_description: h.grade === "U"
+        ? "Significant violations posing potential risks to public health"
+        : h.grade === "C"
+          ? "Noticeable violations or areas needing improvement"
+          : h.grade === "B"
+            ? "Minor, non-critical issues present"
+            : "Outstanding performance — no significant issues",
+      violation_type: h.grade === "U" || h.grade === "C" ? "RED" : "BLUE",
+      violation_points: h.grade === "U" ? "3" : h.grade === "C" ? "2" : h.grade === "B" ? "1" : "0",
+    };
+  });
+}

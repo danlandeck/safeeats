@@ -43,6 +43,7 @@ const SOURCE_INFO = {
   arkansas:        { dept: "Arkansas Dept. of Health",              type: "backend_proxy",  icon: "💎" },
   maricopa:        { dept: "Maricopa County Environmental Services", type: "backend_proxy",  icon: "🌵" },
   tri_county_co:   { dept: "Tri-County Health Department (CO)",     type: "live_api",       icon: "⛰️" },
+  fvhd:            { dept: "Farmington Valley Health District (CT)", type: "backend_proxy",  icon: "🌲" },
 };
 
 const TYPE_META = {

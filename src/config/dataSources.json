@@ -147,9 +147,36 @@
   "DE": {
     "default": "delaware"
   },
-  "CT": {},
-  "AL": { "default": "alabama" },
-  "AK": { "none": true },
+  "CT": {
+    "default": "fvhd",
+    "cities": {
+      "avon": "fvhd",
+      "barkhamsted": "fvhd",
+      "canton": "fvhd",
+      "colebrook": "fvhd",
+      "east granby": "fvhd",
+      "farmington": "fvhd",
+      "granby": "fvhd",
+      "hartland": "fvhd",
+      "new hartford": "fvhd",
+      "simsbury": "fvhd",
+      "manchester": "manchester_ct",
+      "rocky hill": "manchester_ct",
+      "wethersfield": "manchester_ct",
+      "newington": "manchester_ct",
+      "berlin": "manchester_ct",
+      "hamden": "manchester_ct",
+      "north haven": "manchester_ct",
+      "bethany": "manchester_ct",
+      "woodbridge": "manchester_ct"
+    }
+  },
+  "AL": {
+    "default": "alabama"
+  },
+  "AK": {
+    "none": true
+  },
   "AZ": {
     "cities": {
       "phoenix": "maricopa",
@@ -183,7 +210,9 @@
     },
     "default": "none"
   },
-  "AR": { "default": "arkansas" },
+  "AR": {
+    "default": "arkansas"
+  },
   "CO": {
     "cities": {
       "aurora": "tri_county_co",
@@ -224,14 +253,30 @@
     },
     "default": "none"
   },
-  "DC": { "none": true },
-  "FL": { "none": true },
-  "GA": { "none": true },
-  "HI": { "none": true },
-  "ID": { "none": true },
-  "IN": { "none": true },
-  "IA": { "none": true },
-  "KS": { "none": true },
+  "DC": {
+    "none": true
+  },
+  "FL": {
+    "none": true
+  },
+  "GA": {
+    "none": true
+  },
+  "HI": {
+    "none": true
+  },
+  "ID": {
+    "none": true
+  },
+  "IN": {
+    "none": true
+  },
+  "IA": {
+    "none": true
+  },
+  "KS": {
+    "none": true
+  },
   "KY": {
     "cities": {
       "louisville": "jefferson_ky",
@@ -251,14 +296,30 @@
     },
     "default": "none"
   },
-  "LA": { "none": true },
-  "ME": { "none": true },
-  "MI": { "none": true },
-  "MN": { "none": true },
-  "MS": { "none": true },
-  "MO": { "none": true },
-  "MT": { "none": true },
-  "NE": { "none": true },
+  "LA": {
+    "none": true
+  },
+  "ME": {
+    "none": true
+  },
+  "MI": {
+    "none": true
+  },
+  "MN": {
+    "none": true
+  },
+  "MS": {
+    "none": true
+  },
+  "MO": {
+    "none": true
+  },
+  "MT": {
+    "none": true
+  },
+  "NE": {
+    "none": true
+  },
   "NV": {
     "cities": {
       "las vegas": "snhd",
@@ -289,9 +350,15 @@
     },
     "default": "none"
   },
-  "NH": { "none": true },
-  "NJ": { "none": true },
-  "NM": { "none": true },
+  "NH": {
+    "none": true
+  },
+  "NJ": {
+    "none": true
+  },
+  "NM": {
+    "none": true
+  },
   "NC": {
     "cities": {
       "raleigh": "wake",
@@ -309,21 +376,51 @@
     },
     "default": "none"
   },
-  "ND": { "none": true },
-  "OH": { "none": true },
-  "OK": { "none": true },
-  "OR": { "none": true },
-  "PA": { "none": true },
-  "RI": { "none": true },
-  "SC": { "none": true },
-  "SD": { "none": true },
-  "TN": { "none": true },
-  "UT": { "none": true },
-  "VT": { "none": true },
-  "VA": { "none": true },
-  "WV": { "none": true },
-  "WI": { "none": true },
-  "WY": { "none": true },
+  "ND": {
+    "none": true
+  },
+  "OH": {
+    "none": true
+  },
+  "OK": {
+    "none": true
+  },
+  "OR": {
+    "none": true
+  },
+  "PA": {
+    "none": true
+  },
+  "RI": {
+    "none": true
+  },
+  "SC": {
+    "none": true
+  },
+  "SD": {
+    "none": true
+  },
+  "TN": {
+    "none": true
+  },
+  "UT": {
+    "none": true
+  },
+  "VT": {
+    "none": true
+  },
+  "VA": {
+    "none": true
+  },
+  "WV": {
+    "none": true
+  },
+  "WI": {
+    "none": true
+  },
+  "WY": {
+    "none": true
+  },
   "BC": {
     "cities": {
       "vancouver": "vancouver",
