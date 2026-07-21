@@ -12,7 +12,7 @@ import WaterSection from "@/components/about/WaterSection";
 import ScanningSection from "@/components/about/ScanningSection";
 import GlobalSpotlight from "@/components/about/GlobalSpotlight";
 import HolisticSection from "@/components/about/HolisticSection";
-import EnterpriseSection from "@/components/about/EnterpriseSection";
+import AcquisitionSection from "@/components/about/AcquisitionSection";
 import CreatorSection from "@/components/about/CreatorSection";
 
 export default function About() {
@@ -65,7 +65,7 @@ export default function About() {
           <WaterSection />
           <ScanningSection />
           <GlobalSpotlight />
-          <EnterpriseSection />
+          <AcquisitionSection />
 
           {/* Disclaimer */}
           <Section className="border-2 border-red-300 bg-red-50 shadow-none">
