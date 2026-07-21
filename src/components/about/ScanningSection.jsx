@@ -41,6 +41,9 @@ export default function ScanningSection() {
           <p className="text-sm text-slate-500 italic">
             Point SafeEats' camera at any sign, label, or menu in any language — it reads, translates, and surfaces what matters most in seconds.
           </p>
+          <p className="text-[10px] text-slate-400 font-semibold mt-2">
+            Camera Scanner public beta: April 2026
+          </p>
         </div>
       </div>
     </Section>

@@ -24,7 +24,7 @@ export default function WaterSection() {
             <Pill color="bg-blue-600 text-white">US Restaurants</Pill>
           </div>
           <p className="text-slate-700 leading-relaxed text-sm mb-4">
-            The water your restaurant uses comes from a municipal supply — the same source feeding every soda fountain, ice machine, and pasta pot on the premises. For every US restaurant, SafeEats surfaces a direct link to the <strong>Environmental Working Group (EWG) Tap Water Database</strong> so you can look up your exact zip code's water quality report in seconds.
+            The water your restaurant uses comes from a municipal supply — the same source feeding every soda fountain, ice machine, and pasta pot on the premises. For every US restaurant, SafeEats <strong>retrieves live EPA Safe Drinking Water Information System (SDWIS) data</strong> via a backend function — health-based violations, contaminant counts, and unresolved violations from the last 5 years — and computes a four-tier water quality grade (Excellent / Good / Drinkable / Not Recommended) directly on the restaurant detail card. When no public water system is on file for a location (e.g., private well areas), SafeEats falls back to a direct link to the <strong>Environmental Working Group (EWG) Tap Water Database</strong> so you can look up your zip code's report manually.
           </p>
           <div className="bg-white rounded-2xl border border-blue-100 p-5 mb-4 shadow-sm">
             <p className="text-xs font-extrabold text-blue-700 uppercase tracking-widest mb-3">What EWG's Tap Water Database Covers</p>
@@ -41,7 +41,7 @@ export default function WaterSection() {
           <div className="bg-blue-800 rounded-2xl p-4 text-white">
             <p className="text-sm font-bold mb-1">🇺🇸 US Coverage — Powered by EWG</p>
             <p className="text-blue-200 text-xs leading-relaxed">
-              On every US restaurant detail card, SafeEats shows a 💧 Tap Water Quality link that takes you directly to the EWG report for that restaurant's zip code. EWG tests go beyond EPA legal limits — they compare contaminants against stricter health guidelines, so you get the full picture, not just the legal minimum. International tap water data is on our roadmap.
+              On every US restaurant detail card, SafeEats retrieves live EPA SDWIS data and computes a visible water quality grade. When EPA has no system on file, it falls back to a direct EWG link for that restaurant's zip code. EWG tests go beyond EPA legal limits — they compare contaminants against stricter health guidelines, so you get the full picture, not just the legal minimum. International tap water data is on our roadmap.
             </p>
           </div>
         </div>

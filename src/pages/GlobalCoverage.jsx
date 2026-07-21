@@ -226,7 +226,7 @@ export default function GlobalCoverage() {
         <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
           <h2 className="font-extrabold text-base mb-2">🌍 Everywhere Else — AI-Powered</h2>
           <p className="text-slate-300 text-sm leading-relaxed">
-            For the 74 countries where live government APIs don't yet exist, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated. If we can't verify it, we say so.
+            For markets where live government APIs don't yet exist, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated. If we can't verify it, we say so. These AI-enriched markets are <strong>not counted</strong> in the 20 live-API source figure above and are not part of the claimed normalization footprint.
           </p>
         </div>
 

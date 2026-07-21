@@ -80,10 +80,8 @@ const CONVERSION_ARCHETYPES = [
     principle: "Native data uses a categorical grade or star rating. A fixed lookup table maps each category to a safety score. When sub-scores are available, a penalty-inversion formula is used instead.",
     formula: "safetyScore = lookupTable[nativeGrade] OR clamp(100 − (subscores / maxPenalty) × 100, 0, 100)",
     jurisdictions: [
-      { source: "UK FSA (FHRS)", native: "0–5 star rating + sub-scores (Hygiene, Structural, Confidence in Management)", detail: "If sub-scores present: 100 − ((Hygiene + Structural + ConfidenceInManagement) / 80) × 100, clamped. Else star lookup: 5★→95, 4★→82, 3★→68, 2★→52, 1★→35, 0★→15. 'Pass'→92, 'Improvement Required'→55." },
-      { source: "Singapore (SFA/NEA)", native: "Letter grade A–E", detail: "A→95, B→80, C→60, D→40, E→20. Fixed lookup per SFA hygiene grade." },
-      { source: "FVHD, CT (Farmington Valley)", native: "Letter grade A/B/C/U", detail: "A→95, B→85, C→75, U→30. Fixed lookup per FVHD food rating." },
-      { source: "Denmark Smiley (AI-estimated)", native: "4-tier smiley (☺–☹)", detail: "Top smiley → 95 (A); second → 78 (C); third → 60 (D); bottom → 35 (F). AI reads findsmiley.dk public database." },
+      { source: "UK FSA (FHRS) — LIVE", native: "0–5 star rating + sub-scores (Hygiene, Structural, Confidence in Management)", detail: "If sub-scores present: 100 − ((Hygiene + Structural + ConfidenceInManagement) / 80) × 100, clamped. Else star lookup: 5★→95, 4★→82, 3★→68, 2★→52, 1★→35, 0★→15. 'Pass'→92, 'Improvement Required'→55." },
+      { source: "FVHD, CT (Farmington Valley) — LIVE", native: "Letter grade A/B/C/U", detail: "A→95, B→85, C→75, U→30. Fixed lookup per FVHD food rating." },
     ],
   },
   {
@@ -257,6 +255,64 @@ export default function GradingSection() {
         </div>
       </div>
 
+      {/* ── Claim Hierarchy & Footprint (For Counsel) ── */}
+      <div className="bg-slate-900 text-white rounded-2xl p-5 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <h3 className="text-xl font-extrabold text-white">Claim Hierarchy & Footprint</h3>
+          <Pill color="bg-emerald-500 text-white">For Counsel</Pill>
+        </div>
+        <p className="text-sm text-slate-300 leading-relaxed mb-4">
+          The patent covers <strong className="text-white">Archetypes 1–6</strong> over <strong className="text-white">20 live-API sources</strong> across
+          three countries (15 US, 3 UK, 2 Canada), plus the <strong className="text-white">dual-grade trend intelligence</strong> method.
+          That is the invention. It is <strong className="text-white">not worldwide</strong> — Archetype 7 (AI-enriched) and all AI-read
+          jurisdictions (Singapore, Dubai, Denmark, Seoul, EU, Philadelphia, and all "On the Radar" markets) are explicitly unclaimed.
+          The disclosure says 20, not 74.
+        </p>
+        <div className="space-y-2 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Independent Claims (ordered by strength)</p>
+          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
+            <p className="text-xs font-bold text-white mb-1">1. Archetype 3 — Weighted Violation Count (Strongest)</p>
+            <p className="text-[11px] text-slate-300 leading-relaxed">Mapping FDA priority / priority-foundation / core, NY critical / non-critical, Boston **, and FL high-priority / intermediate / basic onto one weighted severity-equivalence scale. Six live jurisdictions, real severity-equivalence determinations.</p>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
+            <p className="text-xs font-bold text-white mb-1">2. Dual-Grade Trend Intelligence</p>
+            <p className="text-[11px] text-slate-300 leading-relaxed">Current Grade (most recent inspection) vs. Legacy Grade (all-time historical average), with divergence alerting when the two diverge. No prior art in the disclosure list performs this dual-grade comparison.</p>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
+            <p className="text-xs font-bold text-white mb-1">3. Archetype-Selection Method</p>
+            <p className="text-[11px] text-slate-300 leading-relaxed">Routing each jurisdiction to one of six conversion methodologies based on the structure of what it publishes (penalty points → inversion; violation tiers → weighted; pass/fail → result-based; categorical grades → lookup). This selection-by-data-structure routing is arguably the core inventive concept.</p>
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">Dependent Claims</p>
+          <div className="bg-slate-800 rounded-xl p-3 border border-slate-600">
+            <p className="text-xs font-bold text-slate-200 mb-1">Archetypes 2, 4, 5, 6 — as dependent claims</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">Penalty-point inversion (Arch 2), violation-count tiered mapping (Arch 4), result-based discrete mapping (Arch 5), and grade/star lookup with sub-score inversion (Arch 6 — live: UK FSA + FVHD CT only). Singapore and Denmark removed from Archetype 6; both are AI-read (Archetype 7, unclaimed).</p>
+          </div>
+        </div>
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Hard Cross-Scheme Normalization Example</p>
+          <p className="text-[11px] text-slate-300 leading-relaxed">The genuinely hard claimed example is <strong className="text-white">UK FHRS sub-score inversion</strong> (Hygiene + Structural + Confidence in Management penalty inversion) against US <strong className="text-white">penalty-point</strong> (King County, NYC) and <strong className="text-white">weighted-violation</strong> (NY State, Boston, DC, Illinois, Indiana, Florida) schemes. This is a US/UK/Canada claim — not a global one. Denmark Smiley was previously cited as a cross-scheme example but is AI-read (Archetype 7) and is therefore unclaimed.</p>
+        </div>
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Water Quality — Retrieve + Grade (Not Link-Only)</p>
+          <p className="text-[11px] text-slate-300 leading-relaxed">The About page previously described water as an "EWG link by zip." The actual implementation (<code className="text-[10px] font-mono bg-slate-800 px-1 py-0.5 rounded">EPAWaterCard.jsx</code> + <code className="text-[10px] font-mono bg-slate-800 px-1 py-0.5 rounded">getWaterQuality</code> backend function) retrieves <strong className="text-white">live EPA SDWIS data</strong> (health violations, contaminant counts, unresolved violations over 5 years) and computes a four-tier water quality grade. The EWG link is a fallback only when no EPA water system is on file. Water quality retrieval + grading is a <strong className="text-white">claimable embodiment</strong>, not link-only.</p>
+        </div>
+      </div>
+
+      {/* ── Disclosure Dates (Git-Verified) ── */}
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Disclosure Dates (Git-Verified)</p>
+        <ul className="space-y-1 text-xs text-slate-600">
+          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> About page first published: <strong className="text-slate-800">February 18, 2026</strong></li>
+          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> Formula-bearing Grading methodology (this section): <strong className="text-slate-800">June 24, 2026</strong></li>
+          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> Global Coverage page first published: <strong className="text-slate-800">April 18, 2026</strong></li>
+          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> Camera Scanner public beta: <strong className="text-slate-800">April 4, 2026</strong></li>
+          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> EPA Water Quality retrieval + grading: <strong className="text-slate-800">April 29, 2026</strong></li>
+        </ul>
+        <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
+          Dates reflect first git commit of each file. Deployment-to-production dates may differ; counsel should request server-side deployment logs for exact public-availability dates if needed for prior-art or critical-date analysis.
+        </p>
+      </div>
+
       {/* ── Patent Disclosure: Secondary / Unclaimed Embodiments ── */}
       <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 mb-6">
         <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -335,8 +391,9 @@ export default function GradingSection() {
             <p className="font-mono text-slate-600">penalty = 3×7 + 5×2 = 21 + 10 = 31 → score = 100 − 31 = <strong className="text-slate-900">69</strong> → Grade D</p>
           </div>
           <div>
-            <p className="font-bold text-slate-800 mb-0.5">Singapore SFA Grade B restaurant:</p>
-            <p className="font-mono text-slate-600">lookup[B] = <strong className="text-slate-900">80</strong> → Grade B</p>
+            <p className="font-bold text-slate-800 mb-0.5">Cross-scheme contrast — same "80" means different things:</p>
+            <p className="font-mono text-slate-600">King County (penalty inversion): 100 − 20 pts = <strong className="text-slate-900">80</strong> → Grade B<br />UK FHRS (sub-score inversion): 100 − (20/80)×100 = <strong className="text-slate-900">75</strong> → Grade C<br />NY State (weighted violations): 100 − (2×7 + 3×2) = <strong className="text-slate-900">80</strong> → Grade B</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Three jurisdictions, three conversion archetypes, one universal scale. This cross-scheme normalization is the core claimed invention.</p>
           </div>
         </div>
       </div>
