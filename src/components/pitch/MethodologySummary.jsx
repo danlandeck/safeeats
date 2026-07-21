@@ -15,6 +15,8 @@ const SOURCES = [
   { source: "King County, WA", native: "Penalty points + result", method: "Inverted; result shown on detail" },
   { source: "Chicago CDPH", native: "Pass / Fail + codes", method: "Pass→high; Fail→F; weighted by severity" },
   { source: "UK FSA (FHRS)", native: "0–5 star rating", method: "Linear scale to 0–100" },
+  { source: "France (Alim'confiance)", native: "4-tier evaluation", method: "Result-based: 1→95, 2→82, 3→68, 4→40" },
+  { source: "Netherlands (NVWA)", native: "Compliance status", method: "Voldoet→88; Niet voldoet→45" },
   { source: "AI-assisted", native: "Public records", method: "Gemini 3 Flash + confidence filtering" },
 ];
 

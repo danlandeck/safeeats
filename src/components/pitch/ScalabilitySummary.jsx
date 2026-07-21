@@ -4,7 +4,7 @@ const ARCHITECTURE = [
   {
     icon: Plug,
     title: "Plug-in Data Connectors",
-    body: "Each government API is a self-contained connector with its own processor and normalizer. Adding a new market is a configuration task, not a rebuild — the pattern is proven across 20 live sources.",
+    body: "Each government API is a self-contained connector with its own processor and normalizer. Adding a new market is a configuration task, not a rebuild — the pattern is proven across 23 live sources.",
   },
   {
     icon: Layers,
@@ -23,13 +23,13 @@ const ARCHITECTURE = [
   },
   {
     icon: Globe2,
-    title: "Global by Default",
+    title: "International by Default",
     body: "The search engine handles any city, any country, any language. A user in Tokyo gets the same experience as a user in Austin — location-agnostic by design, not bolted on.",
   },
   {
     icon: Zap,
     title: "Low Marginal Cost",
-    body: "Adding the 21st, 50th, or 100th market follows the same proven pattern. The infrastructure scales horizontally — no new servers, no new frontend, no new schema. Just a new connector file.",
+    body: "Adding the 24th, 50th, or 100th market follows the same proven pattern. The infrastructure scales horizontally — no new servers, no new frontend, no new schema. Just a new connector file.",
   },
 ];
 
