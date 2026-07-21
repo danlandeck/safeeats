@@ -42,7 +42,7 @@ export default function GlobalSpotlight() {
             <div className="bg-slate-900 rounded-2xl p-4 text-white">
               <p className="text-sm font-bold mb-1">🏆 Why Dubai Is a Model for the World</p>
               <p className="text-slate-300 text-xs leading-relaxed">
-                Dubai's approach to open food safety data is a global benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats uses AI to read these official sources and present them on the same screen as New York, London, and Toronto — clearly labeled as AI-estimated where no direct API connector exists yet.
+                Dubai's approach to open food safety data is an international benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats uses AI to read these official sources and present them on the same screen as New York, London, and Toronto — clearly labeled as AI-estimated where no direct API connector exists yet.
               </p>
             </div>
           </div>

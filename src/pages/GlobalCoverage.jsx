@@ -97,7 +97,7 @@ export default function GlobalCoverage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full text-white font-semibold mb-5 shadow-lg">
             <Globe className="w-5 h-5 text-emerald-400" />
-            Global Open Data Coverage
+            International Open Data Coverage
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
             Every Market Where<br />

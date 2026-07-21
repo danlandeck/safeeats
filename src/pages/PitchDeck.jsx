@@ -26,7 +26,7 @@ export default function PitchDeck() {
             Acquisition Summary
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
-            The Global Standard for<br />
+            The International Standard for<br />
             <span className="text-[#4CAF50]">Food Safety Data</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
@@ -49,7 +49,7 @@ export default function PitchDeck() {
             </div>
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                Global Data Coverage
+                International Data Coverage
               </h2>
               <p className="text-sm text-slate-500">Three-tier strategy across live APIs and AI-assisted markets</p>
             </div>
@@ -85,7 +85,7 @@ export default function PitchDeck() {
               <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 Scalability of Restaurant Discovery
               </h2>
-              <p className="text-sm text-slate-500">Architecture designed to scale from 20 sources to global coverage</p>
+              <p className="text-sm text-slate-500">Architecture designed to scale from 20 sources to international coverage</p>
             </div>
           </div>
           <ScalabilitySummary />
