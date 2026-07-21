@@ -71,15 +71,22 @@ Deno.serve(async (req) => {
       params.set("s9", "Food");
 
       // The portal blocks requests without full browser headers (403).
-      // Use a realistic browser fingerprint + session cookie from homepage.
+      // WAFs commonly check sec-fetch-* headers and reject brotli from non-browser clients.
       const browserHeaders = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Encoding": "gzip, deflate",
         "Referer": `${PORTAL_BASE}/`,
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "sec-ch-ua": '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
       };
 
       // Step 1: fetch homepage to establish a session (ASP.NET may set cookies)
