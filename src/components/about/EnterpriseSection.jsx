@@ -4,10 +4,10 @@ import { Section, Pill } from "./SectionPrimitives";
 import { Button } from "@/components/ui/button";
 
 const STATS = [
-  { value: "20", label: "Live data sources", sub: "Direct government APIs" },
+  { value: "20+", label: "Live data sources", sub: "Direct government APIs" },
   { value: "3", label: "Countries with live APIs", sub: "US, UK, Canada" },
-  { value: "74", label: "Countries mapped", sub: "170+ health departments" },
-  { value: "1", label: "Universal A–F + Pass/Fail", sub: "Apples-to-apples, worldwide" },
+  { value: "7", label: "Conversion archetypes", sub: "The normalization invention" },
+  { value: "1", label: "Universal A–F + Pass/Fail", sub: "Apples-to-apples, where data exists" },
 ];
 
 const USE_CASES = [

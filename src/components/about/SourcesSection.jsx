@@ -3,16 +3,16 @@ import { Section, Pill } from "./SectionPrimitives";
 
 const METHODS = [
   { icon: <Database className="w-5 h-5 text-white" />, bg: "bg-emerald-600", title: "Live Government APIs", pill: { text: "REAL-TIME", color: "bg-emerald-500 text-white" }, body: "For jurisdictions that publish open-data APIs — including New York City, New York State, San Francisco, Chicago, King County (Seattle), Austin, Montgomery County MD, Delaware, Boston, Houston, Los Angeles County, Wake County (Raleigh, NC), Louisville KY, Las Vegas (SNHD), Toronto (Canada), Vancouver (Canada), and the UK Food Standards Agency — SafeEats queries the official database directly at request time. Data is current as of the moment you search." },
-  { icon: <Search className="w-5 h-5 text-white" />, bg: "bg-slate-900", title: "AI-Assisted Research", pill: { text: "EVERYWHERE ELSE", color: "bg-slate-500 text-white" }, body: "For jurisdictions without a live API, AI reads official health department websites, public inspection portals, and verified sources. GPT-5 Mini identifies restaurants instantly; Gemini 3 Flash pulls real-time inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated." },
+  { icon: <Search className="w-5 h-5 text-white" />, bg: "bg-slate-900", title: "AI-Assisted Research", pill: { text: "ADDITIONAL JURISDICTIONS", color: "bg-slate-500 text-white" }, body: "For jurisdictions without a live API but with publicly accessible inspection records, AI reads official health department websites and public portals. GPT-5 Mini identifies restaurants; Gemini 3 Flash pulls inspection data from official sources. Results are clearly labeled as AI-estimated — never fabricated." },
   { icon: <Languages className="w-5 h-5 text-white" />, bg: "bg-blue-600", title: "Multilingual Label Scanning", pill: { text: "ANY LANGUAGE", color: "bg-blue-500 text-white" }, body: "Point the camera at any food packaging or sign in Japanese, Chinese, Korean, or any script. SafeEats translates ingredients, allergens, expiration dates, and dietary flags into plain English instantly." },
-  { icon: <FileText className="w-5 h-5 text-white" />, bg: "bg-slate-700", title: "Global Coverage", pill: null, body: "SafeEats is location-agnostic. Search for a restaurant by name alone and we find it anywhere in the world. Add a city, state, or ZIP to narrow results to a specific area." },
+  { icon: <FileText className="w-5 h-5 text-white" />, bg: "bg-slate-700", title: "Portal Redirect (Not Coverage)", pill: { text: "HONEST SCOPE", color: "bg-amber-500 text-white" }, body: "For jurisdictions with no scrapable data and no publicly accessible records, SafeEats links to the official health department portal so you can search manually. This is a convenience — not coverage. We do not claim to cover jurisdictions where we can only send you elsewhere. The normalization invention requires data to normalize; where there's nothing to normalize, there's no invention to claim." },
 ];
 
 export default function SourcesSection() {
   return (
     <Section id="sources">
       <h2 className="text-2xl font-extrabold text-slate-900 mb-1">How We Source Data</h2>
-      <p className="text-slate-500 text-sm mb-6">Two methods — live APIs where they exist, AI-assisted research everywhere else.</p>
+      <p className="text-slate-500 text-sm mb-6">Three tiers — live APIs where they exist, AI-assisted research where records are public, and honest portal redirects where neither is possible.</p>
       <div className="space-y-4 mb-8">
         {METHODS.map(({ icon, bg, title, pill, body }) => (
           <div key={title} className="flex gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors">

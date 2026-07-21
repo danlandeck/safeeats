@@ -4,7 +4,7 @@
 
 export const HOME_TRANSLATIONS = {
   en: {
-    heroBadge: "🛡️ #1 Global Food Safety Platform · 74 Countries Covered",
+    heroBadge: "🛡️ Food Safety Transparency · Live Data Where It Exists",
     heroSub: "Real health inspector reports — made easy to understand! Find out if your favorite restaurant is A+ or needs a time-out. 🛡️",
     gradeA: "🌟 Amazing!", gradeB: "😊 Great!", gradeC: "🤔 Okay",
     gradeD: "⚠️ Uh-oh", gradeF: "🚨 Yikes!", gradeP: "✅ Passed", gradeU: "❓ Unknown",
@@ -21,7 +21,7 @@ export const HOME_TRANSLATIONS = {
     statSources: "Direct data sources", statDepts: "Health departments",
     statGrade: "Universal grade", statFree: "Free, always",
     liveDataTitle: "🟢 Cities with live government data (instant results)",
-    liveDataDesc: "🌍 Plus 150+ more cities across 74 countries — covered by AI-powered search of public health records. Just type any city or country!",
+    liveDataDesc: "🌍 Plus AI-assisted search for additional cities with public health records. For everywhere else, we link you to the official portal — honestly.",
     fullStoryTitle: "📖 The Full Story",
     fullStoryDesc: "How every grade is earned, our trust controls, and enterprise & API — all in one place.",
     nearMe: "📍 Near Me", nearMeOn: "📍 Near Me ON",

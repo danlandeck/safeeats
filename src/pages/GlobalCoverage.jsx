@@ -104,7 +104,7 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            20 live government data sources across the US, UK, and Canada. 74 countries mapped across 170+ health departments. AI-assisted search for the rest of the world. Real inspection data — unified, normalized, and in plain English.
+            Live government data sources across the US, UK, and Canada — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
@@ -116,8 +116,8 @@ export default function GlobalCoverage() {
               <p className="text-xs text-slate-500 font-semibold">Countries with live APIs</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-slate-900">74</p>
-              <p className="text-xs text-slate-500 font-semibold">Countries mapped</p>
+              <p className="text-3xl font-extrabold text-slate-900">7</p>
+              <p className="text-xs text-slate-500 font-semibold">Conversion archetypes</p>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function GlobalCoverage() {
             <div>
               <p className="font-extrabold text-base mb-1">Why Open Data Matters</p>
               <p className="text-slate-300 text-sm leading-relaxed">
-                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats unifies all of them into a single, normalized, globally comparable system. Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, everywhere.
+                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats unifies the ones with accessible data into a single, normalized system. Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions with no accessible data, we link to the official portal — but we don't claim that as coverage.
               </p>
             </div>
           </div>
