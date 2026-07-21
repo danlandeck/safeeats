@@ -185,6 +185,63 @@ export default function GradingSection() {
         </div>
       ))}
 
+      {/* Current vs Legacy Grade */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <h3 className="text-xl font-extrabold text-slate-900">Current Grade vs Legacy Grade</h3>
+          <Pill color="bg-indigo-100 text-indigo-700">Trend Intelligence</Pill>
+        </div>
+        <p className="text-sm text-slate-600 leading-relaxed mb-4">
+          A single snapshot score can be misleading — a restaurant that scored 95 on its last visit might
+          have averaged 72 over the past three years. SafeEats computes <strong>two distinct grades</strong>
+          for every establishment with inspection history, and visualizes them on an interactive trend graph:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <div className="bg-white rounded-2xl p-4 border border-indigo-100">
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Current Grade</p>
+            <p className="text-sm font-bold text-slate-800 mb-1">Most Recent Inspection</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Derived from the single most recent inspection on file. This is what the restaurant scored
+              <em> today</em> — the grade shown on the search card and in the hero section of the detail page.
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 border border-indigo-100">
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Legacy Grade</p>
+            <p className="text-sm font-bold text-slate-800 mb-1">All-Time Historical Average</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              The arithmetic mean of every inspection score on record, converted to a letter grade.
+              This reveals the establishment's <em>long-term</em> safety pattern — not just a single
+              good or bad day.
+            </p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 mb-4">
+          <p className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span className="text-indigo-500">📈</span> Interactive Trend Graph
+          </p>
+          <p className="text-xs text-slate-600 leading-relaxed mb-2">
+            On each restaurant's detail page (when 2+ inspections exist), SafeEats renders an interactive
+            area chart showing the score trajectory over time, with:
+          </p>
+          <ul className="space-y-1 text-xs text-slate-600 ml-1">
+            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> Color-coded data points (green ≥90, lime ≥80, amber ≥70, red &lt;70)</li>
+            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> Reference lines for A/B/C/F grade thresholds (90, 80, 70, 60)</li>
+            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> A dashed average line showing the Legacy Grade position</li>
+            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> An automatic trend badge: Improving / Stable / Declining (comparing first-half vs second-half averages)</li>
+            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> A contextual alert when Current Grade differs from Legacy Grade (e.g. "recent decline in safety standards")</li>
+          </ul>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <p className="text-xs text-slate-700 leading-relaxed">
+            <strong>Why this matters:</strong> A restaurant with a Current Grade of A but a Legacy Grade of C
+            may have just had a single good inspection after years of problems. Conversely, a Current Grade of C
+            with a Legacy Grade of A may indicate a recent slip from an otherwise strong track record. This
+            dual-grade system gives diners context that a single score cannot — and is a core differentiator
+            of the SafeEats normalization invention.
+          </p>
+        </div>
+      </div>
+
       {/* Worked examples */}
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
         <h4 className="text-sm font-extrabold text-slate-900 mb-3">Worked Examples</h4>
