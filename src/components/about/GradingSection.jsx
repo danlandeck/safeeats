@@ -96,6 +96,10 @@ const CONVERSION_ARCHETYPES = [
       { source: "Mississippi, Oklahoma, S. Carolina, Utah, SD, VT, WY (backend scrapers)", native: "Numeric score or grade from state portal", detail: "Backend scrapers extract native scores from state health portals. If numeric → Archetype 1 (direct). If grade → Archetype 6 (lookup). If Pass/Fail → Archetype 5 (result-based)." },
       { source: "All other global jurisdictions (no live API)", native: "Estimated from public web records", detail: "Gemini 3 Flash live web search. Each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out entirely." },
     ],
+    patent_disclosure: {
+      status: "EXPLICITLY UNCLAIMED — FALLBACK EMBODIMENT",
+      note: "This archetype is documented as a distinct fallback embodiment for disclosure purposes only. It is NOT claimed in any independent or dependent claim. Per counsel guidance: (1) Post-Alice, 'use an LLM to estimate a value when real data is unavailable' is close to unpatentable as an abstract idea. (2) §112 enablement risk: LLM outputs are not reproducible, which undermines enablement of any claim covering this archetype. (3) Defamation liability exposure: an AI-estimated failing grade (e.g., 'F') displayed on a real, named restaurant that has never failed an inspection creates defamation risk. The confidence filter mitigates but does not eliminate this, as it relies on the model's self-assessed confidence, which is not reliable. (4) Claiming this archetype risks tainting the stronger Archetypes 1–6 claims by association during prosecution. NOTE TO COUNSEL: Exclude from all claims. Retain in disclosure as fallback embodiment only. AI-estimated results (Denmark, Dubai, and all no-API global jurisdictions) are visibly labeled as 'AI-estimated' via DataSourceBadge and StaleDataBanner components on both search cards and detail pages.",
+    },
   },
 ];
 
@@ -182,6 +186,17 @@ export default function GradingSection() {
               </div>
             ))}
           </div>
+          {/* Patent disclosure note — only for unclaimed fallback embodiments */}
+          {archetype.patent_disclosure && (
+            <div className="bg-red-50 border-t-2 border-red-300 px-4 py-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-200 px-2 py-0.5 rounded-full">
+                  {archetype.patent_disclosure.status}
+                </span>
+              </div>
+              <p className="text-xs text-red-800 leading-relaxed">{archetype.patent_disclosure.note}</p>
+            </div>
+          )}
         </div>
       ))}
 
@@ -238,6 +253,63 @@ export default function GradingSection() {
             with a Legacy Grade of A may indicate a recent slip from an otherwise strong track record. This
             dual-grade system gives diners context that a single score cannot — and is a core differentiator
             of the SafeEats normalization invention.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Patent Disclosure: Secondary / Unclaimed Embodiments ── */}
+      <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <h3 className="text-xl font-extrabold text-red-900">Patent Disclosure — Unclaimed Embodiments</h3>
+          <Pill color="bg-red-200 text-red-800">Not Claimed</Pill>
+          <Pill color="bg-red-100 text-red-700">For Counsel</Pill>
+        </div>
+        <p className="text-sm text-red-800 leading-relaxed mb-4">
+          The following embodiments are documented in this disclosure for completeness and transparency.
+          They are <strong>explicitly excluded from all patent claims</strong> — independent and dependent —
+          and are retained solely as fallback or secondary embodiments. Per counsel guidance, claiming these
+          risks tainting the stronger claims (Archetypes 1–6 normalization, dual-grade trend intelligence)
+          by association during prosecution.
+        </p>
+
+        {/* Camera Scanner — Secondary Embodiment */}
+        <div className="bg-white border border-red-200 rounded-2xl p-4 mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="text-sm font-extrabold text-slate-900">Secondary Embodiment: Camera Sign Scanner (OCR → Search Pipeline)</h4>
+            <Pill color="bg-red-100 text-red-700">§103 Vulnerable</Pill>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed mb-2">
+            The camera scanner (<code className="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded">CameraScanner.jsx</code>)
+            captures a photo of a restaurant sign, inspection placard, or food label, then uses LLM vision
+            (Gemini with <code className="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded">file_urls</code>) to
+            extract the establishment name and address via OCR. The extracted text is fed into the existing
+            search pipeline as a query string — no score is derived from the image itself.
+          </p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-red-700 mb-1">Note to Counsel</p>
+            <p className="text-xs text-red-800 leading-relaxed">
+              This is OCR-into-existing-pipeline — reading a restaurant name sign and searching for it.
+              Combining known prior art (OCR + search query) via an LLM is vulnerable to a §103 obviousness
+              rejection. Documented as a secondary embodiment only; <strong>not claimed</strong>. The food-label
+              decoding variant (allergen/nutrition extraction from packaging) is similarly unclaimed and
+              documented solely for disclosure completeness.
+            </p>
+          </div>
+        </div>
+
+        {/* Archetype 7 cross-reference */}
+        <div className="bg-white border border-red-200 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="text-sm font-extrabold text-slate-900">Fallback Embodiment: Archetype 7 — AI-Enriched Scores</h4>
+            <Pill color="bg-red-100 text-red-700">Post-Alice / §112</Pill>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            See Archetype 7 above (red disclosure banner). AI-estimated safety scores via LLM web search
+            are documented as a distinct fallback embodiment for jurisdictions with no live API.
+            <strong> Explicitly unclaimed.</strong> Key risks: post-Alice abstract idea (§101),
+            non-reproducible output (§112 enablement), and defamation liability for AI-estimated failing
+            grades on real, named restaurants. AI-estimated results are visibly labeled to end users via
+            DataSourceBadge and StaleDataBanner on both search cards and detail pages.
           </p>
         </div>
       </div>
