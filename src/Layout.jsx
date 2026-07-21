@@ -68,9 +68,6 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-white font-bold">
                 © {new Date().getFullYear()} SafeEats. All rights reserved.
               </p>
-              <p className="text-xs text-white font-bold">
-                Patent Pending | Multi-jurisdiction health data
-              </p>
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ const TIERS = [
     title: "Portal Redirect (Not Coverage)",
     stat: "Honest scope",
     body: "For jurisdictions with no scrapable data and no publicly accessible records, SafeEats links to the official health department portal so users can search manually. This is a convenience — not coverage. We do not claim the invention operates in jurisdictions where we can only redirect users elsewhere. The normalization requires data to normalize.",
-    items: ["Clearly labeled as redirect-only", "Not counted in coverage claims", "Honest scope protects the patent"],
+    items: ["Clearly labeled as redirect-only", "Not counted in coverage claims", "Honest scope protects data integrity"],
   },
 ];
 
