@@ -27,6 +27,9 @@ import {
   scToDetailRows,
   safefoodToDetailRows,
   portlandToDetailRows,
+  processFranceResults, franceToDetailRows,
+  processDallasResults, dallasToDetailRows,
+  processNetherlandsResults, netherlandsToDetailRows,
 } from "../inspectionProcessors";
 
 export const PROCESSORS = {
@@ -54,6 +57,9 @@ export const PROCESSORS = {
   wy_safefood:      { process: processSafefoodResults,     toDetailRows: safefoodToDetailRows },
   portland_oregonlive: { process: processPortlandResults,  toDetailRows: portlandToDetailRows },
   toronto:          { process: processTorontoResults,     toDetailRows: torontoToDetailRows },
+  france_alimconfiance: { process: processFranceResults,    toDetailRows: franceToDetailRows },
+  dallas:             { process: processDallasResults,       toDetailRows: dallasToDetailRows },
+  netherlands_nvwa:   { process: processNetherlandsResults,  toDetailRows: netherlandsToDetailRows },
 };
 
 export const SOURCE_TO_COUNTY = {
@@ -90,4 +96,7 @@ export const SOURCE_TO_COUNTY = {
   vt_safefood: "vt_safefood",
   wy_safefood: "wy_safefood",
   portland_oregonlive: "portland_oregonlive",
+  france_alimconfiance: "france_alimconfiance",
+  dallas: "dallas",
+  netherlands_nvwa: "netherlands_nvwa",
 };

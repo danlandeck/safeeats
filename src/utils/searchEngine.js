@@ -17,6 +17,7 @@ import {
   processUtahResults,
   processSafefoodResults,
   processPortlandResults,
+  processFranceResults, processDallasResults, processNetherlandsResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -399,6 +400,54 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const records = res.data?.records || [];
       const liveResults = filterByNameRelevance(processTorontoResults(records), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // France — Alim'confiance (OpenDataSoft API) — all French cities route through one API
+  const FRANCE_CITY_IDS = new Set(["paris", "lyon", "marseille", "toulouse", "nice", "bordeaux", "strasbourg"]);
+  if (FRANCE_CITY_IDS.has(countyId)) {
+    try {
+      const commune = countyId === "paris" ? "Paris" : countyId.charAt(0).toUpperCase() + countyId.slice(1);
+      const res = await base44.functions.invoke("franceAlimConfiance", { action: "search", name: query });
+      const records = res.data?.records || [];
+      if (records.length > 0) {
+        let liveResults = filterByNameRelevance(processFranceResults(records, commune), query);
+        // If commune filter was too restrictive, fall back to all French results
+        if (liveResults.length === 0) {
+          liveResults = filterByNameRelevance(processFranceResults(records), query);
+        }
+        if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      }
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Dallas County, TX — Socrata API
+  if (countyId === "dallas") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("dallasInspections", { action: "search", name: nameQuery });
+      const records = res.data?.records || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processDallasResults(records), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Netherlands — NVWA inspection results (HTML scraping)
+  const NL_CITY_IDS = new Set(["amsterdam", "rotterdam", "the_hague", "utrecht_nl"]);
+  if (NL_CITY_IDS.has(countyId)) {
+    try {
+      const res = await base44.functions.invoke("netherlandsInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      if (records.length > 0) {
+        const liveResults = filterByNameRelevance(processNetherlandsResults(records), query);
+        if (liveResults.length > 0) return { results: liveResults, isAI: false };
+      }
     } catch { /* live API failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }

@@ -49,3 +49,6 @@ export { processSCResults, scToDetailRows } from "./processors/southCarolina";
 export { processUtahResults, utahToDetailRows } from "./processors/utah";
 export { processSafefoodResults, safefoodToDetailRows } from "./processors/safefood";
 export { processPortlandResults, portlandToDetailRows } from "./processors/portland";
+export { processFranceResults, franceToDetailRows } from "./processors/france";
+export { processDallasResults, dallasToDetailRows } from "./processors/dallas";
+export { processNetherlandsResults, netherlandsToDetailRows } from "./processors/netherlands";

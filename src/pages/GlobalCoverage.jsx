@@ -23,6 +23,7 @@ const LIVE_MARKETS = [
       { city: "Los Angeles County, CA", note: "LA County DPH — ArcGIS Feature Service API. Restaurant inspection scores.", url: "https://ehservices.publichealth.lacounty.gov/" },
       { city: "Stanislaus County, CA", note: "Stanislaus County EHS — scraped public portal with backend processor.", url: "https://schsa.info/" },
       { city: "Las Vegas / Clark County, NV", note: "Southern Nevada Health District — backend-processed inspection API. Full inspection history with violation details.", url: "https://www.southernnevadahealthdistrict.org/permits-and-regulations/restaurant-inspections/" },
+      { city: "Dallas County, TX", note: "Dallas Open Data — Socrata API. Restaurant inspection scores with full violation detail and points. Tested & confirmed live.", url: "https://www.dallasopendata.com/Services/Restaurant-and-Food-Establishment-Inspections-Octo/dri5-wcct" },
       { city: "Wake County, NC (Raleigh)", note: "Wake County Environmental Health — ArcGIS REST API. Two-layer join of restaurant facilities and inspection records. Scored inspections 0–100.", url: "https://maps.wake.gov/arcgis/rest/services/Inspections/RestaurantInspectionsOpenData/MapServer" },
       { city: "Louisville / Jefferson County, KY", note: "Louisville Metro Public Health — ArcGIS Hub FeatureServer. Establishment-level inspection scores with letter grades A–F.", url: "https://services1.arcgis.com/79kfd2K6fskCAkyg/arcgis/rest/services/FoodServiceData/FeatureServer" },
     ]
@@ -46,6 +47,22 @@ const LIVE_MARKETS = [
       { city: "Vancouver, BC", note: "Vancouver Coastal Health — public disclosure portal API (inspections.vch.ca). Covers Vancouver, Richmond, North Shore, Sea-to-Sky. Full inspection history with critical/non-critical infraction counts. Tested & confirmed live.", url: "https://inspections.vch.ca/" },
     ]
   },
+  {
+    region: "🇫🇷 France",
+    color: "border-blue-200 bg-blue-50",
+    pill: "bg-blue-700 text-white",
+    sources: [
+      { city: "France (nationwide — Alim'confiance)", note: "French Ministry of Agriculture — OpenDataSoft API (dgal.opendatasoft.com). 4-tier evaluation results (Très satisfaisant to À améliorer) for every food establishment nationwide since March 2017. Covers Paris, Lyon, Marseille, Toulouse, Nice, Bordeaux, Strasbourg and all communes. Tested & confirmed live.", url: "https://dgal.opendatasoft.com/explore/dataset/export_alimconfiance/" },
+    ]
+  },
+  {
+    region: "🇳🇱 Netherlands",
+    color: "border-orange-200 bg-orange-50",
+    pill: "bg-orange-500 text-white",
+    sources: [
+      { city: "Netherlands (nationwide — NVWA)", note: "Nederlandse Voedsel- en Warenautoriteit (NVWA) — public inspection results portal (openbare-inspectieresultaten.nvwa.nl). Compliance status (Voldoet / Niet voldoet) for horeca, retail, and food businesses nationwide. Covers Amsterdam, Rotterdam, The Hague, Utrecht and all municipalities. Backend-scraped from server-rendered HTML. Tested & confirmed live.", url: "https://www.openbare-inspectieresultaten.nvwa.nl/" },
+    ]
+  },
 ];
 
 // Markets where food safety data EXISTS but SafeEats uses AI web search (Gemini 3 Flash)
@@ -62,20 +79,17 @@ const AI_ENHANCED_MARKETS = [
 
 const AI_RESEARCH_MARKETS = [
   { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance via local 保健所 (health centers). No public API — SafeEats uses AI to read official Japanese health inspection records." },
-  { city: "France (Alim'confiance)", note: "A live public national food safety rating system (alim-confiance.gouv.fr) with 4-tier results. No API connector — AI reads the official DGCCRF database." },
   { city: "Germany", note: "No nationwide hygiene rating system. Local Lebensmittelüberwachung offices publish some results. AI reads verbraucherportal.de and state health authority records." },
   { city: "Brazil (São Paulo)", note: "ANVISA oversees national regulation; VISA São Paulo publishes inspection records. No per-establishment API — AI reads Vigilância Sanitária records." },
   { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database (fssai.gov.in). AI reads FSSAI registration data and municipal corporation food safety records." },
   { city: "Hong Kong", note: "FEHD publishes inspection results for licensed food premises (fehd.gov.hk). No structured API — AI reads official FEHD records." },
   { city: "Denver, CO", note: "Denver publishes restaurant inspection scores publicly. No API registered — AI reads official Denver Environmental Health records." },
-  { city: "Dallas County, TX", note: "Dallas County Health publishes food establishment inspections. No API registered — AI reads official county health records." },
   { city: "Miami-Dade County, FL", note: "Miami-Dade publishes public food safety inspection data. No API registered — AI reads official county health records." },
   { city: "Ottawa, Ontario", note: "Ottawa Public Health publishes food premise inspection reports. No API registered — AI reads official Ottawa Public Health records." },
   { city: "Calgary, Alberta", note: "Calgary Environmental Health (Alberta Health Services) publishes inspection results. No API — AI reads official AHS records." },
   { city: "South Australia", note: "SA Health Food Safety Rating Scheme exists. No centralized API — AI reads official SA Health and council records." },
   { city: "New Zealand", note: "NZ MPI tracks food safety compliance nationwide. No per-establishment API — AI reads official council FoodSafe verification records." },
   { city: "Abu Dhabi, UAE", note: "ADAFSA publishes inspection and compliance data. No API connector — AI reads official Abu Dhabi Agriculture & Food Safety Authority records." },
-  { city: "Netherlands", note: "NVWA publishes inspection results (inspectieresultaten.nl). No API connector — AI reads official NVWA records." },
   { city: "Ireland", note: "FSAI publishes enforcement orders and closure notices (fsai.ie). No per-establishment API — AI reads official Food Safety Authority of Ireland records." },
 ];
 
@@ -104,7 +118,7 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Live government data sources across the US, UK, and Canada — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
+            Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
@@ -112,7 +126,7 @@ export default function GlobalCoverage() {
               <p className="text-xs text-slate-500 font-semibold">Live API sources</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-slate-900">3</p>
+              <p className="text-3xl font-extrabold text-slate-900">5</p>
               <p className="text-xs text-slate-500 font-semibold">Countries with live APIs</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">

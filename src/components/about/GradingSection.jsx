@@ -25,6 +25,7 @@ const CONVERSION_ARCHETYPES = [
       { source: "Louisville / Jefferson Co., KY", native: "Numeric score 0–100", detail: "Already a 0–100 safety score. Used directly; native letter grade (A/B/C/D/U) preserved when available." },
       { source: "Wake County, NC", native: "Numeric score 0–100 (SCORE field)", detail: "Already a 0–100 safety score. Used directly." },
       { source: "Alabama (ADPH, state-wide)", native: "Numeric score 0–100", detail: "Backend scraper extracts numeric score from ADPH portal. Used directly." },
+      { source: "Dallas County, TX", native: "Numeric score 0–100 (score field)", detail: "Socrata API. Score is already a 0–100 safety score (100 = perfect, deductions lower it). Used directly." },
     ],
   },
   {
@@ -72,6 +73,8 @@ const CONVERSION_ARCHETYPES = [
       { source: "Toronto DineSafe (Canada)", native: "Closed / Conditional Pass / Pass + infractions", detail: "100 − (closedCount × 20 + conditionalCount × 5 + otherInfractions × 1). Aggregated across all inspection visits." },
       { source: "Stanislaus County, CA", native: "Permit status (Open / Closed)", detail: "Closed → 25; Open → 85. Binary status mapping; no per-violation granularity available." },
       { source: "Australia NSW / QLD", native: "Pass / Fail / Notice outcome per inspection", detail: "Latest = Fail → 45; 0 historical fails → 88; some historical fails → 72. Three-tier mapping based on latest + history." },
+      { source: "France — Alim'confiance (DGCCRF)", native: "4-tier evaluation (Très satisfaisant to À améliorer)", detail: "Code 1 (Très satisfaisant) → 95; 2 (Satisfaisant) → 82; 3 (Acceptable) → 68; 4 (À améliorer) → 40. OpenDataSoft API." },
+      { source: "Netherlands — NVWA", native: "Compliance status (Voldoet / Niet voldoet)", detail: "Voldoet (compliant) → 88; Niet voldoet (non-compliant) → 45; Geen recente gegevens → null (U). Backend HTML scraping." },
     ],
   },
   {
@@ -262,11 +265,11 @@ export default function GradingSection() {
           <Pill color="bg-emerald-500 text-white">For Counsel</Pill>
         </div>
         <p className="text-sm text-slate-300 leading-relaxed mb-4">
-          The patent covers <strong className="text-white">Archetypes 1–6</strong> over <strong className="text-white">20 live-API sources</strong> across
-          three countries (15 US, 3 UK, 2 Canada), plus the <strong className="text-white">dual-grade trend intelligence</strong> method.
+          The patent covers <strong className="text-white">Archetypes 1–6</strong> over <strong className="text-white">23 live-API sources</strong> across
+          four countries (16 US, 3 UK, 2 Canada, 2 EU — France & Netherlands), plus the <strong className="text-white">dual-grade trend intelligence</strong> method.
           That is the invention. It is <strong className="text-white">not worldwide</strong> — Archetype 7 (AI-enriched) and all AI-read
           jurisdictions (Singapore, Dubai, Denmark, Seoul, EU, Philadelphia, and all "On the Radar" markets) are explicitly unclaimed.
-          The disclosure says 20, not 74.
+          The disclosure says 23, not 74.
         </p>
         <div className="space-y-2 mb-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Independent Claims (ordered by strength)</p>

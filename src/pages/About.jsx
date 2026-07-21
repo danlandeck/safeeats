@@ -38,7 +38,7 @@ export default function About() {
               <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              Live government data sources across the US, UK, and Canada — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official health department portal so you can search manually. We don't call that coverage — it's a redirect, not the invention.
+              Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official health department portal so you can search manually. We don't call that coverage — it's a redirect, not the invention.
             </p>
           </div>
 
@@ -48,7 +48,7 @@ export default function About() {
           <Section id="why">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments and presents them through a single, consistent interface with a universal A–F grading system.
+              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments across five countries and presents them through a single, consistent interface with a universal A–F grading system.
             </p>
             <p className="text-slate-600 leading-relaxed">
               Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions where no scrapable data exists, we link to the official portal — but that's a convenience, not coverage. The invention is the normalization; where there's nothing to normalize, there's no invention to claim.

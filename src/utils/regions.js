@@ -622,6 +622,9 @@ export const SOURCE_TO_STATE = {
   toronto:       null,  // Canada
   dubai:         null,  // UAE
   uk_fsa:        null,  // UK
+  dallas:        "TX",
+  france_alimconfiance: null,  // France
+  netherlands_nvwa: null,  // Netherlands
 };
 
 /**
