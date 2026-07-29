@@ -74,6 +74,7 @@ export default function Layout({ children, currentPageName }) {
                 <Link to="/press-notice" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Legal</Link>
                 <Link to="/privacy" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Privacy</Link>
                 <Link to="/terms" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Terms</Link>
+                <Link to="/data-safety" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Data Safety</Link>
               </div>
             </div>
             <div className="text-center md:text-right space-y-2">
