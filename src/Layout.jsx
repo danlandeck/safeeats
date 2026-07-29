@@ -7,7 +7,7 @@ import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
 
 // Cartoony nav pill style — applied directly to Link for proper semantics
-const navPill = "flex items-center gap-1.5 px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
+const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
               <div role="listitem"><Link to={createPageUrl("About")} className={navPill} aria-label="About SafeEats"><Info className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">About</span></Link></div>
               <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Database className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Coverage</span></Link></div>
 
-              <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Codes</span></Link></div>
+              <div role="listitem" className="hidden sm:block"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Codes</span></Link></div>
               <div role="listitem"><Link to="/press-notice" className={navPill} aria-label="Legal"><Scale className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Legal</span></Link></div>
               <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span className="hidden sm:inline">Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
