@@ -169,9 +169,11 @@ export default function PressNotice() {
             </div>
             <div className="bg-amber-50 rounded-2xl border-l-4 border-amber-500 p-5">
               <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
-              <h3 className="font-extrabold text-slate-900 mb-1">Not Affiliated</h3>
+              <h3 className="font-extrabold text-slate-900 mb-1">Copycats & Grifters</h3>
               <p className="text-sm text-slate-600">
-                safeeats.live is a separate, unaffiliated entity that appeared after SafeEats' public launch.
+                safeeats.live registered their domain one day after SafeEats was featured in the press —
+                then tried to pass off the original work as their own. They are not affiliated with, endorsed by,
+                or connected to the real SafeEats. Don't be fooled by the knockoff.
               </p>
             </div>
           </div>
