@@ -5,6 +5,9 @@ const RESOURCE_ID = "75dbb3ff-8281-4f03-9de2-bd1214761302"; // Updated 2026-07: 
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const { action, name, establishmentId } = body;
 

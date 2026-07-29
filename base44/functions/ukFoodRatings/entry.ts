@@ -9,6 +9,8 @@ const FSA_HEADERS = {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const { action, name, fhrsId } = body;
 
@@ -30,7 +32,7 @@ Deno.serve(async (req) => {
       if (!fhrsId) return Response.json({ error: "fhrsId required" }, { status: 400 });
 
       // Get score descriptors (the individual inspection component scores)
-      const url = `${FSA_BASE}/ScoreDescriptors?establishmentId=${fhrsId}`;
+      const url = `${FSA_BASE}/ScoreDescriptors?establishmentId=${encodeURIComponent(fhrsId)}`;
       const res = await fetch(url, { headers: FSA_HEADERS });
       if (!res.ok) return Response.json({ scoreDescriptors: [] });
       const data = await res.json();

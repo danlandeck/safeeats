@@ -5,6 +5,8 @@ const RESOURCE = "7ee330a8-22ac-4300-b163-8a5ef72e3157";
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
   const { action, name, facilityAccountNumber } = body;
 
