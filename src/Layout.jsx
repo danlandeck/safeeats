@@ -51,11 +51,15 @@ export default function Layout({ children, currentPageName }) {
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
                 <ShieldCheck className="w-5 h-5 text-white" />
-                <span className="font-extrabold text-white tracking-tight">SafeEats</span>
-              </div>
-              <p className="text-xs text-white font-bold">
+                <span className="font-extrabold text-white tracking-tight">SafeEats™</span>
+                </div>
+                <p className="text-xs text-white font-bold">
                 Empowering informed dining decisions through transparency
-              </p>
+                </p>
+                <p className="text-[10px] text-white/60 mt-1 max-w-xs">
+                SafeEats™ is a common-law trademark claim. The ™ symbol indicates the name is used in commerce
+                as a brand identifier — no federal registration or attorney is required to assert these rights.
+                </p>
               <div className="flex gap-3 mt-2 flex-wrap">
                 <Link to="/About" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">About</Link>
 
