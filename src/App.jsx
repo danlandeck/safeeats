@@ -15,6 +15,8 @@ import EmbedGenerator from './pages/EmbedGenerator';
 import Feedback from './pages/Feedback';
 import PitchDeck from './pages/PitchDeck';
 import PressNotice from './pages/PressNotice';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -79,6 +81,8 @@ const AuthenticatedApp = () => {
       <Route path="/contact" element={<LayoutWrapper currentPageName="Feedback"><Feedback /></LayoutWrapper>} />
       <Route path="/pitch" element={<LayoutWrapper currentPageName="PitchDeck"><PitchDeck /></LayoutWrapper>} />
       <Route path="/press-notice" element={<LayoutWrapper currentPageName="PressNotice"><PressNotice /></LayoutWrapper>} />
+      <Route path="/privacy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><PrivacyPolicy /></LayoutWrapper>} />
+      <Route path="/terms" element={<LayoutWrapper currentPageName="TermsOfUse"><TermsOfUse /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
