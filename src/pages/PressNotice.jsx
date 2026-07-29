@@ -1,28 +1,44 @@
 import React from "react";
-import { ShieldCheck, Clock, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import { ShieldCheck, Clock, AlertTriangle, CheckCircle2, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// EDIT: Replace placeholder dates below with your actual verified dates.
+// All dates verified against public records (WHOIS, MI Reporter, git commit history).
 const TIMELINE = [
   {
-    date: "July 10, 2026",
-    title: "SafeEats Press Release Published",
+    date: "February 17, 2026",
+    title: "SafeEats Platform Launched",
     description:
-      "SafeEats officially announced its international food safety platform — built on verified government inspection APIs, a transparent normalization methodology, and months of original research and development.",
+      "SafeEats launched as a functioning application — an international food safety platform built on verified government inspection APIs and months of original development.",
     type: "safeeats",
   },
   {
-    date: "July 14, 2026",
-    title: "safeeats.live Appeared Online",
+    date: "April 10, 2026",
+    title: "Press Release — MI Reporter",
     description:
-      "The safeeats.live website was registered and launched days after SafeEats' public announcement.",
+      "The MI Reporter published a feature article on SafeEats and its creator, publicly announcing the platform to the community.",
+    type: "safeeats",
+    link: "https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/",
+  },
+  {
+    date: "April 11, 2026",
+    title: "safeeats.live Domain Registered",
+    description:
+      "One day after the press release, the safeeats.live domain was registered via NameCheap, Inc. (WHOIS: registered 2026-04-11, updated 2026-04-16).",
     type: "thirdparty",
+    link: "https://www.whois.com/whois/safeeats.live",
+  },
+  {
+    date: "June 24, 2026",
+    title: "Normalization Methodology Published",
+    description:
+      "SafeEats' per-jurisdiction score normalization methodology — the exact conversion formulas across diverse grading systems — was first publicly committed, representing original research and development.",
+    type: "safeeats",
   },
   {
     date: "Present",
     title: "SafeEats Continues Independent Operation",
     description:
-      "SafeEats remains the original platform for verified, transparent food safety data — continuously expanding its live API coverage and original methodology.",
+      "SafeEats remains the original platform for verified, transparent food safety data — continuously expanding live API coverage across multiple countries.",
     type: "safeeats",
   },
 ];
@@ -54,9 +70,30 @@ export default function PressNotice() {
             SafeEats is not affiliated with safeeats.live
           </h1>
           <p className="text-lg text-slate-300 leading-relaxed">
-            This page provides a transparent, timestamped record of SafeEats' original public launch.
-            We encourage all users to verify they are accessing the official SafeEats platform.
+            SafeEats launched on February 17, 2026 and was featured in the MI Reporter on April 10, 2026.
+            The safeeats.live domain was registered the very next day. All dates below are publicly verifiable.
           </p>
+        </div>
+      </section>
+
+      {/* Key Finding Callout */}
+      <section className="bg-red-50 border-y-2 border-red-200 py-8 px-4">
+        <div className="max-w-3xl mx-auto flex items-start gap-4">
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 border-2 border-red-300 flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-900 mb-1" style={{ fontFamily: "Nunito, sans-serif" }}>
+              Registered one day after the press release
+            </h2>
+            <p className="text-sm text-slate-700 leading-relaxed">
+              SafeEats was featured in the{" "}
+              <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="font-bold text-red-600 underline">MI Reporter on April 10, 2026</a>.
+              The <strong>safeeats.live</strong> domain was registered on <strong>April 11, 2026</strong> — one day later — via NameCheap, Inc.
+              (Source:{" "}
+              <a href="https://www.whois.com/whois/safeeats.live" target="_blank" rel="noopener noreferrer" className="font-bold text-red-600 underline">WHOIS public records</a>)
+            </p>
+          </div>
         </div>
       </section>
 
@@ -99,6 +136,11 @@ export default function PressNotice() {
                       {event.title}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed">{event.description}</p>
+                    {event.link && (
+                      <a href={event.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-brand-green hover:underline mt-2">
+                        View source <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}
@@ -132,6 +174,31 @@ export default function PressNotice() {
                 safeeats.live is a separate, unaffiliated entity that appeared after SafeEats' public launch.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Evidence & Sources */}
+      <section className="bg-slate-100 py-12 px-4 border-t border-slate-200">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-black text-slate-900 mb-6" style={{ fontFamily: "Nunito, sans-serif" }}>
+            Public Records & Sources
+          </h2>
+          <div className="space-y-3">
+            <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <ExternalLink className="w-5 h-5 text-brand-green flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 text-sm">MI Reporter — "MIHS graduate serves up SafeEats free web app"</p>
+                <p className="text-xs text-slate-500">Published April 10, 2026</p>
+              </div>
+            </a>
+            <a href="https://www.whois.com/whois/safeeats.live" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <ExternalLink className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 text-sm">WHOIS — safeeats.live domain registration</p>
+                <p className="text-xs text-slate-500">Registered April 11, 2026 via NameCheap, Inc.</p>
+              </div>
+            </a>
           </div>
         </div>
       </section>
