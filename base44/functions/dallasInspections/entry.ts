@@ -22,7 +22,11 @@ Deno.serve(async (req) => {
     if (action === "detail") {
       if (!establishmentId) return Response.json({ error: "establishmentId required" }, { status: 400 });
 
-      const [bizName, addr] = establishmentId.split("||");
+      const [rawBiz, rawAddr] = establishmentId.split("||");
+      // Escape single quotes for SoQL string literals (Socrata uses '' to represent a literal ')
+      const esc = (s) => (s || "").replace(/'/g, "''");
+      const bizName = esc(rawBiz);
+      const addr = esc(rawAddr);
       let where = `upper(program_identifier)='${encodeURIComponent(bizName)}'`;
       if (addr) where += ` AND upper(site_address)='${encodeURIComponent(addr)}'`;
       const url = `${SOCRATA_BASE}?$where=${where}&$limit=500&$order=insp_date DESC`;
