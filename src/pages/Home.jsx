@@ -14,6 +14,7 @@ import FuzzySearchBar from "../components/FuzzySearchBar";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import { saveSearchContext, getSearchContext, clearSearchContext } from "../utils/searchStateCache";
+import PullToRefresh from "../components/PullToRefresh";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner = React.lazy(() => import("../components/CameraScanner"));
@@ -1448,6 +1449,7 @@ export default function Home() {
           </div>
         )}
 
+        <PullToRefresh onRefresh={() => handleSearch(searchQuery)} disabled={!hasSearched || isLoading}>
         <AnimatePresence mode="wait">
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {hasSearched && (
@@ -1609,6 +1611,7 @@ export default function Home() {
               )}
             </motion.div>
         </AnimatePresence>
+        </PullToRefresh>
       </main>
 
       {compareList.length >= 2 && (

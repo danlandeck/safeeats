@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -92,6 +93,16 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  // Sync dark mode with system preference (prefers-color-scheme)
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      document.documentElement.classList.toggle('dark', mql.matches);
+    };
+    apply();
+    mql.addEventListener('change', apply);
+    return () => mql.removeEventListener('change', apply);
+  }, []);
 
   return (
     <AuthProvider>

@@ -6,6 +6,8 @@ import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
 import AccountDeletionButton from "./components/AccountDeletionButton";
+import PageTransition from "./components/PageTransition";
+import BottomTabNav from "./components/BottomTabNav";
 
 // Cartoony nav pill style — applied directly to Link for proper semantics
 const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
@@ -44,7 +46,9 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 safe-area-bottom" id="main-content" tabIndex="-1">{children}</main>
+      <main className="flex-1 pb-16 md:pb-0" id="main-content" tabIndex="-1">
+        <PageTransition>{children}</PageTransition>
+      </main>
 
       {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 text-white mt-auto">
@@ -79,6 +83,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
       </footer>
+      <BottomTabNav />
     </div>
   );
 }
