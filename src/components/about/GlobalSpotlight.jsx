@@ -2,9 +2,9 @@ import { Shield, Globe } from "lucide-react";
 import { Section, Pill } from "./SectionPrimitives";
 
 const UAE_COVERAGE = [
-  { icon: "🏙️", title: "Dubai Municipality", desc: "Dubai Pulse publishes food establishment data publicly. SafeEats uses AI web search (Gemini 3 Flash) to read official Dubai Municipality sources — results clearly labeled as AI-estimated." },
-  { icon: "📊", title: "Normalized A–F Grading", desc: "Dubai's risk matrix and compliance outcomes are normalized to SafeEats' universal 0–100 score and A–F grade." },
-  { icon: "🕌", title: "Halal Verification Flags", desc: "SafeEats surfaces halal certification status where published, critical for dining decisions across the UAE." },
+  { icon: "🏙️", title: "Dubai Municipality", desc: "Dubai Pulse publishes food establishment data publicly. SafeEats™ uses AI web search (Gemini 3 Flash) to read official Dubai Municipality sources — results clearly labeled as AI-estimated." },
+  { icon: "📊", title: "Normalized A–F Grading", desc: "Dubai's risk matrix and compliance outcomes are normalized to SafeEats™' universal 0–100 score and A–F grade." },
+  { icon: "🕌", title: "Halal Verification Flags", desc: "SafeEats™ surfaces halal certification status where published, critical for dining decisions across the UAE." },
   { icon: "🌍", title: "All Seven Emirates", desc: "Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain — covered via AI-assisted research." },
 ];
 
@@ -23,10 +23,10 @@ export default function GlobalSpotlight() {
               <Pill color="bg-indigo-600 text-white">AI-ENHANCED</Pill>
             </div>
             <p className="text-slate-600 leading-relaxed text-sm mb-4">
-              Dubai Municipality is one of the most digitally advanced food safety authorities on the planet. Their open-data platform — <strong>Dubai Pulse</strong> — publishes food establishment data publicly. SafeEats uses AI web search to read official Dubai Municipality sources and present results on the same normalized A–F scale as New York, London, and Toronto. Results are clearly labeled as AI-estimated.
+              Dubai Municipality is one of the most digitally advanced food safety authorities on the planet. Their open-data platform — <strong>Dubai Pulse</strong> — publishes food establishment data publicly. SafeEats™ uses AI web search to read official Dubai Municipality sources and present results on the same normalized A–F scale as New York, London, and Toronto. Results are clearly labeled as AI-estimated.
             </p>
             <div className="bg-white rounded-2xl border border-yellow-200 p-5 mb-4 shadow-sm">
-              <p className="text-xs font-extrabold text-green-700 uppercase tracking-widest mb-3">What SafeEats Covers for the UAE</p>
+              <p className="text-xs font-extrabold text-green-700 uppercase tracking-widest mb-3">What SafeEats™ Covers for the UAE</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {UAE_COVERAGE.map(({ icon, title, desc }) => (
                   <div key={title} className="flex gap-3 items-start p-3 bg-yellow-50 rounded-xl border border-yellow-100">
@@ -42,7 +42,7 @@ export default function GlobalSpotlight() {
             <div className="bg-slate-900 rounded-2xl p-4 text-white">
               <p className="text-sm font-bold mb-1">🏆 Why Dubai Is a Model for the World</p>
               <p className="text-slate-300 text-xs leading-relaxed">
-                Dubai's approach to open food safety data is an international benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats uses AI to read these official sources and present them on the same screen as New York, London, and Toronto — clearly labeled as AI-estimated where no direct API connector exists yet.
+                Dubai's approach to open food safety data is an international benchmark. By making inspection records publicly searchable, Dubai Municipality empowers both residents and the 20+ million annual visitors to make informed dining decisions. SafeEats™ uses AI to read these official sources and present them on the same screen as New York, London, and Toronto — clearly labeled as AI-estimated where no direct API connector exists yet.
               </p>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function GlobalSpotlight() {
               <Pill color="bg-blue-100 text-blue-700">Color scale</Pill>
             </div>
             <p className="text-slate-600 leading-relaxed text-sm mb-4">
-              SafeEats adopts Esri's diverging health-risk color ramp — the same green→yellow→red visual language public health agencies use worldwide — so a safety score reads instantly at a glance, even for users with color vision deficiencies. This is an open/public GIS standard we build on; SafeEats is not formally partnered with Esri.
+              SafeEats™ adopts Esri's diverging health-risk color ramp — the same green→yellow→red visual language public health agencies use worldwide — so a safety score reads instantly at a glance, even for users with color vision deficiencies. This is an open/public GIS standard we build on; SafeEats™ is not formally partnered with Esri.
             </p>
             <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors shadow-sm">
               Learn more about Esri →

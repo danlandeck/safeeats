@@ -57,7 +57,7 @@ export default function ConsentBanner({ onAccept, onDecline }) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-base leading-snug mb-1">Enable Location & Cookies</p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              SafeEats uses your <strong className="text-white">location</strong> to show nearby restaurant inspection results and <strong className="text-white">cookies</strong> to remember your preferences. We never sell your data.
+              SafeEats™ uses your <strong className="text-white">location</strong> to show nearby restaurant inspection results and <strong className="text-white">cookies</strong> to remember your preferences. We never sell your data.
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               <button

@@ -23,7 +23,7 @@ export default function Layout({ children, currentPageName }) {
                 <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <span className="font-black text-lg sm:text-xl text-white tracking-tight leading-none">SafeEats</span>
+                <span className="font-black text-lg sm:text-xl text-white tracking-tight leading-none">SafeEats™</span>
                 <div className="text-[8px] sm:text-[9px] text-[#81c784] font-bold leading-none hidden xs:block sm:block" aria-hidden="true">🛡️ Food Safety for Everyone</div>
               </div>
             </a>

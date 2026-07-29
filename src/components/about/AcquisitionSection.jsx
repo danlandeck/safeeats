@@ -14,7 +14,7 @@ export default function AcquisitionSection() {
           Free to use — open to acquisition
         </h2>
         <p className="text-slate-600 leading-relaxed text-sm max-w-xl mb-6">
-          SafeEats is free for everyone. No paywalls, no ads, no enterprise tiers. If you're interested in
+          SafeEats™ is free for everyone. No paywalls, no ads, no enterprise tiers. If you're interested in
           purchasing the technology — the normalization engine, the data pipeline, or the full platform —
           we'd love to talk.
         </p>

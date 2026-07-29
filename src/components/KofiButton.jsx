@@ -3,9 +3,9 @@ import { Heart } from "lucide-react";
 
 export default function KofiButton({ context = "default" }) {
   const messages = {
-    default: "Support SafeEats",
+    default: "Support SafeEats™",
     bad_score: "Saved you from a bad meal? Buy me a coffee!",
-    footer: "Support SafeEats ☕",
+    footer: "Support SafeEats™ ☕",
   };
 
   return (

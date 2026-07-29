@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Database, Globe, Search, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Confirmed LIVE API markets — each has a working, tested API connector in SafeEats.
+// Confirmed LIVE API markets — each has a working, tested API connector in SafeEats™.
 const LIVE_MARKETS = [
   {
     region: "🇺🇸 United States",
@@ -65,20 +65,20 @@ const LIVE_MARKETS = [
   },
 ];
 
-// Markets where food safety data EXISTS but SafeEats uses AI web search (Gemini 3 Flash)
+// Markets where food safety data EXISTS but SafeEats™ uses AI web search (Gemini 3 Flash)
 // rather than a direct API connector. Results are clearly labeled as AI-estimated.
 const AI_ENHANCED_MARKETS = [
-  { city: "Singapore", note: "SFA's SAFE grading system (A/B/C/D) launched January 2026. Grades are publicly searchable on sfa.gov.sg but no per-establishment API is published on data.gov.sg. SafeEats uses AI to read official SFA sources." },
-  { city: "Sydney / NSW, Australia", note: "NSW 'Scores on Doors' program (1–5 stars) is real but run by individual councils — no centralized API exists. data.nsw.gov.au only publishes aggregate offence counts. SafeEats uses AI to estimate from official sources." },
-  { city: "Dubai, UAE", note: "Dubai Municipality's Dubai Pulse platform exists, but SafeEats currently uses AI web search to read official inspection data rather than a direct API connector." },
+  { city: "Singapore", note: "SFA's SAFE grading system (A/B/C/D) launched January 2026. Grades are publicly searchable on sfa.gov.sg but no per-establishment API is published on data.gov.sg. SafeEats™ uses AI to read official SFA sources." },
+  { city: "Sydney / NSW, Australia", note: "NSW 'Scores on Doors' program (1–5 stars) is real but run by individual councils — no centralized API exists. data.nsw.gov.au only publishes aggregate offence counts. SafeEats™ uses AI to estimate from official sources." },
+  { city: "Dubai, UAE", note: "Dubai Municipality's Dubai Pulse platform exists, but SafeEats™ currently uses AI web search to read official inspection data rather than a direct API connector." },
   { city: "Denmark (nationwide)", note: "Danish Smiley Scheme (findsmiley.dk) publishes results for every food establishment. No structured API connector built yet — AI reads the public database." },
   { city: "Seoul / South Korea", note: "Seoul Open Data Plaza and MFDS publish food sanitation data. No API connector built yet — AI reads official sources." },
-  { city: "EU-wide (RASFF)", note: "EU Rapid Alert System for Food and Feed publishes real-time alerts. Not per-establishment inspection data — SafeEats uses AI for country-specific estimates." },
-  { city: "Philadelphia, PA", note: "Philadelphia DPH publishes inspection results, but no Socrata/CKAN API is registered in SafeEats. AI reads official data with location-specific processing." },
+  { city: "EU-wide (RASFF)", note: "EU Rapid Alert System for Food and Feed publishes real-time alerts. Not per-establishment inspection data — SafeEats™ uses AI for country-specific estimates." },
+  { city: "Philadelphia, PA", note: "Philadelphia DPH publishes inspection results, but no Socrata/CKAN API is registered in SafeEats™. AI reads official data with location-specific processing." },
 ];
 
 const AI_RESEARCH_MARKETS = [
-  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance via local 保健所 (health centers). No public API — SafeEats uses AI to read official Japanese health inspection records." },
+  { city: "Japan (Tokyo)", note: "Tokyo Metropolitan Government tracks food sanitation compliance via local 保健所 (health centers). No public API — SafeEats™ uses AI to read official Japanese health inspection records." },
   { city: "Germany", note: "No nationwide hygiene rating system. Local Lebensmittelüberwachung offices publish some results. AI reads verbraucherportal.de and state health authority records." },
   { city: "Brazil (São Paulo)", note: "ANVISA oversees national regulation; VISA São Paulo publishes inspection records. No per-establishment API — AI reads Vigilância Sanitária records." },
   { city: "India (Mumbai, Delhi)", note: "FSSAI maintains a national licensing database (fssai.gov.in). AI reads FSSAI registration data and municipal corporation food safety records." },
@@ -118,7 +118,7 @@ export default function GlobalCoverage() {
             <span className="text-[#4CAF50]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
+            Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats™ links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
@@ -143,7 +143,7 @@ export default function GlobalCoverage() {
             <div>
               <p className="font-extrabold text-base mb-1">Why Open Data Matters</p>
               <p className="text-slate-300 text-sm leading-relaxed">
-                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats unifies the ones with accessible data into a single, normalized system. Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions with no accessible data, we link to the official portal — but we don't claim that as coverage.
+                Every jurisdiction below has independently decided that food safety is a <em>public right to know</em> — not a government secret. SafeEats™ unifies the ones with accessible data into a single, normalized system. Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats™ normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions with no accessible data, we link to the official portal — but we don't claim that as coverage.
               </p>
             </div>
           </div>

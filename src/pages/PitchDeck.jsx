@@ -30,7 +30,7 @@ export default function PitchDeck() {
             <span className="text-[#4CAF50]">Food Safety Data</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            SafeEats unifies government inspection records from 23 live data sources across 5 countries
+            SafeEats™ unifies government inspection records from 23 live data sources across 5 countries
             (US, UK, Canada, France, Netherlands), plus AI-assisted search for additional jurisdictions, into a single,
             normalized, commercially scalable dataset. Here's what makes it defensible.
           </p>

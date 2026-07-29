@@ -26,7 +26,7 @@ export default function ADASection() {
             Accessibility is deeply personal to our family. Knowing whether a restaurant is wheelchair accessible, has accessible restrooms, or adequate parking shouldn't require a phone call or a gamble — it should be right there alongside the health score before you ever leave the house.
           </p>
           <div className="bg-white rounded-2xl border border-emerald-200 p-5 mb-4 shadow-sm">
-            <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-3">What SafeEats Checks for Every US Restaurant</p>
+            <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-3">What SafeEats™ Checks for Every US Restaurant</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {CHECKS.map(({ icon, title, desc }) => (
                 <div key={title} className="flex flex-col items-center text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
@@ -40,7 +40,7 @@ export default function ADASection() {
           <div className="bg-emerald-700 rounded-2xl p-4 text-white">
             <p className="text-sm font-bold mb-1">📧 See wrong ADA info? Tell us.</p>
             <p className="text-emerald-100 text-xs leading-relaxed">
-              If SafeEats displays incorrect accessibility information for any restaurant, use the <Link to="/contact" className="underline font-semibold text-white">Feedback page</Link> to report it. Daniel personally follows up with businesses where accessibility data is inaccurate — because every family deserves to know before they show up.
+              If SafeEats™ displays incorrect accessibility information for any restaurant, use the <Link to="/contact" className="underline font-semibold text-white">Feedback page</Link> to report it. Daniel personally follows up with businesses where accessibility data is inaccurate — because every family deserves to know before they show up.
             </p>
           </div>
         </div>

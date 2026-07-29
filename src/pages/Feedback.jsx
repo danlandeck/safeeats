@@ -23,9 +23,9 @@ export default function Feedback() {
     try {
       await base44.integrations.Core.SendEmail({
         to: "dan.landeck@gmail.com",
-        subject: "SafeEats FEEDBACK",
+        subject: "SafeEats™ FEEDBACK",
         body: `
-New SafeEats Feedback Received:
+New SafeEats™ Feedback Received:
 
 Name: ${formData.name}
 Email: ${formData.email}
@@ -34,7 +34,7 @@ Message:
 ${formData.message}
 
 ---
-Submitted from SafeEats App
+Submitted from SafeEats™ App
         `.trim(),
       });
 
@@ -69,7 +69,7 @@ Submitted from SafeEats App
               We'd Love to Hear From You
             </h1>
             <p className="mt-4 text-lg text-slate-600 max-w-xl mx-auto">
-              Your feedback helps us improve SafeEats for food safety seekers everywhere in the world.
+              Your feedback helps us improve SafeEats™ for food safety seekers everywhere in the world.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ Submitted from SafeEats App
                 </label>
                 <Textarea
                   id="message"
-                  placeholder="Tell us what you think about SafeEats, report issues, suggest features, or share your experience..."
+                  placeholder="Tell us what you think about SafeEats™, report issues, suggest features, or share your experience..."
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   required
@@ -163,7 +163,7 @@ Submitted from SafeEats App
               <div>
                 <h3 className="text-sm font-extrabold text-emerald-900 mb-1">Report Incorrect ADA / Accessibility Info</h3>
                 <p className="text-sm text-emerald-800 leading-relaxed mb-2">
-                  Accessibility matters deeply to us. If SafeEats shows incorrect ADA or wheelchair accessibility information for any restaurant, <strong>please report it here</strong>. Daniel personally follows up with businesses where accessibility data is wrong — because every guest deserves accurate info before they arrive.
+                  Accessibility matters deeply to us. If SafeEats™ shows incorrect ADA or wheelchair accessibility information for any restaurant, <strong>please report it here</strong>. Daniel personally follows up with businesses where accessibility data is wrong — because every guest deserves accurate info before they arrive.
                 </p>
                 <p className="text-xs text-emerald-700 font-semibold">
                   📧 Start your message with <span className="bg-emerald-100 px-1.5 py-0.5 rounded font-mono">ADA COMPLAINT:</span> so it gets prioritized.
@@ -178,7 +178,7 @@ Submitted from SafeEats App
             <ul className="text-sm text-slate-600 space-y-1.5">
               <li>• Report bugs or technical issues</li>
               <li>• Suggest new features or improvements</li>
-              <li>• Share your experience using SafeEats</li>
+              <li>• Share your experience using SafeEats™</li>
               <li>• Report incorrect or outdated information</li>
               <li>♿ Report wrong ADA / accessibility info (we follow up with businesses!)</li>
               <li>• General questions or comments</li>

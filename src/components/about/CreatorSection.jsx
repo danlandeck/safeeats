@@ -30,7 +30,7 @@ export default function CreatorSection() {
             ))}
           </div>
           <p className="text-sm text-slate-600 leading-relaxed mb-5">
-            Daniel built SafeEats as a genuine public service — transparent food safety data, free, because the public deserves better than a wall of government PDFs. As a doting father, knowing what's in the food his family eats isn't optional — it's personal. That same drive extends to anyone navigating foreign food systems, managing allergies, or simply trying to make an informed choice about where to eat tonight.
+            Daniel built SafeEats™ as a genuine public service — transparent food safety data, free, because the public deserves better than a wall of government PDFs. As a doting father, knowing what's in the food his family eats isn't optional — it's personal. That same drive extends to anyone navigating foreign food systems, managing allergies, or simply trying to make an informed choice about where to eat tonight.
           </p>
           <div className="flex flex-wrap gap-2">
             {LINKS.map(({ href, label, style }) => (

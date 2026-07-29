@@ -144,7 +144,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
   // ── Share handler ──────────────────────────────────────────────────────────
   const handleShare = async () => {
-    const text = `${restaurant.name} has a ${grade} food safety grade (${restaurant.safetyScore ?? "N/A"}/100) on SafeEats. Check before you eat! ${window.location.href}`;
+    const text = `${restaurant.name} has a ${grade} food safety grade (${restaurant.safetyScore ?? "N/A"}/100) on SafeEats™. Check before you eat! ${window.location.href}`;
     if (navigator.share) {
       try { await navigator.share({ title: `${restaurant.name} Safety Score`, text, url: window.location.href }); }
       catch {}
@@ -367,7 +367,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       <div className="flex items-start gap-3 p-4 rounded-2xl border bg-amber-50 border-amber-200">
         <span className="text-xl flex-shrink-0">☕</span>
         <div className="flex-1">
-          <p className="text-sm font-bold text-slate-700">SafeEats is 100% free — no ads, no paywalls</p>
+          <p className="text-sm font-bold text-slate-700">SafeEats™ is 100% free — no ads, no paywalls</p>
           <p className="text-xs text-slate-500 mt-0.5 mb-3">If this helped you make a better dining decision, consider buying us a coffee.</p>
           <KofiButton context={restaurant.safetyScore !== null && restaurant.safetyScore < 70 ? "bad_score" : "default"} />
         </div>

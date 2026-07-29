@@ -31,14 +31,14 @@ export default function About() {
           <div className="text-center pb-4">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full text-white font-semibold mb-5 shadow-lg">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              About SafeEats
+              About SafeEats™
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
               The World's Source of Truth<br />
               <span className="text-[#4CAF50]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-              Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats links to the official health department portal so you can search manually. We don't call that coverage — it's a redirect, not the invention.
+              Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats™ links to the official health department portal so you can search manually. We don't call that coverage — it's a redirect, not the invention.
             </p>
           </div>
 
@@ -46,12 +46,12 @@ export default function About() {
 
           {/* Why */}
           <Section id="why">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats Exists</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-3">Why SafeEats™ Exists</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats aggregates inspection records from official health departments across five countries and presents them through a single, consistent interface with a universal A–F grading system.
+              Food safety data should be accessible — not buried in county portals, PDF archives, or behind paywalls. SafeEats™ aggregates inspection records from official health departments across five countries and presents them through a single, consistent interface with a universal A–F grading system.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions where no scrapable data exists, we link to the official portal — but that's a convenience, not coverage. The invention is the normalization; where there's nothing to normalize, there's no invention to claim.
+              Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in London, pass/fail in Chicago. SafeEats™ normalizes all of them to a universal 0–100 scale and A–F grade. Apples to apples, wherever we have data. For jurisdictions where no scrapable data exists, we link to the official portal — but that's a convenience, not coverage. The invention is the normalization; where there's nothing to normalize, there's no invention to claim.
             </p>
           </Section>
 
@@ -76,11 +76,11 @@ export default function About() {
               <div>
                 <h2 className="text-lg font-extrabold text-red-900 mb-3">Important Disclaimer</h2>
                 <div className="space-y-2 text-sm text-red-800 leading-relaxed">
-                  <p><strong>SafeEats is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency or official inspection authority.</p>
+                  <p><strong>SafeEats™ is an informational research tool only.</strong> It is not affiliated with, endorsed by, or a substitute for any government health agency or official inspection authority.</p>
                   <p><strong>Data accuracy is not guaranteed.</strong> Scores come from government open-data APIs or AI-assisted lookups of public records. Both may contain errors, omissions, or outdated entries.</p>
                   <p><strong>AI-estimated scores carry additional uncertainty.</strong> For jurisdictions without a live government API, scores are estimated by AI reading publicly available sources — <em>not official government records</em>.</p>
                   <p className="font-bold text-red-900 border-t border-red-200 pt-3">
-                    Always consult your local health department for authoritative records. By using SafeEats you acknowledge data may be incomplete and you are solely responsible for decisions made based on it.
+                    Always consult your local health department for authoritative records. By using SafeEats™ you acknowledge data may be incomplete and you are solely responsible for decisions made based on it.
                   </p>
                 </div>
               </div>

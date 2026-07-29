@@ -2,11 +2,11 @@ import { Camera, Languages } from "lucide-react";
 import { Section, Pill } from "./SectionPrimitives";
 
 const PITFALLS = [
-  { flag: "🦐", text: "Hidden shellfish — Japanese sauces often contain エキス (extract) from shrimp or crab. SafeEats flags these from the ingredient list even when buried in kanji." },
-  { flag: "📅", text: "Expiration labels — 賞味期限 (best before) vs 消費期限 (use by) look identical to untrained eyes. SafeEats translates both and explains the difference." },
-  { flag: "🥛", text: "\"Domestic\" labeling — 国産 means \"Product of Japan\" not \"dairy-free.\" SafeEats reads country-of-origin and surfaces it clearly." },
-  { flag: "📊", text: "Nutrition per 100g — Japan doesn't use US-style \"per serving\" sizing. SafeEats converts and displays calories, fat, sodium in the format you understand." },
-  { flag: "🕌", text: "Halal & vegan flags — Japan's labeling standards differ from Western ones. SafeEats checks ingredient lists, not just packaging claims." },
+  { flag: "🦐", text: "Hidden shellfish — Japanese sauces often contain エキス (extract) from shrimp or crab. SafeEats™ flags these from the ingredient list even when buried in kanji." },
+  { flag: "📅", text: "Expiration labels — 賞味期限 (best before) vs 消費期限 (use by) look identical to untrained eyes. SafeEats™ translates both and explains the difference." },
+  { flag: "🥛", text: "\"Domestic\" labeling — 国産 means \"Product of Japan\" not \"dairy-free.\" SafeEats™ reads country-of-origin and surfaces it clearly." },
+  { flag: "📊", text: "Nutrition per 100g — Japan doesn't use US-style \"per serving\" sizing. SafeEats™ converts and displays calories, fat, sodium in the format you understand." },
+  { flag: "🕌", text: "Halal & vegan flags — Japan's labeling standards differ from Western ones. SafeEats™ checks ingredient lists, not just packaging claims." },
 ];
 
 export default function ScanningSection() {
@@ -27,7 +27,7 @@ export default function ScanningSection() {
           </p>
           <div className="bg-white rounded-2xl border border-blue-200 p-5 mb-4 shadow-sm">
             <p className="text-xs font-extrabold text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Languages className="w-3.5 h-3.5" /> Real Pitfalls SafeEats Helps You Avoid
+              <Languages className="w-3.5 h-3.5" /> Real Pitfalls SafeEats™ Helps You Avoid
             </p>
             <ul className="space-y-2.5 text-sm text-slate-700">
               {PITFALLS.map(({ flag, text }) => (
@@ -39,7 +39,7 @@ export default function ScanningSection() {
             </ul>
           </div>
           <p className="text-sm text-slate-500 italic">
-            Point SafeEats' camera at any sign, label, or menu in any language — it reads, translates, and surfaces what matters most in seconds.
+            Point SafeEats™' camera at any sign, label, or menu in any language — it reads, translates, and surfaces what matters most in seconds.
           </p>
           <p className="text-[10px] text-slate-400 font-semibold mt-2">
             Camera Scanner public beta: April 2026

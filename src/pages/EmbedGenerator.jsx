@@ -36,7 +36,7 @@ export default function EmbedGenerator() {
           <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full mb-4">
             <Code2 className="w-3.5 h-3.5" /> Embed Widget
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900">SafeEats Embed Widget</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">SafeEats™ Embed Widget</h1>
           <p className="text-slate-500 mt-2 text-sm">Add a safety score badge to any website, blog, or review platform.</p>
         </div>
 
@@ -92,7 +92,7 @@ export default function EmbedGenerator() {
               height="130"
               frameBorder="0"
               style={{ borderRadius: "16px", overflow: "hidden", border: "1px solid #e2e8f0" }}
-              title="SafeEats widget preview"
+              title="SafeEats™ widget preview"
             />
           </div>
         )}

@@ -35,7 +35,7 @@ const CONVERSION_ARCHETYPES = [
     formula: "safetyScore = clamp(100 − penaltyPoints, 0, 100)",
     jurisdictions: [
       { source: "King County, WA (Seattle)", native: "Penalty point total (SCORE_INSPECTION)", detail: "100 − SCORE_INSPECTION. Inspection result text (Complete, Incomplete, etc.) shown alongside for context." },
-      { source: "NYC DOHMH", native: "Violation point total (score field)", detail: "100 − violationPoints. NYC's native letter grade (A/B/C) is not used; SafeEats derives its own from the inverted score." },
+      { source: "NYC DOHMH", native: "Violation point total (score field)", detail: "100 − violationPoints. NYC's native letter grade (A/B/C) is not used; SafeEats™ derives its own from the inverted score." },
     ],
   },
   {
@@ -209,7 +209,7 @@ export default function GradingSection() {
         </div>
         <p className="text-sm text-slate-600 leading-relaxed mb-4">
           A single snapshot score can be misleading — a restaurant that scored 95 on its last visit might
-          have averaged 72 over the past three years. SafeEats computes <strong>two distinct grades</strong>
+          have averaged 72 over the past three years. SafeEats™ computes <strong>two distinct grades</strong>
           for every establishment with inspection history, and visualizes them on an interactive trend graph:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -236,7 +236,7 @@ export default function GradingSection() {
             <span className="text-indigo-500">📈</span> Interactive Trend Graph
           </p>
           <p className="text-xs text-slate-600 leading-relaxed mb-2">
-            On each restaurant's detail page (when 2+ inspections exist), SafeEats renders an interactive
+            On each restaurant's detail page (when 2+ inspections exist), SafeEats™ renders an interactive
             area chart showing the score trajectory over time, with:
           </p>
           <ul className="space-y-1 text-xs text-slate-600 ml-1">
@@ -253,7 +253,7 @@ export default function GradingSection() {
             may have just had a single good inspection after years of problems. Conversely, a Current Grade of C
             with a Legacy Grade of A may indicate a recent slip from an otherwise strong track record. This
             dual-grade system gives diners context that a single score cannot — and is a core differentiator
-            of the SafeEats normalization invention.
+            of the SafeEats™ normalization invention.
           </p>
         </div>
       </div>

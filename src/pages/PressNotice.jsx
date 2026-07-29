@@ -6,16 +6,16 @@ import { Link } from "react-router-dom";
 const TIMELINE = [
   {
     date: "February 17, 2026",
-    title: "SafeEats Platform Launched",
+    title: "SafeEats™ Platform Launched",
     description:
-      "SafeEats launched as a functioning application — an international food safety platform built on verified government inspection APIs and months of original development.",
+      "SafeEats™ launched as a functioning application — an international food safety platform built on verified government inspection APIs and months of original development.",
     type: "safeeats",
   },
   {
     date: "April 10, 2026",
     title: "Press Release — MI Reporter",
     description:
-      "The MI Reporter published a feature article on SafeEats and its creator, publicly announcing the platform to the community.",
+      "The MI Reporter published a feature article on SafeEats™ and its creator, publicly announcing the platform to the community.",
     type: "safeeats",
     link: "https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/",
   },
@@ -31,14 +31,14 @@ const TIMELINE = [
     date: "June 24, 2026",
     title: "Normalization Methodology Published",
     description:
-      "SafeEats' per-jurisdiction score normalization methodology — the exact conversion formulas across diverse grading systems — was first publicly committed, representing original research and development.",
+      "SafeEats™' per-jurisdiction score normalization methodology — the exact conversion formulas across diverse grading systems — was first publicly committed, representing original research and development.",
     type: "safeeats",
   },
   {
     date: "Present",
-    title: "SafeEats Continues Independent Operation",
+    title: "SafeEats™ Continues Independent Operation",
     description:
-      "SafeEats remains the original platform for verified, transparent food safety data — continuously expanding live API coverage across multiple countries.",
+      "SafeEats™ remains the original platform for verified, transparent food safety data — continuously expanding live API coverage across multiple countries.",
     type: "safeeats",
   },
 ];
@@ -67,10 +67,10 @@ export default function PressNotice() {
             className="text-3xl sm:text-4xl font-black tracking-tight mb-4"
             style={{ fontFamily: "Nunito, sans-serif" }}
           >
-            SafeEats is not affiliated with safeeats.live
+            SafeEats™ is not affiliated with safeeats.live
           </h1>
           <p className="text-lg text-slate-300 leading-relaxed">
-            SafeEats launched on February 17, 2026 and was featured in the MI Reporter on April 10, 2026.
+            SafeEats™ launched on February 17, 2026 and was featured in the MI Reporter on April 10, 2026.
             The safeeats.live domain was registered the very next day. All dates below are publicly verifiable.
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function PressNotice() {
               Registered one day after the press release
             </h2>
             <p className="text-sm text-slate-700 leading-relaxed">
-              SafeEats was featured in the{" "}
+              SafeEats™ was featured in the{" "}
               <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="font-bold text-red-600 underline">MI Reporter on April 10, 2026</a>.
               The <strong>safeeats.live</strong> domain was registered on <strong>April 11, 2026</strong> — one day later — via NameCheap, Inc.
               (Source:{" "}
@@ -156,12 +156,12 @@ export default function PressNotice() {
             className="text-2xl font-black text-slate-900 mb-6"
             style={{ fontFamily: "Nunito, sans-serif" }}
           >
-            How to Verify You're on the Official SafeEats
+            How to Verify You're on the Official SafeEats™
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="bg-green-50 rounded-2xl border-l-4 border-brand-green p-5">
               <CheckCircle2 className="w-6 h-6 text-green-600 mb-2" />
-              <h3 className="font-extrabold text-slate-900 mb-1">Official SafeEats</h3>
+              <h3 className="font-extrabold text-slate-900 mb-1">Official SafeEats™</h3>
               <p className="text-sm text-slate-600">
                 This platform — independently developed with verified government data sources and original
                 methodology.
@@ -171,9 +171,9 @@ export default function PressNotice() {
               <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
               <h3 className="font-extrabold text-slate-900 mb-1">Copycats & Grifters</h3>
               <p className="text-sm text-slate-600">
-                safeeats.live registered their domain one day after SafeEats was featured in the press —
+                safeeats.live registered their domain one day after SafeEats™ was featured in the press —
                 then tried to pass off the original work as their own. They are not affiliated with, endorsed by,
-                or connected to the real SafeEats. Don't be fooled by the knockoff.
+                or connected to the real SafeEats™. Don't be fooled by the knockoff.
               </p>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function PressNotice() {
             <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <ExternalLink className="w-5 h-5 text-brand-green flex-shrink-0" />
               <div>
-                <p className="font-bold text-slate-900 text-sm">MI Reporter — "MIHS graduate serves up SafeEats free web app"</p>
+                <p className="font-bold text-slate-900 text-sm">MI Reporter — "MIHS graduate serves up SafeEats™ free web app"</p>
                 <p className="text-xs text-slate-500">Published April 10, 2026</p>
               </div>
             </a>
@@ -213,12 +213,12 @@ export default function PressNotice() {
             Our Commitment to Originality & Safety
           </h2>
           <p className="text-slate-300 leading-relaxed mb-4">
-            SafeEats was independently developed with a commitment to verified, transparent food safety data.
+            SafeEats™ was independently developed with a commitment to verified, transparent food safety data.
             Our methodology, data normalization archetypes, and international coverage model are the result of
             original research and development.
           </p>
           <p className="text-slate-300 leading-relaxed mb-6">
-            <strong className="text-white">Legal Notice:</strong> SafeEats' platform, methodology, source code,
+            <strong className="text-white">Legal Notice:</strong> SafeEats™' platform, methodology, source code,
             and data normalization system are original, protected intellectual property. Those who copy,
             plagiarize, or misappropriate this work should understand that intellectual property theft carries
             real legal consequences — and may find themselves in court. We will defend our work.
@@ -227,7 +227,7 @@ export default function PressNotice() {
             to="/"
             className="inline-flex items-center gap-2 bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 py-3 rounded-2xl transition-colors"
           >
-            Return to SafeEats <ArrowRight className="w-4 h-4" />
+            Return to SafeEats™ <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>

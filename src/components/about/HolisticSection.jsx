@@ -4,17 +4,17 @@ const PILLARS = [
   {
     icon: <ClipboardList className="w-5 h-5" />,
     title: "Inspection History",
-    body: "Not just the latest grade — SafeEats shows the full timeline. Repeated violations, clean streaks, and trending patterns tell you whether a restaurant is consistently safe or just had one good day.",
+    body: "Not just the latest grade — SafeEats™ shows the full timeline. Repeated violations, clean streaks, and trending patterns tell you whether a restaurant is consistently safe or just had one good day.",
   },
   {
     icon: <Droplets className="w-5 h-5" />,
     title: "Water Quality",
-    body: "Even a spotless kitchen can't fix contaminated water. SafeEats pulls EPA water system data for the restaurant's area so you know what's coming out of the tap — contaminants, violations, and all.",
+    body: "Even a spotless kitchen can't fix contaminated water. SafeEats™ pulls EPA water system data for the restaurant's area so you know what's coming out of the tap — contaminants, violations, and all.",
   },
   {
     icon: <Accessibility className="w-5 h-5" />,
     title: "Accessibility",
-    body: "Can your grandmother get through the door? Does it have an accessible restroom? A safety grade is meaningless if you can't enter the building. SafeEats checks ADA compliance for every US restaurant.",
+    body: "Can your grandmother get through the door? Does it have an accessible restroom? A safety grade is meaningless if you can't enter the building. SafeEats™ checks ADA compliance for every US restaurant.",
   },
   {
     icon: <ShieldCheck className="w-5 h-5" />,
@@ -34,7 +34,7 @@ export default function HolisticSection() {
           A Holistic Picture of Restaurant Safety
         </h2>
         <p className="text-slate-500 text-sm leading-relaxed max-w-xl mx-auto">
-          Most tools stop at a letter grade. SafeEats doesn't — because a single score can't tell you whether the water is clean, whether the kitchen has a history of repeat violations, or whether your family can even get through the front door.
+          Most tools stop at a letter grade. SafeEats™ doesn't — because a single score can't tell you whether the water is clean, whether the kitchen has a history of repeat violations, or whether your family can even get through the front door.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -54,7 +54,7 @@ export default function HolisticSection() {
         ))}
       </div>
       <p className="text-center text-xs text-slate-900 mt-4 italic">
-        Pest trackers tell you where the rats are. SafeEats tells you whether the restaurant is safe — for everyone, in every way that matters.
+        Pest trackers tell you where the rats are. SafeEats™ tells you whether the restaurant is safe — for everyone, in every way that matters.
       </p>
     </div>
   );

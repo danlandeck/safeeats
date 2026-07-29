@@ -38,7 +38,7 @@ export default function Widget() {
         {/* Header */}
         <div className="bg-slate-900 px-4 py-2 flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-xs font-bold text-slate-300 tracking-wide">SafeEats Safety Score</span>
+          <span className="text-xs font-bold text-slate-300 tracking-wide">SafeEats™ Safety Score</span>
         </div>
 
         {/* Content */}
@@ -64,7 +64,7 @@ export default function Widget() {
 
         {/* Footer */}
         <div className="border-t border-slate-100 px-4 py-1.5 text-center">
-          <span className="text-[10px] text-slate-400">Powered by SafeEats · Click to view full report</span>
+          <span className="text-[10px] text-slate-400">Powered by SafeEats™ · Click to view full report</span>
         </div>
       </a>
     </div>
