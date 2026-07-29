@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { ShieldCheck, Info, Globe, Database } from "lucide-react";
+import { ShieldCheck, Info, Globe, Database, Scale } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
@@ -34,6 +34,7 @@ export default function Layout({ children, currentPageName }) {
               <div role="listitem"><Link to="/global-coverage" className={navPill} aria-label="Coverage"><Database className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Coverage</span></Link></div>
 
               <div role="listitem"><Link to="/country-codes" className={navPill} aria-label="Country codes reference"><Globe className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Codes</span></Link></div>
+              <div role="listitem"><Link to="/press-notice" className={navPill} aria-label="Legal"><Scale className="w-4 h-4" aria-hidden="true" /><span className="hidden sm:inline">Legal</span></Link></div>
               <div role="listitem"><Link to="/contact" className={navPill} aria-label="Contact us">💬 <span className="hidden sm:inline">Contact</span></Link></div>
               <div role="listitem"><LanguageSwitcher /></div>
             </div>
@@ -65,7 +66,7 @@ export default function Layout({ children, currentPageName }) {
 
                 <Link to="/global-coverage" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Coverage</Link>
                 <Link to="/contact" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Contact</Link>
-                <Link to="/press-notice" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Brand Notice</Link>
+                <Link to="/press-notice" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Legal</Link>
               </div>
             </div>
             <div className="text-center md:text-right space-y-2">
