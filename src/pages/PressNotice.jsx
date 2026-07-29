@@ -212,10 +212,16 @@ export default function PressNotice() {
           <h2 className="text-2xl font-black mb-4" style={{ fontFamily: "Nunito, sans-serif" }}>
             Our Commitment to Originality & Safety
           </h2>
-          <p className="text-slate-300 leading-relaxed mb-6">
+          <p className="text-slate-300 leading-relaxed mb-4">
             SafeEats was independently developed with a commitment to verified, transparent food safety data.
             Our methodology, data normalization archetypes, and international coverage model are the result of
             original research and development.
+          </p>
+          <p className="text-slate-300 leading-relaxed mb-6">
+            <strong className="text-white">Legal Notice:</strong> SafeEats' platform, methodology, source code,
+            and data normalization system are original, protected intellectual property. Those who copy,
+            plagiarize, or misappropriate this work should understand that intellectual property theft carries
+            real legal consequences — and may find themselves in court. We will defend our work.
           </p>
           <Link
             to="/"
