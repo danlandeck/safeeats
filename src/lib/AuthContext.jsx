@@ -81,6 +81,15 @@ export const AuthProvider = ({ children }) => {
     base44.auth.redirectToLogin(window.location.href);
   };
 
+  const deleteAccount = async () => {
+    // Clear all user-related local data (favorites, search history, caches)
+    try {
+      localStorage.clear();
+    } catch {}
+    // Clear session and redirect to login
+    base44.auth.logout('/');
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -91,6 +100,7 @@ export const AuthProvider = ({ children }) => {
       appPublicSettings,
       logout,
       navigateToLogin,
+      deleteAccount,
       checkAppState
     }}>
       {children}

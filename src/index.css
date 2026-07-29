@@ -84,9 +84,27 @@
     @apply border-border outline-ring/50;
   }
 
+  html, body {
+    overscroll-behavior-y: none;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Nunito', 'Montserrat', sans-serif;
+  }
+
+  /* Mobile touch target minimum sizes (WCAG 2.5.5 Target Size) */
+  button, [role="button"], input[type="submit"], input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Safe-area insets for notched / edge-to-edge mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Bouncy button press effect — only when motion is OK */

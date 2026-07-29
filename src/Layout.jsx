@@ -5,16 +5,17 @@ import { ShieldCheck, Info, Globe, Database, Scale } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
+import AccountDeletionButton from "./components/AccountDeletionButton";
 
 // Cartoony nav pill style — applied directly to Link for proper semantics
-const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
+const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
 
 export default function Layout({ children, currentPageName }) {
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
       {/* Navigation */}
-      <nav className="bg-slate-900 border-b-4 border-[#4CAF50] sticky top-0 z-50" aria-label="Main navigation" style={{ fontFamily: "Nunito, sans-serif" }}>
+      <nav className="bg-slate-900 border-b-4 border-[#4CAF50] sticky top-0 z-50 safe-area-top" aria-label="Main navigation" style={{ fontFamily: "Nunito, sans-serif" }}>
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5">
           <div className="flex items-center justify-between gap-1 sm:gap-2">
             {/* Logo — big & fun */}
@@ -43,7 +44,7 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1" id="main-content" tabIndex="-1">{children}</main>
+      <main className="flex-1 safe-area-bottom" id="main-content" tabIndex="-1">{children}</main>
 
       {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 text-white mt-auto">
@@ -73,6 +74,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div className="text-center md:text-right space-y-2">
               <KofiButton context="footer" />
+              <AccountDeletionButton />
               </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompareArrows, LocateFixed, Loader2, ShieldCheck } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { REGIONS } from "../utils/regions";
 import { getTranslations } from "../utils/i18n";
 import { useLanguage } from "../lib/LanguageContext";
@@ -13,7 +13,7 @@ import SmartSearchPanel from "../components/SmartSearchPanel";
 import FuzzySearchBar from "../components/FuzzySearchBar";
 import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
-import RestaurantDetail from "../components/RestaurantDetail";
+import { saveSearchContext, getSearchContext, clearSearchContext } from "../utils/searchStateCache";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner = React.lazy(() => import("../components/CameraScanner"));
@@ -942,19 +942,18 @@ const LIVE_API_CITIES = [
 
 export default function Home() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { accept, decline } = useConsent();
   const [region, setRegion]                     = useState("global");
   const [countyId, setCountyId]                 = useState("global");
   const pendingSearchRef                        = useRef(null);
   const searchIdRef                             = useRef(0);
   const [results, setResults]                   = useState([]);
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [detailRows, setDetailRows]             = useState([]);
   const [isLoading, setIsLoading]               = useState(false);
   const abortRef                                = useRef(null);
   const countyIdRef                             = useRef("global");
   const regionRef                               = useRef("global");
-  const [isDetailLoading, setIsDetailLoading]   = useState(false);
+
   const [hasSearched, setHasSearched]           = useState(false);
   const [searchQuery, setSearchQuery]           = useState("");
   const [searchBarQuery, setSearchBarQuery]     = useState("");
@@ -1003,15 +1002,26 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  // Auto-search from URL params (e.g. navigated here from CountyDrillDown)
+  // Restore search state when returning from detail page, or auto-search from URL params
   useEffect(() => {
+    // Check for cached search context (returning from /restaurant/:id)
+    const cached = getSearchContext();
+    if (cached) {
+      clearSearchContext();
+      if (cached.region && REGIONS[cached.region]) { regionRef.current = cached.region; setRegion(cached.region); }
+      if (cached.countyId) { countyIdRef.current = cached.countyId; setCountyId(cached.countyId); }
+      if (cached.locationQuery !== undefined) setLocationQuery(cached.locationQuery);
+      setSearchQuery(cached.query || "");
+      setResults(cached.results || []);
+      setHasSearched(cached.hasSearched || false);
+      return;
+    }
     if (location.state?.restaurant) {
       const { restaurant, region: r, county: c } = location.state;
       if (r && REGIONS[r]) { regionRef.current = r; setRegion(r); }
       if (c) { countyIdRef.current = c; setCountyId(c); }
       setHasSearched(true);
-      setSelectedBusiness(restaurant);
-      setDetailRows(llmToDetailRows(restaurant));
+      navigate(`/restaurant/${restaurant.business_id}`, { state: { restaurant } });
       return;
     }
     const params = new URLSearchParams(window.location.search);
@@ -1038,7 +1048,6 @@ export default function Home() {
     setHasSearched(false);
     regionRef.current = "global"; setRegion("global");
     countyIdRef.current = "global"; setCountyId("global");
-    setSelectedBusiness(null);
     window.history.pushState({}, '', window.location.pathname);
     setViewMode("list");
     setCompareList([]);
@@ -1141,7 +1150,6 @@ export default function Home() {
     setIsLoading(true);
     setHasSearched(true);
     setSearchQuery(query);
-    setSelectedBusiness(null);
     setViewMode("list");
     setSearchError("");
     setIsAISearch(isAICounty);
@@ -1163,21 +1171,6 @@ export default function Home() {
           if (searchIdRef.current !== currentSearchId) return;
           setResults(accurate);
           setIsRefining(false);
-          // If user is already viewing a restaurant detail, update it with
-          // the enriched score/grade so the detail page refreshes live.
-          setSelectedBusiness(prev => {
-            if (!prev) return prev;
-            const enriched = accurate.find(r => r.business_id === prev.business_id);
-            if (!enriched) return prev;
-            // Re-fetch detail rows with the enriched restaurant so the
-            // inspection timeline and violation data also update.
-            engineFetchDetail(enriched).then(rows => {
-              if (searchIdRef.current !== currentSearchId) return;
-              setDetailRows(rows);
-              setSelectedBusiness(p => p ? { ...p, inspectionHistory: rows } : p);
-            });
-            return { ...prev, ...enriched, inspectionHistory: prev.inspectionHistory };
-          });
         },
         onCountUpdate: (bizId, trueCount) => {
           if (searchIdRef.current !== currentSearchId) return;
@@ -1203,63 +1196,17 @@ export default function Home() {
     setIsLoading(false);
   }, [region, countyId, locationQuery, userCoords]);
 
-  const handleSelectBusiness = useCallback(async (biz) => {
-    setSelectedBusiness(biz);
-    window.history.pushState({}, '', `?q=${encodeURIComponent(searchQuery)}&biz=${encodeURIComponent(biz.business_id)}`);
-
-    setIsDetailLoading(true);
-
-    const processRows = (rows) => {
-      setDetailRows(rows);
-      if (rows.length === 0) return;
-
-      const uniqueMap = {};
-      rows.forEach(row => {
-        const key = row.inspection_serial_num || `${row.inspection_date}|${row.inspection_result}`;
-        if (!uniqueMap[key]) uniqueMap[key] = row;
-      });
-      const uniqueRows = Object.values(uniqueMap);
-
-      const actualCount = uniqueRows.length;
-      const sortedDates = uniqueRows.map(r => r.inspection_date).filter(Boolean).sort((a, b) => new Date(b) - new Date(a));
-      const trueLatestDate = sortedDates[0] || biz.latestDate;
-      const mostRecent = uniqueRows.find(r => r.inspection_date === trueLatestDate) || uniqueRows[0];
-      const trueLatestResult = mostRecent?.inspection_result || biz.latestResult;
-
-      let trueSafetyScore = biz.safetyScore;
-      const scoresFromRows = uniqueRows
-        .map(r => {
-          const raw = r.inspection_score !== undefined ? r.inspection_score : r.score;
-          return raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : null;
-        })
-        .filter(s => s !== null && !isNaN(s));
-      if (scoresFromRows.length > 0) {
-        const latestScoreRaw = mostRecent?.inspection_score !== undefined ? mostRecent.inspection_score : mostRecent?.score;
-        if (latestScoreRaw !== undefined && latestScoreRaw !== null) {
-          trueSafetyScore = Math.max(0, Math.min(100, 100 - parseInt(latestScoreRaw)));
-        }
-      }
-
-      const enriched = {
-        ...biz,
-        totalInspections: actualCount,
-        latestDate: trueLatestDate,
-        latestResult: trueLatestResult,
-        safetyScore: trueSafetyScore,
-        inspectionHistory: uniqueRows,
-      };
-      setSelectedBusiness(enriched);
-      setResults(prev => prev.map(r =>
-        r.business_id === biz.business_id
-          ? { ...r, totalInspections: actualCount, latestDate: trueLatestDate, latestResult: trueLatestResult, safetyScore: trueSafetyScore }
-          : r
-      ));
-    };
-
-    const rows = await engineFetchDetail(biz);
-    processRows(rows);
-    setIsDetailLoading(false);
-  }, [searchQuery]);
+  const handleSelectBusiness = useCallback((biz) => {
+    saveSearchContext({
+      query: searchQuery,
+      region: regionRef.current,
+      countyId: countyIdRef.current,
+      locationQuery,
+      results,
+      hasSearched: true,
+    });
+    navigate(`/restaurant/${biz.business_id}`, { state: { restaurant: biz } });
+  }, [searchQuery, locationQuery, results, navigate]);
 
   const handleSwitchToMap = useCallback(() => setViewMode("map"), []);
 
@@ -1407,7 +1354,6 @@ export default function Home() {
                 // Clear results but DO NOT reset region/countyId — preserve the selected city
                 setResults([]);
                 setHasSearched(false);
-                setSelectedBusiness(null);
                 setIsRefining(false);
                 setGradeFilter(null);
                 setFuzzyFilters({ cuisine: "", city: "", minGrade: "" });
@@ -1503,18 +1449,6 @@ export default function Home() {
         )}
 
         <AnimatePresence mode="wait">
-          {selectedBusiness ? (
-            <motion.div key="detail" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-              {isDetailLoading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mb-4" />
-                  <p className="text-sm text-slate-400">{t.loadingDetails}</p>
-                </div>
-              ) : (
-                <RestaurantDetail restaurant={selectedBusiness} inspections={detailRows} onBack={() => setSelectedBusiness(null)} />
-              )}
-            </motion.div>
-          ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {hasSearched && (
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -1610,7 +1544,7 @@ export default function Home() {
                               onSelectRestaurant={handleSelectBusiness}
                               onFilterByGrade={(grade) => setGradeFilter(grade)}
                               userCoords={userCoords}
-                              selectedId={selectedBusiness?.business_id}
+                              selectedId={undefined}
                             />
                           </Suspense>
                         ) : (
@@ -1674,7 +1608,6 @@ export default function Home() {
                 </div>
               )}
             </motion.div>
-          )}
         </AnimatePresence>
       </main>
 

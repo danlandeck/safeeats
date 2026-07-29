@@ -17,6 +17,7 @@ import PitchDeck from './pages/PitchDeck';
 import PressNotice from './pages/PressNotice';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
+import RestaurantDetailPage from './pages/RestaurantDetailPage';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
       <Route path="/press-notice" element={<LayoutWrapper currentPageName="PressNotice"><PressNotice /></LayoutWrapper>} />
       <Route path="/privacy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><PrivacyPolicy /></LayoutWrapper>} />
       <Route path="/terms" element={<LayoutWrapper currentPageName="TermsOfUse"><TermsOfUse /></LayoutWrapper>} />
+      <Route path="/restaurant/:id" element={<LayoutWrapper currentPageName="RestaurantDetailPage"><RestaurantDetailPage /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
