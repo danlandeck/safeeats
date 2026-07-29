@@ -196,7 +196,14 @@ Deno.serve(async (req) => {
       const detailUrl = detail_url || facilityId;
       if (!detailUrl) return Response.json({ inspections: [], source: "portland_oregonlive" });
 
-      const url = detailUrl.startsWith("http") ? detailUrl : `https://restaurants.oregonlive.com${detailUrl}`;
+      // SSRF guard: never fetch client-supplied full URLs. Extract only the path
+      // and always rebuild against the trusted base domain.
+      let pathOnly = detailUrl;
+      if (detailUrl.startsWith("http")) {
+        try { pathOnly = new URL(detailUrl).pathname + new URL(detailUrl).search; }
+        catch { pathOnly = "/"; }
+      }
+      const url = `https://restaurants.oregonlive.com${pathOnly}`;
       const res = await fetch(url, {
         headers: {
           "User-Agent": UA,
