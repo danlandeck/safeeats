@@ -61,6 +61,7 @@ export default function Layout({ children, currentPageName }) {
 
                 <Link to="/global-coverage" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Coverage</Link>
                 <Link to="/contact" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Contact</Link>
+                <Link to="/press-notice" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Brand Notice</Link>
               </div>
             </div>
             <div className="text-center md:text-right space-y-2">

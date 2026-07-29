@@ -1,0 +1,161 @@
+import React from "react";
+import { ShieldCheck, Clock, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+
+// EDIT: Replace placeholder dates below with your actual verified dates.
+const TIMELINE = [
+  {
+    date: "July 10, 2026",
+    title: "SafeEats Press Release Published",
+    description:
+      "SafeEats officially announced its international food safety platform — built on verified government inspection APIs, a transparent normalization methodology, and months of original research and development.",
+    type: "safeeats",
+  },
+  {
+    date: "July 14, 2026",
+    title: "safeeats.live Appeared Online",
+    description:
+      "The safeeats.live website was registered and launched days after SafeEats' public announcement.",
+    type: "thirdparty",
+  },
+  {
+    date: "Present",
+    title: "SafeEats Continues Independent Operation",
+    description:
+      "SafeEats remains the original platform for verified, transparent food safety data — continuously expanding its live API coverage and original methodology.",
+    type: "safeeats",
+  },
+];
+
+const DOT_STYLES = {
+  safeeats: "bg-brand-green border-brand-green",
+  thirdparty: "bg-amber-400 border-amber-500",
+};
+
+const CARD_STYLES = {
+  safeeats: "border-l-4 border-brand-green bg-green-50",
+  thirdparty: "border-l-4 border-amber-500 bg-amber-50",
+};
+
+export default function PressNotice() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Hero */}
+      <section className="bg-slate-900 text-white py-12 sm:py-16 px-4 border-b-4 border-brand-green">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/40 rounded-full px-4 py-1.5 mb-6">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <span className="text-sm font-bold text-red-300">Official Brand Notice</span>
+          </div>
+          <h1
+            className="text-3xl sm:text-4xl font-black tracking-tight mb-4"
+            style={{ fontFamily: "Nunito, sans-serif" }}
+          >
+            SafeEats is not affiliated with safeeats.live
+          </h1>
+          <p className="text-lg text-slate-300 leading-relaxed">
+            This page provides a transparent, timestamped record of SafeEats' original public launch.
+            We encourage all users to verify they are accessing the official SafeEats platform.
+          </p>
+        </div>
+      </section>
+
+      {/* Timeline */}
+      <section className="py-12 sm:py-16 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2
+            className="text-2xl font-black text-slate-900 mb-2"
+            style={{ fontFamily: "Nunito, sans-serif" }}
+          >
+            Timeline of Events
+          </h2>
+          <p className="text-slate-500 mb-8 text-sm">
+            Based on publicly verifiable domain registration records and publication dates.
+          </p>
+
+          <div className="relative">
+            <div className="absolute left-4 sm:left-6 top-2 bottom-2 w-0.5 bg-slate-200" />
+            <div className="space-y-6">
+              {TIMELINE.map((event, i) => (
+                <div key={i} className="relative pl-12 sm:pl-16">
+                  <div
+                    className={`absolute left-0 top-1 w-8 sm:w-12 h-8 sm:h-12 rounded-full flex items-center justify-center border-2 ${DOT_STYLES[event.type]}`}
+                  >
+                    {event.type === "safeeats" ? (
+                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    )}
+                  </div>
+                  <div className={`bg-white rounded-2xl p-5 shadow-md ${CARD_STYLES[event.type]}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-slate-400" />
+                      <span className="text-sm font-bold text-slate-500">{event.date}</span>
+                    </div>
+                    <h3
+                      className="text-lg font-extrabold text-slate-900 mb-2"
+                      style={{ fontFamily: "Nunito, sans-serif" }}
+                    >
+                      {event.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 leading-relaxed">{event.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Verification */}
+      <section className="bg-white py-12 px-4 border-t border-slate-100">
+        <div className="max-w-3xl mx-auto">
+          <h2
+            className="text-2xl font-black text-slate-900 mb-6"
+            style={{ fontFamily: "Nunito, sans-serif" }}
+          >
+            How to Verify You're on the Official SafeEats
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="bg-green-50 rounded-2xl border-l-4 border-brand-green p-5">
+              <CheckCircle2 className="w-6 h-6 text-green-600 mb-2" />
+              <h3 className="font-extrabold text-slate-900 mb-1">Official SafeEats</h3>
+              <p className="text-sm text-slate-600">
+                This platform — independently developed with verified government data sources and original
+                methodology.
+              </p>
+            </div>
+            <div className="bg-amber-50 rounded-2xl border-l-4 border-amber-500 p-5">
+              <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
+              <h3 className="font-extrabold text-slate-900 mb-1">Not Affiliated</h3>
+              <p className="text-sm text-slate-600">
+                safeeats.live is a separate, unaffiliated entity that appeared after SafeEats' public launch.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Statement */}
+      <section className="bg-slate-900 text-white py-12 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <ShieldCheck className="w-12 h-12 text-brand-green mx-auto mb-4" />
+          <h2 className="text-2xl font-black mb-4" style={{ fontFamily: "Nunito, sans-serif" }}>
+            Our Commitment to Originality & Safety
+          </h2>
+          <p className="text-slate-300 leading-relaxed mb-6">
+            SafeEats was independently developed with a commitment to verified, transparent food safety data.
+            Our methodology, data normalization archetypes, and international coverage model are the result of
+            original research and development.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 bg-brand-green hover:bg-brand-green/90 text-white font-bold px-6 py-3 rounded-2xl transition-colors"
+          >
+            Return to SafeEats <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
