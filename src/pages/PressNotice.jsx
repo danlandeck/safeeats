@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldCheck, Clock, AlertTriangle, CheckCircle2, ArrowRight, ExternalLink } from "lucide-react";
+import { ShieldCheck, Clock, ShieldAlert, CheckCircle2, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // All dates verified against public records (WHOIS, MI Reporter, git commit history).
@@ -60,7 +60,7 @@ export default function PressNotice() {
       <section className="bg-slate-900 text-white py-12 sm:py-16 px-4 border-b-4 border-brand-green">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/40 rounded-full px-4 py-1.5 mb-6">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <ShieldAlert className="w-4 h-4 text-red-400" />
             <span className="text-sm font-bold text-red-300">Official Brand Notice</span>
           </div>
           <h1
@@ -71,7 +71,8 @@ export default function PressNotice() {
           </h1>
           <p className="text-lg text-slate-300 leading-relaxed">
             SafeEats™ launched on February 17, 2026 and was featured in the MI Reporter on April 10, 2026.
-            The safeeats.live domain was registered the very next day. All dates below are publicly verifiable.
+            The safeeats.live domain was registered the very next day by rip-off artists looking to cash in on
+            someone else's work. All dates below are publicly verifiable.
           </p>
         </div>
       </section>
@@ -80,7 +81,7 @@ export default function PressNotice() {
       <section className="bg-red-50 border-y-2 border-red-200 py-8 px-4">
         <div className="max-w-3xl mx-auto flex items-start gap-4">
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 border-2 border-red-300 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
+            <ShieldAlert className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <h2 className="text-xl font-black text-slate-900 mb-1" style={{ fontFamily: "Nunito, sans-serif" }}>
@@ -121,7 +122,7 @@ export default function PressNotice() {
                     {event.type === "safeeats" ? (
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     ) : (
-                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      <ShieldAlert className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     )}
                   </div>
                   <div className={`bg-white rounded-2xl p-5 shadow-md ${CARD_STYLES[event.type]}`}>
@@ -168,12 +169,13 @@ export default function PressNotice() {
               </p>
             </div>
             <div className="bg-amber-50 rounded-2xl border-l-4 border-amber-500 p-5">
-              <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
-              <h3 className="font-extrabold text-slate-900 mb-1">Copycats & Grifters</h3>
+              <ShieldAlert className="w-6 h-6 text-amber-600 mb-2" />
+              <h3 className="font-extrabold text-slate-900 mb-1">Copycats & Rip-Off Artists</h3>
               <p className="text-sm text-slate-600">
                 safeeats.live registered their domain one day after SafeEats™ was featured in the press —
-                then tried to pass off the original work as their own. They are not affiliated with, endorsed by,
-                or connected to the real SafeEats™. Don't be fooled by the knockoff.
+                then tried to pass off the original work as their own. These rip-off artists are not affiliated
+                with, endorsed by, or connected to the real SafeEats™. Don't be fooled by the knockoff —
+                they're selling you someone else's hard work as their own.
               </p>
             </div>
           </div>
