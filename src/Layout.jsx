@@ -10,23 +10,23 @@ import PageTransition from "./components/PageTransition";
 import BottomTabNav from "./components/BottomTabNav";
 
 // Cartoony nav pill style — applied directly to Link for proper semantics
-const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:ring-offset-2 focus:ring-offset-slate-900";
+const navPill = "flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-extrabold text-slate-300 hover:text-white hover:bg-white/15 rounded-2xl transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-authority-teal focus:ring-offset-2 focus:ring-offset-slate-900";
 
 export default function Layout({ children, currentPageName }) {
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
       {/* Navigation */}
-      <nav className="bg-slate-900 border-b-4 border-[#4CAF50] sticky top-0 z-50 safe-area-top" aria-label="Main navigation" style={{ fontFamily: "Nunito, sans-serif" }}>
+      <nav className="bg-slate-900 border-b-4 border-authority-teal sticky top-0 z-50 safe-area-top" aria-label="Main navigation" style={{ fontFamily: "Nunito, sans-serif" }}>
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5">
           <div className="flex items-center justify-between gap-1 sm:gap-2">
             {/* Logo — big & fun */}
             <a href="/" className="flex items-center gap-2 hover:scale-105 transition-transform flex-shrink-0" aria-label="SafeEats — Home">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#4CAF50] flex items-center justify-center shadow-md border-2 border-white/20" aria-hidden="true">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-authority-teal flex items-center justify-center shadow-md border-2 border-white/20" aria-hidden="true">
                 <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <span className="font-black text-lg sm:text-xl text-white tracking-tight leading-none">SafeEats™</span>
+                <span className="font-heading font-bold text-lg sm:text-xl text-white tracking-tight leading-none">SafeEats™</span>
                 <div className="text-[8px] sm:text-[9px] text-[#81c784] font-bold leading-none hidden xs:block sm:block" aria-hidden="true">🛡️ Food Safety for Everyone</div>
               </div>
             </a>
@@ -57,7 +57,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
                 <ShieldCheck className="w-5 h-5 text-white" />
-                <span className="font-extrabold text-white tracking-tight">SafeEats™</span>
+                <span className="font-heading font-bold text-white tracking-tight">SafeEats™</span>
                 </div>
                 <p className="text-xs text-white font-bold">
                 Empowering informed dining decisions through transparency

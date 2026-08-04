@@ -22,6 +22,7 @@ import KofiButton from "./KofiButton";
 import DataSourceBadge from "./DataSourceBadge";
 import StaleDataBanner from "./StaleDataBanner";
 import OfficialInspectionLink from "./OfficialInspectionLink";
+import VerifiedSourceBadge from "./VerifiedSourceBadge";
 import { base44 } from "@/api/base44Client";
 import { getGrade, getGradeColor, resolveGrade } from "../utils/grading";
 import { isFavorite, toggleFavorite } from "../utils/favorites";
@@ -182,7 +183,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           {/* Name + actions row */}
           <div className="flex items-start justify-between gap-3 mb-5">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              <h1 className="text-2xl md:text-3xl font-heading font-bold text-authority-navy tracking-tight leading-tight">
                 {restaurant.name}
               </h1>
               <div className="flex items-center gap-1.5 mt-1.5 text-sm text-slate-500">
@@ -326,33 +327,14 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
 
         </div>
 
-        {/* Data source — always visible, no dropdown */}
-        <div className="border-t border-slate-100 px-4 sm:px-6 py-4 text-xs text-slate-500 space-y-2">
-          <div className="flex items-center gap-2 mb-1">
+        {/* Verified source — authority evidence badge */}
+        <div className="border-t border-slate-100 px-4 sm:px-6 py-4 space-y-3">
+          <VerifiedSourceBadge restaurant={restaurant} sourceInfo={sourceInfo} />
+          <div className="flex items-center gap-2">
             <DataSourceBadge restaurant={restaurant} size="md" />
           </div>
-          {sourceInfo ? (
-            <p className="flex items-start gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-600 mt-0.5" />
-              Official data from{" "}
-              <a href={sourceInfo.url} target="_blank" rel="noopener noreferrer"
-                className="text-blue-600 hover:underline font-medium inline-flex items-center gap-0.5">
-                {sourceInfo.name} <ExternalLink className="w-2.5 h-2.5" />
-              </a>
-            </p>
-          ) : restaurant.isLLMData ? (
-            <p className="flex items-start gap-1.5">
-              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              This data was retrieved via live web search of publicly available health department records by AI (Gemini 3 Flash).
-            </p>
-          ) : (
-            <p className="flex items-start gap-1.5">
-              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              This location's data was retrieved via AI-assisted research from publicly available health department records.
-            </p>
-          )}
           {latestDate && (
-            <p className="flex items-center gap-1.5">
+            <p className="flex items-center gap-1.5 text-xs text-slate-500">
               <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
               Last inspection on record:{" "}
               <span className="font-semibold text-slate-700">
@@ -386,7 +368,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
         <div id="score-trend" className="scroll-mt-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-slate-500" />
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Score Over Time</h2>
+            <h2 className="text-base font-heading font-bold text-authority-navy tracking-tight">Score Over Time</h2>
             <span className="text-xs text-slate-400">— is it getting better or worse?</span>
           </div>
           <InspectionTrendChart inspections={uniqueInspections} />
@@ -397,7 +379,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
       <div id="inspection-history" className="scroll-mt-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-base font-heading font-bold text-authority-navy tracking-tight">
               📋 Inspection History
             </h2>
             {uniqueInspections.length > 0 && (

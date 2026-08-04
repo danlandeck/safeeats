@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap&font-display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Nunito:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap&font-display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -31,6 +31,8 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --font-heading: 'Lora', Georgia, serif;
+    --font-body: 'Nunito', 'Montserrat', sans-serif;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -90,7 +92,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Nunito', 'Montserrat', sans-serif;
+    font-family: var(--font-body);
   }
 
   /* Mobile touch target minimum sizes (WCAG 2.5.5 Target Size) */
@@ -180,7 +182,7 @@
 
   /* WCAG 2.4.7 — Visible focus indicator for all interactive elements */
   :focus-visible {
-    outline: 3px solid #4CAF50 !important;
+    outline: 3px solid #0D9488 !important;
     outline-offset: 2px !important;
   }
 

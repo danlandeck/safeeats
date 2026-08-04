@@ -6,6 +6,8 @@ module.exports = {
   	extend: {
   		fontFamily: {
   			nunito: ['Nunito', 'Montserrat', 'sans-serif'],
+  			heading: ['var(--font-heading)', 'Georgia', 'serif'],
+  			body: ['var(--font-body)', 'Nunito', 'Montserrat', 'sans-serif'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -17,6 +19,12 @@ module.exports = {
   		colors: {
   			'brand-green': '#4CAF50',
   			'brand-blue': '#2196F3',
+  			'authority-navy': '#0F172A',
+  			'authority-teal': '#0D9488',
+  			'authority-gold': '#B45309',
+  			'authority-cream': '#F8FAFC',
+  			'authority-slate': '#1E293B',
+  			'authority-mist': '#F1F5F9',
   			'cartoon-yellow': '#FFE44D',
   			'cartoon-orange': '#FF8C42',
   			'cartoon-pink': '#FF6B9D',
