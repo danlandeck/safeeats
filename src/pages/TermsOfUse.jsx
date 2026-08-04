@@ -52,12 +52,21 @@ export default function TermsOfUse() {
 
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-2">3. Intellectual Property</h2>
+          <div className="bg-slate-100 rounded-xl p-4 mb-3 border border-slate-200">
+            <p className="text-sm font-bold text-slate-900">
+              © 2026 SafeEats™. All rights reserved.
+            </p>
+          </div>
           <p className="text-sm">
-            The SafeEats™ name, logo, and original software are protected by common-law trademark and
-            copyright. The "™" symbol indicates a common-law trademark claim — no federal registration
-            is required to assert brand rights. Government data displayed on the Service remains the
-            property of the respective issuing agencies. You may not copy, redistribute, or scrape the
-            Service's compiled data for commercial purposes without written permission.
+            The SafeEats™ name, logo, original software, UI design, and all written content are the
+            intellectual property of the SafeEats™ creator. Copyright protection is automatic under
+            U.S. law (17 U.S.C. § 102) — no registration is required for copyright to vest. The "™"
+            symbol indicates a common-law trademark claim asserted through use in commerce — no federal
+            registration is required to assert brand rights. Government data displayed on the Service
+            remains the property of the respective issuing agencies and is presented under fair use
+            for informational purposes. You may not copy, redistribute, reverse-engineer, or scrape
+            the Service's compiled data, source code, or original content for commercial purposes
+            without written permission.
           </p>
         </section>
 
