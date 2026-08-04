@@ -66,6 +66,9 @@ export default function Layout({ children, currentPageName }) {
                 SafeEats™ is a common-law trademark claim. The ™ symbol indicates the name is used in commerce
                 as a brand identifier — no federal registration or attorney is required to assert these rights.
                 </p>
+                <p className="text-[10px] text-white/80 mt-2 font-bold">
+                © 2026 SafeEats™. All rights reserved.
+                </p>
               <div className="flex gap-3 mt-2 flex-wrap">
                 <Link to="/About" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">About</Link>
 
