@@ -10,100 +10,6 @@ const GRADE_TABLE = [
   { grade: "U", range: "No data", color: "bg-slate-400", text: "text-white", label: "Unknown" },
 ];
 
-// ── Conversion Archetypes ─────────────────────────────────────────────────────
-// Every jurisdiction's native scoring system is converted to a 0–100 intermediate
-// via one of seven distinct methodologies. The conversion rules below are the
-// auditable, code-level formulas — not approximate descriptions.
-const CONVERSION_ARCHETYPES = [
-  {
-    id: "direct",
-    name: "Archetype 1 — Direct Pass-Through",
-    principle: "Native score is already a 0–100 safety score. No arithmetic conversion needed; clamped to [0, 100].",
-    formula: "safetyScore = clamp(nativeScore, 0, 100)",
-    jurisdictions: [
-      { source: "LA County DPH", native: "Numeric score 0–100 (SCORE field)", detail: "Already a 0–100 safety score. Used directly. Grade letter (A/B/C) from source preserved." },
-      { source: "Louisville / Jefferson Co., KY", native: "Numeric score 0–100", detail: "Already a 0–100 safety score. Used directly; native letter grade (A/B/C/D/U) preserved when available." },
-      { source: "Wake County, NC", native: "Numeric score 0–100 (SCORE field)", detail: "Already a 0–100 safety score. Used directly." },
-      { source: "Alabama (ADPH, state-wide)", native: "Numeric score 0–100", detail: "Backend scraper extracts numeric score from ADPH portal. Used directly." },
-      { source: "Dallas County, TX", native: "Numeric score 0–100 (score field)", detail: "Socrata API. Score is already a 0–100 safety score (100 = perfect, deductions lower it). Used directly." },
-    ],
-  },
-  {
-    id: "inversion",
-    name: "Archetype 2 — Penalty Point Inversion",
-    principle: "Native score is a penalty/deduction point total (higher = worse). Inverted via 100 − penaltyPoints to produce a safety score (higher = better).",
-    formula: "safetyScore = clamp(100 − penaltyPoints, 0, 100)",
-    jurisdictions: [
-      { source: "King County, WA (Seattle)", native: "Penalty point total (SCORE_INSPECTION)", detail: "100 − SCORE_INSPECTION. Inspection result text (Complete, Incomplete, etc.) shown alongside for context." },
-      { source: "NYC DOHMH", native: "Violation point total (score field)", detail: "100 − violationPoints. NYC's native letter grade (A/B/C) is not used; SafeEats™ derives its own from the inverted score." },
-    ],
-  },
-  {
-    id: "weighted",
-    name: "Archetype 3 — Weighted Violation Count",
-    principle: "Native data provides violation counts by severity tier. Each tier carries a fixed point weight; sum is subtracted from 100.",
-    formula: "safetyScore = clamp(100 − Σ(tierWeightᵢ × countᵢ), 0, 100)",
-    jurisdictions: [
-      { source: "NY State DOH", native: "Critical + non-critical violation counts", detail: "100 − (criticals × 7 + nonCriticals × 2). Weights: critical = 7 pts, non-critical = 2 pts." },
-      { source: "Boston, MA", native: "Critical (**) + minor violation counts", detail: "100 − (criticals × 8 + minors × 2). Violations marked '**' = critical (8 pts), all others = minor (2 pts)." },
-      { source: "Washington DC", native: "Priority + priority foundation + core counts", detail: "100 − (priority × 7 + priorityFoundation × 4 + round(core × 1.5)). FDA Food Code tier weights." },
-      { source: "Illinois CDP Portal", native: "Risk factor + good retail + repeat counts", detail: "100 − (riskFactor × 7 + round(goodRetail × 1.5) + repeat × 3). Additional penalty for repeat violations." },
-      { source: "Indiana Marion Co. (Indianapolis)", native: "Priority + priority foundation + core counts", detail: "100 − (priority × 7 + priorityFoundation × 4 + core × 2). FDA Food Code tier weights from MCPHD portal." },
-      { source: "Florida DBPR", native: "High priority + intermediate + basic counts", detail: "100 − (highPriority × 10 + intermediate × 5 + basic × 2). Tiered weights for FL DBPR violation categories." },
-    ],
-  },
-  {
-    id: "tiered",
-    name: "Archetype 4 — Violation Count Tiered Mapping",
-    principle: "Native data provides only a raw violation count (no severity tiers). A tiered lookup table maps count ranges to fixed safety scores.",
-    formula: "safetyScore = tieredLookup(violationCount)",
-    jurisdictions: [
-      { source: "Delaware", native: "Violation count per inspection", detail: "0 violations → 95; 1–2 → 80; 3–5 → 65; 6–10 → 50; 11+ → 30. No severity data available from DPH API." },
-      { source: "Tri-County Colorado (Adams, Arapahoe, Douglas)", native: "Foodborne illness risk + good retail practice counts", detail: "riskIndex = risk × 7 + round(goodRetail × 1.5). If riskIndex ≥ 110 → 20; if ≥ 50 → 45; else max(55, 95 − riskIndex). Hybrid of weighted + tiered." },
-    ],
-  },
-  {
-    id: "result",
-    name: "Archetype 5 — Result-Based Discrete Mapping",
-    principle: "Native data uses Pass/Fail/Conditional outcomes without numeric scores. Each outcome maps to a fixed penalty subtracted from 100; violation counts add additional deductions.",
-    formula: "safetyScore = clamp(100 − basePenalty(outcome) − violationDeduction, 0, 100)",
-    jurisdictions: [
-      { source: "Chicago, IL (CDPH)", native: "Pass / Pass w/ Conditions / Fail", detail: "Pass → 92 (100−8); Pass w/ Conditions → 76 (100−24); Fail → 45 (100−55). Fixed penalties per outcome." },
-      { source: "San Francisco, CA", native: "Facility rating status + violation count", detail: "Closed → 20 (100−80); Conditional → 100−(35+violations×3); Pass → 100−(violations×3). Base penalty + per-violation deduction." },
-      { source: "Toronto DineSafe (Canada)", native: "Closed / Conditional Pass / Pass + infractions", detail: "100 − (closedCount × 20 + conditionalCount × 5 + otherInfractions × 1). Aggregated across all inspection visits." },
-      { source: "Stanislaus County, CA", native: "Permit status (Open / Closed)", detail: "Closed → 25; Open → 85. Binary status mapping; no per-violation granularity available." },
-      { source: "Australia NSW / QLD", native: "Pass / Fail / Notice outcome per inspection", detail: "Latest = Fail → 45; 0 historical fails → 88; some historical fails → 72. Three-tier mapping based on latest + history." },
-      { source: "France — Alim'confiance (DGCCRF)", native: "4-tier evaluation (Très satisfaisant to À améliorer)", detail: "Code 1 (Très satisfaisant) → 95; 2 (Satisfaisant) → 82; 3 (Acceptable) → 68; 4 (À améliorer) → 40. OpenDataSoft API." },
-      { source: "Netherlands — NVWA", native: "Compliance status (Voldoet / Niet voldoet)", detail: "Voldoet (compliant) → 88; Niet voldoet (non-compliant) → 45; Geen recente gegevens → null (U). Backend HTML scraping." },
-    ],
-  },
-  {
-    id: "lookup",
-    name: "Archetype 6 — Grade/Star Lookup Table",
-    principle: "Native data uses a categorical grade or star rating. A fixed lookup table maps each category to a safety score. When sub-scores are available, a penalty-inversion formula is used instead.",
-    formula: "safetyScore = lookupTable[nativeGrade] OR clamp(100 − (subscores / maxPenalty) × 100, 0, 100)",
-    jurisdictions: [
-      { source: "UK FSA (FHRS) — LIVE", native: "0–5 star rating + sub-scores (Hygiene, Structural, Confidence in Management)", detail: "If sub-scores present: 100 − ((Hygiene + Structural + ConfidenceInManagement) / 80) × 100, clamped. Else star lookup: 5★→95, 4★→82, 3★→68, 2★→52, 1★→35, 0★→15. 'Pass'→92, 'Improvement Required'→55." },
-      { source: "FVHD, CT (Farmington Valley) — LIVE", native: "Letter grade A/B/C/U", detail: "A→95, B→85, C→75, U→30. Fixed lookup per FVHD food rating." },
-    ],
-  },
-  {
-    id: "ai",
-    name: "Archetype 7 — AI-Enriched (LLM Web Search)",
-    principle: "For jurisdictions with no live API, Gemini 3 Flash performs live web search of official health department records. The LLM returns either a violation point total (inverted) or a numeric score (used directly), with a confidence level and verification source.",
-    formula: "if violationPoints: safetyScore = clamp(100 − violationPoints, 0, 100); elif latestScore: safetyScore = clamp(latestScore, 0, 100) [bumped to 85 if result=Pass and score<75]; else: null (U grade)",
-    jurisdictions: [
-      { source: "Dubai Municipality (AI-estimated)", native: "High/Medium/Low risk + compliance status", detail: "AI reads Dubai Municipality public sources. Compliance + risk tier → estimated violation points → inverted to safety score." },
-      { source: "Mississippi, Oklahoma, S. Carolina, Utah, SD, VT, WY (backend scrapers)", native: "Numeric score or grade from state portal", detail: "Backend scrapers extract native scores from state health portals. If numeric → Archetype 1 (direct). If grade → Archetype 6 (lookup). If Pass/Fail → Archetype 5 (result-based)." },
-      { source: "All other international jurisdictions (no live API)", native: "Estimated from public web records", detail: "Gemini 3 Flash live web search. Each result carries a confidence level (high/medium/low/none) and verification source. Unverified results are filtered out entirely." },
-    ],
-    patent_disclosure: {
-      status: "EXPLICITLY UNCLAIMED — FALLBACK EMBODIMENT",
-      note: "This archetype is documented as a distinct fallback embodiment for disclosure purposes only. It is NOT claimed in any independent or dependent claim. Per counsel guidance: (1) Post-Alice, 'use an LLM to estimate a value when real data is unavailable' is close to unpatentable as an abstract idea. (2) §112 enablement risk: LLM outputs are not reproducible, which undermines enablement of any claim covering this archetype. (3) Defamation liability exposure: an AI-estimated failing grade (e.g., 'F') displayed on a real, named restaurant that has never failed an inspection creates defamation risk. The confidence filter mitigates but does not eliminate this, as it relies on the model's self-assessed confidence, which is not reliable. (4) Claiming this archetype risks tainting the stronger Archetypes 1–6 claims by association during prosecution. NOTE TO COUNSEL: Exclude from all claims. Retain in disclosure as fallback embodiment only. AI-estimated results (Denmark, Dubai, and all no-API international jurisdictions) are visibly labeled as 'AI-estimated' via DataSourceBadge and StaleDataBanner components on both search cards and detail pages.",
-    },
-  },
-];
-
 export default function GradingSection() {
   return (
     <Section id="grading">
@@ -121,6 +27,7 @@ export default function GradingSection() {
         Raw scores from each jurisdiction (penalty points, pass/fail outcomes, letter grades) are normalized to a universal 0–100 scale. A score of 85 means different underlying criteria in Los Angeles vs. Chicago — the grade gives you a consistent at-a-glance verdict, but always review the full violation history for context.
       </p>
 
+      {/* Pass / Fail jurisdictions */}
       <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex gap-3 items-start mb-6">
         <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm">
           <span className="text-white font-black text-lg">P</span>
@@ -133,6 +40,7 @@ export default function GradingSection() {
         </div>
       </div>
 
+      {/* U grade */}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex gap-3 items-start mb-6">
         <div className="w-10 h-10 rounded-xl bg-slate-400 flex items-center justify-center flex-shrink-0 shadow-sm">
           <span className="text-white font-black text-lg">U</span>
@@ -150,58 +58,21 @@ export default function GradingSection() {
         </div>
       </div>
 
+      {/* Normalization approach — high-level only, no formulas */}
       <div className="flex flex-wrap items-center gap-2 mb-1">
-        <h3 className="text-xl font-extrabold text-slate-900">Normalization by Source</h3>
-        <Pill color="bg-slate-100 text-slate-700">Auditable</Pill>
-        <Pill color="bg-teal-100 text-teal-700">7 Conversion Archetypes</Pill>
+        <h3 className="text-xl font-extrabold text-slate-900">How Normalization Works</h3>
+        <Pill color="bg-slate-100 text-slate-700">Proprietary Method</Pill>
       </div>
       <p className="text-slate-500 text-sm mb-4">
-        Every jurisdiction's native scoring system is converted to the universal 0–100 intermediate via one of seven
-        distinct methodologies. The formulas below are the exact, code-level conversion rules — not approximate descriptions.
-        The 0–100 → letter grade step (A≥90, B≥80, C≥70, D≥60, F&lt;60) is applied uniformly after conversion and is not jurisdiction-specific.
+        Every jurisdiction grades differently — penalty points in LA, letter grades in NYC, star ratings in
+        London, pass/fail in Chicago. SafeEats™ normalizes all of them to a single 0–100 scale using a
+        proprietary conversion methodology tailored to each source's native data structure. The process
+        accounts for the unique scoring scheme of each jurisdiction and is applied uniformly after conversion
+        to derive the letter grade (A≥90, B≥80, C≥70, D≥60, F&lt;60). The specific conversion formulas,
+        weight assignments, and tiered mappings are proprietary to SafeEats™ and are not publicly disclosed.
       </p>
 
-      {CONVERSION_ARCHETYPES.map((archetype) => (
-        <div key={archetype.id} className="mb-5 border border-slate-200 rounded-2xl overflow-hidden">
-          {/* Archetype header */}
-          <div className="bg-slate-900 px-4 py-3">
-            <h4 className="text-sm font-extrabold text-white">{archetype.name}</h4>
-            <p className="text-xs text-slate-300 mt-1 leading-relaxed">{archetype.principle}</p>
-          </div>
-          {/* Formula */}
-          <div className="bg-slate-50 border-b border-slate-200 px-4 py-2.5">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Formula</p>
-            <code className="text-xs font-mono text-slate-800 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 block overflow-x-auto whitespace-pre-wrap break-all">
-              {archetype.formula}
-            </code>
-          </div>
-          {/* Jurisdictions */}
-          <div className="divide-y divide-slate-100">
-            {archetype.jurisdictions.map((j) => (
-              <div key={j.source} className="px-4 py-3">
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-1">
-                  <span className="font-bold text-slate-900 text-sm whitespace-nowrap">{j.source}</span>
-                  <span className="text-xs text-slate-500 font-medium">{j.native}</span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{j.detail}</p>
-              </div>
-            ))}
-          </div>
-          {/* Patent disclosure note — only for unclaimed fallback embodiments */}
-          {archetype.patent_disclosure && (
-            <div className="bg-red-50 border-t-2 border-red-300 px-4 py-3">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-200 px-2 py-0.5 rounded-full">
-                  {archetype.patent_disclosure.status}
-                </span>
-              </div>
-              <p className="text-xs text-red-800 leading-relaxed">{archetype.patent_disclosure.note}</p>
-            </div>
-          )}
-        </div>
-      ))}
-
-      {/* Current vs Legacy Grade */}
+      {/* Current vs Legacy Grade — concept only, no algorithm details */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 mb-6">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <h3 className="text-xl font-extrabold text-slate-900">Current Grade vs Legacy Grade</h3>
@@ -225,7 +96,7 @@ export default function GradingSection() {
             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Legacy Grade</p>
             <p className="text-sm font-bold text-slate-800 mb-1">All-Time Historical Average</p>
             <p className="text-xs text-slate-500 leading-relaxed">
-              The arithmetic mean of every inspection score on record, converted to a letter grade.
+              The average of every inspection score on record, converted to a letter grade.
               This reveals the establishment's <em>long-term</em> safety pattern — not just a single
               good or bad day.
             </p>
@@ -235,169 +106,20 @@ export default function GradingSection() {
           <p className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
             <span className="text-indigo-500">📈</span> Interactive Trend Graph
           </p>
-          <p className="text-xs text-slate-600 leading-relaxed mb-2">
+          <p className="text-xs text-slate-600 leading-relaxed">
             On each restaurant's detail page (when 2+ inspections exist), SafeEats™ renders an interactive
-            area chart showing the score trajectory over time, with:
+            area chart showing the score trajectory over time, with color-coded data points, grade threshold
+            reference lines, and an automatic trend badge (Improving / Stable / Declining) that contextualizes
+            the restaurant's safety direction over time.
           </p>
-          <ul className="space-y-1 text-xs text-slate-600 ml-1">
-            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> Color-coded data points (green ≥90, lime ≥80, amber ≥70, red &lt;70)</li>
-            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> Reference lines for A/B/C/F grade thresholds (90, 80, 70, 60)</li>
-            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> A dashed average line showing the Legacy Grade position</li>
-            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> An automatic trend badge: Improving / Stable / Declining (comparing first-half vs second-half averages)</li>
-            <li className="flex items-start gap-1.5"><span className="text-slate-400 mt-0.5">•</span> A contextual alert when Current Grade differs from Legacy Grade (e.g. "recent decline in safety standards")</li>
-          </ul>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
           <p className="text-xs text-slate-700 leading-relaxed">
             <strong>Why this matters:</strong> A restaurant with a Current Grade of A but a Legacy Grade of C
             may have just had a single good inspection after years of problems. Conversely, a Current Grade of C
             with a Legacy Grade of A may indicate a recent slip from an otherwise strong track record. This
-            dual-grade system gives diners context that a single score cannot — and is a core differentiator
-            of the SafeEats™ normalization invention.
+            dual-grade system gives diners context that a single score cannot.
           </p>
-        </div>
-      </div>
-
-      {/* ── Claim Hierarchy & Footprint (For Counsel) ── */}
-      <div className="bg-slate-900 text-white rounded-2xl p-5 mb-6">
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <h3 className="text-xl font-extrabold text-white">Claim Hierarchy & Footprint</h3>
-          <Pill color="bg-emerald-500 text-white">For Counsel</Pill>
-        </div>
-        <p className="text-sm text-slate-300 leading-relaxed mb-4">
-          The patent covers <strong className="text-white">Archetypes 1–6</strong> over <strong className="text-white">23 live-API sources</strong> across
-          four countries (16 US, 3 UK, 2 Canada, 2 EU — France & Netherlands), plus the <strong className="text-white">dual-grade trend intelligence</strong> method.
-          That is the invention. It is <strong className="text-white">not worldwide</strong> — Archetype 7 (AI-enriched) and all AI-read
-          jurisdictions (Singapore, Dubai, Denmark, Seoul, EU, Philadelphia, and all "On the Radar" markets) are explicitly unclaimed.
-          The disclosure says 23, not 74.
-        </p>
-        <div className="space-y-2 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Independent Claims (ordered by strength)</p>
-          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
-            <p className="text-xs font-bold text-white mb-1">1. Archetype 3 — Weighted Violation Count (Strongest)</p>
-            <p className="text-[11px] text-slate-300 leading-relaxed">Mapping FDA priority / priority-foundation / core, NY critical / non-critical, Boston **, and FL high-priority / intermediate / basic onto one weighted severity-equivalence scale. Six live jurisdictions, real severity-equivalence determinations.</p>
-          </div>
-          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
-            <p className="text-xs font-bold text-white mb-1">2. Dual-Grade Trend Intelligence</p>
-            <p className="text-[11px] text-slate-300 leading-relaxed">Current Grade (most recent inspection) vs. Legacy Grade (all-time historical average), with divergence alerting when the two diverge. No prior art in the disclosure list performs this dual-grade comparison.</p>
-          </div>
-          <div className="bg-slate-800 rounded-xl p-3 border border-emerald-500/30">
-            <p className="text-xs font-bold text-white mb-1">3. Archetype-Selection Method</p>
-            <p className="text-[11px] text-slate-300 leading-relaxed">Routing each jurisdiction to one of six conversion methodologies based on the structure of what it publishes (penalty points → inversion; violation tiers → weighted; pass/fail → result-based; categorical grades → lookup). This selection-by-data-structure routing is arguably the core inventive concept.</p>
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">Dependent Claims</p>
-          <div className="bg-slate-800 rounded-xl p-3 border border-slate-600">
-            <p className="text-xs font-bold text-slate-200 mb-1">Archetypes 2, 4, 5, 6 — as dependent claims</p>
-            <p className="text-[11px] text-slate-400 leading-relaxed">Penalty-point inversion (Arch 2), violation-count tiered mapping (Arch 4), result-based discrete mapping (Arch 5), and grade/star lookup with sub-score inversion (Arch 6 — live: UK FSA + FVHD CT only). Singapore and Denmark removed from Archetype 6; both are AI-read (Archetype 7, unclaimed).</p>
-          </div>
-        </div>
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Hard Cross-Scheme Normalization Example</p>
-          <p className="text-[11px] text-slate-300 leading-relaxed">The genuinely hard claimed example is <strong className="text-white">UK FHRS sub-score inversion</strong> (Hygiene + Structural + Confidence in Management penalty inversion) against US <strong className="text-white">penalty-point</strong> (King County, NYC) and <strong className="text-white">weighted-violation</strong> (NY State, Boston, DC, Illinois, Indiana, Florida) schemes. This is a US/UK/Canada claim — not an international one. Denmark Smiley was previously cited as a cross-scheme example but is AI-read (Archetype 7) and is therefore unclaimed.</p>
-        </div>
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Water Quality — Retrieve + Grade (Not Link-Only)</p>
-          <p className="text-[11px] text-slate-300 leading-relaxed">The About page previously described water as an "EWG link by zip." The actual implementation (<code className="text-[10px] font-mono bg-slate-800 px-1 py-0.5 rounded">EPAWaterCard.jsx</code> + <code className="text-[10px] font-mono bg-slate-800 px-1 py-0.5 rounded">getWaterQuality</code> backend function) retrieves <strong className="text-white">live EPA SDWIS data</strong> (health violations, contaminant counts, unresolved violations over 5 years) and computes a four-tier water quality grade. The EWG link is a fallback only when no EPA water system is on file. Water quality retrieval + grading is a <strong className="text-white">claimable embodiment</strong>, not link-only.</p>
-        </div>
-      </div>
-
-      {/* ── Disclosure Dates (Git-Verified) ── */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Disclosure Dates (Git-Verified)</p>
-        <ul className="space-y-1 text-xs text-slate-600">
-          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> About page first published: <strong className="text-slate-800">February 18, 2026</strong></li>
-          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> Formula-bearing Grading methodology (this section): <strong className="text-slate-800">June 24, 2026</strong></li>
-          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> International Coverage page first published: <strong className="text-slate-800">April 18, 2026</strong></li>
-          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> Camera Scanner public beta: <strong className="text-slate-800">April 4, 2026</strong></li>
-          <li className="flex items-start gap-2"><span className="text-slate-400 mt-0.5">•</span> EPA Water Quality retrieval + grading: <strong className="text-slate-800">April 29, 2026</strong></li>
-        </ul>
-        <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
-          Dates reflect first git commit of each file. Deployment-to-production dates may differ; counsel should request server-side deployment logs for exact public-availability dates if needed for prior-art or critical-date analysis.
-        </p>
-      </div>
-
-      {/* ── Patent Disclosure: Secondary / Unclaimed Embodiments ── */}
-      <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 mb-6">
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <h3 className="text-xl font-extrabold text-red-900">Patent Disclosure — Unclaimed Embodiments</h3>
-          <Pill color="bg-red-200 text-red-800">Not Claimed</Pill>
-          <Pill color="bg-red-100 text-red-700">For Counsel</Pill>
-        </div>
-        <p className="text-sm text-red-800 leading-relaxed mb-4">
-          The following embodiments are documented in this disclosure for completeness and transparency.
-          They are <strong>explicitly excluded from all patent claims</strong> — independent and dependent —
-          and are retained solely as fallback or secondary embodiments. Per counsel guidance, claiming these
-          risks tainting the stronger claims (Archetypes 1–6 normalization, dual-grade trend intelligence)
-          by association during prosecution.
-        </p>
-
-        {/* Camera Scanner — Secondary Embodiment */}
-        <div className="bg-white border border-red-200 rounded-2xl p-4 mb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="text-sm font-extrabold text-slate-900">Secondary Embodiment: Camera Sign Scanner (OCR → Search Pipeline)</h4>
-            <Pill color="bg-red-100 text-red-700">§103 Vulnerable</Pill>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed mb-2">
-            The camera scanner (<code className="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded">CameraScanner.jsx</code>)
-            captures a photo of a restaurant sign, inspection placard, or food label, then uses LLM vision
-            (Gemini with <code className="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded">file_urls</code>) to
-            extract the establishment name and address via OCR. The extracted text is fed into the existing
-            search pipeline as a query string — no score is derived from the image itself.
-          </p>
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-red-700 mb-1">Note to Counsel</p>
-            <p className="text-xs text-red-800 leading-relaxed">
-              This is OCR-into-existing-pipeline — reading a restaurant name sign and searching for it.
-              Combining known prior art (OCR + search query) via an LLM is vulnerable to a §103 obviousness
-              rejection. Documented as a secondary embodiment only; <strong>not claimed</strong>. The food-label
-              decoding variant (allergen/nutrition extraction from packaging) is similarly unclaimed and
-              documented solely for disclosure completeness.
-            </p>
-          </div>
-        </div>
-
-        {/* Archetype 7 cross-reference */}
-        <div className="bg-white border border-red-200 rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="text-sm font-extrabold text-slate-900">Fallback Embodiment: Archetype 7 — AI-Enriched Scores</h4>
-            <Pill color="bg-red-100 text-red-700">Post-Alice / §112</Pill>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            See Archetype 7 above (red disclosure banner). AI-estimated safety scores via LLM web search
-            are documented as a distinct fallback embodiment for jurisdictions with no live API.
-            <strong> Explicitly unclaimed.</strong> Key risks: post-Alice abstract idea (§101),
-            non-reproducible output (§112 enablement), and defamation liability for AI-estimated failing
-            grades on real, named restaurants. AI-estimated results are visibly labeled to end users via
-            DataSourceBadge and StaleDataBanner on both search cards and detail pages.
-          </p>
-        </div>
-      </div>
-
-      {/* Worked examples */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
-        <h4 className="text-sm font-extrabold text-slate-900 mb-3">Worked Examples</h4>
-        <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
-          <div>
-            <p className="font-bold text-slate-800 mb-0.5">UK FHRS Rating of 4 (sub-scores: Hygiene=5, Structural=5, Confidence=10):</p>
-            <p className="font-mono text-slate-600">penalty = 5 + 5 + 10 = 20 → score = 100 − (20/80)×100 = 100 − 25 = <strong className="text-slate-900">75</strong> → Grade C</p>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800 mb-0.5">King County penalty total of 12 points:</p>
-            <p className="font-mono text-slate-600">score = 100 − 12 = <strong className="text-slate-900">88</strong> → Grade B</p>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800 mb-0.5">Chicago restaurant with "Pass w/ Conditions" result:</p>
-            <p className="font-mono text-slate-600">score = 100 − 24 = <strong className="text-slate-900">76</strong> → Grade C</p>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800 mb-0.5">NY State inspection with 3 critical + 5 non-critical violations:</p>
-            <p className="font-mono text-slate-600">penalty = 3×7 + 5×2 = 21 + 10 = 31 → score = 100 − 31 = <strong className="text-slate-900">69</strong> → Grade D</p>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800 mb-0.5">Cross-scheme contrast — same "80" means different things:</p>
-            <p className="font-mono text-slate-600">King County (penalty inversion): 100 − 20 pts = <strong className="text-slate-900">80</strong> → Grade B<br />UK FHRS (sub-score inversion): 100 − (20/80)×100 = <strong className="text-slate-900">75</strong> → Grade C<br />NY State (weighted violations): 100 − (2×7 + 3×2) = <strong className="text-slate-900">80</strong> → Grade B</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Three jurisdictions, three conversion archetypes, one universal scale. This cross-scheme normalization is the core claimed invention.</p>
-          </div>
         </div>
       </div>
     </Section>
