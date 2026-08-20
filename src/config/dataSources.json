@@ -73,12 +73,6 @@
     },
     "default": "none"
   },
-  "IL": {
-    "cities": {
-      "chicago": "cook"
-    },
-    "default": "none"
-  },
   "CA": {
     "cities": {
       "san francisco": "sf",
@@ -270,7 +264,7 @@
   },
   "IL": {
     "cities": {
-      "chicago": "chicago",
+      "chicago": "cook",
       "springfield": "illinois_cdp",
       "granite city": "illinois_cdp",
       "alton": "illinois_cdp",
