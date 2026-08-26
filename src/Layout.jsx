@@ -74,6 +74,7 @@ export default function Layout({ children, currentPageName }) {
 
                 <Link to="/global-coverage" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Coverage</Link>
                 <Link to="/fact-detective" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Fact Detective</Link>
+                <Link to="/data-audit" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Data Audit</Link>
                 <Link to="/contact" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Contact</Link>
                 <Link to="/press-notice" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Legal</Link>
                 <Link to="/privacy" className="text-xs text-white font-bold hover:text-slate-200 transition-colors">Privacy</Link>

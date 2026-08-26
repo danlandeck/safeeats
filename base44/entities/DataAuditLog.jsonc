@@ -1,0 +1,88 @@
+{
+  "name": "DataAuditLog",
+  "description": "Lightweight snapshot of a data integrity audit run \u2014 stored to detect new/updated records between audits. Public read for radical transparency.",
+  "type": "object",
+  "properties": {
+    "audit_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this audit snapshot was recorded"
+    },
+    "total_restaurants": {
+      "type": "number",
+      "default": 0,
+      "description": "Total cached restaurant records at audit time"
+    },
+    "total_water_systems": {
+      "type": "number",
+      "default": 0,
+      "description": "Total water system records at audit time"
+    },
+    "source_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of distinct data sources with records"
+    },
+    "live_api_sources": {
+      "type": "number",
+      "default": 0,
+      "description": "Sources backed by a live government API"
+    },
+    "ai_fallback_sources": {
+      "type": "number",
+      "default": 0,
+      "description": "Sources using AI-enhanced or LLM fallback data"
+    },
+    "total_llm_records": {
+      "type": "number",
+      "default": 0,
+      "description": "Records flagged as AI-generated (isLLMData)"
+    },
+    "llm_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of records that are AI-generated"
+    },
+    "stale_record_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Records whose latest inspection is older than 365 days"
+    },
+    "ada_coverage_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of restaurants with non-unknown ADA status"
+    },
+    "new_records_vs_last": {
+      "type": "number",
+      "default": 0,
+      "description": "New records added since the previous audit snapshot"
+    },
+    "triggered_by": {
+      "type": "string",
+      "description": "User email who triggered the audit, or 'system'"
+    }
+  },
+  "required": [
+    "audit_timestamp",
+    "total_restaurants"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

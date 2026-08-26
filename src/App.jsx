@@ -21,6 +21,7 @@ import TermsOfUse from './pages/TermsOfUse';
 import DataSafety from './pages/DataSafety';
 import RestaurantDetailPage from './pages/RestaurantDetailPage';
 import FactDetective from './pages/FactDetective';
+import DataIntegrityAudit from './pages/DataIntegrityAudit';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -90,6 +91,7 @@ const AuthenticatedApp = () => {
       <Route path="/data-safety" element={<LayoutWrapper currentPageName="DataSafety"><DataSafety /></LayoutWrapper>} />
       <Route path="/restaurant/:id" element={<LayoutWrapper currentPageName="RestaurantDetailPage"><RestaurantDetailPage /></LayoutWrapper>} />
       <Route path="/fact-detective" element={<LayoutWrapper currentPageName="FactDetective"><FactDetective /></LayoutWrapper>} />
+      <Route path="/data-audit" element={<LayoutWrapper currentPageName="DataIntegrityAudit"><DataIntegrityAudit /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
