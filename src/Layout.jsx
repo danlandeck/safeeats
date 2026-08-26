@@ -5,7 +5,7 @@ import { ShieldCheck, Info, Globe, Database, Scale } from "lucide-react";
 import KofiButton from "./components/KofiButton";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import SkipToContent from "./components/SkipToContent";
-import AccountDeletionButton from "./components/AccountDeletionButton";
+
 import PageTransition from "./components/PageTransition";
 import BottomTabNav from "./components/BottomTabNav";
 
@@ -84,7 +84,6 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div className="text-center md:text-right space-y-2">
               <KofiButton context="footer" />
-              <AccountDeletionButton />
               </div>
           </div>
         </div>
