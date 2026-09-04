@@ -112,7 +112,11 @@ export async function fetchDetail(restaurant) {
 
   if (source === "houston") {
     try {
-      const res = await base44.functions.invoke("houstonFoodInspections", { action: "detail", facilityAccountNumber: business_id });
+      const res = await base44.functions.invoke("houstonFoodInspections", {
+        action: "detail",
+        facilityAccountNumber: business_id,
+        inspections: (restaurant.inspections || []).map((i) => i.serial).filter(Boolean),
+      });
       return houstonToDetailRows(res.data?.records || []);
     } catch { return []; }
   }

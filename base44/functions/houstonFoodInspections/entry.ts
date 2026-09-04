@@ -16,7 +16,7 @@ interface InspDetail {
   violationCount: number;
   violations: Violation[];
 }
-interface SearchRow { f: string; i: string; name: string; street: string; city: string; zip: string; dateISO: string; }
+interface SearchRow { f: string; i: string; name: string; street: string; city: string; zip: string; dateISO: string; site: string; }
 
 function decodeEntities(str: string): string {
   return str
@@ -44,6 +44,25 @@ function isoFromMMDD(s: string): string {
 
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// "15821 LEE RD HOUSTON TX, 77032" → street / city / zip.
+// Handles multi-word city names common in the Houston metro.
+function splitAddress(addr: string): { street: string; city: string; zip: string } {
+  const m = addr.match(/^(.+)\s+TX,\s*(\d{5})$/);
+  if (!m) return { street: addr, city: 'Houston', zip: '' };
+  const zip = m[2];
+  const streetCity = m[1].trim();
+  const multiword = ['SUGAR LAND', 'MISSOURI CITY', 'LEAGUE CITY', 'TEXAS CITY', 'DEER PARK', 'LA PORTE', 'THE WOODLANDS', 'GALENA PARK', 'SOUTH HOUSTON', 'JACINTO CITY', 'SPRING VALLEY', 'NASSAU BAY', 'CLEAR LAKE', 'SPRING BRANCH', 'BUNKER HILL', 'HUNTERS CREEK', 'PINEY POINT', 'BAY OAKS', 'FIRST COLONY'];
+  const upper = streetCity.toUpperCase();
+  for (const c of multiword) {
+    if (upper.endsWith(' ' + c)) {
+      return { street: streetCity.slice(0, streetCity.length - c.length - 1).trim(), city: titleCase(c), zip };
+    }
+  }
+  const parts = streetCity.split(/\s+/);
+  const city = parts.length > 1 ? parts.pop() as string : 'Houston';
+  return { street: parts.join(' '), city: titleCase(city), zip };
 }
 
 async function getSession(): Promise<string> {
@@ -90,19 +109,19 @@ function parseSearchRows(html: string): SearchRow[] {
   const rowRe = /<a href="search\.cfm\?q=d&(f=[^&"]+)&(i=[^&"]+)[^"]*">([^<]+)<\/a>\s*<br>\s*([^<]+?)\s*<\/td>\s*<td class="ge_tableData"[^>]*>\s*([^<]*?)\s*<\/td>\s*<td class="ge_tableData"[^>]*>\s*(\d{2}\/\d{2}\/\d{4})\s*<\/td>/gi;
   let m: RegExpExecArray | null;
   while ((m = rowRe.exec(html)) !== null) {
-    const addr = decodeEntities(m[4].replace(/\s+/g, ' '));
-    // "716 KINGWOOD DR HOUSTON TX, 77339"
-    const am = addr.match(/^(.+?)\s+([A-Za-z][A-Za-z .]*?)\s+TX,\s*(\d{5})$/);
     const name = decodeEntities(m[3].replace(/\s+/g, ' '));
     if (!name || name.length < 2) continue;
+    const addr = decodeEntities(m[4].replace(/\s+/g, ' '));
+    const { street, city, zip } = splitAddress(addr);
     rows.push({
       f: decodeURIComponent(m[1].slice(2)),
       i: decodeURIComponent(m[2].slice(2)),
       name,
-      street: am ? am[1].trim() : addr,
-      city: am ? titleCase(am[2].trim()) : 'Houston',
-      zip: am ? am[3] : '',
+      street,
+      city,
+      zip,
       dateISO: isoFromMMDD(m[6]),
+      site: decodeEntities(m[5]).toUpperCase(),
     });
   }
   return rows;
@@ -169,6 +188,15 @@ export default async function (req: Request): Promise<Response> {
         if (!fac) {
           fac = { f: row.f, name: row.name, street: row.street, city: row.city, zip: row.zip, insps: [] };
           facilities.push(fac);
+        }
+        // Same-day duplicates: multiple permits at one address can each be
+        // inspected the same day. Keep the primary ESTABLISHMENT record.
+        const sameDate = fac.insps.find((x) => x.dateISO === row.dateISO);
+        if (sameDate && sameDate.i !== row.i) {
+          if (row.site === 'ESTABLISHMENT' && sameDate.site !== 'ESTABLISHMENT') {
+            fac.insps[fac.insps.indexOf(sameDate)] = row;
+          }
+          continue;
         }
         if (!fac.insps.some((x) => x.i === row.i)) fac.insps.push(row);
       }

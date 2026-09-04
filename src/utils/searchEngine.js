@@ -501,7 +501,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   // Houston
   if (countyId === "houston") {
     try {
-      const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: query });
+      const { nameQuery: houstonName } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("houstonFoodInspections", { action: "search", name: houstonName });
       const records = res.data?.records || [];
       const liveResults = filterByNameRelevance(processHoustonResults(records), query);
       if (liveResults.length > 0) {

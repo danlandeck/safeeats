@@ -68,9 +68,10 @@ export function processHoustonResults(records) {
     const dateKey = extractDate(row.InspectionDate || "");
     const uid = row.InspectionUID || dateKey;
     if (uid && !businesses[id].inspections.find((i) => i.serial === uid)) {
+      const rawScore = row.InspectionScore;
       businesses[id].inspections.push({
         serial: uid, date: dateKey,
-        score: parseInt(row.InspectionScore) || 0,
+        score: rawScore === "" || rawScore == null ? null : (parseInt(rawScore) || 0),
         status: row.InspectionStatus || "",
         type: row.InspectionType || "",
       });
@@ -79,14 +80,16 @@ export function processHoustonResults(records) {
   return Object.values(businesses).map((biz) => {
     biz.inspections.sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = biz.inspections[0];
-    const pts = latest?.score || 0;
-    const safetyScore = Math.max(0, Math.min(100, 100 - pts * 4));
-    const isPassing = /pass/i.test(latest?.status || "");
+    // Houston scores come from violation counts on the official portal —
+    // a missing count must never render as a perfect score.
+    const pts = latest?.score;
+    const safetyScore = pts == null ? null : Math.max(0, Math.min(100, 100 - pts * 4));
+    const statusText = latest?.status || "";
     return {
-      ...biz, safetyScore, grade: resolveGrade(safetyScore, isPassing ? "Pass" : "Fail"),
+      ...biz, safetyScore, grade: resolveGrade(safetyScore, statusText),
       totalInspections: biz.inspections.length,
       latestDate: latest?.date || "",
-      latestResult: isPassing ? "Pass" : "Fail",
+      latestResult: statusText,
       latitude: null, longitude: null, isLLMData: false, source: "houston", ada_compliance: "unknown",
     };
   });
@@ -95,17 +98,18 @@ export function processHoustonResults(records) {
 export function houstonToDetailRows(records) {
   return records.map((row) => {
     const dateKey = extractDate(row.InspectionDate || "");
-    const pts = parseInt(row.InspectionScore) || 0;
-    const isPassing = /pass/i.test(row.InspectionStatus || "");
+    const rawScore = row.InspectionScore;
+    const pts = rawScore === "" || rawScore == null ? null : (parseInt(rawScore) || 0);
+    const status = row.InspectionStatus || "";
     return {
       inspection_serial_num: row.InspectionUID || `houston-${dateKey}`,
       inspection_date: dateKey,
-      inspection_score: String(pts),
-      inspection_result: isPassing ? "Pass" : "Fail",
+      inspection_score: pts == null ? "" : String(pts),
+      inspection_result: status,
       inspection_type: row.InspectionType || "",
       violation_description: row.InspectionComments || "",
-      violation_type: isPassing ? "BLUE" : "RED",
-      violation_points: String(pts),
+      violation_type: /pass/i.test(status) ? "BLUE" : "RED",
+      violation_points: pts == null ? "" : String(pts),
     };
   });
 }
