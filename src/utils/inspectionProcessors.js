@@ -52,3 +52,8 @@ export { processPortlandResults, portlandToDetailRows } from "./processors/portl
 export { processFranceResults, franceToDetailRows } from "./processors/france";
 export { processDallasResults, dallasToDetailRows } from "./processors/dallas";
 export { processNetherlandsResults, netherlandsToDetailRows } from "./processors/netherlands";
+export {
+  processSacramentoResults, sacramentoToDetailRows,
+  processMarinResults, marinToDetailRows,
+  processContraCostaResults, contracostaToDetailRows,
+} from "./processors/caCounties";

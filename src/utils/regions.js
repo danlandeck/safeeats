@@ -32,6 +32,8 @@ export const REGIONS = {
     { id: "fresno", name: "Fresno County", city: "Fresno", hasPublicApi: true },
     { id: "kern", name: "Kern County (Bakersfield)", city: "Bakersfield", hasPublicApi: true },
     { id: "ventura", name: "Ventura County", city: "Ventura", hasPublicApi: true },
+    { id: "marin", name: "Marin County (San Rafael)", city: "San Rafael", hasPublicApi: true },
+    { id: "contra_costa", name: "Contra Costa County (Concord)", city: "Martinez", hasPublicApi: true },
   ]},
   colorado: { name: "Colorado", abbr: "CO", counties: [
     { id: "denver", name: "Denver County", city: "Denver", hasPublicApi: true },

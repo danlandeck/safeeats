@@ -1,25 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { sanitizeForLike, searchTerms, arcgisFeatureQuery } from '../../shared/portalQuery.ts';
 
 // LA County Public Health — Environmental Health "Restaurant and Market Inspections"
 // Live hosted ArcGIS FeatureService (inspection window 07/01/2023–06/30/2026, countywide).
 // Note: excludes Pasadena, Long Beach and Vernon, which operate their own health departments.
 const LAYER_URL = 'https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/Environmental_Health_Restaurant_and_Market_Inspections_33/FeatureServer/0';
-const UA = 'Mozilla/5.0 (compatible; SafeEats/1.0)';
-
-// Strip SQL-injection / LIKE wildcard characters from user input.
-function sanitizeForLike(raw: string): string {
-  return String(raw || '').replace(/['%_\\]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-// The frontend may pass the full search phrase; try it whole, then fall back to
-// its longest words so "Philippe in Los Angeles" still finds "PHILIPPE".
-function searchTerms(name: string): string[] {
-  const clean = sanitizeForLike(name);
-  if (!clean) return [];
-  const words = clean.split(' ').filter((w) => w.length >= 3);
-  const byLength = [...words].sort((a, b) => b.length - a.length);
-  return [clean, ...byLength.slice(0, 2)];
-}
 
 // The service stores SCORE as a string field; emit a number (or null) so the
 // frontend processors can grade/sort consistently.
@@ -30,18 +15,8 @@ function normalizeScore(attrs: Record<string, unknown>): Record<string, unknown>
 }
 
 async function query(where: string, count: number): Promise<Record<string, unknown>[]> {
-  const params = new URLSearchParams({
-    where,
-    outFields: '*',
-    orderByFields: 'ACTIVITY_DATE DESC',
-    resultRecordCount: String(count),
-    returnGeometry: 'false',
-    f: 'json',
-  });
-  const res = await fetch(`${LAYER_URL}/query?${params.toString()}`, { headers: { 'User-Agent': UA } });
-  if (!res.ok) return [];
-  const data = await res.json() as { features?: { attributes?: Record<string, unknown> }[] };
-  return (data.features || []).map((f) => normalizeScore(f.attributes || {}));
+  const rows = await arcgisFeatureQuery(LAYER_URL, where, count);
+  return rows.map(normalizeScore);
 }
 
 async function searchByName(name: string): Promise<Record<string, unknown>[]> {

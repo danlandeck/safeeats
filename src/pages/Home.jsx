@@ -728,6 +728,51 @@ const CITY_TO_COUNTY = {
   "calimesa": { region: "california", countyId: "riverside", locationLabel: "Calimesa, CA" },
   "blythe": { region: "california", countyId: "riverside", locationLabel: "Blythe, CA" },
   "riverside county": { region: "california", countyId: "riverside", locationLabel: "Riverside County, CA" },
+  // Sacramento County, CA — live ArcGIS open data
+  "sacramento": { region: "california", countyId: "sacramento", locationLabel: "Sacramento, CA" },
+  "sacramento county": { region: "california", countyId: "sacramento", locationLabel: "Sacramento County, CA" },
+  "elk grove": { region: "california", countyId: "sacramento", locationLabel: "Elk Grove, CA" },
+  "folsom": { region: "california", countyId: "sacramento", locationLabel: "Folsom, CA" },
+  "citrus heights": { region: "california", countyId: "sacramento", locationLabel: "Citrus Heights, CA" },
+  "rancho cordova": { region: "california", countyId: "sacramento", locationLabel: "Rancho Cordova, CA" },
+  "galt": { region: "california", countyId: "sacramento", locationLabel: "Galt, CA" },
+  "carmichael": { region: "california", countyId: "sacramento", locationLabel: "Carmichael, CA" },
+  "orangevale": { region: "california", countyId: "sacramento", locationLabel: "Orangevale, CA" },
+  "north highlands": { region: "california", countyId: "sacramento", locationLabel: "North Highlands, CA" },
+  // Marin County, CA — live Socrata feed
+  "san rafael": { region: "california", countyId: "marin", locationLabel: "San Rafael, CA" },
+  "mill valley": { region: "california", countyId: "marin", locationLabel: "Mill Valley, CA" },
+  "novato": { region: "california", countyId: "marin", locationLabel: "Novato, CA" },
+  "sausalito": { region: "california", countyId: "marin", locationLabel: "Sausalito, CA" },
+  "san anselmo": { region: "california", countyId: "marin", locationLabel: "San Anselmo, CA" },
+  "fairfax ca": { region: "california", countyId: "marin", locationLabel: "Fairfax, CA" },
+  "larkspur": { region: "california", countyId: "marin", locationLabel: "Larkspur, CA" },
+  "corte madera": { region: "california", countyId: "marin", locationLabel: "Corte Madera, CA" },
+  "tiburon": { region: "california", countyId: "marin", locationLabel: "Tiburon, CA" },
+  "marin county": { region: "california", countyId: "marin", locationLabel: "Marin County, CA" },
+  // Contra Costa County, CA — live EHD portal search
+  "concord": { region: "california", countyId: "contra_costa", locationLabel: "Concord, CA" },
+  "walnut creek": { region: "california", countyId: "contra_costa", locationLabel: "Walnut Creek, CA" },
+  "martinez": { region: "california", countyId: "contra_costa", locationLabel: "Martinez, CA" },
+  "richmond": { region: "california", countyId: "contra_costa", locationLabel: "Richmond, CA" },
+  "pleasant hill": { region: "california", countyId: "contra_costa", locationLabel: "Pleasant Hill, CA" },
+  "antioch": { region: "california", countyId: "contra_costa", locationLabel: "Antioch, CA" },
+  "pittsburg": { region: "california", countyId: "contra_costa", locationLabel: "Pittsburg, CA" },
+  "brentwood": { region: "california", countyId: "contra_costa", locationLabel: "Brentwood, CA" },
+  "oakley": { region: "california", countyId: "contra_costa", locationLabel: "Oakley, CA" },
+  "danville": { region: "california", countyId: "contra_costa", locationLabel: "Danville, CA" },
+  "alamo": { region: "california", countyId: "contra_costa", locationLabel: "Alamo, CA" },
+  "orinda": { region: "california", countyId: "contra_costa", locationLabel: "Orinda, CA" },
+  "moraga": { region: "california", countyId: "contra_costa", locationLabel: "Moraga, CA" },
+  "lafayette": { region: "california", countyId: "contra_costa", locationLabel: "Lafayette, CA" },
+  "pinole": { region: "california", countyId: "contra_costa", locationLabel: "Pinole, CA" },
+  "hercules": { region: "california", countyId: "contra_costa", locationLabel: "Hercules, CA" },
+  "san pablo": { region: "california", countyId: "contra_costa", locationLabel: "San Pablo, CA" },
+  "el sobrante": { region: "california", countyId: "contra_costa", locationLabel: "El Sobrante, CA" },
+  "discovery bay": { region: "california", countyId: "contra_costa", locationLabel: "Discovery Bay, CA" },
+  "bay point": { region: "california", countyId: "contra_costa", locationLabel: "Bay Point, CA" },
+  "san ramon": { region: "california", countyId: "contra_costa", locationLabel: "San Ramon, CA" },
+  "contra costa county": { region: "california", countyId: "contra_costa", locationLabel: "Contra Costa County, CA" },
   // Montgomery County MD
   "rockville": { region: "maryland", countyId: "montgomery_md" },
   "bethesda": { region: "maryland", countyId: "montgomery_md" },
@@ -939,6 +984,9 @@ const LIVE_API_CITIES = [
   { label: "Louisville, KY", region: "kentucky", countyId: "jefferson_ky", emoji: "🍗", example: "KFC", locationLabel: "Louisville, KY" },
   { label: "Alabama (State-wide)", region: "alabama", countyId: "alabama", emoji: "Alabama", example: "McDonald's", locationLabel: "Montgomery, AL" },
   { label: "Phoenix / Maricopa Co., AZ", region: "arizona", countyId: "maricopa", emoji: "🌵", example: "McDonald's", locationLabel: "Phoenix, AZ" },
+  { label: "Sacramento, CA", region: "california", countyId: "sacramento", emoji: "🏛️", example: "pizza", locationLabel: "Sacramento, CA" },
+  { label: "Marin County, CA", region: "california", countyId: "marin", emoji: "⛵", example: "pizza", locationLabel: "San Rafael, CA" },
+  { label: "Contra Costa County, CA", region: "california", countyId: "contra_costa", emoji: "🏞️", example: "pizza", locationLabel: "Concord, CA" },
 ];
 
 export default function Home() {
@@ -1146,7 +1194,7 @@ export default function Home() {
     searchIdRef.current++;
     const currentSearchId = searchIdRef.current;
 
-    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver","alabama","maricopa"].includes(searchCounty);
+    const isAICounty = searchCounty !== "king" && !["nyc","cook","montgomery_md","travis","sf","la","uk_fsa","toronto","delaware","ny_state","boston","houston","stanislaus","singapore","sydney","brisbane","gold_coast","pierce","snhd","wake","jefferson_ky","vancouver","alabama","maricopa","sacramento","marin","contra_costa"].includes(searchCounty);
 
     setIsLoading(true);
     setHasSearched(true);
@@ -1431,7 +1479,7 @@ export default function Home() {
             <div className="bg-slate-900 rounded-2xl p-4 sm:p-5">
               <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">{t.liveDataTitle}</p>
               <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🗽 Alabama (State-wide — 67 counties)", "🌵 Phoenix / Maricopa Co., AZ", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
+                {["🌲 Seattle Metro, WA", "🗽 New York City, NY", "🏔️ NY State (Buffalo, Albany…)", "🏙️ Chicago, IL", "🏛️ Montgomery County, MD", "🤠 Austin, TX", "🌉 San Francisco, CA", "🌴 Los Angeles, CA", "🏛️ Sacramento, CA", "⛵ Marin County, CA", "🏞️ Contra Costa County, CA", "🍁 Toronto, Canada (DineSafe)", "🦅 Delaware", "🦞 Boston, MA", "🤠 Houston, TX", "🎰 Las Vegas, NV (SNHD)", "🌲 Raleigh / Wake Co., NC", "🍗 Louisville, KY", "🗽 Alabama (State-wide — 67 counties)", "🌵 Phoenix / Maricopa Co., AZ", "🇬🇧 United Kingdom (500K+ establishments)"].map(src => (
                   <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>

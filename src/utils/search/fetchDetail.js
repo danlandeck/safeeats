@@ -15,6 +15,7 @@ import {
   utahToDetailRows,
   safefoodToDetailRows,
   portlandToDetailRows,
+  sacramentoToDetailRows, marinToDetailRows, contracostaToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -50,6 +51,31 @@ export async function fetchDetail(restaurant) {
     try {
       const res = await base44.functions.invoke("laCountyInspections", { action: "detail", facilityId: business_id });
       return laToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  if (source === "sacramento") {
+    try {
+      const res = await base44.functions.invoke("sacramentoInspections", { action: "detail", facilityId: business_id });
+      return sacramentoToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  if (source === "marin") {
+    try {
+      const res = await base44.functions.invoke("marinInspections", { action: "detail", facilityId: business_id });
+      return marinToDetailRows(res.data?.records || []);
+    } catch { return []; }
+  }
+
+  if (source === "contra_costa") {
+    try {
+      const res = await base44.functions.invoke("contraCostaInspections", {
+        action: "detail",
+        name: restaurant.name,
+        rowIndex: parseInt(String(business_id).replace("cc-", ""), 10) || 0,
+      });
+      return contracostaToDetailRows(res.data || {});
     } catch { return []; }
   }
 

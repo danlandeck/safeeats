@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { sanitizeForLike as sanitizeTerm, searchTerms } from '../../shared/portalQuery.ts';
 
 // Contra Costa Health — Environmental Health Division
 // Food Facility Inspection Search (ASP.NET WebForms portal).
@@ -19,19 +20,7 @@ const decodeEntities = (s: string): string => s
   .replace(/\s+/g, ' ')
   .trim();
 
-const stripTags = (s: string): string => decodeEntities(s.replace(/<[^>]*>/g, ' '));
-
-function sanitizeTerm(raw: string): string {
-  return String(raw || '').replace(/['%_\\]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function searchTerms(name: string): string[] {
-  const clean = sanitizeTerm(name);
-  if (!clean) return [];
-  const words = clean.split(' ').filter((w) => w.length >= 3);
-  const byLength = [...words].sort((a, b) => b.length - a.length);
-  return [clean, ...byLength.slice(0, 2)];
-}
+const stripTags = (s: string): string => decodeEntities(s.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]*>/g, ' '));
 
 function grabHidden(html: string): Record<string, string> {
   const hidden: Record<string, string> = {};
@@ -68,7 +57,7 @@ function parseSearchRows(html: string): Record<string, unknown>[] {
     facilities.push({
       rowIndex: i,
       name: decodeEntities(name),
-      address: decodeEntities(address),
+      address: decodeEntities(address).replace(/,\s*$/, ''),
       city: decodeEntities(city),
       placardTitle: decodeEntities(placardTitle),
     });
@@ -80,13 +69,23 @@ function parseDetail(html: string): Record<string, unknown> {
   const placardTitle = decodeEntities(html.match(/CCCHSDFacilityCtl_GradeIMG"[^>]*title="([^"]*)"/)?.[1] || '');
   const phone = decodeEntities(html.match(/CCCHSDFacilityCtl_PhoneLBL">([^<]*)</)?.[1] || '');
   const inspections: Record<string, unknown>[] = [];
-  const tblIdx = html.indexOf('InspectionsGridView');
-  if (tblIdx > -1) {
-    const table = html.slice(tblIdx, html.indexOf('</table>', tblIdx));
-    const rowRe = /<tr[^>]*>\s*<td[^>]*>\s*<font[^>]*>\s*<b>([^<]+)<\/b>\s*<\/font>\s*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/g;
-    let m: RegExpExecArray | null;
-    while ((m = rowRe.exec(table))) {
-      inspections.push({ date: decodeEntities(m[1]), description: stripTags(m[2]) });
+  const gridIdx = html.indexOf('CCCHSDFacilityInspectionsCtl_InspectionsGridView"');
+  if (gridIdx > -1) {
+    // Each inspection row is: <td valign="top" style="font-weight:bold;">MM/DD/YYYY</td>
+    // followed by a details cell that embeds a nested violations table — so
+    // split on the date cells rather than slicing to the first </table>.
+    const grid = html.slice(gridIdx, gridIdx + 60000);
+    const parts = grid.split(/<td valign="top" style="font-weight:bold;">(\d{2}\/\d{2}\/\d{4})<\/td>/);
+    for (let i = 1; i < parts.length - 1; i += 2) {
+      const date = decodeEntities(parts[i]);
+      const chunk = parts[i + 1] || '';
+      const type = decodeEntities(chunk.match(/Label1_\d+"[^>]*>([^<]*)</)?.[1] || '').trim();
+      // The final chunk runs to the end of the slice and picks up the page
+      // footer — cut at the "Search Again" button that follows the grid.
+      let text = stripTags(chunk);
+      const cutIdx = text.indexOf('Search Again');
+      if (cutIdx > -1) text = text.slice(0, cutIdx);
+      inspections.push({ date, type, description: text });
     }
   }
   return { placardTitle, phone, inspections };
@@ -122,20 +121,28 @@ export default async function (req: Request): Promise<Response> {
     }
 
     if (action === 'detail') {
-      const term = sanitizeTerm(name || '').toUpperCase();
-      if (!term) return Response.json({ inspections: [] });
-      const { cookie, facilities, html } = await runSearch(term);
-      // Re-running the search by the facility's own name changes the grid
-      // order — locate the exact row by name before posting back.
-      const matchIdx = facilities.findIndex((f) => String(f.name).toUpperCase().includes(term));
-      const useRow = matchIdx > -1 ? Number(facilities[matchIdx].rowIndex) : Number(rowIndex) || 0;
-      const target = `ctl00$MainContent$CCCHSDSearchCtl$ResultsGridView$ctl${String(useRow + 2).padStart(2, '0')}$FacilityNameLBTN`;
-      const detailHtml = await postForm({
-        ...grabHidden(html),
-        __EVENTTARGET: target,
-        __EVENTARGUMENT: '',
-      }, cookie);
-      return Response.json(parseDetail(detailHtml));
+      const facilityName = sanitizeTerm(name || '').toUpperCase();
+      if (!facilityName) return Response.json({ placardTitle: '', phone: '', inspections: [] });
+      // The portal's stored names can differ from its displayed names (e.g.
+      // "8 MOOSE PIZZA" vs "8MOOSE PIZZA"), so a whole-name search may miss.
+      // Walk the search terms until one yields a grid containing this facility,
+      // then locate its row and post back to open the detail page.
+      for (const term of searchTerms(facilityName)) {
+        const { cookie, facilities, html } = await runSearch(term.toUpperCase());
+        const match = facilities.find((f) => String(f.name).toUpperCase() === facilityName)
+          || facilities.find((f) => String(f.name).toUpperCase().includes(facilityName))
+          || facilities.find((f) => facilityName.includes(String(f.name).toUpperCase()));
+        if (!match) continue;
+        const target = `ctl00$MainContent$CCCHSDSearchCtl$ResultsGridView$ctl${String(Number(match.rowIndex) + 2).padStart(2, '0')}$FacilityNameLBTN`;
+        const detailHtml = await postForm({
+          ...grabHidden(html),
+          __EVENTTARGET: target,
+          __EVENTARGUMENT: '',
+        }, cookie);
+        const detail = parseDetail(detailHtml);
+        if (detail.inspections.length > 0 || detail.placardTitle) return Response.json(detail);
+      }
+      return Response.json({ placardTitle: '', phone: '', inspections: [] });
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 });

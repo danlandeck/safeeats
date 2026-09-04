@@ -238,12 +238,13 @@ export function contracostaToDetailRows(data) {
   return inspections.map((ins, i) => {
     const dateStr = standardizeDate(ins.date) || ins.date || "";
     const description = String(ins.description || "").trim();
+    const type = String(ins.type || "").trim() || "Inspection";
     return {
       inspection_serial_num: `cc-${dateStr}-${i}`,
       inspection_date: dateStr,
       inspection_score: "",
-      inspection_result: description ? description.slice(0, 160) : "Inspection on record",
-      inspection_type: (description.split(/[.,;:—-]/)[0] || "Inspection").trim(),
+      inspection_result: description ? description.slice(0, 300) : "Inspection on record",
+      inspection_type: type,
       violation_description: "",
       violation_type: /red|closed|suspend/i.test(String(data?.placardTitle || "")) ? "RED" : "",
       violation_points: "0",

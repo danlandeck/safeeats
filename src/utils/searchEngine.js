@@ -18,6 +18,7 @@ import {
   processSafefoodResults,
   processPortlandResults,
   processFranceResults, processDallasResults, processNetherlandsResults,
+  processSacramentoResults, processMarinResults, processContraCostaResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -495,6 +496,43 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const liveResults = filterByNameRelevance(processLAResults(records), query);
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
     } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Sacramento County, CA — live ArcGIS FeatureServer
+  if (countyId === "sacramento") {
+    try {
+      const res = await base44.functions.invoke("sacramentoInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processSacramentoResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Marin County, CA — live Socrata feed (updated daily)
+  if (countyId === "marin") {
+    try {
+      const res = await base44.functions.invoke("marinInspections", { action: "search", name: query });
+      const records = res.data?.records || [];
+      const liveResults = filterByNameRelevance(processMarinResults(records), query);
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* live API failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // Contra Costa County, CA — live EHD portal search
+  if (countyId === "contra_costa") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const res = await base44.functions.invoke("contraCostaInspections", { action: "search", name: nameQuery });
+      const facilities = res.data?.facilities || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processContraCostaResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
     return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
   }
 

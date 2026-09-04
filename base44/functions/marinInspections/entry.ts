@@ -1,27 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { sanitizeForLike, searchTerms, socrataQuery } from '../../shared/portalQuery.ts';
 
 // Marin County Community Development Agency — Food Facility Inspections
 // Official Socrata open data feed (data.marincounty.gov), updated daily.
 const DATASET = 'https://data.marincounty.gov/resource/73zb-z5me.json';
-const UA = 'Mozilla/5.0 (compatible; SafeEats/1.0)';
-
-// Strip SQL-injection / SoQL wildcard characters from user input.
-function sanitizeForLike(raw: string): string {
-  return String(raw || '').replace(/['%_\\]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function searchTerms(name: string): string[] {
-  const clean = sanitizeForLike(name);
-  if (!clean) return [];
-  const words = clean.split(' ').filter((w) => w.length >= 3);
-  const byLength = [...words].sort((a, b) => b.length - a.length);
-  return [clean, ...byLength.slice(0, 2)];
-}
 
 // The Marin dataset stores text fields wrapped in literal double quotes
 // (Socrata CSV-import artifact) — strip them before returning rows.
 function stripQuotes(v: unknown): string {
   return String(v ?? '').replace(/^"+|"+$/g, '').trim();
+}
+
+// Inspector comments carry HTML markup — strip it and keep the payload lean.
+function stripHtml(v: unknown): string {
+  return stripQuotes(v).replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function shape(row: Record<string, unknown>): Record<string, unknown> {
@@ -41,20 +33,17 @@ function shape(row: Record<string, unknown>): Record<string, unknown> {
     placard: String(row.placard ?? ''),
     violation_description: stripQuotes(row.violation_description),
     is_major_violation: String(row.is_major_violation ?? ''),
-    inspector_comments: stripQuotes(row.inspector_comments),
+    inspector_comments: stripHtml(row.inspector_comments),
   };
 }
 
 async function query(where: string, limit: number): Promise<Record<string, unknown>[]> {
-  const params = new URLSearchParams({
+  const rows = await socrataQuery(DATASET, {
     $where: where,
     $order: 'inspection_date DESC',
     $limit: String(limit),
   });
-  const res = await fetch(`${DATASET}?${params.toString()}`, { headers: { 'User-Agent': UA } });
-  if (!res.ok) return [];
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows.map(shape) : [];
+  return rows.map(shape);
 }
 
 export default async function (req: Request): Promise<Response> {
