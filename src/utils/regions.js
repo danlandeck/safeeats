@@ -22,7 +22,7 @@ export const REGIONS = {
   california: { name: "California", abbr: "CA", counties: [
     { id: "la", name: "Los Angeles County", city: "Los Angeles", hasPublicApi: true },
     { id: "sf", name: "San Francisco County", city: "San Francisco", hasPublicApi: true },
-    { id: "sandiego", name: "San Diego County", city: "San Diego", hasPublicApi: true },
+    { id: "san_diego", name: "San Diego County", city: "San Diego", hasPublicApi: true },
     { id: "sacramento", name: "Sacramento County", city: "Sacramento", hasPublicApi: true },
     { id: "alameda", name: "Alameda County (Oakland)", city: "Oakland", hasPublicApi: true },
     { id: "orange_ca", name: "Orange County (Anaheim)", city: "Santa Ana", hasPublicApi: true },

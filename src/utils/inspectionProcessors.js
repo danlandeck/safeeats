@@ -56,4 +56,5 @@ export {
   processSacramentoResults, sacramentoToDetailRows,
   processMarinResults, marinToDetailRows,
   processContraCostaResults, contracostaToDetailRows,
+  processSanDiegoResults, sanDiegoToDetailRows,
 } from "./processors/caCounties";

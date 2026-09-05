@@ -251,3 +251,68 @@ export function contracostaToDetailRows(data) {
     };
   });
 }
+
+// ── San Diego County, CA (live SDFoodInfo portal, DEH) ─────────────────────
+const SD_PORTAL_URL = "https://www.sdfoodinfo.org/";
+
+export function processSanDiegoResults(facilities) {
+  if (!Array.isArray(facilities)) return [];
+  return facilities.map((f) => {
+    const inspections = Array.isArray(f.inspections) ? f.inspections : [];
+    // The portal lists every visit; scored routine inspections carry the grade.
+    const latest = inspections.find((i) => Number(i.score) > 0) || null;
+    const latestAny = inspections[0] || null;
+    const safetyScore = latest ? Number(latest.score) : null;
+    const latestResult = latest
+      ? `${latest.type || "Routine"} — ${latest.grade ? `Grade ${latest.grade} (${latest.score}/100)` : `${latest.score}/100`}`
+      : latestAny
+        ? `${latestAny.type || "Inspection"} — no score posted`
+        : "No inspections on record";
+    return {
+      business_id: f.business_id || "",
+      name: f.name || "",
+      address: String(f.address || "").split(",")[0].trim(),
+      city: f.city || "San Diego County",
+      zip_code: f.zip || "",
+      phone: f.phone || "",
+      description: f.business_type || "Food facility",
+      safetyScore,
+      grade: (latest && latest.grade) || (safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U"),
+      totalInspections: inspections.length,
+      latestDate: (latest || latestAny)?.completed_date || null,
+      latestResult,
+      latitude: f.lat ? Number(f.lat) : null,
+      longitude: f.long ? Number(f.long) : null,
+      isLLMData: false, source: "san_diego",
+      ada_compliance: "unknown",
+      portal_url: SD_PORTAL_URL,
+    };
+  });
+}
+
+export function sanDiegoToDetailRows(inspections) {
+  if (!Array.isArray(inspections)) return [];
+  return inspections.map((ins, i) => {
+    const violations = Array.isArray(ins.violations) ? ins.violations : [];
+    const hasMajor = violations.some((v) => v.major_violation === "Y");
+    const score = Number(ins.score) > 0 ? ins.score : "";
+    const result = [
+      ins.type || "Inspection",
+      score && ins.grade ? `Grade ${ins.grade} (${ins.score}/100)` : score ? `${ins.score}/100` : "",
+      ins.status || "",
+    ].filter(Boolean).join(" — ");
+    return {
+      inspection_serial_num: String(ins.inspection_id || `sd-${i}`),
+      inspection_date: ins.completed_date || "",
+      // Convention (see marin/sacramento): detail-row scores are PENALTY points — the UI renders 100 − this value.
+      inspection_score: score ? String(100 - Number(score)) : "",
+      inspection_result: result,
+      inspection_type: ins.type || "Inspection",
+      violation_description: violations
+        .map((v) => `${v.violation_accela || v.violation || "Violation"} (${v.status || "noted"})`)
+        .join("; ").slice(0, 1000),
+      violation_type: hasMajor ? "RED" : violations.length ? "BLUE" : "",
+      violation_points: String(violations.length),
+    };
+  });
+}

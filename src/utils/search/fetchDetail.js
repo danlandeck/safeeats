@@ -16,6 +16,7 @@ import {
   safefoodToDetailRows,
   portlandToDetailRows,
   sacramentoToDetailRows, marinToDetailRows, contracostaToDetailRows,
+  sanDiegoToDetailRows,
 } from "../inspectionProcessors";
 import { PROCESSORS, SOURCE_TO_COUNTY } from "./registry";
 
@@ -76,6 +77,15 @@ export async function fetchDetail(restaurant) {
         rowIndex: parseInt(String(business_id).replace("cc-", ""), 10) || 0,
       });
       return contracostaToDetailRows(res.data || {});
+    } catch { return []; }
+  }
+
+  if (source === "san_diego") {
+    try {
+      const res = await base44.functions.invoke("sanDiegoInspections", {
+        action: "detail", businessId: business_id, name: restaurant.name,
+      });
+      return sanDiegoToDetailRows(res.data?.inspections || []);
     } catch { return []; }
   }
 

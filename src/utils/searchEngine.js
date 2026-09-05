@@ -18,7 +18,7 @@ import {
   processSafefoodResults,
   processPortlandResults,
   processFranceResults, processDallasResults, processNetherlandsResults,
-  processSacramentoResults, processMarinResults, processContraCostaResults,
+  processSacramentoResults, processMarinResults, processContraCostaResults, processSanDiegoResults,
 } from "./inspectionProcessors";
 import { enrichResults, isStale } from "./backgroundEnrich";
 import { resolveJurisdiction } from "./routing";
@@ -529,6 +529,24 @@ export async function search({ query, countyId, locationLabel, today, signal, on
       const facilities = res.data?.facilities || [];
       const liveResults = rankByQueryRelevance(
         filterByNameRelevance(processContraCostaResults(facilities), nameQuery),
+        nameQuery, locationHint
+      );
+      if (liveResults.length > 0) return { results: liveResults, isAI: false };
+    } catch { /* portal search failed — fall through to AI */ }
+    return aiSearchFallback(query, countyId, locationLabel, today, onAccurateResults, { liveApiFailed: true });
+  }
+
+  // San Diego County, CA — live SDFoodInfo (DEH) portal search
+  if (countyId === "san_diego") {
+    try {
+      const { nameQuery, locationHint } = parseSearchQuery(query);
+      const community = (locationHint || locationLabel || "").split(",")[0].trim().toUpperCase();
+      const res = await base44.functions.invoke("sanDiegoInspections", {
+        action: "search", name: nameQuery, community,
+      });
+      const facilities = res.data?.restaurants || [];
+      const liveResults = rankByQueryRelevance(
+        filterByNameRelevance(processSanDiegoResults(facilities), nameQuery),
         nameQuery, locationHint
       );
       if (liveResults.length > 0) return { results: liveResults, isAI: false };
