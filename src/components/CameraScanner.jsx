@@ -69,49 +69,10 @@ export default function CameraScanner({ onResult, onClose }) {
       const file = new File([blob], "scan.jpg", { type: "image/jpeg" });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are an expert at reading food packaging, restaurant signs, menus, and health inspection placards in ANY language including Japanese (kanji/hiragana/katakana), Chinese, Korean, and other scripts.
-
-Detect whether this image is a FOOD PRODUCT LABEL or a RESTAURANT SIGN/PLACARD, then extract:
-
-FOR RESTAURANT SIGNS / INSPECTION PLACARDS:
-- name: restaurant name (translate to English if needed)
-- address, city, inspection_grade, inspection_score
-- is_food_label: false
-
-FOR FOOD PRODUCT LABELS (Japanese konbini, supermarket, packaged food):
-- product_name in English (translate)
-- ingredients: English array (translate all)
-- allergens: flag shellfish, nuts, dairy, gluten, eggs, soy, wheat, fish. In Japan look for 特定原材料 (mandatory) and hidden shellfish in sauces (エキス = extract)
-- nutrition_per_100g: {calories, protein_g, fat_g, carbs_g, sodium_mg} — Japanese labels use per 100g
-- expiration_date: translate 賞味期限 (best before) or 消費期限 (use by), include type
-- dietary_flags: halal, vegan, vegetarian, gluten-free, organic, kosher
-- country_of_origin: translate 国産 as "Japan (domestic)"
-- warnings: any safety/allergen warnings in plain English
-- is_food_label: true
-
-Set unknown fields to null. ALWAYS translate non-English text.`,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            address: { type: "string" },
-            city: { type: "string" },
-            inspection_grade: { type: "string" },
-            inspection_score: { type: "number" },
-            is_food_label: { type: "boolean" },
-            product_name: { type: "string" },
-            ingredients: { type: "array", items: { type: "string" } },
-            allergens: { type: "array", items: { type: "string" } },
-            nutrition_per_100g: { type: "object" },
-            expiration_date: { type: "string" },
-            dietary_flags: { type: "array", items: { type: "string" } },
-            country_of_origin: { type: "string" },
-            warnings: { type: "array", items: { type: "string" } },
-          },
-        },
-      });
+      // Vision analysis runs server-side (analyzeScanPhoto backend function)
+      // to protect integration credits.
+      const analysis = await base44.functions.invoke("analyzeScanPhoto", { file_url });
+      const result = analysis.data;
 
       if (!result?.name && !result?.product_name) {
         setErrorMsg("Couldn't read anything useful. Try a clearer, closer shot.");

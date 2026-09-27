@@ -32,11 +32,7 @@ import {
   resolveExpectedGeo, parseSearchQuery,
   filterByNameRelevance, rankByQueryRelevance, deduplicateResults, filterUnverified,
 } from "./search/searchHelpers";
-import {
-  LLM_SCHEMA, INSPECTION_SCHEMA,
-  PROMPT_ENRICH, PROMPT_LOCATION, PROMPT_GLOBAL, PROMPT_DUBAI,
-  FAST_PROMPT, FAST_PROMPT_DUBAI, llmCall,
-} from "./search/llmConfig";
+import { llmFastSearch, llmWebSearch, llmWebEnrich } from "./search/llmConfig";
 import { fetchDetail } from "./search/fetchDetail";
 
 // Re-export fetchDetail so existing imports from searchEngine still work
@@ -257,7 +253,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
           });
         } else {
           const enrichCtx = getContextForLocation(countyId, location, verified[0]?.country);
-          llmCall(PROMPT_ENRICH(groundedRaw, location, today, enrichCtx), true, INSPECTION_SCHEMA)
+          llmWebEnrich(groundedRaw, location, enrichCtx)
             .then((res) => {
               const found = Array.isArray(res?.inspections) ? res.inspections : [];
               const byIdx = new Map(found.filter(f => Number.isInteger(f.idx)).map(f => [f.idx, f]));
@@ -306,11 +302,9 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
     }
   } catch { /* Places unavailable — fall through to pure-AI flow */ }
 
-  const basePrompt = location ? PROMPT_LOCATION(query, location, today) : PROMPT_GLOBAL(query, today);
-  const enhancedPrompt = ctx ? `${basePrompt}\n- ${ctx}` : basePrompt;
   const restaurants = await runWithFastResults(
-    llmCall(FAST_PROMPT(query, location), false),
-    llmCall(enhancedPrompt, true),
+    llmFastSearch(query, location),
+    llmWebSearch(query, location, ctx),
     buildFn,
     false,
     onAccurateResults,
@@ -480,8 +474,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
     } catch { /* live API failed — fall through to AI */ }
     const location = locationLabel?.trim() || "Modesto, Stanislaus County, CA";
     const restaurants = await runWithFastResults(
-      llmCall(FAST_PROMPT(query, location), false),
-      llmCall(PROMPT_LOCATION(query, location, today), true),
+      llmFastSearch(query, location),
+      llmWebSearch(query, location),
       (r, i) => buildRestaurantWithLocationCheck(r, i, countyId, location, "Modesto"),
       false, onAccurateResults, parseSearchQuery(query).nameQuery
     );
@@ -947,8 +941,8 @@ export async function search({ query, countyId, locationLabel, today, signal, on
   // Dubai — fully isolated path
   if (countyId === "dubai") {
     const restaurants = await runWithFastResults(
-      llmCall(FAST_PROMPT_DUBAI(query), false),
-      llmCall(PROMPT_DUBAI(query, today), true),
+      llmFastSearch(query, null, true),
+      llmWebSearch(query, null, "", true),
       (r, i) => buildRestaurantWithLocationCheck(r, i, "dubai", "Dubai", "Dubai"),
       true, onAccurateResults, parseSearchQuery(query).nameQuery
     );

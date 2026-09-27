@@ -46,21 +46,14 @@ export default function ReportIssueButton({ restaurant }) {
         photoUrl = res.file_url;
       }
 
-      // Use LLM to auto-moderate the report
-      const modResult = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a food safety report moderator. A user submitted this report about a restaurant. Determine if it is genuine and not spam/offensive.
-Restaurant: ${restaurant.name}
-Issue type: ${issueType}
-Description: "${description}"
-Respond with JSON: {"approved": true/false, "reason": "short reason"}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            approved: { type: "boolean" },
-            reason: { type: "string" }
-          }
-        }
+      // Auto-moderation runs server-side (moderateUserReport backend function)
+      // to protect integration credits.
+      const res = await base44.functions.invoke("moderateUserReport", {
+        restaurantName: restaurant.name,
+        issueType,
+        description: description.trim(),
       });
+      const modResult = res.data;
 
       // Save to entity (persist report)
       if (modResult?.approved !== false) {

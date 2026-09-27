@@ -147,35 +147,14 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
   // states verified to publish no machine-readable data.
   if (!NO_DATA_STATES.has((stateAbbr || "").toUpperCase())) (async () => {
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Today is ${today}. Below are VERIFIED, REAL restaurants in ${location} (confirmed via Google Places — do NOT question their existence or alter their details).
-Search the LIVE WEB for OFFICIAL health inspection records for these EXACT establishments:
-${verified.map((r, i) => `${i}. ${r.name} — ${r.address}`).join("\n")}
-RULES:
-1. Return one entry per restaurant you find an official inspection record for, keyed by "idx" (the number above).
-2. latest_score 0–100, latest_date, latest_result, violations: from REAL official inspection records ONLY.
-3. If you cannot find an official record for a restaurant, OMIT that idx entirely. NEVER invent scores, dates, or results.`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            inspections: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  idx: { type: "number" },
-                  latest_score: { type: "number" },
-                  latest_date: { type: "string" },
-                  latest_result: { type: "string" },
-                  total_inspections: { type: "number" },
-                  violations: { type: "array", items: { type: "string" } },
-                },
-              },
-            },
-          },
-        },
+      // Enrichment runs server-side (llmRestaurantSearch task "county_enrich")
+      // to protect integration credits.
+      const res = await base44.functions.invoke("llmRestaurantSearch", {
+        task: "county_enrich",
+        location,
+        list: verified.map((p) => ({ name: p.name, address: p.address })),
       });
+      const result = res.data;
       const byIdx = new Map((result?.inspections || []).filter((f) => Number.isInteger(f.idx)).map((f) => [f.idx, f]));
       const enriched = buildItems(byIdx);
       saveCountyCache(cacheKey, enriched);

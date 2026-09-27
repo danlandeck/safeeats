@@ -21,21 +21,12 @@ export default function Feedback() {
     setIsSubmitting(true);
 
     try {
-      await base44.integrations.Core.SendEmail({
-        to: "dan.landeck@gmail.com",
-        subject: "SafeEats™ FEEDBACK",
-        body: `
-New SafeEats™ Feedback Received:
-
-Name: ${formData.name}
-Email: ${formData.email}
-
-Message:
-${formData.message}
-
----
-Submitted from SafeEats™ App
-        `.trim(),
+      // Sending runs server-side (sendFeedbackEmail backend function) so the
+      // recipient can't be changed by the caller.
+      await base44.functions.invoke("sendFeedbackEmail", {
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
       });
 
       setIsSubmitted(true);
