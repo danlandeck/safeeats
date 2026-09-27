@@ -1,13 +1,14 @@
 import { Scale, FileSearch, Filter, CheckCircle2 } from "lucide-react";
+import { GRADE_STYLES } from "@/utils/grading";
 
 const GRADE_BANDS = [
-  { grade: "A", range: "90–100", color: "bg-emerald-600" },
-  { grade: "B", range: "80–89", color: "bg-emerald-400" },
-  { grade: "C", range: "70–79", color: "bg-yellow-400" },
-  { grade: "D", range: "60–69", color: "bg-orange-400" },
-  { grade: "F", range: "< 60", color: "bg-red-600" },
-  { grade: "U", range: "Unknown", color: "bg-slate-400" },
-];
+  { grade: "A", range: "90–100" },
+  { grade: "B", range: "80–89" },
+  { grade: "C", range: "70–79" },
+  { grade: "D", range: "60–69" },
+  { grade: "F", range: "< 60" },
+  { grade: "U", range: "Unknown" },
+].map((g) => ({ ...g, color: GRADE_STYLES[g.grade].bg, text: GRADE_STYLES[g.grade].text }));
 
 const SOURCES = [
   { source: "NYC DOHMH", native: "Letter grade A/B/C", method: "Mapped directly; score from violation points" },
@@ -34,10 +35,10 @@ export default function MethodologySummary() {
       <div>
         <p className="text-sm font-bold text-slate-700 mb-3">Universal A–F Grade Scale</p>
         <div className="grid grid-cols-6 gap-2">
-          {GRADE_BANDS.map(({ grade, range, color }) => (
+          {GRADE_BANDS.map(({ grade, range, color, text }) => (
             <div key={grade} className={`${color} rounded-xl p-2.5 text-center shadow-sm`}>
-              <p className="text-xl font-black text-white">{grade}</p>
-              <p className="text-[9px] font-semibold text-white/80 mt-0.5">{range}</p>
+              <p className={`text-xl font-black ${text}`}>{grade}</p>
+              <p className={`text-[11px] font-semibold mt-0.5 ${text}`}>{range}</p>
             </div>
           ))}
         </div>
@@ -51,7 +52,7 @@ export default function MethodologySummary() {
       {/* Normalization table */}
       <div>
         <p className="text-sm font-bold text-slate-700 mb-3">Normalization by Source</p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto focus:outline-none focus:ring-2 focus:ring-slate-600" tabIndex={0} role="region" aria-label="Data sources table (scrolls horizontally)">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-slate-200 text-left">

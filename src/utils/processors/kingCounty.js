@@ -2,8 +2,49 @@ import { resolveGrade } from "../grading";
 import { standardizeDate } from "../date";
 
 // ── King County (Seattle) ────────────────────────────────────────────────────
+// King County publishes the same inspection records in two shapes:
+//   - ArcGIS layer RESTAURANT_INSPECTIONS_POINT_857: UPPERCASE fields, epoch-ms
+//     dates, newest record 2024-03-30 (frozen)
+//   - Socrata vbyt-shxd: lowercase fields, ISO dates, through 2025-11-26
+// The registry now points at Socrata. normalizeKingRow maps Socrata names onto
+// the ArcGIS names this module was written against, so both shapes work.
+const SOCRATA_TO_ARCGIS = {
+  name: "NAME",
+  program_identifier: "PROGRAM_IDENTIFIER",
+  inspection_date: "DATE_INSPECTION",
+  description: "SEAT_CAP",
+  address: "ADDRESS",
+  city: "CITY",
+  zip_code: "ZIPCODE",
+  phone: "PHONE",
+  longitude: "LONGITUDE",
+  latitude: "LATITUDE",
+  inspection_business_name: "BUS_NAME_INSPECTION",
+  inspection_type: "TYPE_INSPECTION",
+  inspection_score: "SCORE_INSPECTION",
+  inspection_result: "RESULT_INSPECTION",
+  violation_type: "VIOLATIONTYPE",
+  violation_description: "VIOLATIONDESCR",
+  violation_points: "VIOLATIONPOINTS",
+  violation_record_id: "FEATURE_ID",
+};
+
+function normalizeKingRow(row) {
+  if (!row || typeof row !== "object") return row;
+  // Already ArcGIS-shaped
+  if (row.NAME !== undefined || row.PROGRAM_IDENTIFIER !== undefined) return row;
+  const out = {};
+  for (const [k, v] of Object.entries(row)) out[SOCRATA_TO_ARCGIS[k] || k] = v;
+  return out;
+}
+
+function kingRows(data) {
+  const rows = Array.isArray(data) ? data : (data?.features?.map((f) => f.attributes) || []);
+  return rows.map(normalizeKingRow);
+}
+
 export function processKingCountyResults(data) {
-  const rows = Array.isArray(data) ? data : (data?.features?.map(f => f.attributes) || []);
+  const rows = kingRows(data);
   if (!Array.isArray(rows) || rows.length === 0) return [];
   const businesses = {};
   rows.forEach((row) => {
@@ -51,7 +92,7 @@ export function processKingCountyResults(data) {
 }
 
 export function kingToDetailRows(data) {
-  const rows = Array.isArray(data) ? data : (data?.features?.map(f => f.attributes) || []);
+  const rows = kingRows(data);
   return rows.map((row) => ({
     inspection_serial_num: `${standardizeDate(row.DATE_INSPECTION)}-${row.TYPE_INSPECTION}-${row.FEATURE_ID || row.OBJECTID || Math.random()}`,
     inspection_date: standardizeDate(row.DATE_INSPECTION),

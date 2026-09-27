@@ -27,9 +27,10 @@ export default function Widget() {
   const grade = data.grade || getGrade(data.score);
 
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center p-2">
+    <main className="min-h-screen bg-transparent flex items-center justify-center p-2">
+      <h1 className="sr-only">SafeEats inspection grade for {data.name}</h1>
       <a
-        href={`https://safeeats.app?q=${encodeURIComponent(data.name)}`}
+        href={`https://safeeats.site/?q=${encodeURIComponent(data.name)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full max-w-xs bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -54,7 +55,7 @@ export default function Widget() {
                 Grade {grade}
               </span>
               {data.date && (
-                <span className="text-[10px] text-slate-400">
+                <span className="text-[10px] text-slate-600">
                   Last inspected {new Date(data.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
                 </span>
               )}
@@ -64,9 +65,9 @@ export default function Widget() {
 
         {/* Footer */}
         <div className="border-t border-slate-100 px-4 py-1.5 text-center">
-          <span className="text-[10px] text-slate-400">Powered by SafeEats™ · Click to view full report</span>
+          <span className="text-[10px] text-slate-600">Powered by SafeEats™ · Click to view full report</span>
         </div>
       </a>
-    </div>
+    </main>
   );
 }

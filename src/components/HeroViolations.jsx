@@ -1,10 +1,10 @@
 import React from "react";
 
 const TOP_VIOLATIONS = [
-  { label: "Rodents & Pests", count: "18,400+", emoji: "🐀", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
-  { label: "Improper Temps", count: "31,200+", emoji: "🌡️", bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-  { label: "Poor Handwashing", count: "22,800+", emoji: "🧼", bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200" },
-  { label: "Cross-Contamination", count: "14,500+", emoji: "🦠", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  { label: "Rodents & Pests", count: "18,400+", emoji: "🐀", bg: "bg-red-50", text: "text-red-700", labelText: "text-red-800", border: "border-red-200" },
+  { label: "Improper Temps", count: "31,200+", emoji: "🌡️", bg: "bg-orange-50", text: "text-orange-700", labelText: "text-orange-800", border: "border-orange-200" },
+  { label: "Poor Handwashing", count: "22,800+", emoji: "🧼", bg: "bg-yellow-50", text: "text-yellow-700", labelText: "text-yellow-800", border: "border-yellow-200" },
+  { label: "Cross-Contamination", count: "14,500+", emoji: "🦠", bg: "bg-purple-50", text: "text-purple-700", labelText: "text-purple-800", border: "border-purple-200" },
 ];
 
 export default function HeroViolations() {
@@ -14,14 +14,14 @@ export default function HeroViolations() {
         Most common violations found in our database
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {TOP_VIOLATIONS.map(({ label, count, emoji, bg, text, border }) => (
+        {TOP_VIOLATIONS.map(({ label, count, emoji, bg, text, labelText, border }) => (
           <div
             key={label}
             className={`${bg} ${border} border rounded-xl px-3 py-2.5 text-center`}
           >
             <div className="text-2xl mb-1">{emoji}</div>
             <p className={`text-xs font-extrabold ${text}`}>{count}</p>
-            <p className={`text-[10px] font-semibold ${text} opacity-80 mt-0.5 leading-tight`}>{label}</p>
+            <p className={`text-[11px] font-semibold ${labelText} mt-0.5 leading-tight`}>{label}</p>
           </div>
         ))}
       </div>

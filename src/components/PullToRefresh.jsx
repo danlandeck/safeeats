@@ -78,7 +78,7 @@ export default function PullToRefresh({ onRefresh, disabled, children }) {
           style={{ height: `${pullDistance}px` }}
         >
           {showSpinner ? (
-            <Loader2 className="w-6 h-6 text-[#4CAF50] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#2E7D32] animate-spin" />
           ) : (
             <ArrowDown
               className="w-5 h-5 text-slate-400"

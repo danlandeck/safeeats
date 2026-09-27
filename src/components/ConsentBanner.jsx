@@ -62,21 +62,21 @@ export default function ConsentBanner({ onAccept, onDecline }) {
             <div className="flex flex-wrap gap-2 mt-4">
               <button
                 onClick={handleAccept}
-                className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm px-5 py-2 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2 rounded-xl transition-colors"
               >
                 <CheckCircle className="w-4 h-4" />
                 Allow Location & Cookies
               </button>
               <button
                 onClick={handleDecline}
-                className="text-slate-400 hover:text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-slate-800 transition-colors"
+                className="text-slate-200 hover:text-white text-sm font-semibold px-4 py-2 rounded-xl border border-slate-500 hover:bg-slate-800 transition-colors"
               >
                 No thanks
               </button>
             </div>
           </div>
-          <button onClick={handleDecline} className="flex-shrink-0 text-slate-500 hover:text-slate-300 transition-colors">
-            <X className="w-4 h-4" />
+          <button onClick={handleDecline} aria-label="Decline and close" className="flex-shrink-0 text-slate-400 hover:text-slate-200 transition-colors">
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>

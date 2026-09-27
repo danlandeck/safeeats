@@ -3,11 +3,11 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 const levels = [
   { grade: "A", range: "90–100", color: "bg-green-700",  textColor: "text-white",     label: "A — Excellent", tip: "Very safe ✅" },
-  { grade: "B", range: "80–89",  color: "bg-green-400",  textColor: "text-white",     label: "B — Good",      tip: "Generally safe 👍" },
+  { grade: "B", range: "80–89",  color: "bg-green-400",  textColor: "text-green-950", label: "B — Good",      tip: "Generally safe 👍" },
   { grade: "C", range: "70–79",  color: "bg-yellow-400", textColor: "text-slate-800", label: "C — Okay",      tip: "Some issues ⚠️" },
-  { grade: "D", range: "60–69",  color: "bg-orange-400", textColor: "text-white",     label: "D — Poor",      tip: "Real problems 🔴" },
+  { grade: "D", range: "60–69",  color: "bg-orange-400", textColor: "text-slate-900", label: "D — Poor",      tip: "Real problems 🔴" },
   { grade: "F", range: "0–59",   color: "bg-red-600",    textColor: "text-white",     label: "F — Critical",  tip: "Serious violations 🚨" },
-  { grade: "P", range: "Pass/Fail", color: "bg-teal-500", textColor: "text-white",    label: "P — Passed",    tip: "Met inspection standards ✅" },
+  { grade: "P", range: "Pass/Fail", color: "bg-teal-700", textColor: "text-white",    label: "P — Passed",    tip: "Met inspection standards ✅" },
   { grade: "U", range: "No data",color: "bg-slate-300",  textColor: "text-slate-700", label: "U — Unknown",   tip: "No records found ❓" },
 ];
 

@@ -21,7 +21,7 @@ export default function CreatorSection() {
       <div className="flex flex-col sm:flex-row gap-6 items-start">
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-600 flex items-center justify-center flex-shrink-0 text-3xl shadow-md">🥋</div>
         <div className="flex-1">
-          <p className="text-xs font-extrabold text-[#4CAF50] uppercase tracking-widest mb-1">About the Creator</p>
+          <p className="text-xs font-extrabold text-[#2E7D32] uppercase tracking-widest mb-1">About the Creator</p>
           <p className="text-2xl font-extrabold text-slate-900">Daniel Landeck</p>
           <p className="text-slate-500 text-sm mt-0.5 mb-4">Global Citizen · University of Washington Graduate</p>
           <div className="flex flex-wrap gap-2 mb-5">

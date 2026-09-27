@@ -19,13 +19,18 @@ export const API_REGISTRY = {
   king: {
     id: "king",
     name: "King County, WA",
-    endpoint: "https://services.arcgis.com/Ej0PsM5Aw677QF1W/arcgis/rest/services/RESTAURANT_INSPECTIONS_POINT_857/FeatureServer/0/query",
-    searchField: "NAME",
-    idField: "PROGRAM_IDENTIFIER",
-    dateField: "DATE_INSPECTION",
+    // Socrata vbyt-shxd "Food Establishment Inspections (spatial)".
+    // Replaces the ArcGIS layer RESTAURANT_INSPECTIONS_POINT_857, whose newest
+    // record is 2024-03-30. This dataset runs through 2025-11-26. King County
+    // has not published 2026 inspections to open data (checked 2026-09-27), so
+    // StaleDataBanner flags these results and links the official search portal.
+    // processKingCountyResults normalizes these lowercase fields to the ArcGIS names.
+    endpoint: "https://data.kingcounty.gov/resource/vbyt-shxd.json",
+    searchField: "name",
+    idField: "program_identifier",
+    dateField: "inspection_date",
     limit: 1000,
     source: "king",
-    isArcGIS: true,
   },
   nyc: {
     id: "nyc",
@@ -50,10 +55,15 @@ export const API_REGISTRY = {
   montgomery_md: {
     id: "montgomery_md",
     name: "Montgomery County, MD",
-    endpoint: "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json",
-    searchField: "name",
-    idField: "establishment_id",
-    dateField: "inspectiondate",
+    // dkrp-gr48 "HHS - Food Inspection Data from July 2024 and onward".
+    // Replaces 5pue-gfbe, whose newest record is 2024-10-03. Upstream repeats
+    // every inspection ~300 times, so groupSelect makes Socrata return each
+    // inspection once (919 raw rows -> 5 inspections in testing).
+    endpoint: "https://data.montgomerycountymd.gov/resource/dkrp-gr48.json",
+    searchField: "business_name",
+    idField: "registration_number",
+    dateField: "inspection_start_date",
+    groupSelect: "registration_number,business_name,address,city,zip,inspection_type,inspection_number,inspection_start_date,status,food_from_approved_source,food_protected_from_contamination,workers_restricted,proper_hand_washing,cooling_time_and_temperature,cold_holding_temperature,hot_holding_temperature,cooking_time_and_temperature,reheating_time_and_temperature,hot_and_cold_running_water_provided,proper_sewage_disposal,toxic_substances_and_pesticides,rodents_and_insects",
     limit: 1000,
     source: "montgomery",
   },
@@ -71,7 +81,8 @@ export const API_REGISTRY = {
     id: "sf",
     name: "San Francisco, CA",
     // Dataset: "Health Inspection Scores (2024-Present)" — replaces archived pyih-qa8i
-    endpoint: "https://data.sfgov.org/resource/tvy3-wexg.json",
+    // Portal moved from data.sfgov.org to data.sf.gov (302 redirect since 2026).
+    endpoint: "https://data.sf.gov/resource/tvy3-wexg.json",
     searchField: "dba",
     idField: "permit_number",
     dateField: "inspection_date",
@@ -100,16 +111,10 @@ export const API_REGISTRY = {
     limit: 1000,
     source: "ny_state",
   },
-  tri_county_co: {
-    id: "tri_county_co",
-    name: "Tri-County Colorado (Adams, Arapahoe, Douglas)",
-    endpoint: "https://data.colorado.gov/resource/869n-zj3f.json",
-    searchField: "program_identifier",
-    idField: "facility_id",
-    dateField: "activity_date",
-    limit: 1000,
-    source: "tri_county_co",
-  },
+  // Tri-County Health Department (data.colorado.gov/869n-zj3f) dissolved on
+  // 2022-12-31 into Adams, Arapahoe, and Douglas county health departments.
+  // Removed from the live registry; those cities now resolve to their
+  // successor county portals via usHealthContext.json.
   brla: {
     id: "brla",
     name: "Baton Rouge, LA (East Baton Rouge Parish)",
@@ -125,16 +130,34 @@ export const API_REGISTRY = {
 /** IDs of counties that have a live government API */
 export const LIVE_API_IDS = new Set(Object.keys(API_REGISTRY));
 
+/** Socrata $select/$group clause for sources that repeat rows upstream. */
+function groupClause(entry) {
+  return entry.groupSelect ? `&$select=${entry.groupSelect}&$group=${entry.groupSelect}` : "";
+}
+
 /** Build a SoQL LIKE query URL for a given registry entry + search term */
 export function buildSearchUrl(entry, query) {
-  const clean = query.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim().toUpperCase();
+  // Strip apostrophes (straight and curly: iOS types ’ by default) BEFORE
+  // turning other punctuation into spaces. The Socrata field side below uses
+  // replace(field, chr(39), '') to REMOVE apostrophes, so "McDonald's" must
+  // become "MCDONALDS", not "MCDONALD S" (which matched nothing: verified
+  // 0 vs 5 NYC results on 2026-09-27).
+  const clean = query
+    .replace(/['\u2018\u2019\u02BC`]/g, "")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
   const field = entry.searchField;
   if (entry.isArcGIS) {
     const where = `upper(${field}) LIKE '%${clean}%'`;
     return `${entry.endpoint}?where=${encodeURIComponent(where)}&outFields=*&f=json&orderByFields=${entry.dateField}+DESC&resultRecordCount=${entry.limit}`;
   }
   const encoded = encodeURIComponent(clean);
-  return `${entry.endpoint}?$where=upper(replace(${field},chr(39),'')) like '%25${encoded}%25'&$limit=${entry.limit}&$order=${entry.dateField} DESC`;
+  // Field side mirrors the query cleaning: drop apostrophes, hyphens -> spaces.
+  // Without the hyphen replace, "Chick-fil-A" only matched rows stored without
+  // hyphens and missed the rest (verified against NYC on 2026-09-27).
+  return `${entry.endpoint}?$where=upper(replace(replace(${field},chr(39),''),'-',' ')) like '%25${encoded}%25'&$limit=${entry.limit}&$order=${entry.dateField} DESC${groupClause(entry)}`;
 }
 
 /** Build a detail-fetch URL to load all inspections for one establishment */
@@ -144,5 +167,7 @@ export function buildDetailUrl(entry, establishmentId) {
     const where = `${entry.idField}='${escaped}'`;
     return `${entry.endpoint}?where=${encodeURIComponent(where)}&outFields=*&f=json&orderByFields=${entry.dateField}+DESC&resultRecordCount=500`;
   }
-  return `${entry.endpoint}?${entry.idField}=${establishmentId}&$limit=500&$order=${entry.dateField} DESC`;
+  // IDs must be encoded: King County program identifiers contain '#', '@' and
+  // spaces (e.g. "AFC ZENSHI @ SAFEWAY #1923"); an unencoded '#' truncates the URL.
+  return `${entry.endpoint}?${entry.idField}=${encodeURIComponent(establishmentId)}&$limit=500&$order=${entry.dateField} DESC${groupClause(entry)}`;
 }

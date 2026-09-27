@@ -205,7 +205,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleFavorite}
-                className={`p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
+                className={`p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${favorited ? "bg-red-50 border-red-200 text-red-500" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-red-400"}`}
                 aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
                 aria-pressed={favorited}
               >
@@ -213,7 +213,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </button>
               <button
                 onClick={handleShare}
-                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                 aria-label="Share safety score"
               >
                 <Share2 className="w-4 h-4" aria-hidden="true" />
@@ -264,23 +264,23 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
               </div>
             ) : (
               <div className="flex-1 grid grid-cols-2 gap-2.5 w-full">
-                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
+                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E7D32]" aria-label={`${uniqueInspections.length} total inspections — view history`}>
                   <p className="text-xl font-extrabold text-slate-900" aria-hidden="true">{uniqueInspections.length}</p>
                   <p className="text-xs text-slate-500 leading-tight" aria-hidden="true">Total inspections</p>
                 </button>
-                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
+                <button onClick={() => scrollTo("inspection-history")} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E7D32]" aria-label={`Last inspected ${latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "unknown"} — view history`}>
                   <p className="text-lg font-extrabold text-slate-900 leading-tight" aria-hidden="true">
                     {latestDate ? new Date(latestDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}
                   </p>
                   <p className="text-xs text-slate-500" aria-hidden="true">Last inspected</p>
                 </button>
-                <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
+                <button onClick={() => scrollTo("inspection-history")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${totalRepeatCount > 0 ? "bg-orange-50" : "bg-green-50"}`} aria-label={`${totalRepeatCount} repeat ${totalRepeatCount === 1 ? "issue" : "issues"} found — view history`}>
                   <p className={`text-xl font-extrabold ${totalRepeatCount > 0 ? "text-orange-700" : "text-green-700"}`} aria-hidden="true">{totalRepeatCount}</p>
                   <p className={`text-xs ${totalRepeatCount > 0 ? "text-orange-600" : "text-green-600"}`} aria-hidden="true">
                     Repeat {totalRepeatCount === 1 ? "issue" : "issues"}
                   </p>
                 </button>
-                <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
+                <button onClick={() => scrollTo("score-trend")} className={`rounded-xl p-3 text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${cleanStreak > 0 ? "bg-green-50" : "bg-slate-50"}`} aria-label={`Clean streak of ${cleanStreak} inspections — view trend`}>
                   <p className={`text-xl font-extrabold ${cleanStreak > 0 ? "text-green-700" : "text-slate-400"}`} aria-hidden="true">{cleanStreak}</p>
                   <p className={`text-xs ${cleanStreak > 0 ? "text-green-600" : "text-slate-500"}`} aria-hidden="true">Clean streak</p>
                 </button>
@@ -438,7 +438,7 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
                 >
                   {/* Inspection header — always visible, tap to expand */}
                   <button
-                    className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#4CAF50]"
+                    className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2E7D32]"
                     onClick={() => setExpandedInspection(isExpanded ? null : idx)}
                     aria-expanded={isExpanded}
                     aria-controls={`inspection-panel-${idx}`}

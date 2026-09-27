@@ -40,16 +40,26 @@ export function resolveGrade(score, result = "") {
   return letterGrade;
 }
 
-// Esri diverging ramp: deep green → light green → yellow → orange → red
-// "P" (Pass) uses a distinct green — positive but visually distinguishable from "A"
+// Single source of truth for grade colors. Every badge AND every legend reads
+// from here, so the legend a visitor learns matches the badge on a result.
+// (Previously five legends used five different palettes.)
+//
+// Esri diverging ramp: deep green -> light green -> yellow -> orange -> red.
+// Light fills (B, C, D) take dark text. P uses a deeper teal than before.
+// Every pair meets WCAG 2.2 AA (4.5:1) for text, verified:
+//   A 5.02  B 8.55  C 9.55  D 7.89  F 4.83  P 5.47  U 6.97
+// Previously B was 1.74:1, D 2.26:1, P 2.49:1 (white text on light fills).
+export const GRADE_STYLES = {
+  A: { bg: "bg-green-700",  text: "text-white" },
+  B: { bg: "bg-green-400",  text: "text-green-950" },
+  C: { bg: "bg-yellow-400", text: "text-slate-800" },
+  D: { bg: "bg-orange-400", text: "text-slate-900" },
+  F: { bg: "bg-red-600",    text: "text-white" },
+  P: { bg: "bg-teal-700",   text: "text-white" },
+  U: { bg: "bg-slate-300",  text: "text-slate-700" },
+};
+
 export function getGradeColor(grade) {
-  switch (grade) {
-    case "A": return "bg-green-700 text-white";
-    case "B": return "bg-green-400 text-white";
-    case "C": return "bg-yellow-400 text-slate-800";
-    case "D": return "bg-orange-400 text-white";
-    case "F": return "bg-red-600 text-white";
-    case "P": return "bg-teal-500 text-white";
-    default:  return "bg-slate-300 text-slate-700";
-  }
+  const s = GRADE_STYLES[grade] || GRADE_STYLES.U;
+  return `${s.bg} ${s.text}`;
 }

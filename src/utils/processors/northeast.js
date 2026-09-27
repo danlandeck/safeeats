@@ -1,5 +1,5 @@
 import { resolveGrade } from "../grading";
-import { extractDate } from "../date";
+import { extractDate, isFutureDate } from "../date";
 import { buildDetailRowsFromMap } from "../detailRowBuilder";
 
 // ── Delaware ─────────────────────────────────────────────────────────────────
@@ -7,6 +7,7 @@ export function processDelawareResults(data) {
   if (!Array.isArray(data) || data.length === 0) return [];
   const businesses = {};
   data.forEach((row) => {
+    if (isFutureDate(row.insp_date)) return; // upstream data-entry error
     const key = `${(row.restname || "").trim()}-${(row.restaddress || "").trim()}`;
     if (!key || key === "-") return;
     if (!businesses[key]) {
@@ -57,6 +58,7 @@ export function processDelawareResults(data) {
 export function delawareToDetailRows(data) {
   const inspMap = {};
   data.forEach((row) => {
+    if (isFutureDate(row.insp_date)) return; // upstream data-entry error
     const dateKey = `${row.insp_date}-${row.insp_type}`;
     const date = extractDate(row.insp_date || "");
     if (!inspMap[dateKey]) {

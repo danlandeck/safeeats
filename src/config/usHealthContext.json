@@ -342,6 +342,42 @@
           "conifer",
           "genesee"
         ]
+      },
+      "Adams": {
+        "portal_url": "https://inspections.myhealthdepartment.com/adcogoveh",
+        "portal_name": "Adams County Health Department — Food Inspections",
+        "cities": [
+          "thornton",
+          "westminster",
+          "northglenn",
+          "commerce city",
+          "brighton",
+          "federal heights",
+          "strasburg",
+          "watkins",
+          "henderson",
+          "derby",
+          "lochbuie",
+          "bennett"
+        ]
+      },
+      "Douglas": {
+        "portal_url": "https://inspections.myhealthdepartment.com/dchd",
+        "portal_name": "Douglas County Health Department (CO) — Food Inspections",
+        "cities": [
+          "castle rock",
+          "parker",
+          "lone tree",
+          "highlands ranch",
+          "castle pines",
+          "larkspur",
+          "sedalia",
+          "franktown",
+          "roxborough",
+          "stonegate",
+          "the pinery",
+          "columbine"
+        ]
       }
     }
   },
@@ -757,6 +793,48 @@
   "MD": {
     "description": "Maryland: MD Dept of Health (health.maryland.gov). County health departments conduct inspections. Score: Pass/Fail or 100-point depending on county.",
     "counties": {
+      "Montgomery": {
+        "portal_url": "https://data.montgomerycountymd.gov/d/dkrp-gr48",
+        "portal_name": "Montgomery County DHHS — Food Inspection Data",
+        "cities": [
+          "rockville",
+          "bethesda",
+          "silver spring",
+          "gaithersburg",
+          "germantown",
+          "potomac",
+          "takoma park",
+          "olney",
+          "chevy chase",
+          "kensington",
+          "wheaton",
+          "burtonsville",
+          "clarksburg",
+          "damascus",
+          "derwood",
+          "montgomery village",
+          "poolesville",
+          "sandy spring",
+          "cabin john",
+          "ashton",
+          "brookeville",
+          "north bethesda",
+          "dickerson",
+          "spencerville",
+          "boyds",
+          "laytonsville",
+          "north potomac",
+          "darnestown",
+          "garrett park",
+          "aspen hill",
+          "glen echo",
+          "barnesville",
+          "beallsville",
+          "colesville",
+          "glenmont",
+          "white oak"
+        ]
+      },
       "Prince George's": {
         "portal_url": "https://data.princegeorgescountymd.gov/Health/Food-Inspection/umjn-t2iz",
         "portal_name": "Prince George's County — Food Inspection Search",
@@ -1659,7 +1737,8 @@
           "happy valley",
           "gladstone",
           "canby",
-          "sandy"
+          "sandy",
+          "wilsonville"
         ]
       },
       "Deschutes": {
@@ -2109,6 +2188,75 @@
   "WA": {
     "description": "Washington: WA State Dept of Health (doh.wa.gov/community-and-environment/food/restaurant-inspections). County health departments conduct inspections. King County uses demerit/penalty points (lower=better), others use 100-point or Pass/Fail.",
     "counties": {
+      "King": {
+        "portal_url": "https://info.kingcounty.gov/health/ehs/foodsafety/inspections/search.aspx",
+        "portal_name": "Public Health – Seattle & King County — Restaurant Inspection Search",
+        "cities": [
+          "seattle",
+          "bellevue",
+          "kent",
+          "renton",
+          "redmond",
+          "kirkland",
+          "federal way",
+          "sammamish",
+          "shoreline",
+          "burien",
+          "tukwila",
+          "issaquah",
+          "mercer island",
+          "auburn",
+          "bothell",
+          "kenmore",
+          "newcastle",
+          "des moines",
+          "seatac",
+          "sea-tac",
+          "woodinville",
+          "medina",
+          "clyde hill",
+          "yarrow point",
+          "hunts point",
+          "beaux arts",
+          "lake forest park",
+          "north bend",
+          "snoqualmie",
+          "carnation",
+          "duvall",
+          "enumclaw",
+          "black diamond",
+          "maple valley",
+          "covington",
+          "skykomish",
+          "vashon",
+          "normandy park",
+          "algona",
+          "pacific",
+          "milton"
+        ]
+      },
+      "Pierce": {
+        "portal_url": "https://www.tpchd.org/healthy-communities/food-safety",
+        "portal_name": "Tacoma-Pierce County Health Department — Food Safety",
+        "cities": [
+          "tacoma",
+          "puyallup",
+          "lakewood",
+          "university place",
+          "fircrest",
+          "parkland",
+          "spanaway",
+          "sumner",
+          "bonney lake",
+          "gig harbor",
+          "dupont",
+          "steilacoom",
+          "edgewood",
+          "orting",
+          "eatonville",
+          "roy"
+        ]
+      },
       "Snohomish": {
         "portal_url": "https://www.snohd.org/571/Food-Safety",
         "portal_name": "Snohomish County Health Dept — Food Safety",

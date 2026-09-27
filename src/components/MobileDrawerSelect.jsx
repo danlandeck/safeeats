@@ -41,7 +41,7 @@ export default function MobileDrawerSelect({
             <button
               type="button"
               disabled={disabled}
-              className="text-xs font-semibold border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer min-h-[36px] flex items-center gap-1 transition-colors hover:bg-slate-50 disabled:opacity-50"
+              className="text-xs font-semibold border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] cursor-pointer min-h-[36px] flex items-center gap-1 transition-colors hover:bg-slate-50 disabled:opacity-50"
             >
               <span className="truncate max-w-[90px]">{selectedLabel}</span>
               <ChevronDown className="w-3 h-3 flex-shrink-0" />
@@ -63,7 +63,7 @@ export default function MobileDrawerSelect({
                     }}
                     className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-between ${
                       isSelected
-                        ? "bg-[#4CAF50] text-white"
+                        ? "bg-[#2E7D32] text-white"
                         : "bg-slate-50 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
@@ -88,7 +88,7 @@ export default function MobileDrawerSelect({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4CAF50] cursor-pointer min-h-[36px]"
+          className="text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] cursor-pointer min-h-[36px]"
         >
           {options.map((opt) => (
             <option key={opt.value || "all"} value={opt.value}>

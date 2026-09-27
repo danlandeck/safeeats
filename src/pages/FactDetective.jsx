@@ -102,7 +102,7 @@ export default function FactDetective() {
       <section className="bg-slate-900 text-white py-14 sm:py-20 px-4 border-b-4 border-authority-teal">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-authority-teal/20 border border-authority-teal/40 rounded-full px-4 py-1.5 mb-6">
-            <Eye className="w-4 h-4 text-authority-teal" />
+            <Eye className="w-4 h-4 text-teal-400" />
             <span className="text-sm font-bold text-teal-300">Fact Detective</span>
           </div>
           <h1
@@ -139,11 +139,11 @@ export default function FactDetective() {
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 flex items-start gap-4"
                 >
                   <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-authority-teal" />
+                    <Icon className="w-5 h-5 text-teal-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-black text-slate-400 tracking-widest">
+                      <span className="text-[10px] font-black text-slate-600 tracking-widest">
                         STEP {s.step}
                       </span>
                     </div>
@@ -212,7 +212,7 @@ export default function FactDetective() {
             {/* Header row */}
             <div className="grid grid-cols-3 bg-slate-900 text-white text-xs sm:text-sm font-bold">
               <div className="p-3 sm:p-4">Question</div>
-              <div className="p-3 sm:p-4 border-l border-white/10 text-authority-teal">
+              <div className="p-3 sm:p-4 border-l border-white/10 text-teal-400">
                 <div className="flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> SafeEats™
                 </div>
@@ -249,7 +249,7 @@ export default function FactDetective() {
       {/* Transparency CTA */}
       <section className="bg-slate-900 text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <BadgeCheck className="w-12 h-12 text-authority-teal mx-auto mb-4" />
+          <BadgeCheck className="w-12 h-12 text-teal-400 mx-auto mb-4" />
           <h2 className="text-2xl sm:text-3xl font-black mb-4 font-heading">
             Verify it yourself — that's the whole point
           </h2>

@@ -20,7 +20,7 @@ function getLabel(score) {
 
 export default function ScoreGauge({ score, size = "md", animate = true }) {
   const isUnknown = score === null || score === undefined;
-  const colors = isUnknown ? { hex: "#94a3b8", text: "text-slate-400" } : getScoreColor(score);
+  const colors = isUnknown ? { hex: "#94a3b8", text: "text-slate-600" } : getScoreColor(score);
   const label = isUnknown ? "No Data" : getLabel(score);
 
   // Animated fill: start at 0, animate to score
@@ -75,11 +75,11 @@ export default function ScoreGauge({ score, size = "md", animate = true }) {
             />
           )}
         </svg>
-        <span className={`${s.text} font-extrabold z-10 ${isUnknown ? "text-slate-400" : colors.text}`}>
+        <span className={`${s.text} font-extrabold z-10 ${isUnknown ? "text-slate-600" : colors.text}`}>
           {isUnknown ? "?" : score}
         </span>
       </div>
-      <span className={`${s.label} font-bold uppercase tracking-wider ${isUnknown ? "text-slate-400" : colors.text}`}>
+      <span className={`${s.label} font-bold uppercase tracking-wider ${isUnknown ? "text-slate-600" : colors.text}`}>
         {label}
       </span>
     </div>

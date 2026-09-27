@@ -17,10 +17,10 @@ module.exports = {
   			'5xl': '2.5rem',
   		},
   		colors: {
-  			'brand-green': '#4CAF50',
+  			'brand-green': '#2E7D32', // was #4CAF50 (2.78:1 on white); now 5.13:1
   			'brand-blue': '#2196F3',
   			'authority-navy': '#0F172A',
-  			'authority-teal': '#0D9488',
+  			'authority-teal': '#0F766E', // was #0D9488 (3.74:1 on white); now 5.47:1
   			'authority-gold': '#B45309',
   			'authority-cream': '#F8FAFC',
   			'authority-slate': '#1E293B',

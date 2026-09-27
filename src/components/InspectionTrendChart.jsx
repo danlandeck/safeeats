@@ -66,7 +66,7 @@ export default function InspectionTrendChart({ inspections }) {
       {/* Current grade vs Legacy grade */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
-          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Current Grade</p>
+          <p className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1">Current Grade</p>
           <div className="flex flex-col items-center gap-1">
             <span className={`text-4xl font-extrabold px-4 py-1 rounded-xl ${getGradeColor(currentGrade)}`}>
               {currentGrade}
@@ -75,7 +75,7 @@ export default function InspectionTrendChart({ inspections }) {
           </div>
         </div>
         <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
-          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Legacy Grade</p>
+          <p className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1">Legacy Grade</p>
           <div className="flex flex-col items-center gap-1">
             <span className={`text-4xl font-extrabold px-4 py-1 rounded-xl ${getGradeColor(legacyGrade)}`}>
               {legacyGrade}

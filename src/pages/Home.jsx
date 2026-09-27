@@ -23,7 +23,8 @@ const ScoreLegend   = React.lazy(() => import("../components/ScoreLegend"));
 const ComparePanel  = React.lazy(() => import("../components/ComparePanel"));
 
 export { getGrade } from "../utils/grading";
-export { getGradeColor } from "../utils/grading";
+import { getGradeColor } from "../utils/grading";
+export { getGradeColor };
 
 // City aliases → { region, countyId } for all supported live API counties
 const CITY_TO_COUNTY = {
@@ -1379,7 +1380,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white" role="banner">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a2e1a] text-white">
         <div className="max-w-5xl mx-auto px-4 pt-6 pb-6 sm:pt-14 sm:pb-10">
           <div className="text-center mb-5 sm:mb-7">
             <div className="inline-flex items-center gap-2 bg-[#4CAF50]/20 border border-[#4CAF50]/40 text-[#81c784] text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full mb-3 sm:mb-4 tracking-wider uppercase">
@@ -1396,13 +1397,14 @@ export default function Home() {
             {!hasSearched && (
               <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-5 flex-wrap" style={{ fontFamily: "Nunito, sans-serif" }}>
                 {[
-                  { g: "A", color: "bg-green-600 text-white", tip: t.gradeA },
-                  { g: "B", color: "bg-lime-500 text-white", tip: t.gradeB },
-                  { g: "C", color: "bg-yellow-400 text-slate-800", tip: t.gradeC },
-                  { g: "D", color: "bg-orange-500 text-white", tip: t.gradeD },
-                  { g: "F", color: "bg-red-600 text-white", tip: t.gradeF },
-                  { g: "P", color: "bg-teal-500 text-white", tip: t.gradeP },
-                  { g: "U", color: "bg-slate-400 text-white", tip: t.gradeU },
+                  // Same palette as the real result badges (grading.js GRADE_STYLES)
+                  { g: "A", color: getGradeColor("A"), tip: t.gradeA },
+                  { g: "B", color: getGradeColor("B"), tip: t.gradeB },
+                  { g: "C", color: getGradeColor("C"), tip: t.gradeC },
+                  { g: "D", color: getGradeColor("D"), tip: t.gradeD },
+                  { g: "F", color: getGradeColor("F"), tip: t.gradeF },
+                  { g: "P", color: getGradeColor("P"), tip: t.gradeP },
+                  { g: "U", color: getGradeColor("U"), tip: t.gradeU },
                 ].map(({ g, color, tip }) => (
                   <div key={g} className="flex flex-col items-center gap-0.5 sm:gap-1">
                     <span className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-xl shadow-md border-2 border-white/30 ${color}`}>{g}</span>
@@ -1471,7 +1473,7 @@ export default function Home() {
         {isLoading ? `Querying health department database for ${locationQuery || countyId}. Please wait…` : hasSearched && !isLoading ? `Found ${filteredAndSortedResults.length} restaurants` : ""}
       </div>
 
-      <main className="max-w-5xl mx-auto px-3 sm:px-4 pb-20 pt-6 sm:pt-8" id="main-content" aria-label="Restaurant search results">
+      <section className="max-w-5xl mx-auto px-3 sm:px-4 pb-20 pt-6 sm:pt-8" id="search-results" aria-label="Restaurant search results">
         {!hasSearched && (
           <div className="space-y-8 mb-10">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ fontFamily: "Nunito, sans-serif" }}>
@@ -1483,7 +1485,7 @@ export default function Home() {
                 <div key={title} className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex gap-3 sm:gap-4 items-start hover:border-[#4CAF50] hover:shadow-md transition-all">
                   <span className="text-3xl sm:text-4xl flex-shrink-0">{emoji}</span>
                   <div>
-                    <h3 className="font-black text-slate-900 text-sm mb-1">{title}</h3>
+                    <h2 className="font-black text-slate-900 text-sm mb-1">{title}</h2>
                     <p className="text-xs text-slate-500 leading-relaxed font-semibold">{desc}</p>
                   </div>
                 </div>
@@ -1511,7 +1513,7 @@ export default function Home() {
                   <span key={src} className="bg-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">{src}</span>
                 ))}
               </div>
-              <p className="text-center text-xs text-slate-500 mt-3">{t.liveDataDesc}</p>
+              <p className="text-center text-xs text-slate-400 mt-3">{t.liveDataDesc}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -1542,7 +1544,7 @@ export default function Home() {
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                           <span className="text-3xl">⚠️</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-700">{t.searchUnavailable}</h3>
+                        <h2 className="text-lg font-semibold text-slate-700">{t.searchUnavailable}</h2>
                         <p className="text-sm text-slate-400 mt-1 mb-4">{searchError}</p>
                         <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors">{t.tryAgain}</button>
                       </div>
@@ -1643,7 +1645,7 @@ export default function Home() {
                     ) : (
                       <div className="text-center py-14 bg-white rounded-2xl border border-slate-200 shadow-sm">
                         <span className="text-5xl">🤷</span>
-                        <h3 className="text-lg font-extrabold text-slate-800 mt-4">{t.noResultsTitle(searchQuery)}</h3>
+                        <h2 className="text-lg font-extrabold text-slate-800 mt-4">{t.noResultsTitle(searchQuery)}</h2>
                         <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">
                           {t.noResultsDesc}
                         </p>
@@ -1688,7 +1690,7 @@ export default function Home() {
             </motion.div>
         </AnimatePresence>
         </PullToRefresh>
-      </main>
+      </section>
 
       {compareList.length >= 2 && (
         <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 max-w-lg w-[92vw] sm:w-[90vw]">

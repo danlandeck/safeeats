@@ -1,55 +1,17 @@
 import React from "react";
 import { AlertTriangle, ExternalLink, Search } from "lucide-react";
+import { resolveStaleInfo } from "@/utils/staleData";
 
 /**
- * StaleDataBanner — shows a transparency notice when restaurant data is
- * historical/outdated (e.g. Portland OregonLive 2019-2020), plus a prominent
- * link letting the end-user search the official live portal themselves.
+ * StaleDataBanner: a transparency notice when a restaurant's inspection data is
+ * historical, plus a prominent link to the official portal for current records.
  *
- * Renders when `restaurant.data_warning` is present OR when the restaurant
- * is in a known stale-data jurisdiction (matched by county_id or city+state),
- * so that AI-fallback results for those areas also get the portal link.
+ * All detection logic lives in utils/staleData.js (shared with
+ * OfficialInspectionLink so only one portal button ever renders). It covers
+ * explicit backend warnings, known-frozen sources (e.g. King County after
+ * 2025-11-26), and an automatic rule for any restaurant whose newest published
+ * inspection is more than ~18 months old.
  */
-
-// Counties/cities where we know the data is historical or AI-estimated and
-// the user should be directed to the official portal for current records.
-const STALE_DATA_BY_COUNTY = {
-  portland_oregonlive: {
-    data_warning: "Historical data from OregonLive (2019-2020). May not reflect current conditions.",
-    portal_url: "https://inspections.myhealthdepartment.com/multco-eh",
-    portal_name: "Multnomah County Official Inspection Portal",
-  },
-};
-
-// City + state fallback for AI results whose county_id may have been re-routed
-const STALE_DATA_BY_CITY_STATE = {
-  "portland|or": STALE_DATA_BY_COUNTY.portland_oregonlive,
-  "gresham|or": STALE_DATA_BY_COUNTY.portland_oregonlive,
-};
-
-function resolveStaleInfo(restaurant) {
-  // 1. Explicit data_warning on the object (from backend processor)
-  if (restaurant?.data_warning) {
-    return {
-      data_warning: restaurant.data_warning,
-      portal_url: restaurant.portal_url,
-      portal_name: restaurant.portal_name,
-    };
-  }
-  // 2. Lookup by county_id
-  if (restaurant?.county_id && STALE_DATA_BY_COUNTY[restaurant.county_id]) {
-    return STALE_DATA_BY_COUNTY[restaurant.county_id];
-  }
-  // 3. Lookup by city + state (catches AI-fallback results)
-  const city = (restaurant?.city || "").toLowerCase().trim();
-  const state = (restaurant?.state || "").toLowerCase().trim();
-  const key = `${city}|${state}`;
-  if (STALE_DATA_BY_CITY_STATE[key]) {
-    return STALE_DATA_BY_CITY_STATE[key];
-  }
-  return null;
-}
-
 export default function StaleDataBanner({ restaurant, variant = "card" }) {
   const info = resolveStaleInfo(restaurant);
   if (!info) return null;
@@ -67,7 +29,7 @@ export default function StaleDataBanner({ restaurant, variant = "card" }) {
     >
       <div className="flex items-start gap-1.5">
         <AlertTriangle className={`text-amber-500 flex-shrink-0 mt-0.5 ${isDetail ? "w-4 h-4" : "w-3.5 h-3.5"}`} />
-        <span className={`font-bold text-amber-800 ${isDetail ? "text-sm" : "text-[10px]"}`}>
+        <span className={`font-bold text-amber-800 ${isDetail ? "text-sm" : "text-xs"}`}>
           {info.data_warning}
         </span>
       </div>
@@ -77,7 +39,7 @@ export default function StaleDataBanner({ restaurant, variant = "card" }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className={`flex items-center gap-1.5 self-start bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${
+          className={`flex items-center gap-1.5 self-start bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${
             isDetail ? "px-3 py-2 text-sm" : "px-2.5 py-1.5 text-[11px]"
           }`}
           aria-label={`Search current inspection records on ${portalName} (opens in new tab)`}

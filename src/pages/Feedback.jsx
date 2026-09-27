@@ -79,7 +79,7 @@ Submitted from SafeEats™ App
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-6 h-6 text-slate-700 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-slate-900">Thank you for your feedback!</h3>
+                  <h2 className="font-semibold text-slate-900">Thank you for your feedback!</h2>
                   <p className="text-sm text-slate-600 mt-1">
                     We've received your message and will review it carefully.
                   </p>
@@ -161,7 +161,7 @@ Submitted from SafeEats™ App
             <div className="flex items-start gap-3">
               <span className="text-2xl flex-shrink-0">♿</span>
               <div>
-                <h3 className="text-sm font-extrabold text-emerald-900 mb-1">Report Incorrect ADA / Accessibility Info</h3>
+                <h2 className="text-sm font-extrabold text-emerald-900 mb-1">Report Incorrect ADA / Accessibility Info</h2>
                 <p className="text-sm text-emerald-800 leading-relaxed mb-2">
                   Accessibility matters deeply to us. If SafeEats™ shows incorrect ADA or wheelchair accessibility information for any restaurant, <strong>please report it here</strong>. Daniel personally follows up with businesses where accessibility data is wrong — because every guest deserves accurate info before they arrive.
                 </p>
@@ -174,7 +174,7 @@ Submitted from SafeEats™ App
 
           {/* Additional Info */}
           <Card className="p-6 border-slate-200 bg-slate-50">
-            <h3 className="text-sm font-semibold text-slate-900 mb-2">What kind of feedback can I share?</h3>
+            <h2 className="text-sm font-semibold text-slate-900 mb-2">What kind of feedback can I share?</h2>
             <ul className="text-sm text-slate-600 space-y-1.5">
               <li>• Report bugs or technical issues</li>
               <li>• Suggest new features or improvements</li>

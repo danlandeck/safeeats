@@ -72,8 +72,9 @@ export default function EmbedGenerator() {
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1">Last Inspection Date (optional)</label>
+            <label htmlFor="embed-last-inspection" className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1">Last Inspection Date (optional)</label>
             <input
+              id="embed-last-inspection"
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
@@ -114,7 +115,7 @@ export default function EmbedGenerator() {
         )}
 
         {!name || !score ? (
-          <p className="text-center text-sm text-slate-400 mt-6">Fill in the restaurant name and score to generate your embed code.</p>
+          <p className="text-center text-sm text-slate-600 mt-6">Fill in the restaurant name and score to generate your embed code.</p>
         ) : null}
       </div>
     </div>

@@ -117,7 +117,7 @@ export default function EPAWaterCard({ restaurant }) {
           href={ewgUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[11px]"
+          className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#2E7D32] rounded whitespace-nowrap text-[11px]"
           aria-label={`Check tap water quality on EWG for zip code ${zip} (opens in new tab)`}
         >
           Check on EWG <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
@@ -155,7 +155,7 @@ export default function EPAWaterCard({ restaurant }) {
               href={ewgUrlForZip(zip)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[10px]"
+              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#2E7D32] rounded whitespace-nowrap text-[10px]"
               aria-label={`View EWG tap water report for zip code ${zip} (opens in new tab)`}
             >
               EWG Report <ExternalLink className="w-2.5 h-2.5" />
@@ -166,7 +166,7 @@ export default function EPAWaterCard({ restaurant }) {
               href={data.epaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded whitespace-nowrap text-[10px]"
+              className="flex items-center gap-0.5 text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-[#2E7D32] rounded whitespace-nowrap text-[10px]"
               aria-label="View full EPA water system report (opens in new tab)"
             >
               EPA Report <ExternalLink className="w-2.5 h-2.5" />
