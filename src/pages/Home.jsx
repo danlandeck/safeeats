@@ -15,6 +15,7 @@ import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import { saveSearchContext, getSearchContext, clearSearchContext } from "../utils/searchStateCache";
 import PullToRefresh from "../components/PullToRefresh";
+import { enrichADA } from "../utils/adaEnrich";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner = React.lazy(() => import("../components/CameraScanner"));
@@ -1249,6 +1250,10 @@ export default function Home() {
           if (searchIdRef.current !== currentSearchId) return;
           setResults(accurate);
           setIsRefining(false);
+          enrichADA(accurate, (updated) => {
+            if (searchIdRef.current !== currentSearchId) return;
+            setResults(updated);
+          });
         },
         onCountUpdate: (bizId, trueCount) => {
           if (searchIdRef.current !== currentSearchId) return;
@@ -1262,6 +1267,10 @@ export default function Home() {
       if (isAI && fetchedResults.length > 0) setIsRefining(true);
       setIsAISearch(isAI);
       setResults(fetchedResults);
+      enrichADA(fetchedResults, (updated) => {
+        if (searchIdRef.current !== currentSearchId) return;
+        setResults(updated);
+      });
     } catch (e) {
       if (e.name === "AbortError") return;
       setIsLoading(false);

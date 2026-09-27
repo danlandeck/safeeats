@@ -1,15 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-Deno.serve(async (req) => {
-  const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  const body = await req.json();
-  const { name, address, city, zip_code } = body;
+const PLACES_URL = "https://places.googleapis.com/v1/places:searchText";
 
-  const query = [name, address, city, zip_code].filter(Boolean).join(", ");
+// Look up accessibility options for one place via Google Places text search.
+async function lookupPlace(place) {
+  const query = [place?.name, place?.address, place?.city, place?.zip_code].filter(Boolean).join(", ");
+  if (!query) return { found: false };
 
-  const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+  const res = await fetch(PLACES_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -20,23 +18,37 @@ Deno.serve(async (req) => {
   });
 
   const data = await res.json();
-  const place = data.places?.[0];
+  const place_ = data.places?.[0];
+  if (!place_) return { found: false };
 
-  if (!place) {
-    return Response.json({ found: false });
-  }
-
-  const ao = place.accessibilityOptions || {};
-  const hasAnyData = Object.keys(ao).length > 0;
-
-  return Response.json({
+  const ao = place_.accessibilityOptions || {};
+  return {
     found: true,
-    hasAnyData,
-    placeName: place.displayName?.text || "",
-    formattedAddress: place.formattedAddress || "",
+    hasAnyData: Object.keys(ao).length > 0,
+    placeName: place_.displayName?.text || "",
+    formattedAddress: place_.formattedAddress || "",
     wheelchairAccessibleEntrance: ao.wheelchairAccessibleEntrance ?? null,
     wheelchairAccessibleParking: ao.wheelchairAccessibleParking ?? null,
     wheelchairAccessibleRestroom: ao.wheelchairAccessibleRestroom ?? null,
     wheelchairAccessibleSeating: ao.wheelchairAccessibleSeating ?? null,
-  });
+  };
+}
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const body = await req.json();
+
+  // Batch mode — used by the search results list to fill ADA status on cards.
+  // One function call, up to 12 place lookups server-side.
+  if (Array.isArray(body.places) && body.places.length > 0) {
+    const places = body.places.slice(0, 12);
+    const results = await Promise.all(places.map(lookupPlace));
+    return Response.json({ batch: true, results });
+  }
+
+  // Single-place mode — used by the restaurant detail page.
+  const d = await lookupPlace(body);
+  return Response.json(d);
 });
