@@ -47,3 +47,15 @@ export function extractDate(rawDate) {
   // Split on T or space, take the first part
   return str.split(/[T ]/)[0] || "";
 }
+
+/**
+ * True when a date is later than today (plus a small grace window for
+ * timezone skew). An inspection cannot happen in the future, so such rows are
+ * upstream data-entry errors. Delaware's dataset contained a record dated
+ * 2026-12-03 when checked on 2026-09-27; left in, it sorted to the top and
+ * became that restaurant's "latest inspection".
+ */
+export function isFutureDate(value, graceDays = 1) {
+  const t = Date.parse(standardizeDate(value));
+  return Number.isFinite(t) && t > Date.now() + graceDays * 86400000;
+}

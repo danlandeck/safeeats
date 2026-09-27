@@ -11,21 +11,22 @@ import {
   processMontgomeryResults,
   processAustinResults,
   processSFResults,
-  processLAResults,
 } from "../utils/inspectionProcessors";
+import { API_REGISTRY } from "../utils/apiRegistry";
 import ScoreGauge from "../components/ScoreGauge";
 
-const KING_API       = "https://services.arcgis.com/Ej0PsM5Aw677QF1W/arcgis/rest/services/RESTAURANT_INSPECTIONS_POINT_857/FeatureServer/0/query";
+// King County: Socrata vbyt-shxd (through 2025-11-26); the ArcGIS layer froze 2024-03-30.
+const KING_API       = "https://data.kingcounty.gov/resource/vbyt-shxd.json";
 const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
-const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/5pue-gfbe.json";
+// Montgomery MD: dkrp-gr48 (July 2024 onward); 5pue-gfbe froze 2024-10-03.
+const MONTGOMERY_API = "https://data.montgomerycountymd.gov/resource/dkrp-gr48.json";
 const AUSTIN_API     = "https://data.austintexas.gov/resource/ecmv-9xxi.json";
-const SF_API         = "https://data.sfgov.org/resource/tvy3-wexg.json";
-const LA_API         = "https://data.lacity.org/resource/29fd-3paw.json";
+const SF_API         = "https://data.sf.gov/resource/tvy3-wexg.json";
 
 // ── Live API fetchers ─────────────────────────────────────────────────────────
 async function fetchKingCounty() {
-  const data = await fetch(`${KING_API}?where=1%3D1&outFields=*&f=json&orderByFields=DATE_INSPECTION+DESC&resultRecordCount=1000`).then((r) => r.json());
+  const data = await fetch(`${KING_API}?$limit=1000&$order=inspection_date DESC`).then((r) => r.json());
   return processKingCountyResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
@@ -40,7 +41,9 @@ async function fetchChicago() {
 }
 
 async function fetchMontgomery() {
-  const data = await fetch(`${MONTGOMERY_API}?$limit=50&$order=inspectiondate DESC`).then((r) => r.json());
+  // Upstream repeats each inspection ~300x; $group returns each once.
+  const g = API_REGISTRY.montgomery_md.groupSelect;
+  const data = await fetch(`${MONTGOMERY_API}?$select=${g}&$group=${g}&$limit=50&$order=inspection_start_date DESC`).then((r) => r.json());
   return processMontgomeryResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
@@ -54,10 +57,6 @@ async function fetchSF() {
   return processSFResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
 }
 
-async function fetchLA() {
-  const data = await fetch(`${LA_API}?$limit=50&$order=activity_date DESC`).then((r) => r.json());
-  return processLAResults(data).map((b) => ({ ...b, id: b.business_id, inspections: b.totalInspections }));
-}
 
 // ── LLM fetcher ───────────────────────────────────────────────────────────────
 const LLM_ITEM_SCHEMA = {
@@ -203,7 +202,6 @@ const LIVE_API_COUNTIES = {
   "MD:Montgomery": { label: "Montgomery County, MD",          fetch: fetchMontgomery, region: "maryland",   county: "montgomery_md" },
   "TX:Travis":     { label: "Travis County (Austin), TX",      fetch: fetchAustin,     region: "texas",      county: "travis" },
   "CA:San Francisco": { label: "San Francisco County, CA",    fetch: fetchSF,         region: "california", county: "sf" },
-  "CA:Los Angeles":   { label: "Los Angeles County, CA",       fetch: fetchLA,         region: "california", county: "la" },
 };
 
 const ABBR_TO_REGION_KEY = {
@@ -357,7 +355,7 @@ export default function CountyDrillDown() {
             )}
           </div>
         ) : allRestaurants.length === 0 ? (
-          <div className="text-center py-20 text-slate-400">No data found for this region.</div>
+          <div className="text-center py-20 text-slate-600">No data found for this region.</div>
         ) : (
           <>
             <div className="mb-6 px-4 py-3 bg-slate-100 rounded-xl border border-slate-200">
