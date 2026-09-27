@@ -19,15 +19,18 @@ export const API_REGISTRY = {
   king: {
     id: "king",
     name: "King County, WA",
-    // Socrata vbyt-shxd "Food Establishment Inspections (spatial)".
-    // Replaces the ArcGIS layer RESTAURANT_INSPECTIONS_POINT_857, whose newest
-    // record is 2024-03-30. This dataset runs through 2025-11-26. King County
-    // has not published 2026 inspections to open data (checked 2026-09-27), so
-    // StaleDataBanner flags these results and links the official search portal.
-    // processKingCountyResults normalizes these lowercase fields to the ArcGIS names.
-    endpoint: "https://data.kingcounty.gov/resource/vbyt-shxd.json",
+    // Socrata r878-4sxa "Food Establishment Inspection Data" — the county's
+    // CURRENT feed (checked 2026-09-27: inspections through 2026-09-01, updated
+    // daily; linked from kingcounty.gov's official ratings search).
+    // Replaces vbyt-shxd "Food Establishment Inspections (spatial)", which
+    // STOPPED publishing after 2025-11-26, and the older ArcGIS layer
+    // RESTAURANT_INSPECTIONS_POINT_857 (frozen 2024-03-30).
+    // NOTE: r878-4sxa has no latitude/longitude/phone columns and
+    // program_identifier is null for ~80% of rows — group by business_id,
+    // and let Home's geocoder fill map coordinates.
+    endpoint: "https://data.kingcounty.gov/resource/r878-4sxa.json",
     searchField: "name",
-    idField: "program_identifier",
+    idField: "business_id",
     dateField: "inspection_date",
     limit: 1000,
     source: "king",

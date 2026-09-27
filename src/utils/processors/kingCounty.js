@@ -2,17 +2,22 @@ import { resolveGrade } from "../grading";
 import { standardizeDate } from "../date";
 
 // ── King County (Seattle) ────────────────────────────────────────────────────
-// King County publishes the same inspection records in two shapes:
+// King County publishes the same inspection records in three shapes:
 //   - ArcGIS layer RESTAURANT_INSPECTIONS_POINT_857: UPPERCASE fields, epoch-ms
 //     dates, newest record 2024-03-30 (frozen)
-//   - Socrata vbyt-shxd: lowercase fields, ISO dates, through 2025-11-26
-// The registry now points at Socrata. normalizeKingRow maps Socrata names onto
-// the ArcGIS names this module was written against, so both shapes work.
+//   - Socrata vbyt-shxd: lowercase fields, ISO dates, through 2025-11-26 (frozen)
+//   - Socrata r878-4sxa "Food Establishment Inspection Data": the CURRENT feed
+//     (through 2026-09-01), one row per violation with shared
+//     inspection_serial_num, no lat/long/phone, and a real business_id
+// The registry now points at r878-4sxa. normalizeKingRow maps all Socrata names
+// onto the ArcGIS names this module was written against, so both shapes work.
 const SOCRATA_TO_ARCGIS = {
   name: "NAME",
   program_identifier: "PROGRAM_IDENTIFIER",
+  business_id: "BUSINESS_ID",
   inspection_date: "DATE_INSPECTION",
   description: "SEAT_CAP",
+  classification: "SEAT_CAP", // r878-4sxa facility type ("General Food Services")
   address: "ADDRESS",
   city: "CITY",
   zip_code: "ZIPCODE",
@@ -27,6 +32,7 @@ const SOCRATA_TO_ARCGIS = {
   violation_description: "VIOLATIONDESCR",
   violation_points: "VIOLATIONPOINTS",
   violation_record_id: "FEATURE_ID",
+  inspection_serial_num: "INSPECTION_SERIAL_NUM",
 };
 
 function normalizeKingRow(row) {
@@ -48,7 +54,9 @@ export function processKingCountyResults(data) {
   if (!Array.isArray(rows) || rows.length === 0) return [];
   const businesses = {};
   rows.forEach((row) => {
-    const id = row.PROGRAM_IDENTIFIER || row.NAME;
+    // r878-4sxa groups by business_id ("PFE-PR-…"); program_identifier is null
+    // for ~80% of rows there and falls back to name (older datasets).
+    const id = row.BUSINESS_ID || row.PROGRAM_IDENTIFIER || row.NAME;
     if (!id) return;
     if (!businesses[id]) {
       businesses[id] = {
@@ -80,9 +88,12 @@ export function processKingCountyResults(data) {
       : null;
     const latestResult = hasResult ? latest.result : "Unknown";
     const rowWithCoords = biz.allRows.find((r) => r.LATITUDE && r.LONGITUDE);
+    // Strip the internal allRows/inspections working arrays (Sacramento pattern)
+    // so result cards, search-state cache, and router state stay small.
+    const { allRows, inspections, ...card } = biz;
     return {
-      ...biz, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
-      totalInspections: biz.inspections.length,
+      ...card, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
+      totalInspections: inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.LATITUDE, longitude: rowWithCoords?.LONGITUDE,
       isLLMData: false, source: "king",
@@ -93,14 +104,40 @@ export function processKingCountyResults(data) {
 
 export function kingToDetailRows(data) {
   const rows = kingRows(data);
-  return rows.map((row) => ({
-    inspection_serial_num: `${standardizeDate(row.DATE_INSPECTION)}-${row.TYPE_INSPECTION}-${row.FEATURE_ID || row.OBJECTID || Math.random()}`,
-    inspection_date: standardizeDate(row.DATE_INSPECTION),
-    inspection_score: String(row.SCORE_INSPECTION || 0),
-    inspection_result: row.RESULT_INSPECTION || "",
-    inspection_type: row.TYPE_INSPECTION || "",
-    violation_description: row.VIOLATIONDESCR || "",
-    violation_type: row.VIOLATIONTYPE || "",
-    violation_points: String(row.VIOLATIONPOINTS || 0),
+  // r878-4sxa (and the older feeds) emit one row PER VIOLATION, with rows of the
+  // same visit sharing an inspection_serial_num. Collapse each visit into ONE
+  // detail row with the violations joined — the same pattern as
+  // sacramentoToDetailRows, and what RestaurantDetailPage's serial dedupe and
+  // RestaurantDetail's grouping expect.
+  const inspMap = {};
+  rows.forEach((row) => {
+    const serial = row.INSPECTION_SERIAL_NUM ||
+      `${standardizeDate(row.DATE_INSPECTION)}-${row.TYPE_INSPECTION}`;
+    if (!inspMap[serial]) {
+      inspMap[serial] = {
+        serial,
+        date: standardizeDate(row.DATE_INSPECTION),
+        score: row.SCORE_INSPECTION || 0,
+        result: row.RESULT_INSPECTION || "",
+        type: row.TYPE_INSPECTION || "",
+        violations: [],
+        hasRed: false,
+        points: 0,
+      };
+    }
+    const insp = inspMap[serial];
+    if (row.VIOLATIONDESCR?.trim()) insp.violations.push(row.VIOLATIONDESCR.trim());
+    if (row.VIOLATIONTYPE === "RED") insp.hasRed = true;
+    insp.points += parseInt(row.VIOLATIONPOINTS) || 0;
+  });
+  return Object.values(inspMap).map((insp) => ({
+    inspection_serial_num: insp.serial,
+    inspection_date: insp.date,
+    inspection_score: String(insp.score),
+    inspection_result: insp.result,
+    inspection_type: insp.type,
+    violation_description: insp.violations.join("; "),
+    violation_type: insp.violations.length ? (insp.hasRed ? "RED" : "BLUE") : "",
+    violation_points: String(insp.points),
   }));
 }
