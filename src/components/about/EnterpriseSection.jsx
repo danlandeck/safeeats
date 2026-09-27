@@ -41,7 +41,7 @@ export default function EnterpriseSection() {
           Enterprise & API
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          The world's food safety data, <span className="text-[#4CAF50]">ready to integrate</span>
+          The world's food safety data, <span className="text-[#2E7D32]">ready to integrate</span>
         </h2>
         <p className="mt-3 text-base text-slate-500 max-w-2xl mx-auto leading-relaxed">
           The same engine that powers the consumer app — a single normalized, globally comparable dataset — available for licensing, embedding, and acquisition.
@@ -77,7 +77,7 @@ export default function EnterpriseSection() {
       <Section className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <h3 className="text-2xl font-extrabold text-slate-900">API Access</h3>
-          <Pill color="bg-emerald-600 text-white">Developer-ready</Pill>
+          <Pill color="bg-emerald-700 text-white">Developer-ready</Pill>
         </div>
         <p className="text-slate-600 leading-relaxed text-sm mb-6">
           SafeEats exposes a clean REST/JSON interface for search, restaurant detail, and full inspection history. The same engine that powers the consumer app — available for licensing and embedding.
@@ -106,12 +106,12 @@ export default function EnterpriseSection() {
               <ul className="space-y-2 mb-5">
                 {features.map((f) => (
                   <li key={f} className="flex gap-2 items-start text-xs text-slate-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#4CAF50] flex-shrink-0 mt-0.5" />{f}
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2E7D32] flex-shrink-0 mt-0.5" />{f}
                   </li>
                 ))}
               </ul>
               <Link to="/contact" className="block">
-                <Button className={`w-full text-xs font-bold ${highlight ? "bg-[#4CAF50] hover:bg-[#43A047] text-white" : "bg-slate-900 hover:bg-slate-700 text-white"}`}>{cta}</Button>
+                <Button className={`w-full text-xs font-bold ${highlight ? "bg-[#2E7D32] hover:bg-[#1B5E20] text-white" : "bg-slate-900 hover:bg-slate-700 text-white"}`}>{cta}</Button>
               </Link>
             </div>
           ))}
@@ -126,7 +126,7 @@ export default function EnterpriseSection() {
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link to="/contact">
-            <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white">Contact the team <ArrowRight className="w-4 h-4 ml-1.5" /></Button>
+            <Button className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white">Contact the team <ArrowRight className="w-4 h-4 ml-1.5" /></Button>
           </Link>
           <a href="#trust">
             <Button variant="outline" className="bg-transparent border-slate-600 text-white hover:bg-slate-800">Our trust controls</Button>

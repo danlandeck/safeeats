@@ -27,7 +27,7 @@ export default function PitchDeck() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
             The International Standard for<br />
-            <span className="text-[#4CAF50]">Food Safety Data</span>
+            <span className="text-[#2E7D32]">Food Safety Data</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
             SafeEats™ unifies government inspection records from 23 live data sources across 5 countries
@@ -101,7 +101,7 @@ export default function PitchDeck() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/contact">
-              <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white">
+              <Button className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white">
                 Open a conversation <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </Link>

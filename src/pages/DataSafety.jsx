@@ -18,7 +18,7 @@ export default function DataSafety() {
             <ArrowLeft className="w-4 h-4" /> Back to SafeEats™
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#4CAF50] flex items-center justify-center border-2 border-white/20">
+            <div className="w-10 h-10 rounded-2xl bg-[#2E7D32] flex items-center justify-center border-2 border-white/20">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Data Safety & Compliance</h1>
@@ -41,7 +41,7 @@ export default function DataSafety() {
         {/* ── 1. Data Collection Summary ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Database className="w-5 h-5 text-[#4CAF50]" /> 1. Data Collection Summary
+            <Database className="w-5 h-5 text-[#2E7D32]" /> 1. Data Collection Summary
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs border border-slate-200 rounded-lg overflow-hidden">
@@ -73,7 +73,7 @@ export default function DataSafety() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-slate-400 mt-2">
+          <p className="text-xs text-slate-600 mt-2">
             ✅ = Yes / ❌ = No. "Shared" means data is transmitted to a third-party service for processing.
           </p>
         </section>
@@ -81,13 +81,13 @@ export default function DataSafety() {
         {/* ── 2. App Permissions ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-[#4CAF50]" /> 2. App Permissions
+            <Smartphone className="w-5 h-5 text-[#2E7D32]" /> 2. App Permissions
           </h2>
           <div className="space-y-3">
             {PERMISSIONS.map((perm, i) => (
               <div key={i} className="flex items-start gap-3 bg-white border border-slate-200 rounded-xl p-3.5">
                 <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                  <perm.icon className="w-4.5 h-4.5 text-[#4CAF50]" />
+                  <perm.icon className="w-4.5 h-4.5 text-[#2E7D32]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-slate-800">{perm.name}</p>
@@ -104,7 +104,7 @@ export default function DataSafety() {
         {/* ── 3. Security Practices ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Lock className="w-5 h-5 text-[#4CAF50]" /> 3. Security Practices
+            <Lock className="w-5 h-5 text-[#2E7D32]" /> 3. Security Practices
           </h2>
           <ul className="space-y-2">
             {SECURITY_PRACTICES.map((item, i) => (
@@ -119,7 +119,7 @@ export default function DataSafety() {
         {/* ── 4. Third-Party Services ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Globe className="w-5 h-5 text-[#4CAF50]" /> 4. Third-Party Services & SDKs
+            <Globe className="w-5 h-5 text-[#2E7D32]" /> 4. Third-Party Services & SDKs
           </h2>
           <p className="text-sm text-slate-500 mb-3">
             SafeEats™ does <strong className="text-slate-700">not</strong> use any advertising SDKs, ad-tracking SDKs,
@@ -153,7 +153,7 @@ export default function DataSafety() {
         {/* ── 6. Local Storage & Cookies ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Cookie className="w-5 h-5 text-[#4CAF50]" /> 6. Local Storage & Cookies
+            <Cookie className="w-5 h-5 text-[#2E7D32]" /> 6. Local Storage & Cookies
           </h2>
           <p className="text-sm text-slate-500 mb-2">
             SafeEats™ uses browser localStorage (not HTTP cookies) for the following:
@@ -164,7 +164,7 @@ export default function DataSafety() {
             <li><strong>Search cache</strong> — recent search results cached to avoid re-fetching on back-navigation</li>
             <li><strong>Theme preference</strong> — dark/light mode follows your system setting</li>
           </ul>
-          <p className="text-xs text-slate-400 mt-2">
+          <p className="text-xs text-slate-600 mt-2">
             All localStorage data is stored on-device and is never transmitted to our servers. Clearing browser data
             or uninstalling the app removes all of it.
           </p>
@@ -173,7 +173,7 @@ export default function DataSafety() {
         {/* ── 7. Data Retention & Account Deletion ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-[#4CAF50]" /> 7. Data Retention & Account Deletion
+            <Trash2 className="w-5 h-5 text-[#2E7D32]" /> 7. Data Retention & Account Deletion
           </h2>
           <div className="space-y-2 text-sm text-slate-600">
             <p><strong className="text-slate-700">Cached restaurant data:</strong> Retained until superseded by newer data from the source government API (typically 24–48 hours for live sources).</p>
@@ -195,7 +195,7 @@ export default function DataSafety() {
         {/* ── 9. Government Data Sources ── */}
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-3 flex items-center gap-2">
-            <Database className="w-5 h-5 text-[#4CAF50]" /> 9. Government Data Sources
+            <Database className="w-5 h-5 text-[#2E7D32]" /> 9. Government Data Sources
           </h2>
           <p className="text-sm text-slate-500 mb-3">
             SafeEats™ queries the following official government health inspection APIs at request time. These are
@@ -204,13 +204,13 @@ export default function DataSafety() {
           <div className="bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-600 space-y-1">
             {GOV_SOURCES.map((src, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4CAF50] flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32] flex-shrink-0" />
                 <span><strong className="text-slate-700">{src.region}</strong> — {src.agency}</span>
               </div>
             ))}
-            <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-2">
+            <p className="text-[11px] text-slate-600 pt-2 border-t border-slate-100 mt-2">
               Additional regions without live APIs use AI-assisted research of public records or link directly to the
-              official health department portal. See our <Link to="/global-coverage" className="text-[#4CAF50] font-bold hover:underline">Coverage page</Link> for details.
+              official health department portal. See our <Link to="/global-coverage" className="text-[#2E7D32] font-bold hover:underline">Coverage page</Link> for details.
             </p>
           </div>
         </section>
@@ -234,11 +234,11 @@ export default function DataSafety() {
         <section className="border-t border-slate-200 pt-6">
           <p className="text-sm text-slate-500">
             See also:{" "}
-            <Link to="/privacy" className="text-[#4CAF50] font-bold hover:underline">Privacy Policy</Link>
+            <Link to="/privacy" className="text-[#2E7D32] font-bold hover:underline">Privacy Policy</Link>
             {" · "}
-            <Link to="/terms" className="text-[#4CAF50] font-bold hover:underline">Terms of Use</Link>
+            <Link to="/terms" className="text-[#2E7D32] font-bold hover:underline">Terms of Use</Link>
             {" · "}
-            <Link to="/contact" className="text-[#4CAF50] font-bold hover:underline">Contact</Link>
+            <Link to="/contact" className="text-[#2E7D32] font-bold hover:underline">Contact</Link>
           </p>
         </section>
       </div>

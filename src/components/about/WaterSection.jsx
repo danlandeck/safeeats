@@ -33,7 +33,7 @@ export default function WaterSection() {
                 <div key={name} className="flex flex-col p-2.5 bg-blue-50 rounded-xl border border-blue-100">
                   <span className="text-lg mb-1">{icon}</span>
                   <p className="text-[11px] font-extrabold text-slate-800">{name}</p>
-                  <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{risk}</p>
+                  <p className="text-[11px] text-slate-600 leading-tight mt-0.5">{risk}</p>
                 </div>
               ))}
             </div>

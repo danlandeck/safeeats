@@ -43,7 +43,7 @@ export default function LanguageSwitcher() {
                 onClick={() => { setLanguage(lang.code); setOpen(false); }}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
                   lang.code === langCode
-                    ? "bg-[#4CAF50] text-white"
+                    ? "bg-[#2E7D32] text-white"
                     : "text-slate-200 hover:bg-slate-700"
                 }`}
               >

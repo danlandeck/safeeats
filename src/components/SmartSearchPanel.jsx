@@ -181,7 +181,7 @@ export default function SmartSearchPanel({
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="h-14 sm:h-16 px-6 sm:px-7 rounded-2xl bg-[#4CAF50] hover:bg-[#43A047] disabled:opacity-50 text-white font-bold shadow-sm sm:min-w-[90px] transition-colors touch-manipulation text-base focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#4CAF50]"
+              className="h-14 sm:h-16 px-6 sm:px-7 rounded-2xl bg-[#2E7D32] hover:bg-[#1B5E20] disabled:opacity-50 text-white font-bold shadow-sm sm:min-w-[90px] transition-colors touch-manipulation text-base focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#4CAF50]"
               aria-label={isLoading ? "Searching, please wait" : "Search restaurants"}
               aria-busy={isLoading}
             >

@@ -32,7 +32,7 @@ export default function BottomTabNav() {
               aria-current={isActive ? "page" : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 py-2 px-2 min-h-[56px] flex-1 transition-colors ${
                 isActive
-                  ? "text-[#4CAF50]"
+                  ? "text-[#4CAF50]" /* light green: this bar is dark (slate-900) */
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >

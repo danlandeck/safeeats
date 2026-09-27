@@ -12,7 +12,7 @@ export default function TermsOfUse() {
             <ArrowLeft className="w-4 h-4" /> Back to SafeEats™
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#4CAF50] flex items-center justify-center border-2 border-white/20">
+            <div className="w-10 h-10 rounded-2xl bg-[#2E7D32] flex items-center justify-center border-2 border-white/20">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Terms of Use</h1>
@@ -118,7 +118,7 @@ export default function TermsOfUse() {
         <section>
           <h2 className="text-lg font-extrabold text-slate-900 mb-2">9. Contact</h2>
           <p className="text-sm">
-            Questions about these Terms? Visit our <Link to="/contact" className="text-[#4CAF50] font-bold hover:underline">Contact page</Link>.
+            Questions about these Terms? Visit our <Link to="/contact" className="text-[#2E7D32] font-bold hover:underline">Contact page</Link>.
           </p>
         </section>
       </div>

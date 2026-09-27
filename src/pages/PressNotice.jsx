@@ -89,10 +89,10 @@ export default function PressNotice() {
             </h2>
             <p className="text-sm text-slate-700 leading-relaxed">
               SafeEats™ was featured in the{" "}
-              <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="font-bold text-red-600 underline">MI Reporter on April 10, 2026</a>.
+              <a href="https://www.mi-reporter.com/2026/04/10/mihs-graduate-serves-up-safeeats-free-web-app/" target="_blank" rel="noopener noreferrer" className="font-bold text-red-700 underline">MI Reporter on April 10, 2026</a>.
               The <strong>safeeats.live</strong> domain was registered on <strong>April 11, 2026</strong> — one day later — via NameCheap, Inc.
               (Source:{" "}
-              <a href="https://www.whois.com/whois/safeeats.live" target="_blank" rel="noopener noreferrer" className="font-bold text-red-600 underline">WHOIS public records</a>)
+              <a href="https://www.whois.com/whois/safeeats.live" target="_blank" rel="noopener noreferrer" className="font-bold text-red-700 underline">WHOIS public records</a>)
             </p>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function PressNotice() {
       {/* Statement */}
       <section className="bg-slate-900 text-white py-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <ShieldCheck className="w-12 h-12 text-brand-green mx-auto mb-4" />
+          <ShieldCheck className="w-12 h-12 text-[#4CAF50] mx-auto mb-4" />
           <h2 className="text-2xl font-black mb-4" style={{ fontFamily: "Nunito, sans-serif" }}>
             Our Commitment to Originality & Safety
           </h2>

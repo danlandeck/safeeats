@@ -1,14 +1,15 @@
 import { Section, Pill } from "./SectionPrimitives";
+import { GRADE_STYLES } from "@/utils/grading";
 
 const GRADE_TABLE = [
-  { grade: "A", range: "90–100", color: "bg-green-700", text: "text-white", label: "Excellent" },
-  { grade: "B", range: "80–89", color: "bg-green-400", text: "text-white", label: "Good" },
-  { grade: "C", range: "70–79", color: "bg-yellow-400", text: "text-slate-800", label: "Okay" },
-  { grade: "D", range: "60–69", color: "bg-orange-400", text: "text-white", label: "Poor" },
-  { grade: "F", range: "< 60", color: "bg-red-600", text: "text-white", label: "Critical" },
-  { grade: "P", range: "Pass/Fail", color: "bg-teal-500", text: "text-white", label: "Passed" },
-  { grade: "U", range: "No data", color: "bg-slate-400", text: "text-white", label: "Unknown" },
-];
+  { grade: "A", range: "90–100", label: "Excellent" },
+  { grade: "B", range: "80–89", label: "Good" },
+  { grade: "C", range: "70–79", label: "Okay" },
+  { grade: "D", range: "60–69", label: "Poor" },
+  { grade: "F", range: "< 60", label: "Critical" },
+  { grade: "P", range: "Pass/Fail", label: "Passed" },
+  { grade: "U", range: "No data", label: "Unknown" },
+].map((g) => ({ ...g, color: GRADE_STYLES[g.grade].bg, text: GRADE_STYLES[g.grade].text }));
 
 export default function GradingSection() {
   return (
@@ -19,7 +20,7 @@ export default function GradingSection() {
           <div key={grade} className={`${color} rounded-2xl p-3 text-center shadow-sm`}>
             <div className={`text-2xl font-extrabold ${text}`}>{grade}</div>
             <div className={`text-xs font-bold mt-0.5 ${text}`}>{label}</div>
-            <div className={`text-[10px] font-semibold opacity-80 mt-0.5 ${text}`}>{range}</div>
+            <div className={`text-[11px] font-semibold mt-0.5 ${text}`}>{range}</div>
           </div>
         ))}
       </div>
@@ -29,13 +30,13 @@ export default function GradingSection() {
 
       {/* Pass / Fail jurisdictions */}
       <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex gap-3 items-start mb-6">
-        <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center flex-shrink-0 shadow-sm">
           <span className="text-white font-black text-lg">P</span>
         </div>
         <div>
           <p className="font-extrabold text-slate-800 text-sm mb-1">Pass / Fail Jurisdictions</p>
           <p className="text-xs text-slate-600 leading-relaxed">
-            Some jurisdictions — like Chicago, Delaware, Toronto, and others — use a simple <strong>Pass / Fail</strong> system instead of numeric scores. A restaurant that <strong>passes</strong> gets a <strong className="text-green-600">teal P badge</strong>, meaning it met health inspection standards. A restaurant that <strong>fails</strong> gets a <strong className="text-red-600">red F badge</strong>, indicating serious violations that failed to meet minimum requirements.
+            Some jurisdictions — like Chicago, Delaware, Toronto, and others — use a simple <strong>Pass / Fail</strong> system instead of numeric scores. A restaurant that <strong>passes</strong> gets a <strong className="text-teal-700">teal P badge</strong>, meaning it met health inspection standards. A restaurant that <strong>fails</strong> gets a <strong className="text-red-700">red F badge</strong>, indicating serious violations that failed to meet minimum requirements.
           </p>
         </div>
       </div>
@@ -85,7 +86,7 @@ export default function GradingSection() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="bg-white rounded-2xl p-4 border border-indigo-100">
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Current Grade</p>
+            <p className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1">Current Grade</p>
             <p className="text-sm font-bold text-slate-800 mb-1">Most Recent Inspection</p>
             <p className="text-xs text-slate-500 leading-relaxed">
               Derived from the single most recent inspection on file. This is what the restaurant scored
@@ -93,7 +94,7 @@ export default function GradingSection() {
             </p>
           </div>
           <div className="bg-white rounded-2xl p-4 border border-indigo-100">
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Legacy Grade</p>
+            <p className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1">Legacy Grade</p>
             <p className="text-sm font-bold text-slate-800 mb-1">All-Time Historical Average</p>
             <p className="text-xs text-slate-500 leading-relaxed">
               The average of every inspection score on record, converted to a letter grade.

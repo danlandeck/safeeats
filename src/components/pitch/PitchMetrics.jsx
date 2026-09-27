@@ -15,10 +15,10 @@ export default function PitchMetrics() {
           key={label}
           className="bg-white rounded-2xl border border-slate-200 p-5 text-center shadow-sm"
         >
-          <Icon className="w-6 h-6 text-[#4CAF50] mx-auto mb-2" />
+          <Icon className="w-6 h-6 text-[#2E7D32] mx-auto mb-2" />
           <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
           <p className="text-sm font-bold text-slate-700 mt-1">{label}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">{sub}</p>
+          <p className="text-[11px] text-slate-600 mt-0.5">{sub}</p>
         </div>
       ))}
     </div>

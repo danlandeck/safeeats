@@ -13,7 +13,7 @@ export default function KofiButton({ context = "default" }) {
       href="https://ko-fi.com/danlandeck"
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF5E5B] hover:bg-[#e04e4b] text-white text-sm font-bold shadow-sm transition-all hover:shadow-md"
+      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C8302D] hover:bg-[#A82825] text-white text-sm font-bold shadow-sm transition-all hover:shadow-md"
     >
       <Heart className="w-4 h-4 fill-white" />
       {messages[context] || messages.default}

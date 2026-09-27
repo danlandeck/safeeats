@@ -58,10 +58,11 @@ export default function DataIntegrityAudit() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 text-authority-teal animate-spin mx-auto mb-4" />
-          <p className="text-sm font-bold text-slate-600">Running live data integrity audit…</p>
-          <p className="text-xs text-slate-400 mt-1">Checking every municipality against the database.</p>
+        <div className="text-center" role="status" aria-live="polite">
+          <h1 className="text-2xl font-black text-slate-900 mb-4">Data Integrity Audit</h1>
+          <Loader2 className="w-10 h-10 text-authority-teal animate-spin mx-auto mb-4" aria-hidden="true" />
+          <p className="text-sm font-bold text-slate-700">Running live data integrity audit…</p>
+          <p className="text-xs text-slate-600 mt-1">Checking every municipality against the database.</p>
         </div>
       </div>
     );
@@ -70,10 +71,17 @@ export default function DataIntegrityAudit() {
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="max-w-md text-center">
-          <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-          <p className="text-sm font-bold text-slate-700 mb-1">Audit could not be completed</p>
-          <p className="text-xs text-slate-500">{error}</p>
+        <div className="max-w-md text-center" role="alert">
+          <h1 className="text-2xl font-black text-slate-900 mb-4">Data Integrity Audit</h1>
+          <AlertTriangle className="w-10 h-10 text-red-600 mx-auto mb-4" aria-hidden="true" />
+          <p className="text-sm font-bold text-slate-800 mb-2">The live audit is temporarily unavailable.</p>
+          <p className="text-sm text-slate-600 mb-4">
+            It re-checks every data source in real time. While it is down, you can still see every
+            source SafeEats uses, and how current each one is, on the Coverage page.
+          </p>
+          <a href="/global-coverage" className="inline-block font-bold text-[#2E7D32] underline">See data sources and coverage</a>
+          {/* Keep the technical reason available to support without showing it as the headline */}
+          <p className="text-[11px] text-slate-600 mt-4">Details: {error}</p>
         </div>
       </div>
     );

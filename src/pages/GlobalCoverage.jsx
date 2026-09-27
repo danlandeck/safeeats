@@ -58,7 +58,7 @@ const LIVE_MARKETS = [
   {
     region: "🇳🇱 Netherlands",
     color: "border-orange-200 bg-orange-50",
-    pill: "bg-orange-500 text-white",
+    pill: "bg-orange-700 text-white",
     sources: [
       { city: "Netherlands (nationwide — NVWA)", note: "Nederlandse Voedsel- en Warenautoriteit (NVWA) — public inspection results portal (openbare-inspectieresultaten.nvwa.nl). Compliance status (Voldoet / Niet voldoet) for horeca, retail, and food businesses nationwide. Covers Amsterdam, Rotterdam, The Hague, Utrecht and all municipalities. Backend-scraped from server-rendered HTML. Tested & confirmed live.", url: "https://www.openbare-inspectieresultaten.nvwa.nl/" },
     ]
@@ -115,14 +115,14 @@ export default function GlobalCoverage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
             Every Market Where<br />
-            <span className="text-[#4CAF50]">Real Data Exists</span>
+            <span className="text-[#2E7D32]">Real Data Exists</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
             Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats™ links to the official portal — but that's a redirect, not coverage. The normalization invention requires data to normalize.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
-              <p className="text-3xl font-extrabold text-[#4CAF50]">{totalSources}</p>
+              <p className="text-3xl font-extrabold text-[#2E7D32]">{totalSources}</p>
               <p className="text-xs text-slate-500 font-semibold">Live API sources</p>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm text-center">
@@ -151,7 +151,7 @@ export default function GlobalCoverage() {
 
         {/* Section: Live API markets */}
         <h2 className="text-lg font-extrabold text-slate-900 mb-4 flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-[#4CAF50] flex-shrink-0"></span>
+          <span className="w-3 h-3 rounded-full bg-[#2E7D32] flex-shrink-0"></span>
           Live API Markets — Direct Government Data
         </h2>
         <div className="space-y-4 mb-10">
@@ -208,7 +208,7 @@ export default function GlobalCoverage() {
             <Search className="w-5 h-5 text-indigo-600" />
             <h2 className="text-base font-extrabold text-slate-900">AI-Enhanced Markets — Official Sources, AI-Read</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-4">Real government food safety programs that exist as public websites or search portals, but without a structured open API. AI reads official sources — results clearly labeled as AI-estimated.</p>
+          <p className="text-xs text-slate-600 mb-4">Real government food safety programs that exist as public websites or search portals, but without a structured open API. AI reads official sources — results clearly labeled as AI-estimated.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {AI_ENHANCED_MARKETS.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-indigo-100 p-3 shadow-sm">
@@ -225,7 +225,7 @@ export default function GlobalCoverage() {
             <Search className="w-5 h-5 text-amber-600" />
             <h2 className="text-base font-extrabold text-slate-900">On the Radar — No Open Data Available</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-4">Varying levels of public food safety data — from government portals to licensing-only databases. None are wired as live API sources; results come from AI-assisted research.</p>
+          <p className="text-xs text-slate-600 mb-4">Varying levels of public food safety data — from government portals to licensing-only databases. None are wired as live API sources; results come from AI-assisted research.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {AI_RESEARCH_MARKETS.map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-amber-100 p-3 shadow-sm">
@@ -250,7 +250,7 @@ export default function GlobalCoverage() {
               <Link to="/About">The Full Story</Link>
             </Button>
           </div>
-          <Button asChild className="bg-[#4CAF50] hover:bg-[#43A047] text-white">
+          <Button asChild className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white">
             <Link to="/">Search a Restaurant →</Link>
           </Button>
         </div>

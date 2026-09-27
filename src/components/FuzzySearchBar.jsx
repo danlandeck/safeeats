@@ -125,14 +125,14 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
           aria-autocomplete="list"
           aria-controls={listId}
           aria-activedescendant={activeDescendant}
-          className="w-full pl-9 pr-8 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all"
+          className="w-full pl-9 pr-8 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#2E7D32] focus:border-[#2E7D32] transition-all"
         />
         {query && (
           <button
             type="button"
             onClick={handleClear}
             aria-label="Clear search"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[#4CAF50] rounded"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E7D32] rounded"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -153,7 +153,7 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
                 role="option"
                 aria-selected={i === activeIdx}
                 onMouseDown={() => pick(r)}
-                className={`px-4 py-2.5 cursor-pointer text-sm transition-colors ${i === activeIdx ? "bg-[#4CAF50] text-white" : "hover:bg-slate-50 text-slate-800"}`}
+                className={`px-4 py-2.5 cursor-pointer text-sm transition-colors ${i === activeIdx ? "bg-[#2E7D32] text-white" : "hover:bg-slate-50 text-slate-800"}`}
               >
                 <span className="font-bold">{r.name}</span>
                 {(r.cuisine || r.city) && (
@@ -213,7 +213,7 @@ export default function FuzzySearchBar({ results = [], onSelect, onFilterChange,
             <button
               type="button"
               onClick={() => { setCuisine(""); setCity(""); setMinGrade(""); }}
-              className="text-xs font-bold text-blue-600 hover:underline px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+              className="text-xs font-bold text-blue-600 hover:underline px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
             >
               Clear filters
             </button>

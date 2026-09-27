@@ -74,7 +74,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleCompare(restaurant); }}
                   disabled={compareDisabled && !isCompared}
-                  className={`p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#4CAF50] ${
+                  className={`p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${
                     isCompared ? "bg-blue-100 text-blue-700" : compareDisabled ? "text-slate-200 cursor-not-allowed" : "text-slate-300 hover:text-blue-500"
                   }`}
                   aria-label={isCompared ? `Remove ${name} from comparison` : `Add ${name} to comparison`}

@@ -27,7 +27,7 @@ export default function HolisticSection() {
   return (
     <div id="beyond" className="scroll-mt-32 pt-2">
       <div className="text-center mb-6">
-        <span className="inline-block text-xs font-extrabold uppercase tracking-widest text-[#4CAF50] mb-2">
+        <span className="inline-block text-xs font-extrabold uppercase tracking-widest text-[#2E7D32] mb-2">
           Beyond the Grade
         </span>
         <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
@@ -43,7 +43,7 @@ export default function HolisticSection() {
             key={title}
             className="flex gap-3 items-start p-4 bg-white rounded-xl border border-slate-200 shadow-sm"
           >
-            <div className="w-9 h-9 bg-[#4CAF50] rounded-lg flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+            <div className="w-9 h-9 bg-[#2E7D32] rounded-lg flex items-center justify-center flex-shrink-0 text-white shadow-sm">
               {icon}
             </div>
             <div>

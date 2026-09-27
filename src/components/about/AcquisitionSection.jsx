@@ -7,7 +7,7 @@ export default function AcquisitionSection() {
   return (
     <Section id="acquisition" className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
       <div className="flex flex-col items-center text-center">
-        <div className="w-12 h-12 bg-[#4CAF50] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm mb-4">
+        <div className="w-12 h-12 bg-[#2E7D32] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm mb-4">
           <Handshake className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
@@ -19,7 +19,7 @@ export default function AcquisitionSection() {
           we'd love to talk.
         </p>
         <Link to="/contact">
-          <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white">
+          <Button className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white">
             Open a conversation <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </Link>

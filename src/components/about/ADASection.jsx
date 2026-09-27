@@ -20,7 +20,7 @@ export default function ADASection() {
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <h2 className="text-xl font-extrabold text-slate-900">ADA Accessibility — A Personal Commitment</h2>
-            <Pill color="bg-emerald-600 text-white">US Restaurants</Pill>
+            <Pill color="bg-emerald-700 text-white">US Restaurants</Pill>
           </div>
           <p className="text-slate-700 leading-relaxed text-sm mb-4">
             Accessibility is deeply personal to our family. Knowing whether a restaurant is wheelchair accessible, has accessible restrooms, or adequate parking shouldn't require a phone call or a gamble — it should be right there alongside the health score before you ever leave the house.

@@ -35,7 +35,7 @@ export default function About() {
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
               The World's Source of Truth<br />
-              <span className="text-[#4CAF50]">for Food Safety</span>
+              <span className="text-[#2E7D32]">for Food Safety</span>
             </h1>
             <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
               Live government data sources across the US, UK, Canada, France, and the Netherlands — queried directly at request time. AI-assisted research for additional jurisdictions where public records are accessible. For everywhere else, SafeEats™ links to the official health department portal so you can search manually. We don't call that coverage — it's a redirect, not the invention.
