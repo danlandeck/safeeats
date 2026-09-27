@@ -30,15 +30,6 @@ export function llmWebEnrich(list, location = "", ctx = "") {
   });
 }
 
-/** Live-web enrichment for the county drill-down page. */
-export function llmCountyEnrich(list, location) {
-  return runTask({
-    task: "county_enrich",
-    location,
-    list: (list || []).slice(0, 60).map((r) => ({ name: r.name, address: r.address })),
-  });
-}
-
 /** Training-data inspection scores for live-API results that lack them. */
 export function llmTrainingEnrich(list, countyId) {
   return runTask({
