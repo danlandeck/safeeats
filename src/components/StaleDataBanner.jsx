@@ -8,8 +8,8 @@ import { resolveStaleInfo } from "@/utils/staleData";
  *
  * All detection logic lives in utils/staleData.js (shared with
  * OfficialInspectionLink so only one portal button ever renders). It covers
- * explicit backend warnings, known-frozen sources (e.g. King County after
- * 2025-11-26), and an automatic rule for any restaurant whose newest published
+ * explicit backend warnings, known-frozen sources (feeds that stopped
+ * publishing), and an automatic rule for any restaurant whose newest published
  * inspection is more than ~18 months old.
  */
 export default function StaleDataBanner({ restaurant, variant = "card" }) {

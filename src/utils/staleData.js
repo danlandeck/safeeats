@@ -25,13 +25,11 @@ export const AUTO_STALE_DAYS = 548; // ~18 months; most jurisdictions inspect 1-
 
 const MAY_BE_NEWER = "This restaurant may have newer inspections.";
 
-// Verified 2026-09-27 against each source's newest record.
+// Verified 2026-09-28 against each source's newest record.
+// King County was removed from this list: its active feed (Socrata
+// r878-4sxa) resumed publishing and carries inspections through Sept 2026,
+// so the auto-age rule below is the right guard for it now.
 export const KNOWN_FROZEN_SOURCES = {
-  king: {
-    data_warning: `King County has not published inspections after November 26, 2025. ${MAY_BE_NEWER}`,
-    portal_url: "https://info.kingcounty.gov/health/ehs/foodsafety/inspections/search.aspx",
-    portal_name: "Public Health – Seattle & King County",
-  },
   dallas: {
     data_warning: `Dallas stopped publishing inspection data in early 2024. ${MAY_BE_NEWER}`,
     portal_url: "https://dallascityhall.com/departments/codecompliance/consumer-health/Pages/restaurant_food_scores.aspx",
