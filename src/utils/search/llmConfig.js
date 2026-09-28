@@ -1,12 +1,12 @@
 import { base44 } from "@/api/base44Client";
 
-// LLM search & enrichment runs server-side in the `llmRestaurantSearch`
+// LLM search & enrichment runs server-side in the `llmInspectionEnrichment`
 // backend function. These thin wrappers pass only validated, semantic
 // parameters — prompts, schemas, and model choices never leave the server,
 // so integration credits can't be burned with arbitrary prompts.
 
 async function runTask(payload) {
-  const res = await base44.functions.invoke("llmRestaurantSearch", payload);
+  const res = await base44.functions.invoke("llmInspectionEnrichment", payload);
   return res.data;
 }
 

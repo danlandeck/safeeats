@@ -113,7 +113,7 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
   // Places. The LLM is never allowed to decide which restaurants exist.
   let verified = [];
   try {
-    const res = await base44.functions.invoke("placesRestaurantSearch", { query: "popular", location });
+    const res = await base44.functions.invoke("placesRestaurantLookup", { query: "popular", location });
     verified = res.data?.restaurants || [];
   } catch { /* Places unavailable */ }
   if (verified.length === 0) return { restaurants: [] };
@@ -151,7 +151,7 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
     try {
       // Enrichment runs server-side (llmRestaurantSearch task "county_enrich")
       // to protect integration credits.
-      const res = await base44.functions.invoke("llmRestaurantSearch", {
+      const res = await base44.functions.invoke("llmInspectionEnrichment", {
         task: "county_enrich",
         location,
         list: verified.map((p) => ({ name: p.name, address: p.address })),

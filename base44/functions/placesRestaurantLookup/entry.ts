@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// placesRestaurantSearch — ground-truth restaurant lookup via Google Places Text Search (v1).
-// Used by the AI-fallback search path (jurisdictions with no live inspection API).
+// placesRestaurantLookup — public (no sign-in) ground-truth restaurant lookup via
+// Google Places Text Search (v1). Used by the AI-fallback search path for
+// jurisdictions with no live inspection API (e.g. Manchester, CT).
 // Places establishes WHAT exists and WHERE; inspection data is layered on separately.
-// Uses the same GOOGLE_API_KEY as getPlacesADA.
 
 function parseComponents(components) {
   const out = { city: "", state: "", zip: "", country: "" };
@@ -14,14 +14,13 @@ function parseComponents(components) {
     if (!out.city && types.includes("postal_town")) out.city = c.longText || "";
     if (!out.city && types.includes("sublocality")) out.city = c.longText || "";
     if (types.includes("administrative_area_level_1")) out.state = c.shortText || "";
-    if (types.includes("country")) out.country = c.shortText || c.longText || "";
+    if (types.includes("country")) out.country = c.shortText || "";
   }
   return out;
 }
 
 Deno.serve(async (req) => {
   try {
-    // Public read-only lookup — no sign-in required (public site; anonymous visitors search).
     const base44 = createClientFromRequest(req);
     const { query, location } = await req.json();
 

@@ -168,7 +168,7 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   };
 
   try {
-    const placesRes = await base44.functions.invoke("placesRestaurantSearch", { query: filterQuery || query, location });
+    const placesRes = await base44.functions.invoke("placesRestaurantLookup", { query: filterQuery || query, location });
     const verified = placesRes.data?.restaurants || [];
     if (verified.length > 0) {
       const liveApiNote = fetchInfo.liveApiFailed

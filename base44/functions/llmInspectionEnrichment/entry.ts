@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 
-// Narrow, task-based LLM endpoint for restaurant search & inspection enrichment.
-// The client can only trigger these fixed operations with validated inputs —
-// it can never pass a raw prompt, model, or schema (protects integration credits).
+// llmInspectionEnrichment — public (no sign-in) narrow, task-based LLM endpoint for
+// restaurant search & inspection enrichment. The client can only trigger these
+// fixed operations with validated inputs — it can never pass a raw prompt,
+// model, or schema (protects integration credits).
 
 const LLM_SCHEMA = {
   type: "object",
@@ -110,7 +111,7 @@ const ENRICH_CONTEXT = {
   new_jersey: "New Jersey restaurant inspections managed by local county/city health departments (no state-wide portal). NJ DOH Public Health and Food Protection Program (PHFPP) oversees rules but does not publish inspection results online. Counties with online portals: Camden County, Gloucester County, Ocean County, Middlesex County, Hunterdon County. Cities: Newark (newarknj.gov). Uses FDA Food Code with Priority/Priority Foundation/Core violations. AI web search required for inspection scores.",
   new_mexico: "New Mexico Environment Department (NMED) Food Safety Program — no state-wide public search portal. Albuquerque/BERNALILLO County has a Socrata Connect portal (albuquerquenm-cc.connect.socrata.com) with Health Inspections category — JS-rendered, not directly scrapeable. Uses FDA 2022 Food Code. Color sticker system: Green=Approved/Pass→score 90-100, Yellow=Conditional→score 70-89, Red=Unsatisfactory→score 40-69, Orange=Closed→score 0-39. Other counties managed by NMED district offices. AI web search required for inspection scores.",
   north_dakota: "North Dakota Health & Human Services Food and Lodging Unit — state-wide portal at fims.doh.nd.gov covering state-licensed facilities plus 5 local health units (Central Valley, Grand Forks, Lake Region, Southwestern, Upper Missouri). Uses FDA Food Code with Priority/Priority Foundation/Core violations. Inspection reports published as PDFs (not parseable text). ASP.NET WebForms postback portal. 4 remaining local health units (Fargo-Cass, Bismarck, Western Plains, Upper Missouri) have separate portals. AI web search required for inspection scores.",
-  ohio: "Ohio restaurant inspections managed by local health departments (no state-wide portal). Ohio Department of Health (ODH) Food Safety Program oversees rules. Franklin County uses Accela (odh.ohio.gov). Cincinnati, Summit County (scph.org), Cleveland/Cuyahoga County have local portals. Uses FDA Food Code with Priority/Priority Foundation/Core violations. AI web search required for inspection scores.",
+  ohio: "Ohio restaurant inspections managed by local health departments (no state-wide portal). Ohio Department of Health (ODH) Food Safety Program oversees rules but does not publish inspection results online. Franklin County uses Accela (odh.ohio.gov). Cincinnati, Summit County (scph.org), Cleveland/Cuyahoga County have local portals. Uses FDA Food Code with Priority/Priority Foundation/Core violations. AI web search required for inspection scores.",
   oklahoma: "Oklahoma State Department of Health (OSDH) Consumer Protection Division — state-wide portal at phin.state.ok.us covering ALL 77 counties. No letter grades — violations listed per inspection date. Uses FDA Food Code violation categories. Inspections 1-4 times per year. Backend scraper already provides real violation data; enrichment only needed if data is missing.",
   south_carolina: "South Carolina Department of Agriculture (SCDA) — state-wide portal at apps.dhec.sc.gov/Environment/FoodGrades covering ALL 46 counties. A/B/C letter grades: A=90-100, B=80-89, C=70-79. Risk-based inspection scoring per Regulation 61-25. Inspections from last 3 years. Backend scraper already provides real grades; enrichment only needed if data is missing.",
   rhode_island: "Rhode Island Department of Health (RIDOH) — state-wide portal at health.ri.gov/food-safety. Uses EnvisionConnect platform (pressagent.envisionconnect.com). Inspections scored on 100-point scale with critical/non-critical violations. All 39 RI cities/towns covered. AI web search required for inspection scores.",
@@ -123,27 +124,10 @@ const ENRICH_CONTEXT = {
   utah: "Utah — Salt Lake County Health Department portal at public.cdpehs.com/UTEnvPbl (CDP platform). Covers Salt Lake County establishments. Uses star ranking system with critical/non-critical violations. Backend scraper provides real inspection data for Salt Lake County; AI enrichment for other UT counties.",
 };
 
-function capStr(v, max) {
-  return typeof v === "string" ? v.slice(0, max) : "";
-}
-
-function toList(body) {
-  const arr = Array.isArray(body?.list) ? body.list : [];
-  return arr
-    .slice(0, 60)
-    .map((r) => ({
-      name: capStr(r?.name, 300),
-      address: capStr(r?.address, 300),
-      city: capStr(r?.city, 120),
-      zip_code: capStr(r?.zip_code, 20),
-    }))
-    .filter((r) => r.name);
-}
-
 export default async function(req: Request): Promise<Response> {
   try {
-    // Public task-capped lookup — no sign-in required (public site; anonymous visitors search).
     const base44 = createClientFromRequest(req);
+
     const body = await req.json().catch(() => ({}));
     const task = capStr(body?.task, 40);
     const today = new Date().toISOString().slice(0, 10);
@@ -175,7 +159,7 @@ export default async function(req: Request): Promise<Response> {
         ? `Today is ${today}. Search the LIVE WEB for real food safety inspection records for "${query}" PHYSICALLY IN DUBAI, UAE ONLY.\nRULES:\n1. BLOCK all US cities, London, Paris, Tokyo, Abu Dhabi, Sharjah — ANY non-UAE location = REJECTED.\n2. city MUST be exactly "Dubai". Address MUST include: Jumeirah, Deira, Bur Dubai, Marina, Downtown, JBR, DIFC, Business Bay, Palm, Sheikh Zayed, or "Dubai, UAE".\n3. ONLY return restaurants you can VERIFY exist via web search. If unsure = OMIT.\n4. latest_score: 0–100 from REAL inspection data. If not found, set null. Never fabricate.\n5. data_confidence: "high"=official record; "medium"=confirmed with reference; "low"=found no details; "none"=unverified.\n6. is_currently_operating: true ONLY if evidence it's open today.\n7. verification_source: URL/name where you confirmed it exists.\n8. Return max 8 verified Dubai restaurants only.`
         : location
           ? `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" in ${location} ONLY.\nRULES:\n1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.\n2. city MUST be "${location}" or start with the same word. NEVER return results from outside ${location}.\n3. latest_score: 0–100 from REAL inspection data. If not found, set null. latest_date/latest_result/violations: REAL only.\n4. data_confidence: "high"=official inspection record found; "medium"=restaurant confirmed with inspection reference; "low"=found but no inspection details; "none"=unverified.\n5. is_currently_operating: true ONLY if evidence it's open today.\n6. verification_source: URL/name where you confirmed it exists.\n7. address: full street address REQUIRED for every result. If you cannot find the street address, OMIT the restaurant entirely.\n8. Return max 8 verified results. ZERO fabricated data. Identify cuisine type.`
-          : `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" anywhere in the world.\nRULES:\n1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.\n2. Return up to 8 real, verifiable businesses. No invented data or fabricated scores.\n3. latest_score: 0–100 from REAL inspection data. If not found, set null and data_confidence to "none".\n4. latest_date/latest_result/violations: REAL only.\n5. data_confidence: "high"=official record; "medium"=some reference; "low"=found but no details; "none"=unverified.\n6. is_currently_operating: true ONLY if evidence it's open today.\n7. verification_source: URL/name where you confirmed it exists.\n8. address: full street address REQUIRED for every result. If you cannot find the street address, OMIT the restaurant entirely.\n9. Identify cuisine type.`;
+          : `Today is ${today}. Search the LIVE WEB for real health inspection records for "${query}" anywhere in the world.\nRULES:\n1. ONLY return restaurants you can VERIFY exist via web search. Omit anything unverified.\n2. Return up to 8 real, verifiable businesses. No invented data or fabricated scores.\n3. latest_score: 0–100 from REAL inspection data. If not found, set null and data_confidence to "none".\n4. latest_date/latest_result/violations: REAL only.\n5. data_confidence: "high"=official record; "medium"=some reference; "low"=found no details; "none"=unverified.\n6. is_currently_operating: true ONLY if evidence it's open today.\n7. verification_source: URL/name where you confirmed it exists.\n8. address: full street address REQUIRED for every result. If you cannot find the street address, OMIT the restaurant entirely.\n9. Identify cuisine type.`;
       prompt = ctx ? `${basePrompt}\n- ${ctx}` : basePrompt;
       internet = true; model = "gemini_3_flash"; schema = LLM_SCHEMA;
 
@@ -236,4 +220,21 @@ RULES:
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
+}
+
+function capStr(v, max) {
+  return typeof v === "string" ? v.slice(0, max) : "";
+}
+
+function toList(body) {
+  const arr = Array.isArray(body?.list) ? body.list : [];
+  return arr
+    .slice(0, 60)
+    .map((r) => ({
+      name: capStr(r?.name, 300),
+      address: capStr(r?.address, 300),
+      city: capStr(r?.city, 120),
+      zip_code: capStr(r?.zip_code, 20),
+    }))
+    .filter((r) => r.name);
 }
