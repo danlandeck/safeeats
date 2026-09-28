@@ -50,7 +50,7 @@ export default function ADAAccessibilityBadge({ restaurant }) {
     }
     setStatus("loading");
 
-    base44.functions.invoke("getPlacesADA", {
+    base44.functions.invoke("getPlacesAccessibility", {
       name: restaurant.name,
       address: restaurant.address || "",
       city: restaurant.city || "",

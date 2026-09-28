@@ -67,7 +67,7 @@ export default function EPAWaterCard({ restaurant }) {
       return;
     }
     setLoading(true);
-    base44.functions.invoke("getWaterQuality", {
+    base44.functions.invoke("getWaterGrade", {
       city,
       state,
       country: restaurant.country || "US",

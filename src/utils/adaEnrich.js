@@ -79,7 +79,7 @@ export function enrichADA(results, onUpdate) {
   needLookup.splice(LOOKUP_CAP);
 
   const runBatch = async (batch) => {
-    const res = await base44.functions.invoke("getPlacesADA", {
+    const res = await base44.functions.invoke("getPlacesAccessibility", {
       places: batch.map(({ r }) => ({
         name: r.name,
         address: r.address || "",

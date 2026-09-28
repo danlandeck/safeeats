@@ -1,5 +1,3 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
-
 const EPA_BASE = "https://data.epa.gov/dmapservice";
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 
@@ -133,13 +131,6 @@ async function queryEPAWaterSystem(zip, city) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { address, city, zip, state } = await req.json();
 
     // Only handle Washington State

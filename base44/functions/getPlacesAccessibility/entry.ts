@@ -1,6 +1,7 @@
 const PLACES_URL = "https://places.googleapis.com/v1/places:searchText";
 
 // Look up accessibility options for one place via Google Places text search.
+// Public read-only lookup — must work for signed-out visitors on the live site.
 async function lookupPlace(place) {
   const query = [place?.name, place?.address, place?.city, place?.zip_code].filter(Boolean).join(", ");
   if (!query) return { found: false };
