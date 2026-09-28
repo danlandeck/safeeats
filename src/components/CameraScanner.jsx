@@ -63,11 +63,11 @@ export default function CameraScanner({ onResult, onClose }) {
   const analyze = async () => {
     setPhase("analyzing");
     try {
-      // Convert data URL to blob and upload
-      const res = await fetch(capturedImage);
-      const blob = await res.blob();
-      const file = new File([blob], "scan.jpg", { type: "image/jpeg" });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Upload runs server-side (uploadUserPhoto backend function) so the
+      // storage integration can't be invoked directly from outside the app.
+      const upload = await base44.functions.invoke("uploadUserPhoto", { image_data_url: capturedImage });
+      const file_url = upload.data?.file_url;
+      if (!file_url) throw new Error("Photo upload failed");
 
       // Vision analysis runs server-side (analyzeScanPhoto backend function)
       // to protect integration credits.

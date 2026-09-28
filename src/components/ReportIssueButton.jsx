@@ -30,7 +30,22 @@ export default function ReportIssueButton({ restaurant }) {
     if (!file) return;
     setPhotoFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target.result);
+    reader.onload = (ev) => {
+      // Downscale before upload so the data URL stays small enough for the
+      // server-side upload function; fall back to the original for preview.
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1280;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        setPhotoPreview(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = () => setPhotoPreview(ev.target.result);
+      img.src = ev.target.result;
+    };
     reader.readAsDataURL(file);
   };
 
@@ -40,10 +55,12 @@ export default function ReportIssueButton({ restaurant }) {
     setStep("submitting");
 
     try {
+      // Upload runs server-side (uploadUserPhoto backend function) so the
+      // storage integration can't be invoked directly from outside the app.
       let photoUrl = null;
-      if (photoFile) {
-        const res = await base44.integrations.Core.UploadFile({ file: photoFile });
-        photoUrl = res.file_url;
+      if (photoPreview) {
+        const upload = await base44.functions.invoke("uploadUserPhoto", { image_data_url: photoPreview });
+        photoUrl = upload.data?.file_url || null;
       }
 
       // Moderation AND persistence both run server-side (moderateUserReport
