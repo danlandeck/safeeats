@@ -46,29 +46,16 @@ export default function ReportIssueButton({ restaurant }) {
         photoUrl = res.file_url;
       }
 
-      // Auto-moderation runs server-side (moderateUserReport backend function)
-      // to protect integration credits.
-      const res = await base44.functions.invoke("moderateUserReport", {
+      // Moderation AND persistence both run server-side (moderateUserReport
+      // backend function) — the client never decides whether a report is saved.
+      await base44.functions.invoke("moderateUserReport", {
+        restaurantId: restaurant.business_id,
         restaurantName: restaurant.name,
         issueType,
         description: description.trim(),
+        photoUrl,
+        anonymous: anon,
       });
-      const modResult = res.data;
-
-      // Save to entity (persist report)
-      if (modResult?.approved !== false) {
-        await base44.entities.UserReport?.create?.({
-          restaurant_id: restaurant.business_id,
-          restaurant_name: restaurant.name,
-          issue_type: issueType,
-          description: description.trim(),
-          photo_url: photoUrl,
-          anonymous: anon,
-          status: "pending",
-          votes_helpful: 0,
-          votes_unhelpful: 0,
-        }).catch(() => {}); // graceful — entity may not exist
-      }
 
       setAnon(anon);
       setStep("done");
