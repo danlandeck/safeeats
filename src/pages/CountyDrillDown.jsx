@@ -15,8 +15,10 @@ import {
 import { API_REGISTRY } from "../utils/apiRegistry";
 import ScoreGauge from "../components/ScoreGauge";
 
-// King County: Socrata vbyt-shxd (through 2025-11-26); the ArcGIS layer froze 2024-03-30.
-const KING_API       = "https://data.kingcounty.gov/resource/vbyt-shxd.json";
+// King County: Socrata r878-4sxa "Food Establishment Inspection Data" — the
+// county's current feed (inspections through Sept 2026, updated daily). The
+// older vbyt-shxd and ArcGIS feeds are frozen and no longer used.
+const KING_API       = "https://data.kingcounty.gov/resource/r878-4sxa.json";
 const NYC_API        = "https://data.cityofnewyork.us/resource/43nn-pn8j.json";
 const CHICAGO_API    = "https://data.cityofchicago.org/resource/4ijn-s7e5.json";
 // Montgomery MD: dkrp-gr48 (July 2024 onward); 5pue-gfbe froze 2024-10-03.

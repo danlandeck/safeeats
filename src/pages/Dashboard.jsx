@@ -20,9 +20,10 @@ const CITIES = [
   { id: "la",          label: "Los Angeles",    lat: 34.05, lng: -118.24, color: "#d7191c" },
 ];
 
-// f29f-zza5 now returns 403 (restricted by King County). vbyt-shxd carries the
-// same lowercase inspection fields through 2025-11-26. (Page is not currently routed.)
-const KING_API = "https://data.kingcounty.gov/resource/vbyt-shxd.json";
+// Socrata r878-4sxa "Food Establishment Inspection Data" — the county's current
+// feed (inspections through Sept 2026, updated daily; same lowercase fields and
+// one-row-per-violation shape as the retired vbyt-shxd). (Page is not currently routed.)
+const KING_API = "https://data.kingcounty.gov/resource/r878-4sxa.json";
 
 // Violation keyword → category
 const PEST_KW   = ["rodent","pest","vermin","insect","fly","cockroach","mouse","rat"];
