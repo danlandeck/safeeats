@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, TrendingUp, TrendingDown, MapPin, AlertTriangle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { runTask, placesLookup } from "../utils/search/llmConfig";
 import { getGrade, getGradeColor } from "../utils/grading";
 import { REGIONS } from "../utils/regions";
 import {
@@ -113,8 +113,8 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
   // Places. The LLM is never allowed to decide which restaurants exist.
   let verified = [];
   try {
-    const res = await base44.functions.invoke("placesRestaurantLookup", { query: "popular", location });
-    verified = res.data?.restaurants || [];
+    const res = await placesLookup("popular", location);
+    verified = res?.restaurants || [];
   } catch { /* Places unavailable */ }
   if (verified.length === 0) return { restaurants: [] };
 
@@ -149,14 +149,13 @@ async function fetchLLM(stateName, stateAbbr, countyName, onEnriched) {
   // states verified to publish no machine-readable data.
   if (!NO_DATA_STATES.has((stateAbbr || "").toUpperCase())) (async () => {
     try {
-      // Enrichment runs server-side (llmRestaurantSearch task "county_enrich")
-      // to protect integration credits.
-      const res = await base44.functions.invoke("llmInspectionEnrichment", {
+      // Enrichment runs server-side on the Vercel proxy (llmRestaurantSearch
+      // task "county_enrich") so API keys stay off the client.
+      const result = await runTask({
         task: "county_enrich",
         location,
         list: verified.map((p) => ({ name: p.name, address: p.address })),
       });
-      const result = res.data;
       const byIdx = new Map((result?.inspections || []).filter((f) => Number.isInteger(f.idx)).map((f) => [f.idx, f]));
       const enriched = buildItems(byIdx);
       saveCountyCache(cacheKey, enriched);

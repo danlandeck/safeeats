@@ -4,8 +4,8 @@ import { llmTrainingEnrich } from "./search/llmConfig";
 // ── Reusable background LLM enrichment ─────────────────────────────────────────
 // Same pattern as Pierce County: government data verifies the facility exists,
 // then a fast training-data pass (no web search, ~5s) fills in inspection scores.
-// The LLM call runs server-side in the `llmInspectionEnrichment` backend function
-// (task "training_enrich") to protect integration credits. Per-locale source
+// The LLM call runs server-side on the Vercel proxy (llmRestaurantSearch,
+// task "training_enrich") so API keys stay off the client. Per-locale source
 // context is applied there. Results update live via onAccurateResults callback.
 
 export function isStale(latestDate) {

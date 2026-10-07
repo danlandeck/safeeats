@@ -32,7 +32,7 @@ import {
   resolveExpectedGeo, parseSearchQuery,
   filterByNameRelevance, rankByQueryRelevance, deduplicateResults, filterUnverified,
 } from "./search/searchHelpers";
-import { llmFastSearch, llmWebSearch, llmWebEnrich } from "./search/llmConfig";
+import { llmFastSearch, llmWebSearch, llmWebEnrich, placesLookup } from "./search/llmConfig";
 import { fetchDetail } from "./search/fetchDetail";
 
 // Re-export fetchDetail so existing imports from searchEngine still work
@@ -168,8 +168,8 @@ async function aiSearchFallback(query, countyId, locationLabel, today, onAccurat
   };
 
   try {
-    const placesRes = await base44.functions.invoke("placesRestaurantLookup", { query: filterQuery || query, location });
-    const verified = placesRes.data?.restaurants || [];
+    const placesRes = await placesLookup(filterQuery || query, location);
+    const verified = placesRes?.restaurants || [];
     if (verified.length > 0) {
       const liveApiNote = fetchInfo.liveApiFailed
         ? "Live government data source was temporarily unavailable. "
