@@ -14,6 +14,7 @@ import EmbedGenerator from './pages/EmbedGenerator';
 
 
 import Feedback from './pages/Feedback';
+import PitchDeck from './pages/PitchDeck';
 import PressNotice from './pages/PressNotice';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
       <Route path="/global-coverage" element={<LayoutWrapper currentPageName="GlobalCoverage"><GlobalCoverage /></LayoutWrapper>} />
 
       <Route path="/contact" element={<LayoutWrapper currentPageName="Feedback"><Feedback /></LayoutWrapper>} />
+      <Route path="/pitch" element={<LayoutWrapper currentPageName="PitchDeck"><PitchDeck /></LayoutWrapper>} />
       <Route path="/press-notice" element={<LayoutWrapper currentPageName="PressNotice"><PressNotice /></LayoutWrapper>} />
       <Route path="/privacy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><PrivacyPolicy /></LayoutWrapper>} />
       <Route path="/terms" element={<LayoutWrapper currentPageName="TermsOfUse"><TermsOfUse /></LayoutWrapper>} />
