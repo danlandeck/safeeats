@@ -7,10 +7,10 @@ const ADA_STYLES = {
   not_accessible: { bg: "bg-red-100", text: "text-red-700", icon: XCircle, label: "Not Accessible" },
   unknown: { bg: "bg-slate-100", text: "text-slate-500", icon: HelpCircle, label: "Accessibility Unknown" },
   not_verified: { bg: "bg-blue-50", text: "text-blue-600", icon: Search, label: "Tap to verify ADA" },
-  no_data: { bg: "bg-slate-100", text: "text-slate-500", icon: HelpCircle, label: "No ADA info on Google" },
+  no_data: { bg: "bg-slate-100", text: "text-slate-500", icon: HelpCircle, label: "No ADA info found" },
 };
 
-export default function ADABadge({ ada_compliance, size = "md", onVerify }) {
+export default function ADABadge({ ada_compliance, size = "md", onVerify, source }) {
   const [checking, setChecking] = useState(false);
   const [checkedEmpty, setCheckedEmpty] = useState(false);
   const [checkFailed, setCheckFailed] = useState(false);
@@ -55,6 +55,9 @@ export default function ADABadge({ ada_compliance, size = "md", onVerify }) {
       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}>
         <Icon className={`w-3 h-3 ${checking ? "animate-spin" : ""}`} />
         {label}
+        {source && status !== "not_verified" && !checking && (
+          <span className="opacity-60 font-medium">· {source === "osm" ? "OpenStreetMap" : "Google"}</span>
+        )}
       </span>
     );
     if (!interactive) return content;

@@ -123,6 +123,7 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
             <ADABadge
               ada_compliance={restaurant.ada_compliance || "unknown"}
               size="sm"
+              source={restaurant.ada_source}
               onVerify={onVerifyADA ? () => onVerifyADA(restaurant) : undefined}
             />
           </div>

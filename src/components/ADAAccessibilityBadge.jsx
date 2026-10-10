@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { lookupAccessibility } from "../utils/adaEnrich";
 import { Loader2, CheckCircle2, XCircle, ExternalLink, HelpCircle } from "lucide-react";
 import { SEARCH_KEYS } from "../utils/searchState";
 
@@ -50,13 +50,12 @@ export default function ADAAccessibilityBadge({ restaurant }) {
     }
     setStatus("loading");
 
-    base44.functions.invoke("getPlacesAccessibility", {
+    lookupAccessibility({
       name: restaurant.name,
       address: restaurant.address || "",
       city: restaurant.city || "",
       zip_code: restaurant.zip_code || "",
-    }).then((res) => {
-      const d = res.data || {};
+    }).then((d) => {
       const cache = loadCache();
       cache[cacheKey] = d;
       saveCache(cache);
@@ -96,13 +95,15 @@ export default function ADAAccessibilityBadge({ restaurant }) {
     : isNotAccessible ? "⚠️ Limited Wheelchair Accessibility"
     : "♿ Accessibility Unknown";
 
+  const isOSM = data?.source === "osm";
+  const provider = isOSM ? "OpenStreetMap (community-mapped)" : "Google Maps";
   const subtext = status === "loading"
-    ? "Looking up Google Places data…"
+    ? "Looking up public accessibility records…"
     : isAccessible
-    ? "Google Maps confirms accessibility features at this location."
+    ? `${provider} confirms accessibility features at this location.`
     : isNotAccessible
-    ? "Google Maps indicates limited accessibility at this location."
-    : "Google Maps has partial accessibility data for this location.";
+    ? `${provider} indicates limited accessibility at this location.`
+    : `${provider} has partial accessibility data for this location.`;
 
   const hasFeatures = data && (data.entrance !== null || data.restroom !== null || data.parking !== null || data.automatic_doors !== null);
 
@@ -149,7 +150,7 @@ export default function ADAAccessibilityBadge({ restaurant }) {
         {status === "done" && (
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-slate-400">
-              Data from Google Maps · 
+              Data from {provider} · 
             </span>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((restaurant.name || "") + " " + (restaurant.address || "") + " " + (restaurant.city || ""))}`}

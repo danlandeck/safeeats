@@ -1287,10 +1287,12 @@ export default function Home() {
   // Returns true when a status was determined so the badge can say
   // "No ADA info on Google" when Google has nothing for this place.
   const handleVerifyADA = useCallback(async (biz) => {
-    const status = await verifyADASingle(biz);
-    if (!status) return false;
+    const result = await verifyADASingle(biz);
+    if (!result) return false;
     setResults(prev => prev.map(r =>
-      r.business_id === biz.business_id ? { ...r, ada_compliance: status } : r
+      r.business_id === biz.business_id
+        ? { ...r, ada_compliance: result.status, ada_source: result.source }
+        : r
     ));
     return true;
   }, []);
