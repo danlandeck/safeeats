@@ -91,8 +91,14 @@ export function processKingCountyResults(data) {
     // Strip the internal allRows/inspections working arrays (Sacramento pattern)
     // so result cards, search-state cache, and router state stay small.
     const { allRows, inspections, ...card } = biz;
+    // King County's only result labels are "Satisfactory"/"Unsatisfactory"/"Complete".
+    // "Unsatisfactory" is routine wording (any red-critical violation found) and its
+    // severity is ALREADY encoded in the penalty points we inverted into safetyScore.
+    // Passing it to resolveGrade would force "F" on a 20-point (B-grade) inspection,
+    // so strip it and let the numeric score decide the letter grade.
+    const gradeResult = /unsatisfactor/i.test(latestResult) ? "" : latestResult;
     return {
-      ...card, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
+      ...card, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, gradeResult) : "U",
       totalInspections: inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.LATITUDE, longitude: rowWithCoords?.LONGITUDE,
