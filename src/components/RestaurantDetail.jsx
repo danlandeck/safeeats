@@ -422,7 +422,8 @@ export default function RestaurantDetail({ restaurant, inspections, onBack }) {
           <div className="space-y-3">
             {uniqueInspections.map((insp, idx) => {
               const raw = insp.inspection_score !== undefined ? insp.inspection_score : insp.score;
-              const score = raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : restaurant.safetyScore;
+              const pts = raw !== undefined && raw !== null && String(raw).trim() !== "" ? parseInt(raw) : NaN;
+              const score = Number.isFinite(pts) ? Math.max(0, Math.min(100, 100 - pts)) : restaurant.safetyScore;
               const isExpanded = expandedInspection === idx;
               const dateStr = insp.inspection_date
                 ? new Date(insp.inspection_date).toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" })

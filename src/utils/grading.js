@@ -1,10 +1,15 @@
 // Pass/Fail result detection — used by resolveGrade to avoid showing
 // "F" for a restaurant that officially Passed inspection.
 const PASS_PATTERN = /\b(?:pass\b|satisfactor|complian|conforme?|approved)/i;
-const FAIL_PATTERN = /\b(?:fail|closed|closure|non[- ]?complian|unsatisfactor)/i;
+const FAIL_PATTERN = /\b(?:fail|closed|closure|non[- ]?complian)/i;
+// "Unsatisfactory" is routine wording in several jurisdictions (King County,
+// San Francisco, Alaska…): it flags that violations were found, but the severity
+// is already encoded in the numeric score. It only forces an F when there is no
+// numeric score to go by.
+const UNSATISFACTORY_PATTERN = /\bunsatisfactor/i;
 
 export function getGrade(score) {
-  if (score === null || score === undefined) return "U";
+  if (score === null || score === undefined || !Number.isFinite(score)) return "U";
   if (score >= 90) return "A";
   if (score >= 80) return "B";
   if (score >= 70) return "C";
@@ -25,13 +30,13 @@ export function getGrade(score) {
  * @returns {string}           — A/B/C/D/F/P/U
  */
 export function resolveGrade(score, result = "") {
-  if (score === null || score === undefined) {
-    if (FAIL_PATTERN.test(result)) return "F";
+  if (score === null || score === undefined || !Number.isFinite(score)) {
+    if (FAIL_PATTERN.test(result) || UNSATISFACTORY_PATTERN.test(result)) return "F";
     if (PASS_PATTERN.test(result)) return "P";
     return "U";
   }
   const letterGrade = getGrade(score);
-  // A "Fail" result always shows "F" — regardless of the synthesized numeric score.
+  // A "Fail"/"Closed" result always shows "F" — regardless of the numeric score.
   if (FAIL_PATTERN.test(result)) return "F";
   // A "Pass" result should never display as D or F
   if (letterGrade === "D" || letterGrade === "F") {

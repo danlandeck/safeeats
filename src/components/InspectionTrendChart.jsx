@@ -11,35 +11,40 @@ export default function InspectionTrendChart({ inspections }) {
     .filter((i) => i.inspection_date || i.date)
     .map((insp) => {
       const raw = insp.inspection_score !== undefined ? insp.inspection_score : insp.score;
-      const score = raw !== undefined ? Math.max(0, Math.min(100, 100 - parseInt(raw))) : (insp.safetyScore || 0);
+      const pts = raw !== undefined && raw !== null && String(raw).trim() !== "" ? parseInt(raw) : NaN;
       const dateStr = insp.inspection_date || insp.date;
       return {
         date: dateStr ? format(new Date(dateStr), "MMM yy") : "N/A",
-        score,
+        score: Number.isFinite(pts) ? Math.max(0, Math.min(100, 100 - pts)) : null,
         result: insp.inspection_result || insp.result || "",
       };
     });
 
   if (data.length < 2) return null;
 
-  const validScores = data.map((d) => d.score).filter((s) => s > 0);
+  // Current grade = the most recent inspection's score (last item, oldest→newest).
+  // Inspections without a usable score are skipped — they never inherit the
+  // restaurant's current score or count as a fake 0.
+  const currentScore = [...data].reverse().find((d) => Number.isFinite(d.score))?.score ?? null;
+  const currentGrade = currentScore !== null ? getGrade(currentScore) : "?";
 
-  // Current grade = most recent inspection (last item, since data is oldest→newest)
-  const currentScore = data[data.length - 1]?.score;
-  const currentGrade = currentScore != null ? getGrade(currentScore) : "?";
-
-  // Legacy grade = all-time average across all inspections
+  // Legacy grade = average of ALL inspection scores on record
+  const validScores = data.map((d) => d.score).filter((s) => Number.isFinite(s));
   const avgScore = validScores.length > 0
     ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
     : null;
-  const legacyGrade = avgScore != null ? getGrade(avgScore) : "?";
+  const legacyGrade = avgScore !== null ? getGrade(avgScore) : "?";
 
   // Trend: compare first half avg vs second half avg
+  const halfAvg = (rows) => {
+    const vals = rows.map((d) => d.score).filter((s) => Number.isFinite(s));
+    return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  };
   const firstHalf = data.slice(0, Math.floor(data.length / 2));
   const secondHalf = data.slice(Math.ceil(data.length / 2));
-  const firstAvg = firstHalf.reduce((s, d) => s + d.score, 0) / (firstHalf.length || 1);
-  const secondAvg = secondHalf.reduce((s, d) => s + d.score, 0) / (secondHalf.length || 1);
-  const delta = Math.round(secondAvg - firstAvg);
+  const firstAvg = halfAvg(firstHalf);
+  const secondAvg = halfAvg(secondHalf);
+  const delta = firstAvg !== null && secondAvg !== null ? Math.round(secondAvg - firstAvg) : 0;
   const isImproving = delta >= 3;
   const isDeclining = delta <= -3;
 
@@ -71,7 +76,7 @@ export default function InspectionTrendChart({ inspections }) {
             <span className={`text-4xl font-extrabold px-4 py-1 rounded-xl ${getGradeColor(currentGrade)}`}>
               {currentGrade}
             </span>
-            <p className="text-xs text-slate-500 font-semibold mt-1">{currentScore} / 100 · Most Recent</p>
+            <p className="text-xs text-slate-500 font-semibold mt-1">{currentScore ?? "—"} / 100 · Most Recent</p>
           </div>
         </div>
         <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">

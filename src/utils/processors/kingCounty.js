@@ -94,11 +94,10 @@ export function processKingCountyResults(data) {
     // King County's only result labels are "Satisfactory"/"Unsatisfactory"/"Complete".
     // "Unsatisfactory" is routine wording (any red-critical violation found) and its
     // severity is ALREADY encoded in the penalty points we inverted into safetyScore.
-    // Passing it to resolveGrade would force "F" on a 20-point (B-grade) inspection,
-    // so strip it and let the numeric score decide the letter grade.
-    const gradeResult = /unsatisfactor/i.test(latestResult) ? "" : latestResult;
+    // resolveGrade no longer lets that keyword override a numeric score — the same
+    // rule as every other jurisdiction — so the result passes through untouched.
     return {
-      ...card, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, gradeResult) : "U",
+      ...card, safetyScore, grade: safetyScore !== null ? resolveGrade(safetyScore, latestResult) : "U",
       totalInspections: inspections.length,
       latestDate: latest?.date, latestResult,
       latitude: rowWithCoords?.LATITUDE, longitude: rowWithCoords?.LONGITUDE,

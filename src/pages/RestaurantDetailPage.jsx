@@ -2,6 +2,16 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RestaurantDetail from "../components/RestaurantDetail";
 import { fetchDetail as engineFetchDetail } from "../utils/searchEngine";
+import { resolveGrade } from "../utils/grading";
+
+// Inspection rows store DEDUCTION points — the safety score is 100 minus them.
+// Rows without a usable score return null (never NaN, never 0).
+const parseSafetyScore = (raw) => {
+  if (raw === undefined || raw === null || String(raw).trim() === "") return null;
+  const pts = parseInt(raw);
+  if (isNaN(pts)) return null;
+  return Math.max(0, Math.min(100, 100 - pts));
+};
 
 /**
  * Route-based restaurant detail page.
@@ -55,22 +65,22 @@ export default function RestaurantDetailPage() {
 
         let trueSafetyScore = restaurant.safetyScore;
         const scoresFromRows = uniqueRows
-          .map((r) => {
-            const raw = r.inspection_score !== undefined ? r.inspection_score : r.score;
-            return raw !== undefined
-              ? Math.max(0, Math.min(100, 100 - parseInt(raw)))
-              : null;
-          })
-          .filter((s) => s !== null && !isNaN(s));
+          .map((r) => parseSafetyScore(r.inspection_score !== undefined ? r.inspection_score : r.score))
+          .filter((s) => s !== null);
         if (scoresFromRows.length > 0) {
-          const latestScoreRaw =
-            mostRecent?.inspection_score !== undefined
-              ? mostRecent.inspection_score
-              : mostRecent?.score;
-          if (latestScoreRaw !== undefined && latestScoreRaw !== null) {
-            trueSafetyScore = Math.max(0, Math.min(100, 100 - parseInt(latestScoreRaw)));
-          }
+          const latestScoreRaw = mostRecent
+            ? (mostRecent.inspection_score !== undefined ? mostRecent.inspection_score : mostRecent.score)
+            : undefined;
+          const latestSafety = parseSafetyScore(latestScoreRaw);
+          if (latestSafety !== null) trueSafetyScore = latestSafety;
         }
+
+        // Current grade ALWAYS matches the current (most recent) inspection on
+        // file — recomputed here from the same score the hero displays — never
+        // the possibly stale grade carried over from the search card.
+        const trueGrade = trueSafetyScore !== null && trueSafetyScore !== undefined
+          ? resolveGrade(trueSafetyScore, trueLatestResult)
+          : restaurant.grade;
 
         setEnrichedRestaurant({
           ...restaurant,
@@ -78,6 +88,7 @@ export default function RestaurantDetailPage() {
           latestDate: trueLatestDate,
           latestResult: trueLatestResult,
           safetyScore: trueSafetyScore,
+          grade: trueGrade,
           inspectionHistory: uniqueRows,
         });
       } catch {
