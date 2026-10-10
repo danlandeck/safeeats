@@ -113,3 +113,22 @@ export function enrichADA(results, onUpdate) {
     } catch { /* lookup unavailable — cards keep "Tap to verify ADA" */ }
   })();
 }
+
+/**
+ * Single-restaurant live lookup for the card badge's "Tap to verify ADA".
+ * Stores the result in the shared cache (reused on the detail page) and
+ * returns the compliance status, or null when Google has no usable data.
+ */
+export async function verifyADASingle(restaurant) {
+  const res = await base44.functions.invoke("getPlacesAccessibility", {
+    name: restaurant.name,
+    address: restaurant.address || "",
+    city: restaurant.city || "",
+    zip_code: restaurant.zip_code || "",
+  });
+  const d = res.data || {};
+  const cache = loadCache();
+  cache[`places-ada-${restaurant.business_id}`] = d;
+  saveCache(cache);
+  return statusFromPlace(d);
+}

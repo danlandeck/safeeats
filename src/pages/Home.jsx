@@ -15,7 +15,7 @@ import ConsentBanner, { useConsent } from "../components/ConsentBanner";
 import HeroViolations from "../components/HeroViolations";
 import { saveSearchContext, getSearchContext, clearSearchContext } from "../utils/searchStateCache";
 import PullToRefresh from "../components/PullToRefresh";
-import { enrichADA } from "../utils/adaEnrich";
+import { enrichADA, verifyADASingle } from "../utils/adaEnrich";
 
 // Lazy-load heavy components so initial bundle is smaller
 const CameraScanner = React.lazy(() => import("../components/CameraScanner"));
@@ -1283,6 +1283,18 @@ export default function Home() {
     setIsLoading(false);
   }, [region, countyId, locationQuery, userCoords]);
 
+  // Card badge "Tap to verify ADA" — live single-restaurant lookup.
+  // Returns true when a status was determined so the badge can say
+  // "No ADA info on Google" when Google has nothing for this place.
+  const handleVerifyADA = useCallback(async (biz) => {
+    const status = await verifyADASingle(biz);
+    if (!status) return false;
+    setResults(prev => prev.map(r =>
+      r.business_id === biz.business_id ? { ...r, ada_compliance: status } : r
+    ));
+    return true;
+  }, []);
+
   const handleSelectBusiness = useCallback((biz) => {
     saveSearchContext({
       query: searchQuery,
@@ -1646,6 +1658,7 @@ export default function Home() {
                                 onToggleCompare={handleToggleCompare}
                                 isCompared={compareList.some((c) => c.business_id === r.business_id)}
                                 compareDisabled={compareList.length >= 3}
+                                onVerifyADA={handleVerifyADA}
                               />
                             ))}
                           </div>

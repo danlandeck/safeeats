@@ -26,7 +26,7 @@ const GRADE_LABELS = {
   U: "❓ Not sure yet — no data",
 };
 
-export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled }) {
+export default function RestaurantCard({ restaurant, onClick, onToggleCompare, isCompared, compareDisabled, onVerifyADA }) {
   const { name, address, city, zip_code, safetyScore, totalInspections, latestDate, latestResult, inspectionHistory } = restaurant;
   const isUnknown = safetyScore === null || safetyScore === undefined;
   const grade = isUnknown ? "U" : (restaurant.grade || resolveGrade(safetyScore, restaurant.latestResult));
@@ -120,7 +120,11 @@ export default function RestaurantCard({ restaurant, onClick, onToggleCompare, i
 
           {/* ADA Compliance Badge — always show */}
           <div className="mt-2">
-            <ADABadge ada_compliance={restaurant.ada_compliance || "unknown"} size="sm" />
+            <ADABadge
+              ada_compliance={restaurant.ada_compliance || "unknown"}
+              size="sm"
+              onVerify={onVerifyADA ? () => onVerifyADA(restaurant) : undefined}
+            />
           </div>
 
           {/* EPA Water info — US restaurants only (component returns null for international) */}
