@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Droplets, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { inferState } from "../utils/regions";
+import { fetchWaterGrade } from "@/utils/waterGradeClient";
 
 // International sources that have no EWG/EPA data
 const NO_WATER_DATA_SOURCES = ["toronto", "dubai", "uk_fsa"];
@@ -67,14 +67,13 @@ export default function EPAWaterCard({ restaurant }) {
       return;
     }
     setLoading(true);
-    base44.functions.invoke("getWaterGrade", {
+    fetchWaterGrade({
       city,
       state,
       country: restaurant.country || "US",
       county_id: restaurant.county_id,
       full_address: [restaurant.address, city, zip].filter(Boolean).join(", "),
-    }).then((res) => {
-      const d = res.data || {};
+    }).then((d) => {
       const cache = loadCache();
       cache[cacheKey] = { data: d, ts: Date.now() };
       saveCache(cache);
