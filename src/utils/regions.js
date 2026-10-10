@@ -640,6 +640,37 @@ export const SOURCE_TO_STATE = {
  * @param {object} restaurant — must have at minimum a source, county_id, address, city, or state field
  * @returns {string|null} two-letter uppercase state code or null
  */
+// Consolidated ZIP-prefix (first 3 digits) → state table. AI-fallback results
+// often carry a zip but no state code ("2801 S Dort Hwy, Flint 48507") — the
+// zip is enough to pin down the state for EPA water lookups nationwide.
+const ZIP3_STATE_RANGES = [
+  [5, 5, "NY"], [10, 27, "MA"], [28, 29, "RI"], [30, 38, "NH"], [39, 49, "ME"],
+  [50, 59, "VT"], [60, 69, "CT"], [70, 89, "NJ"], [100, 149, "NY"], [150, 196, "PA"],
+  [197, 199, "DE"], [200, 205, "DC"], [206, 219, "MD"], [220, 246, "VA"],
+  [247, 268, "WV"], [269, 269, "VA"], [270, 289, "NC"], [290, 299, "SC"],
+  [300, 319, "GA"], [320, 349, "FL"], [350, 369, "AL"], [370, 385, "TN"],
+  [386, 397, "MS"], [398, 399, "GA"], [400, 427, "KY"], [430, 459, "OH"],
+  [460, 479, "IN"], [480, 499, "MI"], [500, 528, "IA"], [530, 549, "WI"],
+  [550, 567, "MN"], [570, 577, "SD"], [580, 588, "ND"], [590, 599, "MT"],
+  [600, 629, "IL"], [630, 658, "MO"], [660, 679, "KS"], [680, 693, "NE"],
+  [700, 714, "LA"], [716, 729, "AR"], [730, 732, "OK"], [733, 733, "TX"],
+  [734, 738, "OK"], [739, 739, "TX"], [740, 749, "OK"], [750, 799, "TX"],
+  [800, 816, "CO"], [820, 831, "WY"], [832, 838, "ID"], [840, 847, "UT"],
+  [850, 865, "AZ"], [870, 884, "NM"], [885, 885, "TX"], [889, 898, "NV"],
+  [900, 961, "CA"], [967, 968, "HI"], [970, 979, "OR"], [980, 994, "WA"],
+  [995, 999, "AK"],
+];
+
+export function zipToState(zip) {
+  if (!zip) return null;
+  const prefix = parseInt(String(zip).slice(0, 3), 10);
+  if (isNaN(prefix)) return null;
+  for (const [lo, hi, st] of ZIP3_STATE_RANGES) {
+    if (prefix >= lo && prefix <= hi) return st;
+  }
+  return null;
+}
+
 export function inferState(restaurant) {
   if (!restaurant) return null;
 
@@ -666,7 +697,14 @@ export function inferState(restaurant) {
   if (isUS) {
     const fullAddr = [restaurant.address, restaurant.city, restaurant.zip_code].filter(Boolean).join(", ");
     const m = fullAddr.match(/,\s*([A-Z]{2})[\s,]+\d{5}/);
-    return m ? m[1] : null;
+    if (m) return m[1];
+    // Strategy 3b: no state code in the address — infer from the zip code.
+    // Prefer the zip field; otherwise the LAST 5-digit group in the address
+    // (street numbers come first, the zip comes last).
+    const zipGroups = fullAddr.match(/\b\d{5}(?:-\d{4})?\b/g);
+    const zip = String(restaurant.zip_code || "").match(/\b\d{5}\b/)?.[0]
+      || (zipGroups ? zipGroups[zipGroups.length - 1].slice(0, 5) : null);
+    return zip ? zipToState(zip) : null;
   }
 
   // Non-US: no US state applicable
